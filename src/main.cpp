@@ -1,4 +1,4 @@
-#include <SFML/Graphics.hpp>
+#include <sfml-headers.h>
 
 int main()
 {
