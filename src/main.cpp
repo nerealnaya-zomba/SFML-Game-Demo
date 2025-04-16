@@ -2,6 +2,10 @@
 
 int main()
 {
+    //Window preferences
+    auto window = sf::RenderWindow(sf::VideoMode({800u, 800u}), WINDOW_TITLE, sf::Style::Titlebar | sf::Style::Close);
+    window.setFramerateLimit(144);
+    
     //Loading font
     sf::Font font;
     if(font.openFromFile("fonts/Roboto_Condensed-Black.ttf"))
@@ -16,9 +20,7 @@ int main()
     
 
 
-    //Window preferences
-    auto window = sf::RenderWindow(sf::VideoMode({800u, 800u}), WINDOW_TITLE, sf::Style::Titlebar | sf::Style::Close);
-    window.setFramerateLimit(144);
+    
 
 
     //Main loop
