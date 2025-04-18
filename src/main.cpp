@@ -3,7 +3,7 @@
 int main()
 {
     //Window preferences
-    auto window = sf::RenderWindow(sf::VideoMode({800u, 800u}), WINDOW_TITLE, sf::Style::Titlebar | sf::Style::Close);
+    auto window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), WINDOW_TITLE, sf::Style::Titlebar | sf::Style::Close);
     window.setFramerateLimit(144);
     
     //Loading font
@@ -18,8 +18,8 @@ int main()
     txt.setPosition(sf::Vector2f(320.0f,350.0f));
     txt.setFillColor(sf::Color::White);
     
-
-
+    
+    
     
 
 
@@ -42,9 +42,17 @@ int main()
             
         }
 
-        window.clear(sf::Color(10u,20u,30u,100u));
-        window.draw(txt);
-        window.display();
+        try
+        {
+            window.clear(sf::Color(10u,20u,30u,100u));
+            window.draw(txt);
+            window.display();
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        
     }
 
 
