@@ -15,8 +15,9 @@ int main()
     sf::RectangleShape mouseRect({1.f,1.f});
 
     //Background
-    sf::Color backGroundColor({0,0,0});
-    
+    sf::Color menuBackGroundColor({0u,0u,0u});
+    sf::Color gameBackGroundColor({255,255,255,255});
+
     //Loading font
     sf::Font font;
     if(font.openFromFile("fonts/Roboto_Condensed-Black.ttf"))
@@ -63,6 +64,63 @@ int main()
                         moveRectToMouse(mouseRect,window);
                         if(mouseRect.getGlobalBounds().findIntersection(playButton.getGlobalBounds()))
                         {
+
+                            //Fill-up all window with button's area, then start game
+                            for (int i = 0; i < WINDOW_FPS*2; i++)
+                            {
+                                playButton.setScale({playButton.getScale().x+0.05f, playButton.getScale().y+0.15f});
+                                if(playButtonText.getFillColor().a>0)
+                                {
+                                    playButtonText.setFillColor({playButton.getFillColor().r, playButton.getFillColor().g, playButton.getFillColor().b, playButton.getFillColor().a-1});
+                                }
+                                
+                                //Smoothly change button's color to game's background color
+                                sf::Color locButton = playButton.getFillColor();
+                                if(locButton.r != gameBackGroundColor.r)
+                                {
+                                    if(locButton.r > gameBackGroundColor.r)
+                                    {
+                                        locButton.r -= 1;
+                                    }
+                                    else
+                                    {
+                                        locButton.r += 1;
+                                    }
+                                }
+                                if(locButton.g != gameBackGroundColor.g)
+                                {
+                                    if(locButton.g > gameBackGroundColor.g)
+                                    {
+                                        locButton.g -= 1;
+                                    }
+                                    else
+                                    {
+                                        locButton.g += 1;
+                                    }
+                                }
+                                if(locButton.b != gameBackGroundColor.b)
+                                {
+                                    if(locButton.b > gameBackGroundColor.b)
+                                    {
+                                        locButton.b -= 1;
+                                    }
+                                    else
+                                    {
+                                        locButton.b += 1;
+                                    }
+                                }
+                                playButton.setFillColor(locButton);
+
+                                //std::cout << "1: " << (int)locButton.r << " 2: " << (int)locButton.g << " 3: " << (int)locButton.b << std::endl;
+                                //std::cout << "1: " << (int)gameBackGroundColor.r << " 2: " << (int)gameBackGroundColor.g << " 3: " << (int)gameBackGroundColor.b << std::endl;
+
+                                //draw
+                                window.draw(playButton);
+                                window.draw(playButtonText);
+                                window.display();
+                            }
+                            /////////////////////////////////////////////////////////
+
                             isMainMenuCalled = false;
                         }
                         else if(mouseRect.getGlobalBounds().findIntersection(exitButton.getGlobalBounds()))
@@ -99,7 +157,7 @@ int main()
             sizeUpRectangleOnHover(playButton,mouseRect,window, 0.03f , 0.02f);
             sizeUpRectangleOnHover(exitButton,mouseRect,window, 0.03f , 0.02f);
 
-            rainbowWindowClear(window, backGroundColor);
+            rainbowWindowClear(window, menuBackGroundColor);
 
             window.draw(playButton);
             window.draw(exitButton);
@@ -111,7 +169,7 @@ int main()
 
         try
         {
-            window.clear(sf::Color(10u,20u,30u,100u));
+            window.clear(gameBackGroundColor);
             
             window.display();
         }
