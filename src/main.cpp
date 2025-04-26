@@ -4,10 +4,12 @@ int main()
 {
     //Window preferences
     auto window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), WINDOW_TITLE, sf::Style::Titlebar | sf::Style::Close);
-    window.setFramerateLimit(144);
+    window.setFramerateLimit(WINDOW_FPS);
 
     //Bools
     bool isMainMenuCalled = true;
+
+
 
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
@@ -54,31 +56,46 @@ int main()
         {
             if(isMainMenuCalled)
             {
-                
+                if(const auto* mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if(mouseButtonPressed->button == sf::Mouse::Button::Left)
+                    {
+                        moveRectToMouse(mouseRect,window);
+                        if(mouseRect.getGlobalBounds().findIntersection(playButton.getGlobalBounds()))
+                        {
+                            isMainMenuCalled = false;
+                        }
+                        else if(mouseRect.getGlobalBounds().findIntersection(exitButton.getGlobalBounds()))
+                        {
+                            //Fill-up all window with button's area, then close window
+                            for (int i = 0; i < WINDOW_FPS*1.3; i++)
+                            {
+                                exitButton.setScale({exitButton.getScale().x+0.05f, exitButton.getScale().y+0.15f});
+                                if(exitButtonText.getFillColor().a>0)
+                                {
+                                    exitButtonText.setFillColor({exitButton.getFillColor().r, exitButton.getFillColor().g, exitButton.getFillColor().b, exitButton.getFillColor().a-1});
+                                }
+
+                                window.draw(exitButton);
+                                window.draw(exitButtonText);
+                                window.display();
+                            }
+                            window.close();
+                            /////////////////////////////////////////////////////////
+                        }
+                    }
+                }
             }
-
-
             //Close window on "Close" button
             if (event->is<sf::Event::Closed>())
             {
                 window.close();
             }
-
-            if(event->is<sf::Event::MouseWheelScrolled>())
-            {
-                std::cout << "MouseWheelScrolled" << std::endl;
-            }
-            
         }
         
         //Main menu
         if(isMainMenuCalled)
         {
-
-
-
-
-
             sizeUpRectangleOnHover(playButton,mouseRect,window, 0.03f , 0.02f);
             sizeUpRectangleOnHover(exitButton,mouseRect,window, 0.03f , 0.02f);
 
