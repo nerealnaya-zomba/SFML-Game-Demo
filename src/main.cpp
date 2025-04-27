@@ -44,7 +44,7 @@ int main()
     exitButtonText.setPosition({exitButton.getPosition().x, exitButton.getPosition().y-6});
 
     
-
+    
 
 
     //Main loop
@@ -55,6 +55,12 @@ int main()
 
         while (const std::optional event = window.pollEvent())
         {
+            //Close window on "Close" button
+            if (event->is<sf::Event::Closed>())
+            {
+                window.close();
+            }
+            //↓↓-----MAIN MENU SECTION-----↓↓
             if(isMainMenuCalled)
             {
                 if(const auto* mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>())
@@ -143,11 +149,65 @@ int main()
                         }
                     }
                 }
+                continue;
             }
-            //Close window on "Close" button
-            if (event->is<sf::Event::Closed>())
+            //↑↑-----MAIN MENU SECTION-----↑↑
+
+            //Call main menu on 'Escape' button
+            if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
-                window.close();
+                if(keyPressed->scancode == sf::Keyboard::Scancode::Escape)
+                {
+                    //Smoothly return previous variables on playButton and PlayButtonText
+                    playButtonText.setFillColor(sf::Color::White);
+                    for (int i = 0; i < WINDOW_FPS*2; i++)
+                    {
+                        if(playButton.getScale().x>1 && playButton.getScale().y > 1)
+                        {
+                            playButton.setScale({playButton.getScale().x-0.05f, playButton.getScale().y-0.15f});
+                        }
+                        if(playButtonText.getFillColor().a<255)
+                        {
+                            playButtonText.setFillColor({playButton.getFillColor().r, playButton.getFillColor().g, playButton.getFillColor().b, playButton.getFillColor().a+1});
+                        }
+                        
+                        //Smoothly change button's color to the black
+                        sf::Color locButton = playButton.getFillColor();
+                        if(locButton.r != 0)
+                        {
+                            if(locButton.r > 0)
+                            {
+                                locButton.r -= 1;
+                            }
+                            
+                        }
+                        if(locButton.g != 0)
+                        {
+                            if(locButton.g > 0)
+                            {
+                                locButton.g -= 1;
+                            }
+                            
+                        }
+                        if(locButton.b != 0)
+                        {
+                            if(locButton.b > 0)
+                            {
+                                locButton.b -= 1;
+                            }
+                        }
+                        playButton.setFillColor(locButton);
+
+                        //draw
+                        window.clear(sf::Color::White);
+                        window.draw(playButton);
+                        window.draw(playButtonText);
+                        window.display();
+                    }
+                    
+                    ////////////////////////////////////////////////////////
+                    isMainMenuCalled = true;
+                }
             }
         }
         
