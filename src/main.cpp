@@ -9,8 +9,6 @@ int main()
     //Bools
     bool isMainMenuCalled = true;
 
-
-
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
 
@@ -42,9 +40,11 @@ int main()
     exitButtonText.setFillColor(sf::Color::White);
     exitButtonText.setOrigin({exitButtonText.getGlobalBounds().size.x/2,exitButtonText.getGlobalBounds().size.y/2});
     exitButtonText.setPosition({exitButton.getPosition().x, exitButton.getPosition().y-6});
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    //Game
+    
 
-    
-    
 
 
     //Main loop
@@ -77,7 +77,7 @@ int main()
                                 playButton.setScale({playButton.getScale().x+0.05f, playButton.getScale().y+0.15f});
                                 if(playButtonText.getFillColor().a>0)
                                 {
-                                    playButtonText.setFillColor({playButton.getFillColor().r, playButton.getFillColor().g, playButton.getFillColor().b, playButton.getFillColor().a-1});
+                                    playButtonText.setFillColor({playButton.getFillColor().r, playButton.getFillColor().g, playButton.getFillColor().b, playButton.getFillColor().a-static_cast<unsigned char>(1)});
                                 }
                                 
                                 //Smoothly change button's color to game's background color
@@ -227,10 +227,10 @@ int main()
             continue;
         }
 
+
         try
         {
             window.clear(gameBackGroundColor);
-            
             window.display();
         }
         catch(const std::exception& e)

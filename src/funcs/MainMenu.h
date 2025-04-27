@@ -5,7 +5,9 @@
 
 void moveRectToMouse(sf::RectangleShape& rect,sf::RenderWindow& window)
 {
-    rect.setPosition({sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y});
+    int mouseX = sf::Mouse::getPosition(window).x;
+    int mouseY = sf::Mouse::getPosition(window).y;
+    rect.setPosition({static_cast<float>(mouseX),static_cast<float>(mouseY)});
 }
 
 void rainbowWindowClear(sf::RenderWindow& window, sf::Color& backgroundColor)
@@ -89,7 +91,9 @@ void sizeUpRectangleOnHover(sf::RectangleShape& rect, sf::RectangleShape& mouseR
 {
     bool isSizeUp = false;
     bool isSizeDown = false;
-    mouseRect.setPosition({sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y});
+    int mouseX = sf::Mouse::getPosition(window).x;
+    int mouseY = sf::Mouse::getPosition(window).y;
+    mouseRect.setPosition({static_cast<float>(mouseX),static_cast<float>(mouseY)});
     //std::cout << "mouseRect: " << mouseRect.getGlobalBounds().position.x << "" << mouseRect.getGlobalBounds().position.y << "     "<< "rect: " << rect.getGlobalBounds().position.x << "" << rect.getGlobalBounds().position.y << std::endl;
 
     if(mouseRect.getGlobalBounds().findIntersection(rect.getGlobalBounds()))

@@ -2,6 +2,8 @@
 
 //Local includes
 #include <MainMenu.h>
+#include <Mounting.h>
+
 
 //Defines
 #define WINDOW_TITLE "Platformer"
