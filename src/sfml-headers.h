@@ -4,6 +4,8 @@
 #include <MainMenu.h>
 #include <Mounting.h>
 
+//Local include objects
+#include<Player.h>
 
 //Defines
 #define WINDOW_TITLE "Platformer"
