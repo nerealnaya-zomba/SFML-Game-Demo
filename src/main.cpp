@@ -234,31 +234,53 @@ int main()
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
         {
             player.isIdle = false;
-            player.switchToNextRunningSprite();
+            if(!player.isFalling)
+            {
+                player.switchToNextRunningSprite();
+            }
             player.playerRectangle->setScale({-1.f,1.f});
             player.playerRectangle->move({-1.f,0.f});
         }
         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
         {
             player.isIdle = false;
-            player.switchToNextRunningSprite();
+            if(!player.isFalling)
+            {
+                player.switchToNextRunningSprite();
+            }
             player.playerRectangle->setScale({1.f,1.f});
             player.playerRectangle->move({1.f,0.f});
         }
+
+        //Player logic
+            //Physical logic
+                //If player is on the edge of down side of window
+        if((player.playerRectangle->getPosition().y+player.playerRectangle->getSize().y/2-15)>=WINDOW_HEIGHT)
+        {
+            player.isFalling = false;
+        }
+        if(player.isFalling)
+        {
+            player.playerRectangle->move({0.f,1.f});
+        }
+        
+            //Texture logic
         if(player.isIdle)
         {
             player.switchToNextIdleSprite();
         }
+        if(player.isFalling)
+        {  
+            player.switchToNextFallingTexture();
+        }
         
-
+        
         try
         {
             window.clear(gameBackGroundColor);
             
+
             //Player drawing
-
-            
-
             player.drawPlayer(window);
 
 

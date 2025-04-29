@@ -6,12 +6,32 @@ Player::Player()
     //Textures initialization
     initTextures(idleTextures,idleTexturesPaths);
     initTextures(runningTextures,runningTexturesPaths);
+    initTextures(fallingTextures,fallingTexturesPaths);
 
     //Rectangles initialization
     playerRectangle = new sf::RectangleShape();
     playerRectangle->setSize({96.f,96.f});
     setRectangleOriginToMiddle(*playerRectangle);
     playerRectangle->setPosition({300.f,400.f});
+}
+
+void Player::switchToNextFallingTexture()
+{
+    static int fps = 1;
+    if(fps!=WINDOW_FPS/12)
+    {   
+        fps++;
+        return;
+    }
+    static size_t i = 0;
+    playerRectangle->setTexture(&fallingTextures[i],true);
+    i++;
+    if(i == fallingTextures.size()-1)
+    {
+        i=0;
+    }
+    
+    fps=1;   
 }
 
 Player::~Player()

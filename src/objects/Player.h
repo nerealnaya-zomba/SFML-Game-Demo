@@ -12,6 +12,7 @@ class Player{
     //Variables
         //Logic
     bool isIdle = true;
+    bool isFalling = true;
         //Textures
     std::vector<sf::Texture> idleTextures{};    
     std::vector<std::string> idleTexturesPaths{
@@ -33,7 +34,14 @@ class Player{
         "images/satiro-running-7.png",
         "images/satiro-running-8.png",
     };
-
+    std::vector<sf::Texture> fallingTextures{};
+    std::vector<std::string> fallingTexturesPaths{
+        "images/satiro-falling-1.png",
+        "images/satiro-falling-2.png",
+        "images/satiro-falling-3.png",
+        "images/satiro-falling-4.png",
+        "images/satiro-falling-5.png",
+    };
 
 
         //Rectangles
@@ -46,6 +54,7 @@ class Player{
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     void switchToNextIdleSprite();
     void switchToNextRunningSprite();
+    void switchToNextFallingTexture();
     Player();
     ~Player();
     void drawPlayer(sf::RenderWindow& window);
