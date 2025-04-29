@@ -43,7 +43,7 @@ int main()
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     //Game
-    sf::RectangleShape player;
+    Player player;
     
 
 
@@ -209,6 +209,8 @@ int main()
                     isMainMenuCalled = true;
                 }
             }
+            
+            
         }
         
         //Main menu
@@ -227,10 +229,39 @@ int main()
             continue;
         }
 
+        //Player control
+        player.isIdle = true;
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+        {
+            player.isIdle = false;
+            player.switchToNextRunningSprite();
+            player.playerRectangle->setScale({-1.f,1.f});
+            player.playerRectangle->move({-1.f,0.f});
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+        {
+            player.isIdle = false;
+            player.switchToNextRunningSprite();
+            player.playerRectangle->setScale({1.f,1.f});
+            player.playerRectangle->move({1.f,0.f});
+        }
+        if(player.isIdle)
+        {
+            player.switchToNextIdleSprite();
+        }
+        
 
         try
         {
             window.clear(gameBackGroundColor);
+            
+            //Player drawing
+
+            
+
+            player.drawPlayer(window);
+
+
             window.display();
         }
         catch(const std::exception& e)

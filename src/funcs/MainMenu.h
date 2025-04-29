@@ -1,16 +1,17 @@
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <ctime>
 #include <iostream>
 
-void moveRectToMouse(sf::RectangleShape& rect,sf::RenderWindow& window)
+static void moveRectToMouse(sf::RectangleShape& rect,sf::RenderWindow& window)
 {
     int mouseX = sf::Mouse::getPosition(window).x;
     int mouseY = sf::Mouse::getPosition(window).y;
     rect.setPosition({static_cast<float>(mouseX),static_cast<float>(mouseY)});
 }
 
-void rainbowWindowClear(sf::RenderWindow& window, sf::Color& backgroundColor)
+static void rainbowWindowClear(sf::RenderWindow& window, sf::Color& backgroundColor)
 {
     srand(time(0));
 
@@ -87,7 +88,7 @@ void rainbowWindowClear(sf::RenderWindow& window, sf::Color& backgroundColor)
 }
 
 //Size up rectangle when mouseRect based on mousePos intersects rect
-void sizeUpRectangleOnHover(sf::RectangleShape& rect, sf::RectangleShape& mouseRect, sf::RenderWindow& window, float sizingUpSpeed=0.05f, float sizingDownSpeed=0.05f)
+static void sizeUpRectangleOnHover(sf::RectangleShape& rect, sf::RectangleShape& mouseRect, sf::RenderWindow& window, float sizingUpSpeed=0.05f, float sizingDownSpeed=0.05f)
 {
     bool isSizeUp = false;
     bool isSizeDown = false;
