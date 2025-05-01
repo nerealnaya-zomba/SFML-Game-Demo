@@ -1,4 +1,5 @@
 #include <sfml-headers.h>
+#include <Defines.h>
 
 int main()
 {
@@ -24,24 +25,8 @@ int main()
         std::cout << "Font error" << std::endl;
 
     //Main menu
-    sf::RectangleShape playButton(sf::Vector2f{200.f,75.f});
-    playButton.setFillColor(sf::Color::Black);
-    playButton.setOrigin({playButton.getSize().x/2,playButton.getSize().y/2});
-    playButton.setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT-325+50});
-    sf::Text playButtonText(font,"Play");
-    playButtonText.setFillColor(sf::Color::White);
-    playButtonText.setOrigin({playButtonText.getGlobalBounds().size.x/2,playButtonText.getGlobalBounds().size.y/2});
-    playButtonText.setPosition({playButton.getPosition().x, playButton.getPosition().y-2});
-    sf::RectangleShape exitButton(sf::Vector2f{200.f,75.f});
-    exitButton.setFillColor(sf::Color::Black);
-    exitButton.setOrigin({exitButton.getSize().x/2,exitButton.getSize().y/2});
-    exitButton.setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT-200+50});
-    sf::Text exitButtonText(font,"Exit");
-    exitButtonText.setFillColor(sf::Color::White);
-    exitButtonText.setOrigin({exitButtonText.getGlobalBounds().size.x/2,exitButtonText.getGlobalBounds().size.y/2});
-    exitButtonText.setPosition({exitButton.getPosition().x, exitButton.getPosition().y-6});
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+    Menu menu(font);
+
     //Game
     Player player;
     
@@ -68,20 +53,20 @@ int main()
                     if(mouseButtonPressed->button == sf::Mouse::Button::Left)
                     {
                         moveRectToMouse(mouseRect,window);
-                        if(mouseRect.getGlobalBounds().findIntersection(playButton.getGlobalBounds()))
+                        if(mouseRect.getGlobalBounds().findIntersection(menu.playButton->getGlobalBounds()))
                         {
 
                             //Fill-up all window with button's area, then start game
                             for (int i = 0; i < WINDOW_FPS*2; i++)
                             {
-                                playButton.setScale({playButton.getScale().x+0.05f, playButton.getScale().y+0.15f});
-                                if(playButtonText.getFillColor().a>0)
+                                menu.playButton->setScale({menu.playButton->getScale().x+0.05f, menu.playButton->getScale().y+0.15f});
+                                if(menu.playButtonText->getFillColor().a>0)
                                 {
-                                    playButtonText.setFillColor({playButton.getFillColor().r, playButton.getFillColor().g, playButton.getFillColor().b, playButton.getFillColor().a-1});
+                                    menu.playButtonText->setFillColor({menu.playButton->getFillColor().r, menu.playButton->getFillColor().g, menu.playButton->getFillColor().b, menu.playButton->getFillColor().a-1});
                                 }
                                 
                                 //Smoothly change button's color to game's background color
-                                sf::Color locButton = playButton.getFillColor();
+                                sf::Color locButton = menu.playButton->getFillColor();
                                 if(locButton.r != gameBackGroundColor.r)
                                 {
                                     if(locButton.r > gameBackGroundColor.r)
@@ -115,33 +100,33 @@ int main()
                                         locButton.b += 1;
                                     }
                                 }
-                                playButton.setFillColor(locButton);
+                                menu.playButton->setFillColor(locButton);
 
                                 //std::cout << "1: " << (int)locButton.r << " 2: " << (int)locButton.g << " 3: " << (int)locButton.b << std::endl;
                                 //std::cout << "1: " << (int)gameBackGroundColor.r << " 2: " << (int)gameBackGroundColor.g << " 3: " << (int)gameBackGroundColor.b << std::endl;
 
                                 //draw
-                                window.draw(playButton);
-                                window.draw(playButtonText);
+                                window.draw(*menu.playButton);
+                                window.draw(*menu.playButtonText);
                                 window.display();
                             }
                             /////////////////////////////////////////////////////////
 
                             isMainMenuCalled = false;
                         }
-                        else if(mouseRect.getGlobalBounds().findIntersection(exitButton.getGlobalBounds()))
+                        else if(mouseRect.getGlobalBounds().findIntersection(menu.exitButton->getGlobalBounds()))
                         {
                             //Fill-up all window with button's area, then close window
                             for (int i = 0; i < WINDOW_FPS*1.3; i++)
                             {
-                                exitButton.setScale({exitButton.getScale().x+0.05f, exitButton.getScale().y+0.15f});
-                                if(exitButtonText.getFillColor().a>0)
+                                menu.exitButton->setScale({menu.exitButton->getScale().x+0.05f, menu.exitButton->getScale().y+0.15f});
+                                if(menu.exitButtonText->getFillColor().a>0)
                                 {
-                                    exitButtonText.setFillColor({exitButton.getFillColor().r, exitButton.getFillColor().g, exitButton.getFillColor().b, exitButton.getFillColor().a-1});
+                                    menu.exitButtonText->setFillColor({menu.exitButton->getFillColor().r, menu.exitButton->getFillColor().g, menu.exitButton->getFillColor().b, menu.exitButton->getFillColor().a-1});
                                 }
 
-                                window.draw(exitButton);
-                                window.draw(exitButtonText);
+                                window.draw(*menu.exitButton);
+                                window.draw(*menu.exitButtonText);
                                 window.display();
                             }
                             window.close();
@@ -159,20 +144,20 @@ int main()
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Escape)
                 {
                     //Smoothly return previous variables on playButton and PlayButtonText
-                    playButtonText.setFillColor(sf::Color::White);
+                    menu.playButtonText->setFillColor(sf::Color::White);
                     for (int i = 0; i < WINDOW_FPS*2; i++)
                     {
-                        if(playButton.getScale().x>1 && playButton.getScale().y > 1)
+                        if(menu.playButton->getScale().x>1 && menu.playButton->getScale().y > 1)
                         {
-                            playButton.setScale({playButton.getScale().x-0.05f, playButton.getScale().y-0.15f});
+                            menu.playButton->setScale({menu.playButton->getScale().x-0.05f, menu.playButton->getScale().y-0.15f});
                         }
-                        if(playButtonText.getFillColor().a<255)
+                        if(menu.playButtonText->getFillColor().a<255)
                         {
-                            playButtonText.setFillColor({playButton.getFillColor().r, playButton.getFillColor().g, playButton.getFillColor().b, playButton.getFillColor().a+1});
+                            menu.playButtonText->setFillColor({menu.playButton->getFillColor().r, menu.playButton->getFillColor().g, menu.playButton->getFillColor().b, menu.playButton->getFillColor().a+1});
                         }
                         
                         //Smoothly change button's color to the black
-                        sf::Color locButton = playButton.getFillColor();
+                        sf::Color locButton = menu.playButton->getFillColor();
                         if(locButton.r != 0)
                         {
                             if(locButton.r > 0)
@@ -196,12 +181,12 @@ int main()
                                 locButton.b -= 1;
                             }
                         }
-                        playButton.setFillColor(locButton);
+                        menu.playButton->setFillColor(locButton);
 
                         //draw
                         window.clear(sf::Color::White);
-                        window.draw(playButton);
-                        window.draw(playButtonText);
+                        window.draw(*menu.playButton);
+                        window.draw(*menu.playButtonText);
                         window.display();
                     }
                     
@@ -216,15 +201,15 @@ int main()
         //Main menu
         if(isMainMenuCalled)
         {
-            sizeUpRectangleOnHover(playButton,mouseRect,window, 0.03f , 0.02f);
-            sizeUpRectangleOnHover(exitButton,mouseRect,window, 0.03f , 0.02f);
+            sizeUpRectangleOnHover(*menu.playButton,mouseRect,window, 0.03f , 0.02f);
+            sizeUpRectangleOnHover(*menu.exitButton,mouseRect,window, 0.03f , 0.02f);
 
-            rainbowWindowClear(window, menuBackGroundColor);
+            menu.rainbowWindowClear(window, menuBackGroundColor);
 
-            window.draw(playButton);
-            window.draw(exitButton);
-            window.draw(playButtonText);
-            window.draw(exitButtonText);
+            window.draw(*menu.playButton);
+            window.draw(*menu.exitButton);
+            window.draw(*menu.playButtonText);
+            window.draw(*menu.exitButtonText);
             window.display();
             continue;
         }
