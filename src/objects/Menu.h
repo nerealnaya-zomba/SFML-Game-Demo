@@ -14,7 +14,9 @@ class Menu{
     sf::Text* exitButtonText;
 
     void rainbowWindowClear(sf::RenderWindow& window, sf::Color& backgroundColor);
-
+    void fillUpWindowWithPlayButton(sf::RenderWindow& window, sf::Color gameBackGroundColor);
+    void fillUpWindowWithExitButton(sf::RenderWindow& window);
+    void smoothlyReturnPreviousVariablesAndDraw(sf::RenderWindow& window);
     Menu(sf::Font& font);
     ~Menu();
 };
