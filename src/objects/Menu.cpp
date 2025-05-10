@@ -227,3 +227,12 @@ void Menu::smoothlyReturnPreviousVariablesAndDraw(sf::RenderWindow& window)
         window.display();
     }
 }
+
+void Menu::menuDraw(sf::RenderWindow& window)
+{
+    window.draw(*playButton);
+    window.draw(*exitButton);
+    window.draw(*playButtonText);
+    window.draw(*exitButtonText);
+    window.display();
+}

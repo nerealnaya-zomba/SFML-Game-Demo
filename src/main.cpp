@@ -6,6 +6,8 @@ int main()
     //Window preferences
     auto window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), WINDOW_TITLE, sf::Style::Titlebar | sf::Style::Close);
     window.setFramerateLimit(WINDOW_FPS);
+    
+
 
 
     //Mouse
@@ -27,8 +29,6 @@ int main()
 
     //Game
     Player player;
-    
-
 
     //Main loop
     while (window.isOpen())
@@ -80,7 +80,23 @@ int main()
                 }
             }
             
-            
+           //↑↑-----MAIN MENU-----↑↑ 
+
+           //↓↓-----GAME-----↓↓
+           //Jump on up arrow
+           if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+            {
+                if(keyPressed->scancode == sf::Keyboard::Scancode::Up)
+                {
+                    if(!player.isFalling)
+                    {
+                        std::cout << "Jump" << std::endl;
+                        player.fallingSpeed = -5.f;
+                    }
+                    
+                }
+            }
+            //↑↑-----GAME-----↑↑
         }
         
         //Main menu drawing
@@ -91,76 +107,37 @@ int main()
 
             menu.rainbowWindowClear(window, menuBackGroundColor);
 
-            window.draw(*menu.playButton);
-            window.draw(*menu.exitButton);
-            window.draw(*menu.playButtonText);
-            window.draw(*menu.exitButtonText);
-            window.display();
+            menu.menuDraw(window);
             continue;
         }
-        //↑↑-----MAIN MENU-----↑↑
+        
 
-        //Player control
-        player.isIdle = true;
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-        {
-            player.isIdle = false;
-            if(!player.isFalling)
-            {
-                player.switchToNextRunningSprite();
-            }
-            player.playerRectangle->setScale({-1.f,1.f});
-            player.playerRectangle->move({-1.f,0.f});
-        }
-        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-        {
-            player.isIdle = false;
-            if(!player.isFalling)
-            {
-                player.switchToNextRunningSprite();
-            }
-            player.playerRectangle->setScale({1.f,1.f});
-            player.playerRectangle->move({1.f,0.f});
-        }
+
 
         //Player logic
+            //Player control
+        player.updateControls();
             //Physical logic
-                //If player is on the edge of down side of window
-        if((player.playerRectangle->getPosition().y+player.playerRectangle->getSize().y/2-15)>=WINDOW_HEIGHT)
-        {
-            player.isFalling = false;
-        }
-        if(player.isFalling)
-        {
-            player.playerRectangle->move({0.f,1.f});
-        }
-        
+        player.updatePhysics();
             //Texture logic
-        if(player.isIdle)
-        {
-            player.switchToNextIdleSprite();
-        }
-        if(player.isFalling)
-        {  
-            player.switchToNextFallingTexture();
-        }
+        player.updateTextures();
         
         
-        try
-        {
-            window.clear(gameBackGroundColor);
-            
+        
+    
+        //Drawing
 
-            //Player drawing
-            player.drawPlayer(window);
+        window.clear(gameBackGroundColor);
+        
+
+        //Player drawing
+        player.drawPlayer(window);
 
 
-            window.display();
-        }
-        catch(const std::exception& e)
-        {
-            std::cerr << e.what() << '\n';
-        }
+        window.display();
+  
+        
+        
         
     }
 

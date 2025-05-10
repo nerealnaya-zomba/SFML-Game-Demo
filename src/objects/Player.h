@@ -13,6 +13,10 @@ class Player{
         //Logic
     bool isIdle = true;
     bool isFalling = true;
+    float fallingSpeed = 0.f;
+    float walkSpeed = 0.f;
+    float maxWalkSpeed = 4.f;
+    
         //Textures
     std::vector<sf::Texture> idleTextures{};    
     std::vector<std::string> idleTexturesPaths{
@@ -46,15 +50,25 @@ class Player{
 
         //Rectangles
     sf::RectangleShape* playerRectangle;
+        //Sprite
+    sf::Sprite* playerSprite;
 
-
-
-    //Fill vector
+    //Control methods
+    void updateControls();
     
+    //Physics methods
+    void updatePhysics();
+
+    void applyFriction(float& walkSpeed, float friction);
+    void walkLeft(float speed);
+    void walkRight(float speed);
+
+    //Texture methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     void switchToNextIdleSprite();
     void switchToNextRunningSprite();
     void switchToNextFallingTexture();
+    void updateTextures();
     Player();
     ~Player();
     void drawPlayer(sf::RenderWindow& window);

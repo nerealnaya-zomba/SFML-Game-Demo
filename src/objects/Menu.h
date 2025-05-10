@@ -5,7 +5,7 @@
 class Menu{
     public:
     //Bools
-    bool isMainMenuCalled = true;
+    bool isMainMenuCalled = false;
 
     //Butons
     sf::RectangleShape* playButton;
@@ -17,6 +17,7 @@ class Menu{
     void fillUpWindowWithPlayButton(sf::RenderWindow& window, sf::Color gameBackGroundColor);
     void fillUpWindowWithExitButton(sf::RenderWindow& window);
     void smoothlyReturnPreviousVariablesAndDraw(sf::RenderWindow& window);
+    void menuDraw(sf::RenderWindow& window);
     Menu(sf::Font& font);
     ~Menu();
 };
