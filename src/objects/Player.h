@@ -5,6 +5,7 @@
 #include<iostream>
 #include<Mounting.h>
 #include<sfml-headers.h>
+#include<Trail.h>
 
 class Player{
     public:
@@ -14,10 +15,33 @@ class Player{
     bool isIdle = true;
     bool isFalling = true;
     float fallingSpeed = 0.f;
-    float walkSpeed = 0.f;
+    float initialWalkSpeed = 0.f;
+    float speed = 0.15f;
     float maxWalkSpeed = 4.f;
+    float frictionForce = 0.1f;
     
-        //Textures
+    //Control methods
+    void updateControls();
+
+    void walkLeft();
+    void walkRight();
+    void fallDown();
+    
+    //Physics methods
+    void updatePhysics();
+
+    //Texture methods
+    void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
+    void updateTextures();
+    Player();
+    ~Player();
+    void drawPlayer(sf::RenderWindow& window);
+    
+    //Other
+    void drawPlayerTrailOnFall(sf::RenderWindow& window);
+
+    private:
+    //Textures
     std::vector<sf::Texture> idleTextures{};    
     std::vector<std::string> idleTexturesPaths{
         "images/satiro-idle-1.png",
@@ -47,30 +71,19 @@ class Player{
         "images/satiro-falling-5.png",
     };
 
-
-        //Rectangles
-    sf::RectangleShape* playerRectangle;
-        //Sprite
-    sf::Sprite* playerSprite;
-
-    //Control methods
-    void updateControls();
-    
-    //Physics methods
-    void updatePhysics();
-
-    void applyFriction(float& walkSpeed, float friction);
-    void walkLeft(float speed);
-    void walkRight(float speed);
-
-    //Texture methods
-    void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     void switchToNextIdleSprite();
     void switchToNextRunningSprite();
     void switchToNextFallingTexture();
-    void updateTextures();
-    Player();
-    ~Player();
-    void drawPlayer(sf::RenderWindow& window);
-    
+
+    //Rectangles
+    sf::RectangleShape* playerRectangle;
+
+    //Sprite
+    sf::Sprite* playerSprite;
+
+    //Physics
+    void applyFriction(float& walkSpeed, float friction);
+
+    //Trail
+    Trail* trail;
 };

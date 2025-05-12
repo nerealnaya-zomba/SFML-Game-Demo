@@ -16,6 +16,8 @@ Player::Player()
     //Sprite initialization
     playerSprite = new sf::Sprite(idleTextures.at(0));
     setSpriteOriginToMiddle(*playerSprite);
+    //Trail initialization
+    trail = new Trail(*playerSprite);
 }
 
 void Player::switchToNextFallingTexture()
@@ -74,7 +76,8 @@ void Player::updateTextures()
 
 Player::~Player()
 {
-
+    
+    
 }
 
 void Player::applyFriction(float& walkSpeed, float friction) 
@@ -94,22 +97,26 @@ void Player::applyFriction(float& walkSpeed, float friction)
     }
 }
 
-void Player::walkLeft(float speed)
+void Player::walkLeft()
 {
-    if(walkSpeed<=(-maxWalkSpeed))
+    if(initialWalkSpeed<=(-maxWalkSpeed))
     {
        return; 
     }
-    walkSpeed-=speed;
+    initialWalkSpeed-=speed;
 }
 
-void Player::walkRight(float speed)
+void Player::walkRight()
 {
-    if(walkSpeed>=maxWalkSpeed)
+    if(initialWalkSpeed>=maxWalkSpeed)
     {
         return;
     }
-    walkSpeed+=speed;
+    initialWalkSpeed+=speed;
+}
+
+void Player::fallDown()
+{
 }
 
 void Player::updateControls()
@@ -119,30 +126,25 @@ void Player::updateControls()
     {
         isIdle = false;
 
-        walkLeft(0.25f);
+        walkLeft();
     }
     else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
     {
         isIdle = false;
 
         
-        walkRight(0.25f);
+        walkRight();
     }
 }
 
 void Player::updatePhysics()
 {
-    applyFriction(walkSpeed,0.1f);
-    playerRectangle->move({0.f,fallingSpeed});
-    playerRectangle->move({walkSpeed,0.f});
-    if(walkSpeed>0.f)
-    {
-        walkSpeed-=0.1f;
-    }
-    else if(walkSpeed<0.f)
-    {
-        walkSpeed+=0.1f;
-    }
+    applyFriction(initialWalkSpeed,this->frictionForce);
+    playerRectangle->move({0.f,this->fallingSpeed});
+    playerRectangle->move({initialWalkSpeed,0.f});
+
+    std::cout << initialWalkSpeed << std::endl;
+    
     if(playerRectangle->getPosition().y+playerRectangle->getSize().y>=WINDOW_HEIGHT)
     {
         isFalling = false;
@@ -160,7 +162,7 @@ void Player::updatePhysics()
     {
         fallingSpeed = 0.f;
     }
-    std::cout << playerRectangle->getPosition().x << std::endl;
+    //std::cout << playerRectangle->getPosition().x << std::endl;
 
     //Window border collision (left and right)
     if(playerRectangle->getPosition().x+playerRectangle->getSize().x>=WINDOW_WIDTH)
@@ -188,13 +190,10 @@ void Player::initTextures(std::vector<sf::Texture> &textures, std::vector<std::s
         }
         textures.push_back(*texture);
         
-        //Delete ptr on last interation
-        if(i==paths.size()-1)
-        {
-            texture = nullptr;
-            delete texture;
-        }
+        
     }
+    
+    
     
     
 }
@@ -250,7 +249,19 @@ void Player::switchToNextRunningSprite()
 
 void Player::drawPlayer(sf::RenderWindow& window)
 {
+    drawPlayerTrailOnFall(window);
+
     playerSprite->setPosition({(playerRectangle->getPosition().x+playerRectangle->getSize().x/2),(playerRectangle->getPosition().y+playerRectangle->getSize().y/2)-6.f});
-    window.draw(*playerRectangle);
+    //window.draw(*playerRectangle);
     window.draw(*playerSprite);
+}
+
+void Player::drawPlayerTrailOnFall(sf::RenderWindow& window)
+{
+    trail->trailColor = sf::Color(0,255,255,80);
+    trail->speedOfTrailDisappearing = 8;
+    
+    trail->generateTrail(window);
+    trail->makeTrailDisappear();
+    trail->drawTrail(window);
 }

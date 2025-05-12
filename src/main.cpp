@@ -30,6 +30,8 @@ int main()
     //Game
     Player player;
 
+
+
     //Main loop
     while (window.isOpen())
     {
@@ -122,6 +124,8 @@ int main()
             //Texture logic
         player.updateTextures();
         
+        
+
         
         
     
