@@ -27,9 +27,11 @@ int main()
     //Main menu
     Menu menu(font);
 
+    
     //Game
     Player player;
-
+    Platform platforms;
+    platforms.addPlatform({WINDOW_WIDTH/2-100,WINDOW_HEIGHT-100},"123");
 
 
     //Main loop
@@ -137,6 +139,8 @@ int main()
         //Player drawing
         player.drawPlayer(window);
 
+        //Game objects drawing
+        platforms.draw(window);
 
         window.display();
   

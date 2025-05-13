@@ -6,6 +6,7 @@
 
 //Local include objects
 #include<Player.h>
+#include<Platform.h>
 #include<Menu.h>
 
 //C libraries

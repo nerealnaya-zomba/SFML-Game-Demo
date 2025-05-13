@@ -143,7 +143,6 @@ void Player::updatePhysics()
     playerRectangle->move({0.f,this->fallingSpeed});
     playerRectangle->move({initialWalkSpeed,0.f});
 
-    std::cout << initialWalkSpeed << std::endl;
     
     if(playerRectangle->getPosition().y+playerRectangle->getSize().y>=WINDOW_HEIGHT)
     {
@@ -192,6 +191,7 @@ void Player::initTextures(std::vector<sf::Texture> &textures, std::vector<std::s
         
         
     }
+    
     
     
     
