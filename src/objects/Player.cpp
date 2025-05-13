@@ -12,7 +12,7 @@ Player::Player()
     playerRectangle = new sf::RectangleShape();
     playerRectangle->setSize({37.f,53.f});
     playerRectangle->setFillColor(sf::Color::Red);
-    playerRectangle->setPosition({300.f,400.f});
+    playerRectangle->setPosition({100.f,400.f});
     //Sprite initialization
     playerSprite = new sf::Sprite(idleTextures.at(0));
     setSpriteOriginToMiddle(*playerSprite);
@@ -97,6 +97,71 @@ void Player::applyFriction(float& walkSpeed, float friction)
     }
 }
 
+void Player::checkRectCollision(std::vector<sf::RectangleShape*> rects)
+{
+    for (sf::RectangleShape* i : rects)
+    {
+                // Получаем глобальные границы (для удобства)
+        sf::FloatRect playerBounds = playerRectangle->getGlobalBounds();
+        sf::FloatRect platformBounds = i->getGlobalBounds();
+
+        // Проверяем пересечение
+        if (playerBounds.findIntersection(platformBounds)) 
+        {
+            // Определяем направление коллизии
+            float overlapLeft   = playerBounds.position.x + playerBounds.size.x - platformBounds.position.x;
+            float overlapRight  = platformBounds.position.x + platformBounds.size.x - playerBounds.position.x;
+            float overlapTop    = playerBounds.position.y + playerBounds.size.y - platformBounds.position.y;
+            float overlapBottom = platformBounds.position.y + platformBounds.size.y - playerBounds.position.y;
+
+            // Ищем минимальное перекрытие
+            bool fromLeft   = (overlapLeft < overlapRight);
+            bool fromTop    = (overlapTop < overlapBottom);
+            float minXOverlap = fromLeft ? overlapLeft : overlapRight;
+            float minYOverlap = fromTop ? overlapTop : overlapBottom;
+
+            // Коллизия с БОКОВЫМИ сторонами
+            if (minXOverlap < minYOverlap) 
+            {
+                if (fromLeft) {
+                    // Слева
+                    playerRectangle->setPosition({platformBounds.position.x - playerBounds.size.x, playerBounds.position.y});
+                } else {
+                    // Справа
+                    playerRectangle->setPosition({platformBounds.position.x + platformBounds.size.x, playerBounds.position.y});
+                }
+            } 
+            // Коллизия с ВЕРХНЕЙ/НИЖНЕЙ сторонами
+            else 
+            {
+                if (fromTop) {
+                    // Сверху
+                    isFalling = false;
+                    if(fallingSpeed>0.f)
+                    {
+                        fallingSpeed = 0.f;
+                    }
+                    if(fallingSpeed >= -0.1f && fallingSpeed<=0.1f)
+                    {
+                        if(playerBounds.position.y+playerBounds.size.y >= platformBounds.position.y+3.f)
+                        {
+                            playerRectangle->setPosition({playerBounds.position.x,playerBounds.position.y-2.f});
+                        }
+                    }
+                        
+
+                    // Можно добавить: player->setVelocityY(0); // Чтобы игрок не проваливался
+                } else {
+                    // Снизу
+                    playerRectangle->setPosition({playerBounds.position.x, platformBounds.position.y + platformBounds.size.y});
+                    fallingSpeed = -(fallingSpeed);
+                }
+            }
+        }
+    }
+    
+}
+
 void Player::walkLeft()
 {
     if(initialWalkSpeed<=(-maxWalkSpeed))
@@ -113,6 +178,13 @@ void Player::walkRight()
         return;
     }
     initialWalkSpeed+=speed;
+}
+
+void Player::jump()
+{
+    std::cout << "Jump" << std::endl;
+    playerRectangle->setPosition({playerRectangle->getPosition().x,playerRectangle->getPosition().y-1.f});
+    fallingSpeed = -7.f;
 }
 
 void Player::fallDown()
@@ -140,9 +212,11 @@ void Player::updateControls()
 void Player::updatePhysics()
 {
     applyFriction(initialWalkSpeed,this->frictionForce);
+    
+    
     playerRectangle->move({0.f,this->fallingSpeed});
+    
     playerRectangle->move({initialWalkSpeed,0.f});
-
     
     if(playerRectangle->getPosition().y+playerRectangle->getSize().y>=WINDOW_HEIGHT)
     {

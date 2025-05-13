@@ -25,10 +25,12 @@ class Player{
 
     void walkLeft();
     void walkRight();
+    void jump();
     void fallDown();
     
     //Physics methods
     void updatePhysics();
+    void checkRectCollision(std::vector<sf::RectangleShape*> rects);
 
     //Texture methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
@@ -83,6 +85,7 @@ class Player{
 
     //Physics
     void applyFriction(float& walkSpeed, float friction);
+    
 
     //Trail
     Trail* trail;

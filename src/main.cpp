@@ -31,8 +31,9 @@ int main()
     //Game
     Player player;
     Platform platforms;
-    platforms.addPlatform({WINDOW_WIDTH/2-100,WINDOW_HEIGHT-100},"123");
+    platforms.addPlatform({WINDOW_WIDTH/2-100,WINDOW_HEIGHT-150},"123");
 
+    
 
     //Main loop
     while (window.isOpen())
@@ -94,8 +95,7 @@ int main()
                 {
                     if(!player.isFalling)
                     {
-                        std::cout << "Jump" << std::endl;
-                        player.fallingSpeed = -5.f;
+                        player.jump();
                     }
                     
                 }
@@ -123,6 +123,8 @@ int main()
         player.updateControls();
             //Physical logic
         player.updatePhysics();
+        player.checkRectCollision(platforms.getRects());
+
             //Texture logic
         player.updateTextures();
         

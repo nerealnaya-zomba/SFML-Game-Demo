@@ -15,19 +15,30 @@ void Platform::draw(sf::RenderWindow &window)
 
 void Platform::addPlatform(sf::Vector2f position, std::string name)
 {
-    auto ptrRect = std::make_unique<sf::RectangleShape>();
+    auto ptrRect = std::make_shared<sf::RectangleShape>();
     ptrRect->setPosition(position);
     ptrRect->setFillColor(sf::Color::Green);
-    ptrRect->setSize({385,70});
+    ptrRect->setSize({355,55});
 
     rects.push_back(std::move(ptrRect));
 
     auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(3));
-    ptrSprite->setPosition(position);
+    ptrSprite->setPosition({position.x-25,position.y-15});
     ptrSprite->setScale({0.2f,0.2f});
-    ptrSprite->setColor(sf::Color(255,255,255,150));
+    ptrSprite->setColor(sf::Color(255,255,255,255));
 
     sprites.push_back(std::move(ptrSprite));
+}
+
+std::vector<sf::RectangleShape*> Platform::getRects()
+{
+    std::vector<sf::RectangleShape*> rects;
+    for (std::shared_ptr<sf::RectangleShape> &i : this->rects)
+    {
+        rects.push_back(i.get());
+    }
+    
+    return rects;
 }
 
 Platform::Platform()
@@ -37,6 +48,7 @@ Platform::Platform()
 
 Platform::~Platform()
 {
+
 }
 
 void Platform::initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths)

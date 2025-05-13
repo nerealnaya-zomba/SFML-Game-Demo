@@ -19,6 +19,8 @@ class Platform
     //Quadruple
     void addPlatform(sf::Vector2f position, std::string name);
 
+    //Returns array with raw pointers to rectangles-hitboxes (DO NOT DELETE MANUALLY)
+    std::vector<sf::RectangleShape*> getRects();
 
     Platform();
     ~Platform();
@@ -26,7 +28,7 @@ class Platform
     private:
     sf::Vector2f pos;
     std::vector<std::unique_ptr<sf::Sprite>> sprites;
-    std::vector<std::unique_ptr<sf::RectangleShape>> rects;
+    std::vector<std::shared_ptr<sf::RectangleShape>> rects;
 
     std::vector<sf::Texture> textures;
     std::vector<std::string> paths{
