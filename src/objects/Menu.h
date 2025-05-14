@@ -5,7 +5,7 @@
 class Menu{
     public:
     //Bools
-    bool isMainMenuCalled = false;
+    bool isMainMenuCalled = true;
 
     //Butons
     sf::RectangleShape* playButton;

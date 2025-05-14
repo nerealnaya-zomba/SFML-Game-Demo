@@ -15,19 +15,149 @@ void Platform::draw(sf::RenderWindow &window)
 
 void Platform::addPlatform(sf::Vector2f position, std::string name)
 {
-    auto ptrRect = std::make_shared<sf::RectangleShape>();
-    ptrRect->setPosition(position);
-    ptrRect->setFillColor(sf::Color::Green);
-    ptrRect->setSize({355,55});
+    if(name == "Single-angled")
+    {
+        auto ptrRect = std::make_shared<sf::RectangleShape>();
+        ptrRect->setPosition(position);
+        ptrRect->setFillColor({0,0,0,0});
+        ptrRect->setSize({40,40});
+        sf::Vector2f center = ptrRect->getGlobalBounds().getCenter();
+        rects.push_back(std::move(ptrRect));
+        
+        auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(4));
+        ptrSprite->setOrigin(ptrSprite->getGlobalBounds().getCenter());
+        center.x-=6;
+        ptrSprite->setPosition(center);
+        ptrSprite->setScale({0.2f,0.2f});
+        ptrSprite->setColor(sf::Color(255,255,255,255));
+        
+        sprites.push_back(std::move(ptrSprite));
+    }
+    else if(name == "Single-flat")
+    {
+        auto ptrRect = std::make_shared<sf::RectangleShape>();
+        ptrRect->setPosition(position);
+        ptrRect->setFillColor({0,0,0,0});
+        ptrRect->setSize({40,30});
+        sf::Vector2f center = ptrRect->getGlobalBounds().getCenter();
+        rects.push_back(std::move(ptrRect));
 
-    rects.push_back(std::move(ptrRect));
+        auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(5));
+        ptrSprite->setOrigin(ptrSprite->getGlobalBounds().getCenter());
+        center.x-=6;
+        ptrSprite->setPosition(center);
+        ptrSprite->setScale({0.2f,0.2f});
+        ptrSprite->setColor(sf::Color(255,255,255,255));
+        
+        sprites.push_back(std::move(ptrSprite));
+    }
+    else if(name == "Single-square")
+    {
+        auto ptrRect = std::make_shared<sf::RectangleShape>();
+        ptrRect->setPosition(position);
+        ptrRect->setFillColor({0,0,0,0});
+        ptrRect->setSize({50,40});
+        sf::Vector2f center = ptrRect->getGlobalBounds().getCenter();
+        rects.push_back(std::move(ptrRect));
 
-    auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(3));
-    ptrSprite->setPosition({position.x-25,position.y-15});
-    ptrSprite->setScale({0.2f,0.2f});
-    ptrSprite->setColor(sf::Color(255,255,255,255));
+        auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(6));
+        ptrSprite->setOrigin(ptrSprite->getGlobalBounds().getCenter());
+        center.x-=5;
+        ptrSprite->setPosition(center);
+        ptrSprite->setScale({0.2f,0.2f});
+        ptrSprite->setColor(sf::Color(255,255,255,255));
+        
+        sprites.push_back(std::move(ptrSprite));
+    }
+    else if(name == "Double-horizontal-1")
+    {
+        auto ptrRect = std::make_shared<sf::RectangleShape>();
+        ptrRect->setPosition(position);
+        ptrRect->setFillColor({0,0,0,0});
+        ptrRect->setSize({175,50});
+        sf::Vector2f center = ptrRect->getGlobalBounds().getCenter();
+        rects.push_back(std::move(ptrRect));
 
-    sprites.push_back(std::move(ptrSprite));
+        auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(0));
+        ptrSprite->setOrigin(ptrSprite->getGlobalBounds().getCenter());
+        ptrSprite->setPosition(center);
+        ptrSprite->setScale({0.2f,0.2f});
+        ptrSprite->setColor(sf::Color(255,255,255,255));
+        
+        sprites.push_back(std::move(ptrSprite));
+    }
+    else if(name == "Double-horizontal-2")
+    {
+        auto ptrRect = std::make_shared<sf::RectangleShape>();
+        ptrRect->setPosition(position);
+        ptrRect->setFillColor({0,0,0,0});
+        ptrRect->setSize({175,55});
+        sf::Vector2f center = ptrRect->getGlobalBounds().getCenter();
+        rects.push_back(std::move(ptrRect));
+
+        auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(1));
+        ptrSprite->setOrigin(ptrSprite->getGlobalBounds().getCenter());
+        ptrSprite->setPosition(center);
+        ptrSprite->setScale({0.2f,0.2f});
+        ptrSprite->setColor(sf::Color(255,255,255,255));
+        
+        sprites.push_back(std::move(ptrSprite));
+    }
+    else if(name == "Double-vertical")
+    {
+        auto ptrRect = std::make_shared<sf::RectangleShape>();
+        ptrRect->setPosition(position);
+        ptrRect->setFillColor({0,0,0,0});
+        ptrRect->setSize({55,140});
+        sf::Vector2f center = ptrRect->getGlobalBounds().getCenter();
+        rects.push_back(std::move(ptrRect));
+
+        auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(2));
+        ptrSprite->setOrigin(ptrSprite->getGlobalBounds().getCenter());
+        center.x-=3;
+        ptrSprite->setPosition(center);
+        ptrSprite->setScale({0.2f,0.2f});
+        ptrSprite->setColor(sf::Color(255,255,255,255));
+        
+        sprites.push_back(std::move(ptrSprite));
+    }
+    else if(name == "Triple")
+    {
+        auto ptrRect = std::make_shared<sf::RectangleShape>();
+        ptrRect->setPosition(position);
+        ptrRect->setFillColor({0,0,0,0});
+        ptrRect->setSize({270,50});
+        sf::Vector2f center = ptrRect->getGlobalBounds().getCenter();
+        rects.push_back(std::move(ptrRect));
+
+        auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(7));
+        ptrSprite->setOrigin(ptrSprite->getGlobalBounds().getCenter());
+        center.y-=10;
+        center.x+=5;
+        ptrSprite->setPosition(center);
+        ptrSprite->setScale({0.2f,0.2f});
+        ptrSprite->setColor(sf::Color(255,255,255,255));
+        
+        sprites.push_back(std::move(ptrSprite));
+    }
+    else if(name == "Quadruple")
+    {
+        auto ptrRect = std::make_shared<sf::RectangleShape>();
+        ptrRect->setPosition(position);
+        ptrRect->setFillColor({0,0,0,0});
+        ptrRect->setSize({360,55});
+        sf::Vector2f center = ptrRect->getGlobalBounds().getCenter();
+        rects.push_back(std::move(ptrRect));
+
+        auto ptrSprite = std::make_unique<sf::Sprite>(textures.at(3));
+        ptrSprite->setOrigin(ptrSprite->getGlobalBounds().getCenter());
+        ptrSprite->setPosition(center);
+        ptrSprite->setScale({0.2f,0.2f});
+        ptrSprite->setColor(sf::Color(255,255,255,255));
+        
+        sprites.push_back(std::move(ptrSprite));
+    }
+    
 }
 
 std::vector<sf::RectangleShape*> Platform::getRects()

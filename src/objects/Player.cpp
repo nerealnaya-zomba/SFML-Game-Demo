@@ -184,7 +184,7 @@ void Player::jump()
 {
     std::cout << "Jump" << std::endl;
     playerRectangle->setPosition({playerRectangle->getPosition().x,playerRectangle->getPosition().y-1.f});
-    fallingSpeed = -7.f;
+    fallingSpeed = -5.5f;
 }
 
 void Player::fallDown()

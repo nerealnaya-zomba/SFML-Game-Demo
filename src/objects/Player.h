@@ -41,7 +41,7 @@ class Player{
     
     //Other
     void drawPlayerTrailOnFall(sf::RenderWindow& window);
-
+    sf::RectangleShape* playerRectangle;
     private:
     //Textures
     std::vector<sf::Texture> idleTextures{};    
@@ -78,7 +78,7 @@ class Player{
     void switchToNextFallingTexture();
 
     //Rectangles
-    sf::RectangleShape* playerRectangle;
+    
 
     //Sprite
     sf::Sprite* playerSprite;
