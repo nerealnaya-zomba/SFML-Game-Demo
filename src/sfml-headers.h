@@ -8,6 +8,7 @@
 #include<Player.h>
 #include<Platform.h>
 #include<Menu.h>
+#include<Background.h>
 
 //C libraries
 #include <iostream>

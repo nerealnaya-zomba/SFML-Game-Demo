@@ -12,7 +12,7 @@ Player::Player()
     playerRectangle = new sf::RectangleShape();
     playerRectangle->setSize({37.f,53.f});
     playerRectangle->setFillColor(sf::Color::Red);
-    playerRectangle->setPosition({100.f,400.f});
+    playerRectangle->setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
     //Sprite initialization
     playerSprite = new sf::Sprite(idleTextures.at(0));
     setSpriteOriginToMiddle(*playerSprite);

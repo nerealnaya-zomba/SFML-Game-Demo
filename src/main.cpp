@@ -4,11 +4,11 @@
 int main()
 {
     //Window preferences
-    auto window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), WINDOW_TITLE, (sf::Style::Titlebar | sf::Style::Close));
+    auto window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), WINDOW_TITLE, (sf::Style::Titlebar | sf::Style::Close), sf::State::Fullscreen);
     window.setFramerateLimit(WINDOW_FPS);
     
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
-
+    
 
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
@@ -16,6 +16,7 @@ int main()
     //Background
     sf::Color menuBackGroundColor({0u,0u,0u});
     sf::Color gameBackGroundColor({0,0,0,255});
+    Background gameBackground;
 
     //Loading font
     sf::Font font;
@@ -26,7 +27,7 @@ int main()
 
     //Main menu
     Menu menu(font);
-
+    
     
     //Game
     Player player;
@@ -137,14 +138,19 @@ int main()
         player.updateTextures();
         
         
-
+        //Temporary control for exit
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Grave))
+        {
+            window.close();
+        }
         
         
     
         //Drawing
 
+        //Background drawing
         window.clear(gameBackGroundColor);
-        
+        gameBackground.drawBackground(window);
 
         //Player drawing
         player.drawPlayer(window);
@@ -153,7 +159,7 @@ int main()
         platforms.draw(window);
 
         view.setCenter(player.playerRectangle->getPosition());
-        window.setView(view);
+        //window.setView(view);
         
         window.display();
   
