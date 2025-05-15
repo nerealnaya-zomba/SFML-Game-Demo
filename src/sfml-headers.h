@@ -7,6 +7,7 @@
 //Local include objects
 #include<Player.h>
 #include<Platform.h>
+#include<Ground.h>
 #include<Menu.h>
 #include<Background.h>
 

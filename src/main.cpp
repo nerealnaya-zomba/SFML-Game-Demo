@@ -31,6 +31,7 @@ int main()
     
     //Game
     Player player;
+    Ground ground;
     Platform platforms;
     platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
     platforms.addPlatform({WINDOW_WIDTH-300-100,WINDOW_HEIGHT-200},"Single-square");
@@ -126,14 +127,14 @@ int main()
         
 
 
-
+        
         //Player logic
             //Player control
         player.updateControls();
             //Physical logic
         player.updatePhysics();
+        player.checkGroundCollision(ground.getRect());
         player.checkRectCollision(platforms.getRects());
-
             //Texture logic
         player.updateTextures();
         
@@ -151,6 +152,9 @@ int main()
         //Background drawing
         window.clear(gameBackGroundColor);
         gameBackground.drawBackground(window);
+
+        //Ground drawing
+        ground.draw(window,WINDOW_HEIGHT-39.f);
 
         //Player drawing
         player.drawPlayer(window);

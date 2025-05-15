@@ -150,7 +150,6 @@ void Player::checkRectCollision(std::vector<sf::RectangleShape*> rects)
                     }
                         
 
-                    // Можно добавить: player->setVelocityY(0); // Чтобы игрок не проваливался
                 } else {
                     // Снизу
                     playerRectangle->setPosition({playerBounds.position.x, platformBounds.position.y + platformBounds.size.y});
@@ -160,6 +159,20 @@ void Player::checkRectCollision(std::vector<sf::RectangleShape*> rects)
         }
     }
     
+}
+
+void Player::checkGroundCollision(sf::RectangleShape& groundRect)
+{
+    float playerX = playerRectangle->getPosition().x;
+    float playerY = playerRectangle->getPosition().y+playerRectangle->getSize().y;
+    float groundY = groundRect.getPosition().y;
+
+    if(playerY>=groundY)
+    {
+        isFalling = false;
+        fallingSpeed = 0.f;
+        playerRectangle->setPosition({playerX,groundY-playerRectangle->getSize().y});
+    }
 }
 
 void Player::walkLeft()

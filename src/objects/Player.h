@@ -31,6 +31,7 @@ class Player{
     //Physics methods
     void updatePhysics();
     void checkRectCollision(std::vector<sf::RectangleShape*> rects);
+    void checkGroundCollision(sf::RectangleShape& groundRect);
 
     //Texture methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
