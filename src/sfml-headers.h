@@ -8,6 +8,7 @@
 #include<Player.h>
 #include<Platform.h>
 #include<Ground.h>
+#include<Decoration.h>
 #include<Menu.h>
 #include<Background.h>
 

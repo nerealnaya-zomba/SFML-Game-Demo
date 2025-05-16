@@ -1,6 +1,5 @@
 #include <sfml-headers.h>
 #include <Defines.h>
-
 int main()
 {
     //Window preferences
@@ -35,12 +34,12 @@ int main()
     Platform platforms;
     platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
     platforms.addPlatform({WINDOW_WIDTH-300-100,WINDOW_HEIGHT-200},"Single-square");
-    platforms.addPlatform({WINDOW_WIDTH-400-100,WINDOW_HEIGHT-300},"Single-flat");
-    platforms.addPlatform({WINDOW_WIDTH-500-100,WINDOW_HEIGHT-400},"Double-horizontal-1");
-    platforms.addPlatform({WINDOW_WIDTH-600-100,WINDOW_HEIGHT-500},"Double-horizontal-2");
-    platforms.addPlatform({WINDOW_WIDTH-700-100,WINDOW_HEIGHT-600},"Double-vertical");
-    platforms.addPlatform({WINDOW_WIDTH-800-100,WINDOW_HEIGHT-700},"Triple");
-    platforms.addPlatform({WINDOW_WIDTH-900-100,WINDOW_HEIGHT-800},"Quadruple");
+    platforms.addPlatform({WINDOW_WIDTH-400-100,WINDOW_HEIGHT-280},"Single-flat");
+    platforms.addPlatform({WINDOW_WIDTH-500-200,WINDOW_HEIGHT-380},"Double-horizontal-1");
+    platforms.addPlatform({WINDOW_WIDTH-600-300,WINDOW_HEIGHT-480},"Double-horizontal-2");
+    platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
+    platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
+    platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
 
     //Main loop
     while (window.isOpen())
@@ -153,6 +152,9 @@ int main()
         window.clear(gameBackGroundColor);
         gameBackground.drawBackground(window);
 
+        //Decorations drawing
+        
+
         //Ground drawing
         ground.draw(window,WINDOW_HEIGHT-39.f);
 
@@ -162,9 +164,11 @@ int main()
         //Game objects drawing
         platforms.draw(window);
 
+
         view.setCenter(player.playerRectangle->getPosition());
         //window.setView(view);
         
+
         window.display();
   
         
