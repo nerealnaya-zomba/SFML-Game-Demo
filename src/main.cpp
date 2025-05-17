@@ -7,7 +7,7 @@ int main()
     window.setFramerateLimit(WINDOW_FPS);
     
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
-
+    view.zoom(0.5f);
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
 
@@ -51,7 +51,7 @@ int main()
     decoration.addDecoration("plant1",{1700,1058+offset},{0.3f,0.3f}, grassColor);
     decoration.addDecoration("plant2",{1800,1045+offset},{-0.3f,0.3f}, grassColor);
     decoration.addDecoration("plant3",{1900,1048+offset},{0.3f,0.3f}, grassColor);
-    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500+30,WINDOW_HEIGHT-800-50},{1.5f,1.5f});
+    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800+80},{1.f,1.f});
 
     Platform platforms;
     platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
@@ -188,7 +188,7 @@ int main()
 
 
         view.setCenter(player.playerRectangle->getPosition());
-        //window.setView(view);
+        window.setView(view);
         
 
         window.display();
