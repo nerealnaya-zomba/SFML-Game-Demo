@@ -74,6 +74,9 @@ void Player::updateTextures()
     }
 }
 
+
+
+
 Player::~Player()
 {
     

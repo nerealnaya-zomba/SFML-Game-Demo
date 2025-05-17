@@ -7,7 +7,6 @@ int main()
     window.setFramerateLimit(WINDOW_FPS);
     
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
-    
 
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
@@ -31,6 +30,29 @@ int main()
     //Game
     Player player;
     Ground ground;
+    Decoration decoration;
+    sf::Color grassColor{0,80,0,150};
+    float offset = -10.f;
+    decoration.addDecoration("plant1",{100,1040+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{200,1055+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{300,1035+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant1",{400,1040+offset},{-0.5f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{500,1055+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{600,1035+offset},{-0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant1",{700,1058+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{800,1045+offset},{-0.5f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1000,1048+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{1100,1055+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1200,1035+offset},{-0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant1",{1300,1058+offset},{0.5f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{1400,1045+offset},{-0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1500,1048+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1600,1035+offset},{-0.5f,0.3f}, grassColor);
+    decoration.addDecoration("plant1",{1700,1058+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{1800,1045+offset},{-0.3f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1900,1048+offset},{0.3f,0.3f}, grassColor);
+    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500+30,WINDOW_HEIGHT-800-50},{1.5f,1.5f});
+
     Platform platforms;
     platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
     platforms.addPlatform({WINDOW_WIDTH-300-100,WINDOW_HEIGHT-200},"Single-square");
@@ -136,7 +158,7 @@ int main()
         player.checkRectCollision(platforms.getRects());
             //Texture logic
         player.updateTextures();
-        
+        decoration.updateTextures();
         
         //Temporary control for exit
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Grave))
@@ -153,7 +175,7 @@ int main()
         gameBackground.drawBackground(window);
 
         //Decorations drawing
-        
+        decoration.draw(window);
 
         //Ground drawing
         ground.draw(window,WINDOW_HEIGHT-39.f);
