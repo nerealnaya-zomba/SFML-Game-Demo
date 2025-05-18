@@ -7,7 +7,6 @@ int main()
     window.setFramerateLimit(WINDOW_FPS);
     
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
-    view.zoom(0.5f);
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
 
@@ -31,7 +30,7 @@ int main()
     Player player;
     Ground ground;
     Decoration decoration;
-    sf::Color grassColor{0,80,0,150};
+    sf::Color grassColor{0,80,0,255};
     float offset = -10.f;
     decoration.addDecoration("plant1",{100,1040+offset},{0.3f,0.3f}, grassColor);
     decoration.addDecoration("plant2",{200,1055+offset},{0.3f,0.3f}, grassColor);
@@ -188,7 +187,7 @@ int main()
 
 
         view.setCenter(player.playerRectangle->getPosition());
-        window.setView(view);
+        //window.setView(view);
         
 
         window.display();

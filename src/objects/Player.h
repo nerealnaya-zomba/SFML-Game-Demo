@@ -41,7 +41,7 @@ class Player{
     void drawPlayer(sf::RenderWindow& window);
     
     //Other
-    void drawPlayerTrailOnFall(sf::RenderWindow& window);
+    void drawPlayerTrail(sf::RenderWindow& window);
     sf::RectangleShape* playerRectangle;
     private:
     //Textures

@@ -339,17 +339,18 @@ void Player::switchToNextRunningSprite()
 
 void Player::drawPlayer(sf::RenderWindow& window)
 {
-    drawPlayerTrailOnFall(window);
+    drawPlayerTrail(window);
 
     playerSprite->setPosition({(playerRectangle->getPosition().x+playerRectangle->getSize().x/2),(playerRectangle->getPosition().y+playerRectangle->getSize().y/2)-6.f});
     //window.draw(*playerRectangle);
     window.draw(*playerSprite);
 }
 
-void Player::drawPlayerTrailOnFall(sf::RenderWindow& window)
+void Player::drawPlayerTrail(sf::RenderWindow& window)
 {
     trail->trailColor = sf::Color(0,255,255,80);
-    trail->speedOfTrailDisappearing = 8;
+    trail->trailColor = sf::Color(0,0,0,70);
+    trail->speedOfTrailDisappearing = 5;
     
     trail->generateTrail(window);
     trail->makeTrailDisappear();

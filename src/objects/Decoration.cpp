@@ -38,7 +38,7 @@ Decoration::Decoration()
     this->plant4to7.iterationsTillSwitch = 9;
 
     //Cat
-    initTextures(cat1Textures,cat1Path, 3, 2);
+    initTextures(cat1Textures,cat1Path, 2, 2);
     generateMipmapTextures(cat1Textures);
     smoothTextures(cat1Textures);
 
@@ -129,31 +129,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
 
 void Decoration::switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper)
 {
-    if(iterHelper.ptrToTexture == iterHelper.countOfTextures)
-    {
-        iterHelper.goForward = false;
-    }
-    else if(iterHelper.ptrToTexture == 0)
-    {
-        iterHelper.goForward = true;
-    }
-
     for (auto &i : spritesArray)
     {
         i->setTexture(texturesArray.at(iterHelper.ptrToTexture));
     }
-
-    if(iterHelper.goForward)
-    {
-        iterHelper.ptrToTexture++;
-    }
-    else
-    {
-        iterHelper.ptrToTexture--;
-    }
-    
-    
 }
+
+
 
 void Decoration::generateMipmapTextures(std::vector<sf::Texture> &texturesArray)
 {
@@ -189,24 +171,69 @@ void Decoration::updateTextures()
     }
     else
     {
+        //Forward-backward logic
+        if(plant1to3.ptrToTexture == plant1to3.countOfTextures)
+        {
+            plant1to3.goForward = false;
+        }
+        else if(plant1to3.ptrToTexture == 0)
+        {
+            plant1to3.goForward = true;
+        }
+
+        //Switch sprites
         switchToNextSprite(plant1Sprites,plant1Textures,plant1to3);
         switchToNextSprite(plant2Sprites,plant2Textures,plant1to3);
         switchToNextSprite(plant3Sprites,plant3Textures,plant1to3);
 
+        //Forward-backward logic
+        if(plant1to3.goForward)
+        {
+            plant1to3.ptrToTexture++;
+        }
+        else
+        {
+            plant1to3.ptrToTexture--;
+        }
+
+        //reset iteration counter after all switches
         plant1to3.iterationCounter = 0;
     }
 
+    //Tall plants
     if(plant4to7.iterationCounter<plant4to7.iterationsTillSwitch)
     {
         plant4to7.iterationCounter++;
     }
     else
     {
+        //Forward-backward logic
+        if(plant4to7.ptrToTexture == plant4to7.countOfTextures)
+        {
+            plant4to7.goForward = false;
+        }
+        else if(plant4to7.ptrToTexture == 0)
+        {
+            plant4to7.goForward = true;
+        }
+
+        //Switch sprites
         switchToNextSprite(plant4Sprites,plant4Textures,plant4to7);
         switchToNextSprite(plant5Sprites,plant5Textures,plant4to7);
         switchToNextSprite(plant6Sprites,plant6Textures,plant4to7);
         switchToNextSprite(plant7Sprites,plant7Textures,plant4to7);
 
+        //Forward-backward logic
+        if(plant4to7.goForward)
+        {
+            plant4to7.ptrToTexture++;
+        }
+        else
+        {
+            plant4to7.ptrToTexture--;
+        }
+
+        //reset iteration counter after all switches
         plant4to7.iterationCounter = 0;
     }
 
@@ -216,8 +243,30 @@ void Decoration::updateTextures()
     }
     else
     {
+        //Forward-backward logic
+        if(catHelper.ptrToTexture == catHelper.countOfTextures)
+        {
+            catHelper.goForward = false;
+        }
+        else if(catHelper.ptrToTexture == 0)
+        {
+            catHelper.goForward = true;
+        }
+
+        //Switch sprites
         switchToNextSprite(cat1Sprites,cat1Textures,catHelper);
 
+        //Forward-backward logic
+        if(catHelper.goForward)
+        {
+            catHelper.ptrToTexture++;
+        }
+        else
+        {
+            catHelper.ptrToTexture--;
+        }
+
+        //reset iteration counter after all switches
         catHelper.iterationCounter = 0;
     }
     
