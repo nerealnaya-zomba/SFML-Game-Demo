@@ -6,42 +6,49 @@ Decoration::Decoration()
     initTextures(plant1Textures,plant1Path, 89);
     generateMipmapTextures(plant1Textures);
     smoothTextures(plant1Textures);
+    this->plant1.countOfTextures = 89;
+    this->plant1.iterationsTillSwitch = 8;
 
     initTextures(plant2Textures,plant2Path, 89);
     generateMipmapTextures(plant2Textures);
     smoothTextures(plant2Textures);
+    this->plant2.countOfTextures = 89;
+    this->plant2.iterationsTillSwitch = 8;
 
     initTextures(plant3Textures,plant3Path, 89);
     generateMipmapTextures(plant3Textures);
     smoothTextures(plant3Textures);
-
-    this->plant1to3.countOfTextures = 89;
-    this->plant1to3.iterationsTillSwitch = 8;
+    this->plant3.countOfTextures = 89;
+    this->plant3.iterationsTillSwitch = 8;
 
     initTextures(plant4Textures,plant4Path, 59);
     generateMipmapTextures(plant4Textures);
     smoothTextures(plant4Textures);
+    this->plant4.countOfTextures = 59;
+    this->plant4.iterationsTillSwitch = 9;
 
     initTextures(plant5Textures,plant5Path, 59);
     generateMipmapTextures(plant5Textures);
     smoothTextures(plant5Textures);
+    this->plant5.countOfTextures = 59;
+    this->plant5.iterationsTillSwitch = 9;
 
     initTextures(plant6Textures,plant6Path, 59);
     generateMipmapTextures(plant6Textures);
     smoothTextures(plant6Textures);
+    this->plant6.countOfTextures = 59;
+    this->plant6.iterationsTillSwitch = 9;
 
     initTextures(plant7Textures,plant7Path, 59);
     generateMipmapTextures(plant7Textures);
     smoothTextures(plant7Textures);
-
-    this->plant4to7.countOfTextures = 59;
-    this->plant4to7.iterationsTillSwitch = 9;
+    this->plant7.countOfTextures = 59;
+    this->plant7.iterationsTillSwitch = 9;
 
     //Cat
     initTextures(cat1Textures,cat1Path, 2, 2);
     generateMipmapTextures(cat1Textures);
     smoothTextures(cat1Textures);
-
     this->catHelper.countOfTextures = 2;
     this->catHelper.iterationsTillSwitch = 72;
 }
@@ -129,9 +136,41 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
 
 void Decoration::switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper)
 {
-    for (auto &i : spritesArray)
+    
+    if(iterHelper.iterationCounter<iterHelper.iterationsTillSwitch)
     {
-        i->setTexture(texturesArray.at(iterHelper.ptrToTexture));
+        iterHelper.iterationCounter++;
+    }
+    else
+    {
+        //Forward-backward logic
+        if(iterHelper.ptrToTexture == iterHelper.countOfTextures)
+        {
+            iterHelper.goForward = false;
+        }
+        else if(iterHelper.ptrToTexture == 0)
+        {
+            iterHelper.goForward = true;
+        }
+
+        //Switch sprites
+        for (auto &i : spritesArray)
+        {
+            i->setTexture(texturesArray.at(iterHelper.ptrToTexture));
+        }
+
+        //Forward-backward logic
+        if(iterHelper.goForward)
+        {
+            iterHelper.ptrToTexture++;
+        }
+        else
+        {
+            iterHelper.ptrToTexture--;
+        }
+
+        //reset iteration counter after all switches
+        iterHelper.iterationCounter = 0;
     }
 }
 
@@ -164,112 +203,22 @@ void Decoration::smoothTextures(std::vector<sf::Texture> &texturesArray)
 
 void Decoration::updateTextures()
 {
-    //Plant1
-    if(plant1to3.iterationCounter<plant1to3.iterationsTillSwitch)
-    {
-        plant1to3.iterationCounter++;
-    }
-    else
-    {
-        //Forward-backward logic
-        if(plant1to3.ptrToTexture == plant1to3.countOfTextures)
-        {
-            plant1to3.goForward = false;
-        }
-        else if(plant1to3.ptrToTexture == 0)
-        {
-            plant1to3.goForward = true;
-        }
 
-        //Switch sprites
-        switchToNextSprite(plant1Sprites,plant1Textures,plant1to3);
-        switchToNextSprite(plant2Sprites,plant2Textures,plant1to3);
-        switchToNextSprite(plant3Sprites,plant3Textures,plant1to3);
+    switchToNextSprite(plant1Sprites,plant1Textures,plant1);
+    switchToNextSprite(plant2Sprites,plant2Textures,plant2);
+    switchToNextSprite(plant3Sprites,plant3Textures,plant3);
 
-        //Forward-backward logic
-        if(plant1to3.goForward)
-        {
-            plant1to3.ptrToTexture++;
-        }
-        else
-        {
-            plant1to3.ptrToTexture--;
-        }
 
-        //reset iteration counter after all switches
-        plant1to3.iterationCounter = 0;
-    }
 
-    //Tall plants
-    if(plant4to7.iterationCounter<plant4to7.iterationsTillSwitch)
-    {
-        plant4to7.iterationCounter++;
-    }
-    else
-    {
-        //Forward-backward logic
-        if(plant4to7.ptrToTexture == plant4to7.countOfTextures)
-        {
-            plant4to7.goForward = false;
-        }
-        else if(plant4to7.ptrToTexture == 0)
-        {
-            plant4to7.goForward = true;
-        }
+    switchToNextSprite(plant4Sprites,plant4Textures,plant4);
+    switchToNextSprite(plant5Sprites,plant5Textures,plant5);
+    switchToNextSprite(plant6Sprites,plant6Textures,plant6);
+    switchToNextSprite(plant7Sprites,plant7Textures,plant7);
 
-        //Switch sprites
-        switchToNextSprite(plant4Sprites,plant4Textures,plant4to7);
-        switchToNextSprite(plant5Sprites,plant5Textures,plant4to7);
-        switchToNextSprite(plant6Sprites,plant6Textures,plant4to7);
-        switchToNextSprite(plant7Sprites,plant7Textures,plant4to7);
 
-        //Forward-backward logic
-        if(plant4to7.goForward)
-        {
-            plant4to7.ptrToTexture++;
-        }
-        else
-        {
-            plant4to7.ptrToTexture--;
-        }
 
-        //reset iteration counter after all switches
-        plant4to7.iterationCounter = 0;
-    }
+    switchToNextSprite(cat1Sprites,cat1Textures,catHelper);
 
-    if(catHelper.iterationCounter<catHelper.iterationsTillSwitch)
-    {
-        catHelper.iterationCounter++;
-    }
-    else
-    {
-        //Forward-backward logic
-        if(catHelper.ptrToTexture == catHelper.countOfTextures)
-        {
-            catHelper.goForward = false;
-        }
-        else if(catHelper.ptrToTexture == 0)
-        {
-            catHelper.goForward = true;
-        }
-
-        //Switch sprites
-        switchToNextSprite(cat1Sprites,cat1Textures,catHelper);
-
-        //Forward-backward logic
-        if(catHelper.goForward)
-        {
-            catHelper.ptrToTexture++;
-        }
-        else
-        {
-            catHelper.ptrToTexture--;
-        }
-
-        //reset iteration counter after all switches
-        catHelper.iterationCounter = 0;
-    }
-    
 }
 
 void Decoration::draw(sf::RenderWindow &window)

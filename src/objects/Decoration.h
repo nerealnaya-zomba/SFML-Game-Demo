@@ -69,8 +69,13 @@ class Decoration
 
     //IterHelper
         //Plant
-    texturesIterHelper plant1to3;
-    texturesIterHelper plant4to7;
+    texturesIterHelper plant1;
+    texturesIterHelper plant2;
+    texturesIterHelper plant3;
+    texturesIterHelper plant4;
+    texturesIterHelper plant5;
+    texturesIterHelper plant6;
+    texturesIterHelper plant7;
         //Cat
     texturesIterHelper catHelper;
 };      
