@@ -20,9 +20,8 @@ class Player{
     float maxWalkSpeed = 4.f;
     float frictionForce = 0.1f;
     
-    //Control methods
+    //Control methods (Unique player methods)
     void updateControls();
-
     void walkLeft();
     void walkRight();
     void jump();
@@ -37,7 +36,7 @@ class Player{
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     void updateTextures();
     Player();
-    ~Player();
+    virtual ~Player();
     void drawPlayer(sf::RenderWindow& window);
     
     //Other

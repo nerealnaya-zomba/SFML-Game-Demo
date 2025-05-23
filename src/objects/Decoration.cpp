@@ -25,7 +25,7 @@ Decoration::Decoration()
     generateMipmapTextures(plant4Textures);
     smoothTextures(plant4Textures);
     this->plant4.countOfTextures = 59;
-    this->plant4.iterationsTillSwitch = 9;
+    this->plant4.iterationsTillSwitch = 6;
 
     initTextures(plant5Textures,plant5Path, 59);
     generateMipmapTextures(plant5Textures);
@@ -51,6 +51,13 @@ Decoration::Decoration()
     smoothTextures(cat1Textures);
     this->catHelper.countOfTextures = 2;
     this->catHelper.iterationsTillSwitch = 72;
+
+    //jumpPlant
+    initTextures(jumpPlantTextures,jumpPlantPath,19);
+    generateMipmapTextures(jumpPlantTextures);
+    smoothTextures(jumpPlantTextures);
+    this->jumpPlant.countOfTextures = 19;
+    this->jumpPlant.iterationsTillSwitch = 5;
 }
 
 Decoration::~Decoration()
@@ -130,6 +137,15 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setScale(scale);
         sprite->setColor(color);
         cat1Sprites.push_back(std::move(sprite));
+    }
+    else if(name == "jumpPlant")
+    {
+        auto sprite = std::make_unique<sf::Sprite>(jumpPlantTextures.at(0));
+        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
+        sprite->setPosition(position);
+        sprite->setScale(scale);
+        sprite->setColor(color);
+        jumpPlantSprites.push_back(std::move(sprite));
     }
 
 }
@@ -219,6 +235,8 @@ void Decoration::updateTextures()
 
     switchToNextSprite(cat1Sprites,cat1Textures,catHelper);
 
+    switchToNextSprite(jumpPlantSprites,jumpPlantTextures,jumpPlant);
+
 }
 
 void Decoration::draw(sf::RenderWindow &window)
@@ -252,6 +270,10 @@ void Decoration::draw(sf::RenderWindow &window)
         window.draw(*i);
     }
     for (auto &i : cat1Sprites)
+    {
+        window.draw(*i);
+    }
+    for (auto &i : jumpPlantSprites)
     {
         window.draw(*i);
     }

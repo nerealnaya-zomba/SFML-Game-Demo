@@ -29,38 +29,48 @@ int main()
     //Game
     Player player;
     Ground ground;
-    Decoration decoration;
-    sf::Color grassColor{0,80,0,255};
-    float offset = 25.f;
-    decoration.addDecoration("plant1",{100,1040+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{200,1055+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{300,1035+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant1",{400,1040+offset},{-0.6f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{500,1055+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{600,1035+offset},{-0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant1",{700,1058+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{800,1045+offset},{-0.6f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1000,1048+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{1100,1055+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1200,1035+offset},{-0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant1",{1300,1058+offset},{0.6f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{1400,1045+offset},{-0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1500,1048+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1600,1035+offset},{-0.6f,0.3f}, grassColor);
-    decoration.addDecoration("plant1",{1700,1058+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{1800,1045+offset},{-0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1900,1048+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800+80},{1.f,1.f});
+    Entity entity;
 
-    Platform platforms;
-    platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
-    platforms.addPlatform({WINDOW_WIDTH-300-100,WINDOW_HEIGHT-200},"Single-square");
-    platforms.addPlatform({WINDOW_WIDTH-400-100,WINDOW_HEIGHT-280},"Single-flat");
-    platforms.addPlatform({WINDOW_WIDTH-500-200,WINDOW_HEIGHT-380},"Double-horizontal-1");
-    platforms.addPlatform({WINDOW_WIDTH-600-300,WINDOW_HEIGHT-480},"Double-horizontal-2");
-    platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
-    platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
-    platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
+    // Decoration decoration;
+    // sf::Color grassColor{0,80,0,255};
+    // float offset = -50.f;
+    // decoration.addDecoration("plant1",{100,1040+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant2",{200,1055+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant3",{300,1035+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant1",{400,1040+offset},{-0.6f,0.3f}, grassColor);
+    // decoration.addDecoration("plant2",{500,1055+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant3",{600,1035+offset},{-0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant1",{700,1058+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant2",{800,1045+offset},{-0.6f,0.3f}, grassColor);
+    // decoration.addDecoration("plant3",{1000,1048+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant2",{1100,1055+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant3",{1200,1035+offset},{-0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant1",{1300,1058+offset},{0.6f,0.3f}, grassColor);
+    // decoration.addDecoration("plant2",{1400,1045+offset},{-0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant3",{1500,1048+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant3",{1600,1035+offset},{-0.6f,0.3f}, grassColor);
+    // decoration.addDecoration("plant1",{1700,1058+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant2",{1800,1045+offset},{-0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("plant3",{1900,1048+offset},{0.4f,0.3f}, grassColor);
+    // decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800+80},{1.f,1.f});
+    
+    // decoration.addDecoration("plant4",{WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},{0.4f,0.4f});
+    // decoration.addDecoration("plant4",{WINDOW_WIDTH-200-60,WINDOW_HEIGHT-100},{-0.4f,0.4f});
+
+    // decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f});
+    // decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
+
+
+
+    // Platform platforms;
+    // platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
+    // platforms.addPlatform({WINDOW_WIDTH-300-100,WINDOW_HEIGHT-200},"Single-square");
+    // platforms.addPlatform({WINDOW_WIDTH-400-100,WINDOW_HEIGHT-280},"Single-flat");
+    // platforms.addPlatform({WINDOW_WIDTH-500-200,WINDOW_HEIGHT-380},"Double-horizontal-1");
+    // platforms.addPlatform({WINDOW_WIDTH-600-300,WINDOW_HEIGHT-480},"Double-horizontal-2");
+    // platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
+    // platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
+    // platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
 
     //Main loop
     while (window.isOpen())
@@ -91,7 +101,6 @@ int main()
                         //On exitButton fill-up all window with button's area, then close window
                         else if(mouseRect.getGlobalBounds().findIntersection(menu.exitButton->getGlobalBounds()))
                         {
-                            
                             menu.fillUpWindowWithExitButton(window);
                             window.close();
                         }
@@ -153,11 +162,14 @@ int main()
         player.updateControls();
             //Physical logic
         player.updatePhysics();
+        entity.updatePhysics();
         player.checkGroundCollision(ground.getRect());
-        player.checkRectCollision(platforms.getRects());
+        entity.checkGroundCollision(ground.getRect());
+        // player.checkRectCollision(platforms.getRects());
             //Texture logic
         player.updateTextures();
-        decoration.updateTextures();
+        entity.updateTextures();
+        // decoration.updateTextures();
         
         //Temporary control for exit
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Grave))
@@ -174,16 +186,16 @@ int main()
         gameBackground.drawBackground(window);
 
         //Decorations drawing
-        decoration.draw(window);
+        // decoration.draw(window);
 
         //Ground drawing
         ground.draw(window,WINDOW_HEIGHT-39.f);
 
         //Player drawing
         player.drawPlayer(window);
-
+        window.draw(entity);
         //Game objects drawing
-        platforms.draw(window);
+        // platforms.draw(window);
 
 
         view.setCenter(player.playerRectangle->getPosition());
