@@ -7,7 +7,7 @@
 #include<sfml-headers.h>
 #include<Trail.h>
 
-class Player{
+class Player {
     public:
     
     //Variables
@@ -20,7 +20,7 @@ class Player{
     float maxWalkSpeed = 4.f;
     float frictionForce = 0.1f;
     
-    //Control methods (Unique player methods)
+    //Control methods
     void updateControls();
     void walkLeft();
     void walkRight();

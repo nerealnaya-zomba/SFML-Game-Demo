@@ -34,7 +34,7 @@ int main()
     //Game
     Player player;
     Ground ground;
-    Entity entity;
+    Enemy entity;
 
     // Decoration decoration;
     // sf::Color grassColor{0,80,0,255};
