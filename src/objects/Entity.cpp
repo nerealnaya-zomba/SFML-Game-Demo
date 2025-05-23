@@ -14,7 +14,9 @@ Entity::Entity()
     entitySprite_ = new sf::Sprite(*errorTexture_);
     setSpriteOriginToMiddle(*entitySprite_);
 
-    initTextures(idleTexturesPaths_);
+
+    //There shoud be initTextures
+
     
     
 }
@@ -56,6 +58,8 @@ void Entity::updateTextures()
 
     setSpriteOriginToMiddle(*entitySprite_);
 }
+
+
 
 void Entity::switchToNextSprite(std::string texture_first_name)
 {

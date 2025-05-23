@@ -24,6 +24,11 @@ int main()
 
     //Main menu
     Menu menu(font);
+    std::vector<std::string> pathsss = find_files("images/","satiro-falling");
+    for (auto &&i : pathsss)
+    {
+        std::cout<< "FIND FILES TEST: " << i << std::endl;
+    }
     
     
     //Game
@@ -162,13 +167,10 @@ int main()
         player.updateControls();
             //Physical logic
         player.updatePhysics();
-        entity.updatePhysics();
         player.checkGroundCollision(ground.getRect());
-        entity.checkGroundCollision(ground.getRect());
         // player.checkRectCollision(platforms.getRects());
             //Texture logic
         player.updateTextures();
-        entity.updateTextures();
         // decoration.updateTextures();
         
         //Temporary control for exit
@@ -193,7 +195,6 @@ int main()
 
         //Player drawing
         player.drawPlayer(window);
-        window.draw(entity);
         //Game objects drawing
         // platforms.draw(window);
 

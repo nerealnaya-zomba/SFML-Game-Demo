@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include<string>
 #include<iostream>
+#include<filesystem>
+#include<vector>
 
 static void setRectangleOriginToMiddle(sf::RectangleShape& rect)
 {
@@ -37,4 +39,16 @@ static void initTextures(std::vector<sf::Texture> &textures, std::string path, i
         counter++;
 
     }
+}
+
+namespace fs = std::filesystem;
+
+static std::vector<std::string> find_files(const std::string& path, const std::string& mask) {
+    std::vector<std::string> result;
+    for (const auto& entry : fs::directory_iterator(path)) {
+        if (entry.is_regular_file() && entry.path().filename().string().find(mask) != std::string::npos) {
+            result.push_back(entry.path().filename().string());
+        }
+    }
+    return result;
 }

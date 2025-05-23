@@ -29,32 +29,27 @@ private:
     sf::RectangleShape* entityRect_;
     sf::Sprite* entitySprite_;
     
-    //values for debugging
-    std::vector<std::string> idleTexturesPaths_{
-        "images/satiro-idle-1.png",
-        "images/satiro-idle-2.png",
-        "images/satiro-idle-3.png",
-        "images/satiro-idle-4.png",
-        "images/satiro-idle-5.png",
-        "images/satiro-idle-6.png",
-    };
 
     
 
-
-
-public:
-
-    //Physics methods
-    void updatePhysics();
-    void checkRectCollision(std::vector<sf::RectangleShape*> rects);
-    void checkGroundCollision(sf::RectangleShape& groundRect);
+    //PRIVATE Physics methods
     void applyFriction(float& walkSpeed, float friction);
 
+public:
     Entity();
     virtual ~Entity();
 
+    //PUBLIC Physics methods
+    void updatePhysics();
+    void checkRectCollision(std::vector<sf::RectangleShape*> rects);
+    void checkGroundCollision(sf::RectangleShape& groundRect);
+    
+    //PUBLIC Texture methods 
+        //By default should contain switchToNextSprite method/methods
     void updateTextures();
+
+
+
 
 protected:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
