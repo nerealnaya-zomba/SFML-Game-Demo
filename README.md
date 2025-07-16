@@ -10,7 +10,9 @@ cmake -E make_directory build
 cmake -E chdir build cmake ..
 cmake -E chdir build cmake .. --build
 ```
+Executable located at ./build/bin
+
 ## Example
 
+![Game](https://github.com/nerealnaya-zomba/SFML-Game-Demo/blob/main/screenshot.png)
 
-Executable located at ./build/bin
