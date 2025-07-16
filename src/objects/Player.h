@@ -6,6 +6,9 @@
 #include<Mounting.h>
 #include<sfml-headers.h>
 #include<Trail.h>
+#include<Bullet.h>
+#include<list>
+#include<algorithm>
 
 class Player {
     public:
@@ -19,29 +22,41 @@ class Player {
     float speed = 0.15f;
     float maxWalkSpeed = 4.f;
     float frictionForce = 0.1f;
+    float bulletSpeed = 5.f;
     
+    //Getters
+    sf::Vector2f getSpriteScale();
+
     //Control methods
     void updateControls();
     void walkLeft();
     void walkRight();
     void jump();
     void fallDown();
-    
+    //'false' for left  'true' for right
+    void shoot(bool direction);
+
     //Physics methods
     void updatePhysics();
     void checkRectCollision(std::vector<sf::RectangleShape*> rects);
     void checkGroundCollision(sf::RectangleShape& groundRect);
+    void moveBullets();
 
     //Texture methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     void updateTextures();
+    void drawBullets(sf::RenderWindow& window);
+
     Player();
     virtual ~Player();
-    void drawPlayer(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window);
     
     //Other
     void drawPlayerTrail(sf::RenderWindow& window);
-    sf::RectangleShape* playerRectangle;
+    sf::RectangleShape* playerRectangle_;
+    Bullet* playerBullet_;
+    std::list<std::shared_ptr<Bullet>> bullets;
+
     private:
     //Textures
     std::vector<sf::Texture> idleTextures{};    
@@ -72,13 +87,23 @@ class Player {
         "images/satiro-falling-4.png",
         "images/satiro-falling-5.png",
     };
+    std::vector<sf::Texture> bulletTextures{};
+    std::vector<std::string> bulletTexturesPaths{
+        "images/Bullet/blue-bullet-1.png",
+        "images/Bullet/blue-bullet-2.png",
+        "images/Bullet/blue-bullet-3.png",
+        "images/Bullet/blue-bullet-4.png"
+    };
 
     void switchToNextIdleSprite();
     void switchToNextRunningSprite();
-    void switchToNextFallingTexture();
+    void switchToNextFallingSprite();
+    void switchToNextBulletSprite();
 
     //Rectangles
     
+    
+
 
     //Sprite
     sf::Sprite* playerSprite;

@@ -34,48 +34,47 @@ int main()
     //Game
     Player player;
     Ground ground;
-    Enemy entity;
 
-    // Decoration decoration;
-    // sf::Color grassColor{0,80,0,255};
-    // float offset = -50.f;
-    // decoration.addDecoration("plant1",{100,1040+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant2",{200,1055+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant3",{300,1035+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant1",{400,1040+offset},{-0.6f,0.3f}, grassColor);
-    // decoration.addDecoration("plant2",{500,1055+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant3",{600,1035+offset},{-0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant1",{700,1058+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant2",{800,1045+offset},{-0.6f,0.3f}, grassColor);
-    // decoration.addDecoration("plant3",{1000,1048+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant2",{1100,1055+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant3",{1200,1035+offset},{-0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant1",{1300,1058+offset},{0.6f,0.3f}, grassColor);
-    // decoration.addDecoration("plant2",{1400,1045+offset},{-0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant3",{1500,1048+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant3",{1600,1035+offset},{-0.6f,0.3f}, grassColor);
-    // decoration.addDecoration("plant1",{1700,1058+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant2",{1800,1045+offset},{-0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("plant3",{1900,1048+offset},{0.4f,0.3f}, grassColor);
-    // decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800+80},{1.f,1.f});
+    Decoration decoration;
+    sf::Color grassColor{0,80,0,255};
+    float offset = -50.f;
+    decoration.addDecoration("plant1",{100,1040+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{200,1055+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{300,1035+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant1",{400,1040+offset},{-0.6f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{500,1055+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{600,1035+offset},{-0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant1",{700,1058+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{800,1045+offset},{-0.6f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1000,1048+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{1100,1055+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1200,1035+offset},{-0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant1",{1300,1058+offset},{0.6f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{1400,1045+offset},{-0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1500,1048+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1600,1035+offset},{-0.6f,0.3f}, grassColor);
+    decoration.addDecoration("plant1",{1700,1058+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant2",{1800,1045+offset},{-0.4f,0.3f}, grassColor);
+    decoration.addDecoration("plant3",{1900,1048+offset},{0.4f,0.3f}, grassColor);
+    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800+80},{1.f,1.f});
     
-    // decoration.addDecoration("plant4",{WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},{0.4f,0.4f});
-    // decoration.addDecoration("plant4",{WINDOW_WIDTH-200-60,WINDOW_HEIGHT-100},{-0.4f,0.4f});
+    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},{0.4f,0.4f});
+    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-60,WINDOW_HEIGHT-100},{-0.4f,0.4f});
 
-    // decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f});
-    // decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
+    decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f});
+    decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
 
 
 
-    // Platform platforms;
-    // platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
-    // platforms.addPlatform({WINDOW_WIDTH-300-100,WINDOW_HEIGHT-200},"Single-square");
-    // platforms.addPlatform({WINDOW_WIDTH-400-100,WINDOW_HEIGHT-280},"Single-flat");
-    // platforms.addPlatform({WINDOW_WIDTH-500-200,WINDOW_HEIGHT-380},"Double-horizontal-1");
-    // platforms.addPlatform({WINDOW_WIDTH-600-300,WINDOW_HEIGHT-480},"Double-horizontal-2");
-    // platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
-    // platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
-    // platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
+    Platform platforms;
+    platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
+    platforms.addPlatform({WINDOW_WIDTH-300-100,WINDOW_HEIGHT-200},"Single-square");
+    platforms.addPlatform({WINDOW_WIDTH-400-100,WINDOW_HEIGHT-280},"Single-flat");
+    platforms.addPlatform({WINDOW_WIDTH-500-200,WINDOW_HEIGHT-380},"Double-horizontal-1");
+    platforms.addPlatform({WINDOW_WIDTH-600-300,WINDOW_HEIGHT-480},"Double-horizontal-2");
+    platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
+    platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
+    platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
 
     //Main loop
     while (window.isOpen())
@@ -134,13 +133,18 @@ int main()
            //Jump on up arrow
            if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
-                if(keyPressed->scancode == sf::Keyboard::Scancode::Up)
+                if(keyPressed->scancode == sf::Keyboard::Scancode::Z)
                 {
                     if(!player.isFalling)
                     {
                         player.jump();
                     }
                     
+                }
+                if(keyPressed->scancode == sf::Keyboard::Scancode::X)
+                {
+                    std::cout << "Shoot" << std::endl;
+                    player.shoot(player.getSpriteScale().x>0 ? true : false);
                 }
             }
             //↑↑-----GAME-----↑↑
@@ -159,8 +163,9 @@ int main()
             continue;
         }
         
+        //Enemy logic
 
-
+        
         
         //Player logic
             //Player control
@@ -168,10 +173,12 @@ int main()
             //Physical logic
         player.updatePhysics();
         player.checkGroundCollision(ground.getRect());
-        // player.checkRectCollision(platforms.getRects());
-            //Texture logic
+        player.checkRectCollision(platforms.getRects());
+        player.moveBullets();
+
+        //Texture logic
         player.updateTextures();
-        // decoration.updateTextures();
+        decoration.updateTextures();
         
         //Temporary control for exit
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Grave))
@@ -188,18 +195,19 @@ int main()
         gameBackground.drawBackground(window);
 
         //Decorations drawing
-        // decoration.draw(window);
+        decoration.draw(window);
 
         //Ground drawing
         ground.draw(window,WINDOW_HEIGHT-39.f);
 
         //Player drawing
-        player.drawPlayer(window);
+        player.draw(window);
+        player.drawBullets(window);
         //Game objects drawing
-        // platforms.draw(window);
+        platforms.draw(window);
 
 
-        view.setCenter(player.playerRectangle->getPosition());
+        view.setCenter(player.playerRectangle_->getPosition());
         //window.setView(view);
         
 

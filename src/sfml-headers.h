@@ -6,12 +6,12 @@
 
 //Local include objects
 #include<Player.h>
+#include<Enemy.h>
 #include<Platform.h>
 #include<Ground.h>
 #include<Decoration.h>
 #include<Menu.h>
 #include<Background.h>
-#include<Entity.h>
 
 //C libraries
 #include <iostream>

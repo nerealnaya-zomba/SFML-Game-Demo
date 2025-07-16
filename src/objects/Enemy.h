@@ -13,9 +13,9 @@ private:
     bool isFalling_ = true;
     float fallingSpeed_ = 0.f;
     float initialWalkSpeed_ = 0.f;
-    float speed_ = 0.15f;
-    float maxWalkSpeed_ = 4.f;
-    float frictionForce_ = 0.1f;
+    float speed_ = 0.1f;
+    float maxWalkSpeed_ = 2.f;
+    float frictionForce_ = 0.005f;
 
     //Control methods
     void walkLeft();
@@ -32,10 +32,18 @@ private:
     std::map< std::string,std::vector<sf::Texture> > textures_;
 
     sf::Texture* errorTexture_;
-    sf::RectangleShape* entityRect_;
-    sf::Sprite* entitySprite_;
+    sf::RectangleShape* enemyRect_;
+    sf::Sprite* enemySprite_;
     
-    
+    //TEXTURE PATHS
+    std::vector<std::string> idleTexturesPaths{
+        "images/satiro-idle-1.png",
+        "images/satiro-idle-2.png",
+        "images/satiro-idle-3.png",
+        "images/satiro-idle-4.png",
+        "images/satiro-idle-5.png",
+        "images/satiro-idle-6.png",
+    };
     
 
     //PRIVATE Physics methods
@@ -44,6 +52,9 @@ private:
 public:
     Enemy();
     virtual ~Enemy();
+
+    //PUBLIC AI methods
+    void updateAI(sf::RectangleShape &enemyTarget);
 
     //PUBLIC Physics methods
     void updatePhysics();

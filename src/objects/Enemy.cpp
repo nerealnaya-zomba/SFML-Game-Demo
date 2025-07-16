@@ -1,4 +1,4 @@
-#include<Entity.h>
+#include<Enemy.h>
 
 Enemy::Enemy()
 {
@@ -6,24 +6,35 @@ Enemy::Enemy()
     if(errorTexture_ = new sf::Texture("images/error.png")){std::cout << "Error texture loaded\n";}
     else{std::cout << "Failed loading error texture\n"; return;}
     //Rectangles initialization
-    entityRect_ = new sf::RectangleShape();
-    entityRect_->setSize({37.f,53.f});
-    entityRect_->setFillColor(sf::Color::Red);
-    entityRect_->setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
+    enemyRect_ = new sf::RectangleShape();
+    enemyRect_->setSize({37.f,53.f});
+    enemyRect_->setFillColor(sf::Color::Red);
+    enemyRect_->setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
     //Sprite initialization
-    entitySprite_ = new sf::Sprite(*errorTexture_);
-    setSpriteOriginToMiddle(*entitySprite_);
+    enemySprite_ = new sf::Sprite(*errorTexture_);
+    setSpriteOriginToMiddle(*enemySprite_);
 
 
     //There shoud be initTextures
-
-    
+    initTextures(idleTexturesPaths);
     
 }
 
 Enemy::~Enemy()
 {
-    delete entitySprite_, entityRect_;
+    delete enemySprite_, enemyRect_;
+}
+
+void Enemy::updateAI(sf::RectangleShape &enemyTarget)
+{
+    if(enemyRect_->getGlobalBounds().getCenter().x>=enemyTarget.getGlobalBounds().getCenter().x)
+    {
+        walkLeft();
+    }
+    else if(enemyRect_->getGlobalBounds().getCenter().x<=enemyTarget.getGlobalBounds().getCenter().x)
+    {
+        walkRight();
+    }
 }
 
 void Enemy::walkLeft()
@@ -45,7 +56,7 @@ void Enemy::walkRight()
 void Enemy::jump()
 {
     std::cout << "Jump" << std::endl;
-    entityRect_->setPosition({entityRect_->getPosition().x,entityRect_->getPosition().y-1.f});
+    enemyRect_->setPosition({enemyRect_->getPosition().x,enemyRect_->getPosition().y-1.f});
     fallingSpeed_ = -5.5f;
 }
 void Enemy::fallDown()
@@ -80,11 +91,11 @@ void Enemy::initTextures(std::vector<std::string> paths)
 }
 void Enemy::updateTextures()
 {
-    entitySprite_->setPosition({(entityRect_->getPosition().x+entityRect_->getSize().x/2),(entityRect_->getPosition().y+entityRect_->getSize().y/2)-6.f});
+    enemySprite_->setPosition({(enemyRect_->getPosition().x+enemyRect_->getSize().x/2),(enemyRect_->getPosition().y+enemyRect_->getSize().y/2)-6.f});
 
     switchToNextSprite("images/satiro-idle-1.png");
 
-    setSpriteOriginToMiddle(*entitySprite_);
+    setSpriteOriginToMiddle(*enemySprite_);
 }
 
 
@@ -100,7 +111,7 @@ void Enemy::switchToNextSprite(std::string texture_first_name)
     static size_t i = 0;
     static bool goForward = true;
     std::vector<sf::Texture>& vector_textureREF = textures_.at(texture_first_name);
-    entitySprite_->setTexture(vector_textureREF[i],true);
+    enemySprite_->setTexture(vector_textureREF[i],true);
     if(i == vector_textureREF.size()-1 && goForward == true)
     {
         goForward = false;
@@ -122,8 +133,8 @@ void Enemy::switchToNextSprite(std::string texture_first_name)
 
 void Enemy::draw(sf::RenderWindow& window)
 {
-    window.draw(*entityRect_);
-    window.draw(*entitySprite_);
+    window.draw(*enemyRect_);
+    window.draw(*enemySprite_);
 }
 
 void Enemy::updatePhysics()
@@ -131,14 +142,14 @@ void Enemy::updatePhysics()
         applyFriction(initialWalkSpeed_,frictionForce_);
     
     
-    entityRect_->move({0.f,fallingSpeed_});
+    enemyRect_->move({0.f,fallingSpeed_});
     
-    entityRect_->move({initialWalkSpeed_,0.f});
+    enemyRect_->move({initialWalkSpeed_,0.f});
     
-    if(entityRect_->getPosition().y+entityRect_->getSize().y>=WINDOW_HEIGHT)
+    if(enemyRect_->getPosition().y+enemyRect_->getSize().y>=WINDOW_HEIGHT)
     {
         isFalling_ = false;
-        entityRect_->setPosition({entityRect_->getPosition().x, WINDOW_HEIGHT-entityRect_->getSize().y});
+        enemyRect_->setPosition({enemyRect_->getPosition().x, WINDOW_HEIGHT-enemyRect_->getSize().y});
     }
     else
     {
@@ -155,13 +166,13 @@ void Enemy::updatePhysics()
     //std::cout << entityRect->getPosition().x << std::endl;
 
     //Window border collision (left and right)
-    if(entityRect_->getPosition().x+entityRect_->getSize().x>=WINDOW_WIDTH)
+    if(enemyRect_->getPosition().x+enemyRect_->getSize().x>=WINDOW_WIDTH)
     {
-        entityRect_->setPosition({WINDOW_WIDTH-entityRect_->getSize().x,entityRect_->getPosition().y});
+        enemyRect_->setPosition({WINDOW_WIDTH-enemyRect_->getSize().x,enemyRect_->getPosition().y});
     }
-    else if(entityRect_->getPosition().x<=0)
+    else if(enemyRect_->getPosition().x<=0)
     {
-        entityRect_->setPosition({0.f,entityRect_->getPosition().y});
+        enemyRect_->setPosition({0.f,enemyRect_->getPosition().y});
     }
 }
 void Enemy::checkRectCollision(std::vector<sf::RectangleShape*> rects)
@@ -169,7 +180,7 @@ void Enemy::checkRectCollision(std::vector<sf::RectangleShape*> rects)
         for (sf::RectangleShape* i : rects)
     {
                 // Получаем глобальные границы (для удобства)
-        sf::FloatRect playerBounds = entityRect_->getGlobalBounds();
+        sf::FloatRect playerBounds = enemyRect_->getGlobalBounds();
         sf::FloatRect platformBounds = i->getGlobalBounds();
 
         // Проверяем пересечение
@@ -192,10 +203,10 @@ void Enemy::checkRectCollision(std::vector<sf::RectangleShape*> rects)
             {
                 if (fromLeft) {
                     // Слева
-                    entityRect_->setPosition({platformBounds.position.x - playerBounds.size.x, playerBounds.position.y});
+                    enemyRect_->setPosition({platformBounds.position.x - playerBounds.size.x, playerBounds.position.y});
                 } else {
                     // Справа
-                    entityRect_->setPosition({platformBounds.position.x + platformBounds.size.x, playerBounds.position.y});
+                    enemyRect_->setPosition({platformBounds.position.x + platformBounds.size.x, playerBounds.position.y});
                 }
             } 
             // Коллизия с ВЕРХНЕЙ/НИЖНЕЙ сторонами
@@ -212,14 +223,14 @@ void Enemy::checkRectCollision(std::vector<sf::RectangleShape*> rects)
                     {
                         if(playerBounds.position.y+playerBounds.size.y >= platformBounds.position.y+3.f)
                         {
-                            entityRect_->setPosition({playerBounds.position.x,playerBounds.position.y-2.f});
+                            enemyRect_->setPosition({playerBounds.position.x,playerBounds.position.y-2.f});
                         }
                     }
                         
 
                 } else {
                     // Снизу
-                    entityRect_->setPosition({playerBounds.position.x, platformBounds.position.y + platformBounds.size.y});
+                    enemyRect_->setPosition({playerBounds.position.x, platformBounds.position.y + platformBounds.size.y});
                     fallingSpeed_ = -(fallingSpeed_);
                 }
             }
@@ -229,15 +240,15 @@ void Enemy::checkRectCollision(std::vector<sf::RectangleShape*> rects)
 }
 void Enemy::checkGroundCollision(sf::RectangleShape& groundRect)
 {
-    float playerX = entityRect_->getPosition().x;
-    float playerY = entityRect_->getPosition().y+entityRect_->getSize().y;
+    float playerX = enemyRect_->getPosition().x;
+    float playerY = enemyRect_->getPosition().y+enemyRect_->getSize().y;
     float groundY = groundRect.getPosition().y;
 
     if(playerY>=groundY)
     {
         isFalling_ = false;
         fallingSpeed_ = 0.f;
-        entityRect_->setPosition({playerX,groundY-entityRect_->getSize().y});
+        enemyRect_->setPosition({playerX,groundY-enemyRect_->getSize().y});
     }
 }
 
