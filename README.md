@@ -17,3 +17,9 @@ cmake -E chdir build cmake .. --build
 Executable located at ./build/bin
 
 ***If something not working, try to open folder in VS Code and configure&build using CMake extension.***
+
+## Keybindings
+
+- Left/Right/Up/Down Arrows - Moving
+- Z - Jump
+- X - Shot
