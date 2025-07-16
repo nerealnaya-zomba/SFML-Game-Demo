@@ -2,6 +2,10 @@
 
 This is demo version, so i don't take responsibility if something not working.
 
+## Example
+
+![Game](https://github.com/nerealnaya-zomba/SFML-Game-Demo/blob/main/screenshot.png)
+
 ## How to try
 
 Open terminal and enter this:
@@ -12,7 +16,4 @@ cmake -E chdir build cmake .. --build
 ```
 Executable located at ./build/bin
 
-## Example
-
-![Game](https://github.com/nerealnaya-zomba/SFML-Game-Demo/blob/main/screenshot.png)
-
+***If something not working, try to open folder in VS Code and configure&build using CMake extension.***
