@@ -13,7 +13,10 @@ static void setSpriteOriginToMiddle(sf::Sprite& sprite)
 {
     sprite.setOrigin({sprite.getLocalBounds().size.x/2, sprite.getLocalBounds().size.y/2});
 }
-
+static void setTextOriginToMiddle(sf::Text& text)
+{
+    text.setOrigin({text.getLocalBounds().size.x/2, text.getLocalBounds().size.y/2});
+}
 //Loading
 static void initTextures(std::vector<sf::Texture> &textures, std::string path, int texturesCount, int maxDigits = 5)
 {

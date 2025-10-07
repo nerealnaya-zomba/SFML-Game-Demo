@@ -12,6 +12,7 @@
 #include<Decoration.h>
 #include<Menu.h>
 #include<Background.h>
+#include<AskDialogue.h>
 
 //C libraries
 #include <iostream>

@@ -23,7 +23,8 @@ add_executable(main
     src/objects/Ground.cpp
     src/objects/Decoration.cpp
     src/objects/Enemy.cpp
-    src/objects/Bullet.cpp)
+    src/objects/Bullet.cpp
+    src/objects/AskDialogue.cpp)
 
 target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/funcs ${CMAKE_SOURCE_DIR}/src/objects)
 target_compile_features(main PRIVATE cxx_std_17)

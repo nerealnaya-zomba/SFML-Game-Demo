@@ -23,12 +23,10 @@ int main()
         std::cout << "Font error" << std::endl;
 
     //Main menu
-    Menu menu(font);
-    std::vector<std::string> pathsss = find_files("images/","satiro-falling");
-    for (auto &&i : pathsss)
-    {
-        std::cout<< "FIND FILES TEST: " << i << std::endl;
-    }
+    Menu menu(font,window,mouseRect);
+    
+
+    
     
     
     //Game
@@ -96,17 +94,28 @@ int main()
                     {
                         moveRectToMouse(mouseRect,window);
                         //On playButton click fill-up all window with button's area, then start game
-                        if(mouseRect.getGlobalBounds().findIntersection(menu.playButton->getGlobalBounds()))
+                        if(mouseRect.getGlobalBounds().findIntersection(menu.playButton->getGlobalBounds()) && !menu.exitDialogue->isCalled)
                         {
-                            menu.fillUpWindowWithPlayButton(window, gameBackGroundColor);
-
                             menu.isMainMenuCalled = false;
                         }
                         //On exitButton fill-up all window with button's area, then close window
-                        else if(mouseRect.getGlobalBounds().findIntersection(menu.exitButton->getGlobalBounds()))
+                        else if(mouseRect.getGlobalBounds().findIntersection(menu.exitButton->getGlobalBounds()) && !menu.exitDialogue->isCalled)
                         {
-                            menu.fillUpWindowWithExitButton(window);
-                            window.close();
+                            menu.exitDialogue->isCalled = true;
+                        }
+                        else if(menu.exitDialogue->isCalled)
+                        {
+                            menu.exitDialogue->checkAnswer();
+                            if(menu.exitDialogue->answer_m == AskDialogue::Answer::Yes)
+                            {
+                                window.close();
+                            }
+                            else if(menu.exitDialogue->answer_m == AskDialogue::Answer::No)
+                            {
+                                
+                                menu.exitDialogue->isCalled = false;
+                                menu.exitDialogue->answer_m = AskDialogue::Answer::NoAnswer;
+                            }
                         }
                     }
                 }
@@ -121,7 +130,7 @@ int main()
                     view.setCenter({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
                     window.setView(view);
                     //Smoothly return previous variables on playButton and PlayButtonText
-                    menu.smoothlyReturnPreviousVariablesAndDraw(window);
+                    //menu.smoothlyReturnPreviousVariablesAndDraw(window);
 
                     menu.isMainMenuCalled = true;
                 }
@@ -149,17 +158,21 @@ int main()
             }
             //↑↑-----GAME-----↑↑
         }
-        
         //Main menu drawing
         if(menu.isMainMenuCalled)
         {
             
-            sizeUpRectangleOnHover(*menu.playButton,mouseRect,window, 0.03f , 0.02f);
-            sizeUpRectangleOnHover(*menu.exitButton,mouseRect,window, 0.03f , 0.02f);
+            sizeUpRectangleOnHover(*menu.playButton,*menu.playButtonText,mouseRect,window, 0.03f , 0.02f);
+            sizeUpRectangleOnHover(*menu.exitButton,*menu.exitButtonText,mouseRect,window, 0.03f , 0.02f);
+            
+            
 
             menu.rainbowWindowClear(window, menuBackGroundColor);
 
+            
             menu.menuDraw(window);
+            
+            
             continue;
         }
         

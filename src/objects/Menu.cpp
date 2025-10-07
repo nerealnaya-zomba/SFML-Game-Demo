@@ -1,8 +1,12 @@
 #include<Menu.h>
 
 
-Menu::Menu(sf::Font& font)
+Menu::Menu(sf::Font& font, sf::RenderWindow& window, sf::RectangleShape& mouseRect)
 {
+    //External references
+    mouseRect_m = &mouseRect;
+    window_m = &window;
+    
     //Buttons init
     playButton = new sf::RectangleShape();
     playButtonText = new sf::Text(font,"Play");
@@ -23,6 +27,9 @@ Menu::Menu(sf::Font& font)
     exitButtonText->setFillColor(sf::Color::White);
     exitButtonText->setOrigin({exitButtonText->getGlobalBounds().size.x/2,exitButtonText->getGlobalBounds().size.y/2});
     exitButtonText->setPosition({exitButton->getPosition().x, exitButton->getPosition().y-6});
+
+    //Exit dialogue init
+    exitDialogue = new AskDialogue(sf::Vector2f(WINDOW_WIDTH/2,WINDOW_HEIGHT/2),sf::Vector2f(350,150),"Quit the game?",font,sf::Color::Black,*mouseRect_m,*window_m);
 }
 
 Menu::~Menu()
@@ -234,5 +241,6 @@ void Menu::menuDraw(sf::RenderWindow& window)
     window.draw(*exitButton);
     window.draw(*playButtonText);
     window.draw(*exitButtonText);
+    if(exitDialogue->isCalled) exitDialogue->draw(window);
     window.display();
 }
