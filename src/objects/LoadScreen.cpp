@@ -2,6 +2,7 @@
 
 LoadScreen::LoadScreen()
 {
+    
 }
 
 LoadScreen::~LoadScreen()

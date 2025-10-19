@@ -15,7 +15,9 @@ Bullet::Bullet(sf::Vector2f pos, float maxDistance)
 
 Bullet::~Bullet()
 {
-    delete bulletRect_,bulletSprite_,bulletTexture_;
+    delete bulletRect_;
+    delete bulletSprite_;
+    delete bulletTexture_;
 }
 
 void Bullet::setSpriteTexture(sf::Texture& texture)
