@@ -6,6 +6,10 @@ int main()
     auto window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), WINDOW_TITLE, (sf::Style::Titlebar | sf::Style::Close), sf::State::Fullscreen);
     window.setFramerateLimit(WINDOW_FPS);
     
+    GameTextures gaga;
+
+
+    return 0;
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});

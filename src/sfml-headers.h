@@ -13,6 +13,7 @@
 #include<Menu.h>
 #include<Background.h>
 #include<AskDialogue.h>
+#include<GameTextures.h>
 
 //C libraries
 #include <iostream>

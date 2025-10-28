@@ -18,7 +18,7 @@ static void setTextOriginToMiddle(sf::Text& text)
     text.setOrigin({text.getLocalBounds().size.x/2, text.getLocalBounds().size.y/2});
 }
 //Loading
-static void initTextures(std::vector<sf::Texture> &textures, std::string path, int texturesCount, int maxDigits = 5)
+static bool initTextures(std::vector<sf::Texture> &textures, std::string path, int texturesCount, int maxDigits = 5)
 {
     sf::Texture* texture = new sf::Texture;
     std::string basePath = path;
@@ -35,13 +35,14 @@ static void initTextures(std::vector<sf::Texture> &textures, std::string path, i
         
         if (!texture->loadFromFile(filename.str())) 
         {
-            break;
+            return false;
         }
         textures.push_back(*texture);
         std::cout << "Loaded: " << filename.str() << std::endl;
         counter++;
 
     }
+    return true;
 }
 
 namespace fs = std::filesystem;

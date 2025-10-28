@@ -325,11 +325,6 @@ void Player::initTextures(std::vector<sf::Texture> &textures, std::vector<std::s
         
         
     }
-    
-    
-    
-    
-    
 }
 
 void Player::switchToNextIdleSprite()
