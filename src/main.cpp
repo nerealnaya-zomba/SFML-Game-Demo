@@ -6,10 +6,22 @@ int main()
     auto window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), WINDOW_TITLE, (sf::Style::Titlebar | sf::Style::Close), sf::State::Fullscreen);
     window.setFramerateLimit(WINDOW_FPS);
     
-    GameTextures gaga;
+    //Loading font
+    sf::Font font;
+    if(font.openFromFile("fonts/Roboto_Condensed-Black.ttf")) 
+        std::cout << "Font opened" << std::endl;
+    else
+    {
+        std::cout << "Font error" << std::endl;
+        return 0;
+    }
+        
+        
 
+    GameTextures gameTextures(&window,&font);
 
-    return 0;
+    std::cout << gameTextures.succesedOperationsCount_m << std::endl;
+    return 0; //REMOVE THIS TO STOP DEBUGGING
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
@@ -19,12 +31,7 @@ int main()
     sf::Color gameBackGroundColor({0,0,0,255});
     Background gameBackground;
 
-    //Loading font
-    sf::Font font;
-    if(font.openFromFile("fonts/Roboto_Condensed-Black.ttf"))
-        std::cout << "Font opened" << std::endl;
-    else
-        std::cout << "Font error" << std::endl;
+
 
     //Main menu
     Menu menu(font,window,mouseRect);

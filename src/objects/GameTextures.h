@@ -2,17 +2,22 @@
 #include <SFML/Graphics.hpp>
 #include<Decoration.h>
 #include<Mounting.h>
+#include<GameLoadingScreen.h>
 #include<iostream>
 
 class GameTextures
 {
 public:
-    GameTextures();
+    GameTextures(sf::RenderWindow* window,sf::Font* font);
     ~GameTextures();
-    
-    //Variables
-    int succesedOperationsCount_m{};
 
+    //Variables
+        //Logic
+    int succesedOperationsCount_m{};
+    int operations_count_m = 13; // Change this value always when adding new textures
+        //Menu
+    LoadingScreen* loadingScreen_m;
+    
     //Textures
         //Satiro
     std::vector<sf::Texture> idleTextures{};    
