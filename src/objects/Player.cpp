@@ -1,13 +1,13 @@
 #include<Player.h>
 
 
-Player::Player()
+Player::Player(GameTextures& gameTextures)
 {
     //Textures initialization
-    initTextures(idleTextures,idleTexturesPaths);
-    initTextures(runningTextures,runningTexturesPaths);
-    initTextures(fallingTextures,fallingTexturesPaths);
-    initTextures(bulletTextures,bulletTexturesPaths);
+    attachTexture(gameTextures.idleTextures,this->idleTextures);
+    attachTexture(gameTextures.runningTextures,this->runningTextures);
+    attachTexture(gameTextures.fallingTextures,this->fallingTextures);
+    attachTexture(gameTextures.bulletTextures,this->bulletTextures);
 
     //Rectangles initialization
     playerRectangle_ = new sf::RectangleShape();
@@ -15,7 +15,7 @@ Player::Player()
     playerRectangle_->setFillColor(sf::Color::Red);
     playerRectangle_->setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
     //Sprite initialization
-    playerSprite = new sf::Sprite(idleTextures.at(0));
+    playerSprite = new sf::Sprite(idleTextures->at(0));
     setSpriteOriginToMiddle(*playerSprite);
     //Trail initialization
     trail = new Trail(*playerSprite);
@@ -30,9 +30,9 @@ void Player::switchToNextFallingSprite()
         return;
     }
     static size_t i = 0;
-    playerSprite->setTexture(fallingTextures[i],true);
+    playerSprite->setTexture(fallingTextures->at(i),true);
     i++;
-    if(i == fallingTextures.size()-1)
+    if(i == fallingTextures->size()-1)
     {
         i=0;
     }
@@ -337,8 +337,8 @@ void Player::switchToNextIdleSprite()
     }
     static size_t i = 0;
     static bool goForward = true;
-    playerSprite->setTexture(idleTextures[i],true);
-    if(i == idleTextures.size()-1 && goForward == true)
+    playerSprite->setTexture(idleTextures->at(i),true);
+    if(i == idleTextures->size()-1 && goForward == true)
     {
         goForward = false;
     }
@@ -366,9 +366,9 @@ void Player::switchToNextRunningSprite()
         return;
     }
     static size_t i = 0;
-    playerSprite->setTexture(runningTextures[i],true);
+    playerSprite->setTexture(runningTextures->at(i),true);
     i++;
-    if(i == runningTextures.size()-1)
+    if(i == runningTextures->size()-1)
     {
         i=0;
     }
@@ -388,11 +388,11 @@ void Player::switchToNextBulletSprite()
 
     for (auto &&loc : bullets)
     {
-        loc->setSpriteTexture(bulletTextures[i]);
+        loc->setSpriteTexture(bulletTextures->at(i));
     }
     
     i++;
-    if(i == bulletTextures.size()-1)
+    if(i == bulletTextures->size()-1)
     {
         i=0;
     }

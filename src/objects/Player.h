@@ -9,10 +9,14 @@
 #include<Bullet.h>
 #include<list>
 #include<algorithm>
+#include<GameTextures.h>
 
 class Player {
     public:
-    
+
+    Player(GameTextures& gameTextures);
+    virtual ~Player();
+
     //Variables
         //Logic
     bool isIdle = true;
@@ -46,9 +50,6 @@ class Player {
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     void updateTextures();
     void drawBullets(sf::RenderWindow& window);
-
-    Player();
-    virtual ~Player();
     void draw(sf::RenderWindow& window);
     
     //Other
@@ -59,41 +60,14 @@ class Player {
 
     private:
     //Textures
-    std::vector<sf::Texture> idleTextures{};    
-    std::vector<std::string> idleTexturesPaths{
-        "images/satiro-idle-1.png",
-        "images/satiro-idle-2.png",
-        "images/satiro-idle-3.png",
-        "images/satiro-idle-4.png",
-        "images/satiro-idle-5.png",
-        "images/satiro-idle-6.png",
-    };
-    std::vector<sf::Texture> runningTextures{};
-    std::vector<std::string>  runningTexturesPaths{
-        "images/satiro-running-1.png",
-        "images/satiro-running-2.png",
-        "images/satiro-running-3.png",
-        "images/satiro-running-4.png",
-        "images/satiro-running-5.png",
-        "images/satiro-running-6.png",
-        "images/satiro-running-7.png",
-        "images/satiro-running-8.png",
-    };
-    std::vector<sf::Texture> fallingTextures{};
-    std::vector<std::string> fallingTexturesPaths{
-        "images/satiro-falling-1.png",
-        "images/satiro-falling-2.png",
-        "images/satiro-falling-3.png",
-        "images/satiro-falling-4.png",
-        "images/satiro-falling-5.png",
-    };
-    std::vector<sf::Texture> bulletTextures{};
-    std::vector<std::string> bulletTexturesPaths{
-        "images/Bullet/blue-bullet-1.png",
-        "images/Bullet/blue-bullet-2.png",
-        "images/Bullet/blue-bullet-3.png",
-        "images/Bullet/blue-bullet-4.png"
-    };
+    std::vector<sf::Texture>* idleTextures;    
+
+    std::vector<sf::Texture>* runningTextures;
+
+    std::vector<sf::Texture>* fallingTextures;
+
+    std::vector<sf::Texture>* bulletTextures;
+
 
     void switchToNextIdleSprite();
     void switchToNextRunningSprite();

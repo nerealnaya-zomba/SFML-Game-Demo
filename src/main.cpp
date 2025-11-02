@@ -20,7 +20,7 @@ int main()
 
     GameTextures gameTextures(&window,&font);
 
-    //return 0; //REMOVE THIS TO STOP DEBUGGING
+    //return 0; //REMOVELATER THIS TO STOP DEBUGGING gameTextures
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
@@ -38,7 +38,7 @@ int main()
     
     
     //Game
-    Player player;
+    Player player(gameTextures);
     Ground ground;
     Decoration decoration(gameTextures);
 
