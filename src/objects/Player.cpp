@@ -237,14 +237,23 @@ void Player::fallDown()
 void Player::shoot(bool direction)
 {
     std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),300);
-
     if(direction)
     {
-        bulletPtr->offsetToMove_=sf::Vector2f(bulletSpeed,0.f);
+        //If-else removes the possibility of spawning bullets slower than the standard bullet speed.
+        if(bulletSpeed+initialWalkSpeed<bulletSpeed)
+        {
+            bulletPtr->offsetToMove_=sf::Vector2f(bulletSpeed,0.f);
+        }
+        else bulletPtr->offsetToMove_=sf::Vector2f(bulletSpeed+initialWalkSpeed,0.f);
     }
     else
     {
-        bulletPtr->offsetToMove_=sf::Vector2f(-bulletSpeed,0.f);
+        //If-else removes the possibility of spawning bullets slower than the standard bullet speed.
+        if(-bulletSpeed+initialWalkSpeed>-bulletSpeed)
+        {
+            bulletPtr->offsetToMove_=sf::Vector2f(-bulletSpeed,0.f);
+        }
+        else bulletPtr->offsetToMove_=sf::Vector2f(-bulletSpeed+initialWalkSpeed,0.f);
         bulletPtr->setSpriteScale({-1.f,1.f});
     }
 
