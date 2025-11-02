@@ -69,3 +69,7 @@ static void attachTexture(std::vector<sf::Texture>& fromTexture, std::vector<sf:
     toTexture = &fromTexture;
     toIter = &fromIter;
 }
+static void attachTexture(sf::Texture& fromTexture, sf::Texture*& toTexture) 
+{
+    toTexture = &fromTexture;
+}

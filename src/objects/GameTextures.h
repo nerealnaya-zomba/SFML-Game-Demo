@@ -51,6 +51,8 @@ public:
         //Cat
     std::vector<sf::Texture> cat1Textures;
     texturesIterHelper catHelper;
+        //Ground
+    sf::Texture ground1Texture;
 
 private:
     bool initSatiroTextures(std::vector<sf::Texture> &textures, std::vector<std::string> paths);
@@ -91,14 +93,15 @@ private:
         "images/satiro-falling-4.png",
         "images/satiro-falling-5.png",
     };
-        //Satiro bullet
+            //Satiro bullet
     std::vector<std::string> bulletTexturesPaths{
         "images/Bullet/blue-bullet-1.png",
         "images/Bullet/blue-bullet-2.png",
         "images/Bullet/blue-bullet-3.png",
         "images/Bullet/blue-bullet-4.png"
     };
-        //Plants
+        //Decorations
+            //Plants
     std::string plant1Path{"images/decoration/Plant_1/Plant1_"};
     std::string plant2Path{"images/decoration/Plant_2/Plant2_"};
     std::string plant3Path{"images/decoration/Plant_3/Plant3_"};
@@ -107,6 +110,8 @@ private:
     std::string plant6Path{"images/decoration/Plant_6/Plant6_"};
     std::string plant7Path{"images/decoration/Plant_7/Plant7_"};
     std::string jumpPlantPath{"images/decoration/PlantJump/JumpPlant_"};
-        //Cat
+            //Cat
     std::string cat1Path{"images/decoration/sleepingCat/cat/RetroCatsFree_"};
+        //Ground
+    std::string ground1Path{"images/Ground/mramoric.png"};
 };

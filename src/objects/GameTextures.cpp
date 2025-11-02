@@ -87,6 +87,9 @@ GameTextures::GameTextures(sf::RenderWindow* window,sf::Font* font)
     smoothTextures(jumpPlantTextures);
     this->jumpPlant.countOfTextures = 19;
     this->jumpPlant.iterationsTillSwitch = 5;
+
+    //Ground initialization
+    ground1Texture.loadFromFile(ground1Path) ? std::cout << "Texture loaded: images/Ground/mramoric.png" << std::endl : std::cout << "Error loading texture: images/Ground/mramoric.png" << std::endl;
 }
 
 GameTextures::~GameTextures()

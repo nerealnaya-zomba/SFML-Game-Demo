@@ -2,10 +2,12 @@
 #include<SFML/Graphics.hpp>
 #include<iostream>
 #include<Defines.h>
+#include<Mounting.h>
+#include<GameTextures.h>
 class Ground
 {
     public:
-    Ground();
+    Ground(GameTextures& gameTextures);
     ~Ground();
 
     void draw(sf::RenderWindow& window, float yPos);
@@ -14,9 +16,9 @@ class Ground
 
 
     private:
-    sf::RectangleShape* rect;
-    sf::Texture* texture;
-    sf::Sprite* sprite;
+    sf::RectangleShape* ground1Rect_m;
+    sf::Texture* ground1Texture_m;
+    sf::Sprite* ground1Sprite_m;
     
 
 };

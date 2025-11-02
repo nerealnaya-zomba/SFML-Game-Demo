@@ -39,7 +39,7 @@ int main()
     
     //Game
     Player player(gameTextures);
-    Ground ground;
+    Ground ground(gameTextures);
     Decoration decoration(gameTextures);
 
     sf::Color grassColor{0,80,0,255};

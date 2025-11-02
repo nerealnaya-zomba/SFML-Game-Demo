@@ -1,15 +1,15 @@
 #include "Ground.h"
 
-Ground::Ground()
+Ground::Ground(GameTextures& gameTextures)
 {
-    texture = new sf::Texture();
-    texture->loadFromFile("images/Ground/mramoric.png") ? std::cout << "Texture loaded: images/Ground/mramoric.png" << std::endl : std::cout << "Error loading texture: images/Ground/mramoric.png" << std::endl;
+    //Texture attaching
+    attachTexture(gameTextures.ground1Texture,this->ground1Texture_m);
 
-    sprite = new sf::Sprite(*texture);
+    ground1Sprite_m = new sf::Sprite(*ground1Texture_m);
 
-    rect = new sf::RectangleShape();
-    rect->setSize({WINDOW_WIDTH,39.f});
-    rect->setPosition({0,0});
+    ground1Rect_m = new sf::RectangleShape();
+    ground1Rect_m->setSize({WINDOW_WIDTH,39.f});
+    ground1Rect_m->setPosition({0,0});
 }
 Ground::~Ground()
 {
@@ -17,13 +17,13 @@ Ground::~Ground()
 void Ground::draw(sf::RenderWindow& window, float yPos)
 {
     float offSet = 8.f;
-    rect->setPosition({0,yPos+offSet});
+    ground1Rect_m->setPosition({0,yPos+offSet});
     float nextPos = 0.f;
     for (size_t i = 0; i < WINDOW_WIDTH/126.f; i++)
     {
-        sprite->setPosition({nextPos,yPos});
+        ground1Sprite_m->setPosition({nextPos,yPos});
         
-        window.draw(*sprite);
+        window.draw(*ground1Sprite_m);
         //39.f, 126.f is the width and height of mramoric.png
         nextPos += 126.f;
     }
@@ -32,5 +32,5 @@ void Ground::draw(sf::RenderWindow& window, float yPos)
 
 sf::RectangleShape &Ground::getRect()
 {
-    return *this->rect;
+    return *this->ground1Rect_m;
 }
