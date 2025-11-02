@@ -4,6 +4,7 @@
 #include<iostream>
 #include<filesystem>
 #include<vector>
+#include<TexturesIterHelper.h>
 
 static void setRectangleOriginToMiddle(sf::RectangleShape& rect)
 {
@@ -55,4 +56,16 @@ static std::vector<std::string> find_files(const std::string& path, const std::s
         }
     }
     return result;
+}
+
+//Texture attaching
+    // "*&" means that we use reference to pointer. If there would be only "*", then that would mean we get copy of that pointer, not changing its own value.
+static void attachTexture(std::vector<sf::Texture>& fromTexture, std::vector<sf::Texture>*& toTexture) 
+{
+    toTexture = &fromTexture;
+}
+static void attachTexture(std::vector<sf::Texture>& fromTexture, std::vector<sf::Texture>*& toTexture, texturesIterHelper& fromIter, texturesIterHelper*& toIter)
+{
+    toTexture = &fromTexture;
+    toIter = &fromIter;
 }

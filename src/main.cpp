@@ -20,8 +20,7 @@ int main()
 
     GameTextures gameTextures(&window,&font);
 
-    std::cout << gameTextures.succesedOperationsCount_m << std::endl;
-    return 0; //REMOVE THIS TO STOP DEBUGGING
+    //return 0; //REMOVE THIS TO STOP DEBUGGING
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
@@ -30,8 +29,6 @@ int main()
     sf::Color menuBackGroundColor({0u,0u,0u});
     sf::Color gameBackGroundColor({0,0,0,255});
     Background gameBackground;
-
-
 
     //Main menu
     Menu menu(font,window,mouseRect);
@@ -43,8 +40,8 @@ int main()
     //Game
     Player player;
     Ground ground;
+    Decoration decoration(gameTextures);
 
-    Decoration decoration;
     sf::Color grassColor{0,80,0,255};
     float offset = -50.f;
     decoration.addDecoration("plant1",{100,1040+offset},{0.4f,0.3f}, grassColor);

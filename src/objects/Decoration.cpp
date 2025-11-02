@@ -1,63 +1,22 @@
 #include "Decoration.h"
 
-Decoration::Decoration()
+Decoration::Decoration(GameTextures& gameTextures)
 {
     //Plants
-    initTextures(plant1Textures,plant1Path, 89);
-    generateMipmapTextures(plant1Textures);
-    smoothTextures(plant1Textures);
-    this->plant1.countOfTextures = 89;
-    this->plant1.iterationsTillSwitch = 8;
-
-    initTextures(plant2Textures,plant2Path, 89);
-    generateMipmapTextures(plant2Textures);
-    smoothTextures(plant2Textures);
-    this->plant2.countOfTextures = 89;
-    this->plant2.iterationsTillSwitch = 8;
-
-    initTextures(plant3Textures,plant3Path, 89);
-    generateMipmapTextures(plant3Textures);
-    smoothTextures(plant3Textures);
-    this->plant3.countOfTextures = 89;
-    this->plant3.iterationsTillSwitch = 8;
-
-    initTextures(plant4Textures,plant4Path, 59);
-    generateMipmapTextures(plant4Textures);
-    smoothTextures(plant4Textures);
-    this->plant4.countOfTextures = 59;
-    this->plant4.iterationsTillSwitch = 6;
-
-    initTextures(plant5Textures,plant5Path, 59);
-    generateMipmapTextures(plant5Textures);
-    smoothTextures(plant5Textures);
-    this->plant5.countOfTextures = 59;
-    this->plant5.iterationsTillSwitch = 9;
-
-    initTextures(plant6Textures,plant6Path, 59);
-    generateMipmapTextures(plant6Textures);
-    smoothTextures(plant6Textures);
-    this->plant6.countOfTextures = 59;
-    this->plant6.iterationsTillSwitch = 9;
-
-    initTextures(plant7Textures,plant7Path, 59);
-    generateMipmapTextures(plant7Textures);
-    smoothTextures(plant7Textures);
-    this->plant7.countOfTextures = 59;
-    this->plant7.iterationsTillSwitch = 9;
+    attachTexture(gameTextures.plant1Textures, this->plant1Textures, gameTextures.plant1,this->plant1);
+    attachTexture(gameTextures.plant2Textures, this->plant2Textures, gameTextures.plant2,this->plant2);
+    attachTexture(gameTextures.plant3Textures, this->plant3Textures, gameTextures.plant3,this->plant3);
+    attachTexture(gameTextures.plant4Textures, this->plant4Textures, gameTextures.plant4,this->plant4);
+    attachTexture(gameTextures.plant5Textures, this->plant5Textures, gameTextures.plant5,this->plant5);
+    attachTexture(gameTextures.plant6Textures, this->plant6Textures, gameTextures.plant6,this->plant6);
+    attachTexture(gameTextures.plant7Textures, this->plant7Textures, gameTextures.plant7,this->plant7);
 
     //Cat
-    initTextures(cat1Textures,cat1Path, 2, 2);
-    generateMipmapTextures(cat1Textures);
-    smoothTextures(cat1Textures);
-    this->catHelper.countOfTextures = 2;
-    this->catHelper.iterationsTillSwitch = 72;
+    attachTexture(gameTextures.jumpPlantTextures, this->jumpPlantTextures, gameTextures.jumpPlant, this->jumpPlant);
 
     //jumpPlant
-    initTextures(jumpPlantTextures,jumpPlantPath,19);
-    generateMipmapTextures(jumpPlantTextures);
-    smoothTextures(jumpPlantTextures);
-    this->jumpPlant.countOfTextures = 19;
-    this->jumpPlant.iterationsTillSwitch = 5;
+    attachTexture(gameTextures.cat1Textures, this->cat1Textures, gameTextures.catHelper, this->catHelper);
+
 }
 
 Decoration::~Decoration()
@@ -68,7 +27,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
 {
     if(name == "plant1")
     {
-        auto sprite = std::make_unique<sf::Sprite>(plant1Textures.at(0));
+        //Error handling
+        if(plant1Textures == nullptr || plant1Textures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(plant1Textures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);
         sprite->setScale(scale);
@@ -77,7 +42,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
     }
     else if(name == "plant2")
     {
-        auto sprite = std::make_unique<sf::Sprite>(plant2Textures.at(0));
+        //Error handling
+        if(plant2Textures == nullptr || plant2Textures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(plant2Textures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);
         sprite->setScale(scale);
@@ -86,7 +57,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
     }
     else if(name == "plant3")
     {
-        auto sprite = std::make_unique<sf::Sprite>(plant3Textures.at(0));
+        //Error handling
+        if(plant3Textures == nullptr || plant3Textures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(plant3Textures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);
         sprite->setScale(scale);
@@ -95,7 +72,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
     }
     else if(name == "plant4")
     {
-        auto sprite = std::make_unique<sf::Sprite>(plant4Textures.at(0));
+        //Error handling
+        if(plant4Textures == nullptr || plant4Textures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(plant4Textures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);
         sprite->setScale(scale);
@@ -104,7 +87,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
     }
     else if(name == "plant5")
     {
-        auto sprite = std::make_unique<sf::Sprite>(plant5Textures.at(0));
+        //Error handling
+        if(plant5Textures == nullptr || plant5Textures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(plant5Textures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);
         sprite->setScale(scale);
@@ -113,7 +102,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
     }
     else if(name == "plant6")
     {
-        auto sprite = std::make_unique<sf::Sprite>(plant6Textures.at(0));
+        //Error handling
+        if(plant6Textures == nullptr || plant6Textures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(plant6Textures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);
         sprite->setScale(scale);
@@ -122,7 +117,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
     }
     else if(name == "plant7")
     {
-        auto sprite = std::make_unique<sf::Sprite>(plant7Textures.at(0));
+        //Error handling
+        if(plant7Textures == nullptr || plant7Textures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(plant7Textures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);
         sprite->setScale(scale);
@@ -131,7 +132,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
     }
     else if(name == "cat")
     {
-        auto sprite = std::make_unique<sf::Sprite>(cat1Textures.at(0));
+        //Error handling
+        if(cat1Textures == nullptr || cat1Textures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(cat1Textures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);
         sprite->setScale(scale);
@@ -140,7 +147,13 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
     }
     else if(name == "jumpPlant")
     {
-        auto sprite = std::make_unique<sf::Sprite>(jumpPlantTextures.at(0));
+        //Error handling
+        if(jumpPlantTextures == nullptr || jumpPlantTextures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(jumpPlantTextures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);
         sprite->setScale(scale);
@@ -220,22 +233,22 @@ void Decoration::smoothTextures(std::vector<sf::Texture> &texturesArray)
 void Decoration::updateTextures()
 {
 
-    switchToNextSprite(plant1Sprites,plant1Textures,plant1);
-    switchToNextSprite(plant2Sprites,plant2Textures,plant2);
-    switchToNextSprite(plant3Sprites,plant3Textures,plant3);
+    switchToNextSprite(plant1Sprites,*plant1Textures,*plant1);
+    switchToNextSprite(plant2Sprites,*plant2Textures,*plant2);
+    switchToNextSprite(plant3Sprites,*plant3Textures,*plant3);
 
 
 
-    switchToNextSprite(plant4Sprites,plant4Textures,plant4);
-    switchToNextSprite(plant5Sprites,plant5Textures,plant5);
-    switchToNextSprite(plant6Sprites,plant6Textures,plant6);
-    switchToNextSprite(plant7Sprites,plant7Textures,plant7);
+    switchToNextSprite(plant4Sprites,*plant4Textures,*plant4);
+    switchToNextSprite(plant5Sprites,*plant5Textures,*plant5);
+    switchToNextSprite(plant6Sprites,*plant6Textures,*plant6);
+    switchToNextSprite(plant7Sprites,*plant7Textures,*plant7);
 
 
 
-    switchToNextSprite(cat1Sprites,cat1Textures,catHelper);
+    switchToNextSprite(cat1Sprites,*cat1Textures,*catHelper);
 
-    switchToNextSprite(jumpPlantSprites,jumpPlantTextures,jumpPlant);
+    switchToNextSprite(jumpPlantSprites,*jumpPlantTextures,*jumpPlant);
 
 }
 
@@ -279,3 +292,4 @@ void Decoration::draw(sf::RenderWindow &window)
     }
     
 }
+

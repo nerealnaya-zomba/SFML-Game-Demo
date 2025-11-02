@@ -1,3 +1,4 @@
+#pragma once
 #include<SFML/Graphics.hpp>
 #include<Defines.h>
 #include<Mounting.h>
