@@ -9,16 +9,17 @@
 #include<Bullet.h>
 #include<list>
 #include<algorithm>
-#include<GameTextures.h>
+#include<GameData.h>
 
 class Player {
     public:
 
-    Player(GameTextures& gameTextures);
+    Player(GameData& gameTextures);
     virtual ~Player();
 
     //Variables
         //Logic
+            //Player
     bool isIdle = true;
     bool isFalling = true;
     float fallingSpeed = 0.f;
@@ -26,8 +27,11 @@ class Player {
     float speed = 0.15f;
     float maxWalkSpeed = 4.f;
     float frictionForce = 0.1f;
+            //Bullet
     float bulletSpeed = 5.f;
+    float bulletMaxDistance_ = 500.f;
     
+
     //Getters
     sf::Vector2f getSpriteScale();
 

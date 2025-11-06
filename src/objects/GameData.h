@@ -5,11 +5,12 @@
 #include<GameLoadingScreen.h>
 #include<iostream>
 
-class GameTextures
+//Provides textures and saved data
+class GameData
 {
 public:
-    GameTextures(sf::RenderWindow* window,sf::Font* font);
-    ~GameTextures();
+    GameData(sf::RenderWindow* window,sf::Font* font);
+    ~GameData();
 
 
     

@@ -13,7 +13,12 @@
 #include<Menu.h>
 #include<Background.h>
 #include<AskDialogue.h>
-#include<GameTextures.h>
+#include<GameData.h>
+#include<Bullet.h>
+#include<GameLoadingScreen.h>
+#include<LoadScreen.h>
+#include<TexturesIterHelper.h>
+#include<Trail.h>
 
 //C libraries
 #include <iostream>
@@ -22,3 +27,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
+
+//JSON
+#include<nlohmann/json.hpp>

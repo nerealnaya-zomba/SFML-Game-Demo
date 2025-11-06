@@ -1,6 +1,6 @@
-#include "GameTextures.h"
+#include "GameData.h"
 
-GameTextures::GameTextures(sf::RenderWindow* window,sf::Font* font)
+GameData::GameData(sf::RenderWindow* window,sf::Font* font)
 {
     //LoadingScreen initialization
     loadingScreen_m = new LoadingScreen(window,font,operations_count_m);
@@ -92,12 +92,12 @@ GameTextures::GameTextures(sf::RenderWindow* window,sf::Font* font)
     ground1Texture.loadFromFile(ground1Path) ? std::cout << "Texture loaded: images/Ground/mramoric.png" << std::endl : std::cout << "Error loading texture: images/Ground/mramoric.png" << std::endl;
 }
 
-GameTextures::~GameTextures()
+GameData::~GameData()
 {
 
 }
 
-bool GameTextures::initSatiroTextures(std::vector<sf::Texture> &textures, std::vector<std::string> paths)
+bool GameData::initSatiroTextures(std::vector<sf::Texture> &textures, std::vector<std::string> paths)
 {
     for (size_t i = 0; i < paths.size(); i++)
     {
@@ -116,7 +116,7 @@ bool GameTextures::initSatiroTextures(std::vector<sf::Texture> &textures, std::v
     return true;
 }
 
-void GameTextures::generateMipmapTextures(std::vector<sf::Texture> &texturesArray)
+void GameData::generateMipmapTextures(std::vector<sf::Texture> &texturesArray)
 {
     for (auto &i : texturesArray)
     {
@@ -131,7 +131,7 @@ void GameTextures::generateMipmapTextures(std::vector<sf::Texture> &texturesArra
     }
 }
 
-void GameTextures::smoothTextures(std::vector<sf::Texture> &texturesArray)
+void GameData::smoothTextures(std::vector<sf::Texture> &texturesArray)
 {
     for (auto &i : texturesArray)
     {

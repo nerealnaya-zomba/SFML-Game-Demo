@@ -4,14 +4,14 @@
 #include<iostream>
 #include<string>
 #include<Mounting.h>
-#include<GameTextures.h>
+#include<GameData.h>
 #include<TexturesIterHelper.h>
 #include<windows.h>
 
 class Decoration
 {
 public:
-    Decoration(GameTextures& gameTextures);
+    Decoration(GameData& gameTextures);
     ~Decoration();
 
     void addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Color color=sf::Color::White);

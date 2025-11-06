@@ -1,7 +1,7 @@
 #include<Player.h>
 
 
-Player::Player(GameTextures& gameTextures)
+Player::Player(GameData& gameTextures)
 {
     //Textures initialization
     attachTexture(gameTextures.idleTextures,this->idleTextures);
@@ -209,7 +209,7 @@ void Player::walkLeft()
 {
     if(initialWalkSpeed<=(-maxWalkSpeed))
     {
-       return; 
+        return; 
     }
     initialWalkSpeed-=speed;
 }
@@ -236,7 +236,7 @@ void Player::fallDown()
 
 void Player::shoot(bool direction)
 {
-    std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),300);
+    std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),this->bulletMaxDistance_);
     if(direction)
     {
         //If-else removes the possibility of spawning bullets slower than the standard bullet speed.

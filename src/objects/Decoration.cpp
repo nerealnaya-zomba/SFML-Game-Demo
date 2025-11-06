@@ -1,6 +1,6 @@
 #include "Decoration.h"
 
-Decoration::Decoration(GameTextures& gameTextures)
+Decoration::Decoration(GameData& gameTextures)
 {
     //Plants
     attachTexture(gameTextures.plant1Textures, this->plant1Textures, gameTextures.plant1,this->plant1);

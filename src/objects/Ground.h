@@ -3,11 +3,11 @@
 #include<iostream>
 #include<Defines.h>
 #include<Mounting.h>
-#include<GameTextures.h>
+#include<GameData.h>
 class Ground
 {
     public:
-    Ground(GameTextures& gameTextures);
+    Ground(GameData& gameTextures);
     ~Ground();
 
     void draw(sf::RenderWindow& window, float yPos);

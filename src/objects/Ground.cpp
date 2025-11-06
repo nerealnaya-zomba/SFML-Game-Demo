@@ -1,6 +1,6 @@
 #include "Ground.h"
 
-Ground::Ground(GameTextures& gameTextures)
+Ground::Ground(GameData& gameTextures)
 {
     //Texture attaching
     attachTexture(gameTextures.ground1Texture,this->ground1Texture_m);

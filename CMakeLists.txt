@@ -11,7 +11,10 @@ FetchContent_Declare(SFML
     GIT_SHALLOW ON
     EXCLUDE_FROM_ALL
     SYSTEM)
-FetchContent_MakeAvailable(SFML)
+FetchContent_MakeAvailable(SFML) 
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
+FetchContent_MakeAvailable(json)
 
 add_executable(main 
     src/main.cpp 
@@ -31,7 +34,7 @@ add_executable(main
 
 target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/funcs ${CMAKE_SOURCE_DIR}/src/objects)
 target_compile_features(main PRIVATE cxx_std_17)
-target_link_libraries(main PRIVATE SFML::Graphics)
+target_link_libraries(main PRIVATE SFML::Graphics nlohmann_json::nlohmann_json)
 
 
 

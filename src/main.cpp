@@ -18,7 +18,7 @@ int main()
         
         
 
-    GameTextures gameTextures(&window,&font);
+    GameData gameTextures(&window,&font);
 
     //return 0; //REMOVELATER THIS TO STOP DEBUGGING gameTextures
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
@@ -148,7 +148,7 @@ int main()
 
            //↓↓-----GAME-----↓↓
            //Jump on up arrow
-           if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+            if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Z)
                 {
@@ -237,7 +237,7 @@ int main()
         
 
         window.display();
-  
+
         
         
         

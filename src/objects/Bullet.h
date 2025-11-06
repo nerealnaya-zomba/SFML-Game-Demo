@@ -11,7 +11,7 @@ private:
 public:
     float maxDistance_{100.f};
     float distancePassed{};
-    Bullet(sf::Vector2f pos, float maxDistance);
+    Bullet(sf::Vector2f pos, float maxDistance); //maxDistance changes in constructor
     virtual ~Bullet();
 
     void setSpriteTexture(sf::Texture& texture);
