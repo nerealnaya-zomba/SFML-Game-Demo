@@ -1,5 +1,6 @@
 #include <sfml-headers.h>
 #include <Defines.h>
+#include<nlohmann/json.hpp>
 int main()
 {
     //Window preferences
@@ -17,7 +18,7 @@ int main()
     }
     
     
-
+    
     GameData gameTextures(&window,&font);
 
     //return 0; //REMOVELATER THIS TO STOP DEBUGGING gameTextures

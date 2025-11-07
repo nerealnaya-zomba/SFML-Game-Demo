@@ -10,6 +10,8 @@
 #include<list>
 #include<algorithm>
 #include<GameData.h>
+#include<nlohmann/json.hpp>
+#include<fstream>
 
 class Player {
     public:
@@ -27,6 +29,8 @@ class Player {
     float speed = 0.15f;
     float maxWalkSpeed = 4.f;
     float frictionForce = 0.1f;
+    int playerPosX_m{};
+    int playerPosY_m{};
             //Bullet
     float bulletSpeed = 5.f;
     float bulletMaxDistance_ = 500.f;
@@ -92,4 +96,9 @@ class Player {
 
     //Trail
     Trail* trail;
+
+    //Save-load data methods
+    void saveData();
+    void loadData();
+
 };

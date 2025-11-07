@@ -3,6 +3,9 @@
 
 Player::Player(GameData& gameTextures)
 {
+    //Loading data from GameData.json
+    loadData();
+
     //Textures initialization
     attachTexture(gameTextures.idleTextures,this->idleTextures);
     attachTexture(gameTextures.runningTextures,this->runningTextures);
@@ -13,7 +16,7 @@ Player::Player(GameData& gameTextures)
     playerRectangle_ = new sf::RectangleShape();
     playerRectangle_->setSize({37.f,53.f});
     playerRectangle_->setFillColor(sf::Color::Red);
-    playerRectangle_->setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
+    playerRectangle_->setPosition({playerPosX_m,playerPosY_m});
     //Sprite initialization
     playerSprite = new sf::Sprite(idleTextures->at(0));
     setSpriteOriginToMiddle(*playerSprite);
@@ -111,6 +114,23 @@ void Player::applyFriction(float& walkSpeed, float friction)
     {
         walkSpeed = 0.f;
     }
+}
+
+void Player::saveData()
+{
+    std::ifstream f("GameData.json");
+    nlohmann::json data = nlohmann::json::parse(f);
+
+
+    
+}
+
+void Player::loadData()
+{
+    std::fstream f("GameData.json");
+    nlohmann::json data = nlohmann::json::parse(f);
+    playerPosX_m = data["Player"]["PosX"];
+    playerPosY_m = data["Player"]["PosY"];
 }
 
 void Player::checkRectCollision(std::vector<sf::RectangleShape*> rects)

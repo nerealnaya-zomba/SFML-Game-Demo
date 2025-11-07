@@ -2,6 +2,9 @@
 
 GameData::GameData(sf::RenderWindow* window,sf::Font* font)
 {
+    //Loading data from launchSettings.json
+    loadData();
+
     //LoadingScreen initialization
     loadingScreen_m = new LoadingScreen(window,font,operations_count_m);
 
@@ -90,6 +93,15 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
 
     //Ground initialization
     ground1Texture.loadFromFile(ground1Path) ? std::cout << "Texture loaded: images/Ground/mramoric.png" << std::endl : std::cout << "Error loading texture: images/Ground/mramoric.png" << std::endl;
+
+
+
+    //Save load info
+    if(succesedOperationsCount_m!=operations_count_m)
+    {
+        saveOperationsData();
+    }
+
 }
 
 GameData::~GameData()
@@ -137,4 +149,28 @@ void GameData::smoothTextures(std::vector<sf::Texture> &texturesArray)
     {
         i.setSmooth(true);
     }
+}
+
+//
+void GameData::saveOperationsData()
+{
+    // Чтение
+    std::ifstream in("data/launchSettings.json");
+    nlohmann::json j = nlohmann::json::parse(in);
+    in.close();  // Закрыть для чтения
+
+
+    // Изменение
+    j["loadingGameAssets_operationsCount"] = succesedOperationsCount_m;
+    
+    // Запись
+    std::ofstream out("data/launchSettings.json");
+    out << j.dump(4);
+}
+
+void GameData::loadData()
+{
+    std::fstream f("data/launchSettings.json");
+    nlohmann::json j = nlohmann::json::parse(f);
+    operations_count_m = j["loadingGameAssets_operationsCount"];
 }

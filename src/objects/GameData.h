@@ -4,6 +4,7 @@
 #include<Mounting.h>
 #include<GameLoadingScreen.h>
 #include<nlohmann/json.hpp>
+#include<fstream>
 #include<iostream>
 
 //Provides textures and saved data
@@ -63,10 +64,14 @@ private:
 
     //Variables
         //Logic
-    int succesedOperationsCount_m{};
-    int operations_count_m = 13; // Change this value always when adding new textures
+    int succesedOperationsCount_m{}; //Needs for loading bar working properly
+    int operations_count_m{}; // Loading from launchSettings.json
         //Menu
     LoadingScreen* loadingScreen_m;
+
+    //Save-load methods
+    void saveOperationsData();
+    void loadData();
 
     //Textures paths
         //Satiro 
