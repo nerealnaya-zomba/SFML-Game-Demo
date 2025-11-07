@@ -6,17 +6,24 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     loadData();
 
     //LoadingScreen initialization
-    loadingScreen_m = new LoadingScreen(window,font,operations_count_m);
+    loadingScreen_m = new LoadingScreen(window,font,allOperations_count_m);
 
-    //Satiro Textures initialization
+    //Textures
+        //Satiro initialization
     if(initSatiroTextures(idleTextures,idleTexturesPaths)) succesedOperationsCount_m++;
-    if(initSatiroTextures(runningTextures,runningTexturesPaths)) succesedOperationsCount_m++;
-    if(initSatiroTextures(fallingTextures,fallingTexturesPaths)) succesedOperationsCount_m++;
-    if(initSatiroTextures(bulletTextures,bulletTexturesPaths)) succesedOperationsCount_m++;
-
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //Plants initialization
+    if(initSatiroTextures(runningTextures,runningTexturesPaths)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    if(initSatiroTextures(fallingTextures,fallingTexturesPaths)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    if(initSatiroTextures(bulletTextures,bulletTexturesPaths)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+
+        //Plants initialization
     if(initTextures(plant1Textures,plant1Path, 89)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
@@ -73,7 +80,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     this->plant7.countOfTextures = 59;
     this->plant7.iterationsTillSwitch = 9;
 
-    //Cat initialization
+        //Cat initialization
     if(initTextures(cat1Textures,cat1Path, 2, 2)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
@@ -82,7 +89,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     this->catHelper.countOfTextures = 2;
     this->catHelper.iterationsTillSwitch = 72;
 
-    //jumpPlant initialization
+        //jumpPlant initialization
     if(initTextures(jumpPlantTextures,jumpPlantPath,19)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
@@ -91,13 +98,15 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     this->jumpPlant.countOfTextures = 19;
     this->jumpPlant.iterationsTillSwitch = 5;
 
-    //Ground initialization
+        //Ground initialization
     ground1Texture.loadFromFile(ground1Path) ? std::cout << "Texture loaded: images/Ground/mramoric.png" << std::endl : std::cout << "Error loading texture: images/Ground/mramoric.png" << std::endl;
 
-
+    succesedOperationsCount_m++;
+    succesedOperationsCount_m++;
+    succesedOperationsCount_m++;
 
     //Save load info
-    if(succesedOperationsCount_m!=operations_count_m)
+    if(succesedOperationsCount_m!=allOperations_count_m)
     {
         saveOperationsData();
     }
@@ -172,5 +181,5 @@ void GameData::loadData()
 {
     std::fstream f("data/launchSettings.json");
     nlohmann::json j = nlohmann::json::parse(f);
-    operations_count_m = j["loadingGameAssets_operationsCount"];
+    allOperations_count_m = j["loadingGameAssets_operationsCount"];
 }

@@ -65,7 +65,7 @@ private:
     //Variables
         //Logic
     int succesedOperationsCount_m{}; //Needs for loading bar working properly
-    int operations_count_m{}; // Loading from launchSettings.json
+    int allOperations_count_m{}; // Loading from launchSettings.json
         //Menu
     LoadingScreen* loadingScreen_m;
 
