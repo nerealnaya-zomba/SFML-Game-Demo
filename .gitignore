@@ -4,7 +4,6 @@ _deps
 *.cmake
 *ninja*
 CMakeCache.txt
-*.json
 out
 *.cache
 *.idea
@@ -12,3 +11,4 @@ out
 *.vscode
 *.exe
 libs/ffmpeg/bin
+compile_commands.json
