@@ -3,6 +3,7 @@
 #include<TexturesIterHelper.h>
 #include<Mounting.h>
 #include<GameLoadingScreen.h>
+#include<nlohmann/json.hpp>
 #include<iostream>
 
 //Provides textures and saved data

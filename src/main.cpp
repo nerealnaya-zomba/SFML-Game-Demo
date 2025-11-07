@@ -15,8 +15,8 @@ int main()
         std::cout << "Font error" << std::endl;
         return 0;
     }
-        
-        
+    
+    
 
     GameData gameTextures(&window,&font);
 

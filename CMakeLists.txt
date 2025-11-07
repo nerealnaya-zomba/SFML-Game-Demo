@@ -11,10 +11,12 @@ FetchContent_Declare(SFML
     GIT_SHALLOW ON
     EXCLUDE_FROM_ALL
     SYSTEM)
-FetchContent_MakeAvailable(SFML) 
+FetchContent_MakeAvailable(SFML) #SFML connecting
 
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
-FetchContent_MakeAvailable(json)
+FetchContent_MakeAvailable(json) #JSON connecting
+
+
 
 add_executable(main 
     src/main.cpp 
@@ -29,13 +31,21 @@ add_executable(main
     src/objects/Bullet.cpp
     src/objects/AskDialogue.cpp
     src/objects/LoadScreen.cpp
-    src/objects/GameTextures.cpp
+    src/objects/GameData.cpp
     src/objects/GameLoadingScreen.cpp)
 
-target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/funcs ${CMAKE_SOURCE_DIR}/src/objects)
+target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/funcs ${CMAKE_SOURCE_DIR}/src/objects) #Project source files
+
+# FFmpeg
+target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/include)
+target_link_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/lib)
+
 target_compile_features(main PRIVATE cxx_std_17)
-target_link_libraries(main PRIVATE SFML::Graphics nlohmann_json::nlohmann_json)
+
+target_link_libraries(main PRIVATE 
+    SFML::Graphics 
+    nlohmann_json::nlohmann_json
+    avcodec avformat swscale avutil
+)
 
 
-
- 
