@@ -11,3 +11,4 @@ out
 *.vs
 *.vscode
 *.exe
+libs/ffmpeg/bin
