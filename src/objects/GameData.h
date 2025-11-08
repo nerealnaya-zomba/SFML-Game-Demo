@@ -26,6 +26,44 @@ public:
 
         //Satiro bullet
     std::vector<sf::Texture> bulletTextures{};
+
+        //Skeleton_white
+        std::vector<sf::Texture> skeletonWhite_idleTextures_{};    
+        texturesIterHelper skeletonWhite_idle_helper;
+
+        std::vector<sf::Texture> skeletonWhite_walkTextures{};    
+        texturesIterHelper skeletonWhite_walk_helper;
+
+        std::vector<sf::Texture> skeletonWhite_hurtTextures{};    
+        texturesIterHelper skeletonWhite_hurt_helper;
+
+        std::vector<sf::Texture> skeletonWhite_dieTextures{};    
+        texturesIterHelper skeletonWhite_die_helper;
+
+        std::vector<sf::Texture> skeletonWhite_attack1Textures{};    
+        texturesIterHelper skeletonWhite_attack1_helper;
+
+        std::vector<sf::Texture> skeletonWhite_attack2Textures{};    
+        texturesIterHelper skeletonWhite_attack2_helper;
+
+            //Skeleton_yellow
+        std::vector<sf::Texture> skeletonYellow_idleTextures{};    
+        texturesIterHelper skeletonYellow_idle_helper;
+
+        std::vector<sf::Texture> skeletonYellow_walkTextures{};    
+        texturesIterHelper skeletonYellow_walk_helper;
+
+        std::vector<sf::Texture> skeletonYellow_hurtTextures{};    
+        texturesIterHelper skeletonYellow_hurt_helper;
+
+        std::vector<sf::Texture> skeletonYellow_dieTextures{};    
+        texturesIterHelper skeletonYellow_die_helper;
+
+        std::vector<sf::Texture> skeletonYellow_attack1Textures{};    
+        texturesIterHelper skeletonYellow_attack1_helper;
+
+        std::vector<sf::Texture> skeletonYellow_attack2Textures{};    
+        texturesIterHelper skeletonYellow_attack2_helper;
     
         //Plants
     std::vector<sf::Texture> plant1Textures;
@@ -100,13 +138,39 @@ private:
         "images/satiro-falling-4.png",
         "images/satiro-falling-5.png",
     };
-            //Satiro bullet
     std::vector<std::string> bulletTexturesPaths{
         "images/Bullet/blue-bullet-1.png",
         "images/Bullet/blue-bullet-2.png",
         "images/Bullet/blue-bullet-3.png",
         "images/Bullet/blue-bullet-4.png"
     };
+        //SkeletonWhite
+            //Idle
+        std::string skeletonWhite_idlePath_{"images/creatures/enemies/skeleton_white/idle/skeleton-idle_"};
+            //Walk
+        std::string skeletonWhite_walkPath_{"images/creatures/enemies/skeleton_white/walk/Skeleton_White_Walk_"};
+            //Hurt
+        std::string skeletonWhite_hurtPath_{"images/creatures/enemies/skeleton_white/hurt/Skeleton_White_Hurt_"};
+            //Die
+        std::string skeletonWhite_diePath_{"images/creatures/enemies/skeleton_white/die/Skeleton_White_Die_"};
+            //Attack1
+        std::string skeletonWhite_attack1Path_{"images/creatures/enemies/skeleton_white/attack1/Skeleton_White_Attack1_"};
+            //Attack2
+        std::string skeletonWhite_attack2Path_{"images/creatures/enemies/skeleton_white/attack2/Skeleton_White_Attack2_"};
+        //SkeletonYellow
+            //Idle
+        std::string skeletonYellow_idlePath_{"images/creatures/enemies/skeleton_yellow/idle/Skeleton_Yellow_Idle_"};
+            //Walk
+        std::string skeletonYellow_walkPath_{"images/creatures/enemies/skeleton_yellow/walk/Skeleton_Yellow_Walk_"};
+            //Hurt
+        std::string skeletonYellow_hurtPath_{"images/creatures/enemies/skeleton_yellow/hurt/Skeleton_Yellow_Hurt_"};
+            //Die
+        std::string skeletonYellow_diePath_{"images/creatures/enemies/skeleton_yellow/die/Skeleton_Yellow_Die_"};
+            //Attack1
+        std::string skeletonYellow_attack1Path_{"images/creatures/enemies/skeleton_yellow/attack1/Skeleton_Yellow_Attack1_"};
+            //Attack2
+        std::string skeletonYellow_attack2Path_{"images/creatures/enemies/skeleton_yellow/attack2/Skeleton_Yellow_Attack2_"};
+
         //Decorations
             //Plants
     std::string plant1Path{"images/decoration/Plant_1/Plant1_"};

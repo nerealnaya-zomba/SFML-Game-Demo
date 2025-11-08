@@ -1,22 +1,23 @@
 #include<Enemy.h>
 
-Enemy::Enemy()
+Enemy::Enemy(GameData& gameTextures)
 {
-    //Error texture initialization
-    if(errorTexture_ = new sf::Texture("images/error.png")){std::cout << "Error texture loaded\n";}
-    else{std::cout << "Failed loading error texture\n"; return;}
+    //There shoud be initTextures
+    
+
+
     //Rectangles initialization
     enemyRect_ = new sf::RectangleShape();
     enemyRect_->setSize({37.f,53.f});
     enemyRect_->setFillColor(sf::Color::Red);
     enemyRect_->setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
     //Sprite initialization
-    enemySprite_ = new sf::Sprite(*errorTexture_);
+    enemySprite_ = new sf::Sprite(gameTextures.skeletonWhite_idleTextures_[0]);
     setSpriteOriginToMiddle(*enemySprite_);
 
 
-    //There shoud be initTextures
-    initTextures(idleTexturesPaths);
+    
+    
     
 }
 
@@ -41,7 +42,7 @@ void Enemy::walkLeft()
 {
     if(initialWalkSpeed_<=(-maxWalkSpeed_))
     {
-       return; 
+        return; 
     }
     initialWalkSpeed_-=speed_;
 }
@@ -64,31 +65,6 @@ void Enemy::fallDown()
     fallingSpeed_+=0.1f;
 }
 
-
-void Enemy::initTextures(std::vector<std::string> paths)
-{
-    
-    std::vector<sf::Texture> loc_vec;
-
-    for (size_t i = 0; i < paths.size(); i++)
-    {
-        
-        sf::Texture texture;
-        if(!texture.loadFromFile(paths[i]))
-        {
-            std::cout << "Error loading texture: " << paths[i] << std::endl;
-        }
-        else
-        {
-            std::cout << "Texture loaded: " << paths[i] << std::endl;
-            loc_vec.push_back(std::move(texture));
-        }
-        
-        
-    }
-    textures_.emplace(paths[0],std::move(loc_vec));
-
-}
 void Enemy::updateTextures()
 {
     enemySprite_->setPosition({(enemyRect_->getPosition().x+enemyRect_->getSize().x/2),(enemyRect_->getPosition().y+enemyRect_->getSize().y/2)-6.f});

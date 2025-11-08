@@ -4,6 +4,8 @@
 #include<iostream>
 #include<Defines.h>
 #include<Mounting.h>
+#include<GameData.h>
+#include<nlohmann/json.hpp>
 
 class Enemy
 {
@@ -23,34 +25,19 @@ private:
     void jump();
     void fallDown();
 
-    //Textures init-drawing
-    void initTextures(std::vector<std::string> paths);
-
         //texture_first_name - Enter first texture name of texture's collection
     void switchToNextSprite(std::string texture_first_name);
 
     std::map< std::string,std::vector<sf::Texture> > textures_;
 
-    sf::Texture* errorTexture_;
     sf::RectangleShape* enemyRect_;
     sf::Sprite* enemySprite_;
     
-    //TEXTURE PATHS
-    std::vector<std::string> idleTexturesPaths{
-        "images/satiro-idle-1.png",
-        "images/satiro-idle-2.png",
-        "images/satiro-idle-3.png",
-        "images/satiro-idle-4.png",
-        "images/satiro-idle-5.png",
-        "images/satiro-idle-6.png",
-    };
-    
-
     //PRIVATE Physics methods
     void applyFriction(float& walkSpeed, float friction);
 
 public:
-    Enemy();
+    Enemy(GameData& gameTextures);
     virtual ~Enemy();
 
     //PUBLIC AI methods

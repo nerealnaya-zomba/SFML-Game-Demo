@@ -19,11 +19,11 @@ static void setTextOriginToMiddle(sf::Text& text)
     text.setOrigin({text.getLocalBounds().size.x/2, text.getLocalBounds().size.y/2});
 }
 //Loading
-static bool initTextures(std::vector<sf::Texture> &textures, std::string path, int texturesCount, int maxDigits = 5)
+static bool initTextures(std::vector<sf::Texture> &textures, std::string path, int texturesCount, int maxDigits = 5, int counterA = 0)
 {
     sf::Texture* texture = new sf::Texture;
     std::string basePath = path;
-    int counter = 0;
+    int counter = counterA;
     
     while (counter<=texturesCount) {
         // Форматируем число с ведущими нулями (00000, 00001, ...)
