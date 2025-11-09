@@ -6,55 +6,26 @@
 #include<Mounting.h>
 #include<GameData.h>
 #include<nlohmann/json.hpp>
+#include<TexturesIterHelper.h>
 
 class Enemy
 {
 private:
-    //Logic variables
-    bool isIdle_ = true;
-    bool isFalling_ = true;
-    float fallingSpeed_ = 0.f;
-    float initialWalkSpeed_ = 0.f;
-    float speed_ = 0.1f;
-    float maxWalkSpeed_ = 2.f;
-    float frictionForce_ = 0.005f;
+    //Variables
+        //Logic
+            //Player
+    bool isIdle = true;
+    bool isFalling = true;
+    float fallingSpeed = 0.f;
+    float initialWalkSpeed = 0.f;
+    float speed = 0.15f; //TODO Remove unnecessary for this class variables
+    float maxWalkSpeed = 4.f;
+    float frictionForce = 0.1f;
+    int playerPosX_m{};
+    int playerPosY_m{};
 
-    //Control methods
-    void walkLeft();
-    void walkRight();
-    void jump();
-    void fallDown();
-
-        //texture_first_name - Enter first texture name of texture's collection
-    void switchToNextSprite(std::string texture_first_name);
-
-    std::map< std::string,std::vector<sf::Texture> > textures_;
-
-    sf::RectangleShape* enemyRect_;
-    sf::Sprite* enemySprite_;
-    
-    //PRIVATE Physics methods
-    void applyFriction(float& walkSpeed, float friction);
-
+    void switchTexture(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper); //TODO should use iterHelper. Make texture arrays at first
 public:
-    Enemy(GameData& gameTextures);
+    Enemy(GameData& gameData);
     virtual ~Enemy();
-
-    //PUBLIC AI methods
-    void updateAI(sf::RectangleShape &enemyTarget);
-
-    //PUBLIC Physics methods
-    void updatePhysics();
-    void checkRectCollision(std::vector<sf::RectangleShape*> rects);
-    void checkGroundCollision(sf::RectangleShape& groundRect);
-    
-    //PUBLIC Texture methods 
-        //By default should contain switchToNextSprite method/methods
-    void updateTextures();
-
-    //PUBLIC draw methods
-    void draw(sf::RenderWindow& window);
-
-
 };
-

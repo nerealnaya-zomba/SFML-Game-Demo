@@ -8,7 +8,7 @@
 #include<TexturesIterHelper.h>
 #include<windows.h>
 
-class Decoration
+class Decoration //Takes too much responsibility on self
 {
 public:
     Decoration(GameData& gameTextures);
