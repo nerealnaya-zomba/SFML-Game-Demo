@@ -160,14 +160,8 @@ void Platform::addPlatform(sf::Vector2f position, std::string name)
     
 }
 
-std::vector<sf::RectangleShape*> Platform::getRects()
+std::vector<std::shared_ptr<sf::RectangleShape>>& Platform::getRects()
 {
-    std::vector<sf::RectangleShape*> rects;
-    for (std::shared_ptr<sf::RectangleShape> &i : this->rects)
-    {
-        rects.push_back(i.get());
-    }
-    
     return rects;
 }
 

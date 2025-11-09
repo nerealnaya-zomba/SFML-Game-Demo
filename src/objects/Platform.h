@@ -20,7 +20,7 @@ class Platform
     void addPlatform(sf::Vector2f position, std::string name);
 
     //Returns array with raw pointers to rectangles-hitboxes (DO NOT DELETE MANUALLY)
-    std::vector<sf::RectangleShape*> getRects();
+    std::vector<std::shared_ptr<sf::RectangleShape>>& getRects();
 
     Platform();
     ~Platform();
