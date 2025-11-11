@@ -19,6 +19,7 @@
 #include<LoadScreen.h>
 #include<TexturesIterHelper.h>
 #include<Trail.h>
+#include<Skeleton.h>
 
 //C libraries
 #include <iostream>
