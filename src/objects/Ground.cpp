@@ -13,6 +13,8 @@ Ground::Ground(GameData& gameTextures)
 }
 Ground::~Ground()
 {
+    delete ground1Rect_m;
+    delete ground1Sprite_m;
 }
 void Ground::draw(sf::RenderWindow& window, float yPos)
 {
@@ -32,5 +34,9 @@ void Ground::draw(sf::RenderWindow& window, float yPos)
 
 sf::RectangleShape &Ground::getRect()
 {
+    if(this->ground1Rect_m==nullptr)
+    {
+        throw std::runtime_error("ground is nullptr");
+    }
     return *this->ground1Rect_m;
 }
