@@ -19,7 +19,7 @@ int main()
     
     
     
-    GameData gameTextures(&window,&font);
+    GameData gameData(&window,&font);
 
     //return 0; //REMOVELATER THIS TO STOP DEBUGGING gameTextures
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
@@ -39,9 +39,9 @@ int main()
     
     
     //Game
-    Player player(gameTextures);
-    Ground ground(gameTextures);
-    Decoration decoration(gameTextures);
+    Player player(gameData);
+    Ground ground(gameData);
+    Decoration decoration(gameData);
 
     sf::Color grassColor{0,80,0,255};
     float offset = -50.f;
@@ -82,7 +82,7 @@ int main()
     platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
     platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
     platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
-
+    Skeleton sklt(gameData,window,ground,platforms,"white");
     //Main loop
     while (window.isOpen())
     {
@@ -190,8 +190,9 @@ int main()
         }
         
         //Enemy logic
-
         
+        sklt.updatePhysics();
+
         
         //Player logic
             //Player control
@@ -203,6 +204,7 @@ int main()
         player.moveBullets();
 
         //Texture logic
+        sklt.updateTextures();
         player.updateTextures();
         decoration.updateTextures();
         
@@ -226,6 +228,9 @@ int main()
         //Ground drawing
         ground.draw(window,WINDOW_HEIGHT-39.f);
 
+        //Enemy drawing
+        sklt.draw();
+        
         //Player drawing
         player.draw(window);
         player.drawBullets(window);
