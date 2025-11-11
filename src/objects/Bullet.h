@@ -14,8 +14,11 @@ public:
     Bullet(sf::Vector2f pos, float maxDistance); //maxDistance changes in constructor
     virtual ~Bullet();
 
+    //Setters
     void setSpriteTexture(sf::Texture& texture);
     void setSpriteScale(sf::Vector2f scale);
+    //Getters
+    sf::RectangleShape& getBulletRect();
 
     sf::Vector2f getPosition();
     
@@ -27,7 +30,6 @@ public:
 
 
     void draw(sf::RenderWindow& window);
-
 };
 
 

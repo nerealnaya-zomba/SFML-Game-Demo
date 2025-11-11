@@ -1,24 +1,38 @@
 #pragma once
-#include<Enemy.h>
-#include<Ground.h>
-#include<Platform.h>
+#include "Enemy.h"  // кавычки вместо <>
+#include <SFML/Graphics.hpp>
+#include <string>
+#include <vector>
 
-class Skeleton : public Enemy{
+enum skeletonAction{
+    WALKLEFT,
+    WALKRIGHT,
+    IDLE,
+    HURT,
+    DIE,
+    ATTACK1,
+    ATTACK2,
+};
+
+class Skeleton : public Enemy{ //Ошибка: expected class name
 private:
     //References
         //Draw&display(window)
     sf::RenderWindow* window;
         //Ground
-        Ground* ground_; //NOTE at least, used for physics
+        Ground* ground_; //NOTE used for physics
         //Platforms
-        Platform* platform_; //NOTE at least, used for physics
-
+        Platform* platform_; //NOTE used for physics
+        //Player
+        Player* player_; //NOTE used for physics
     //Variables
-        //Selected type
+        //Selected skeleton type
     std::string type_;
-        //Logic
+        //Actions
     bool isIdle = true;
     bool isFalling = true;
+    skeletonAction action_ = skeletonAction::IDLE;
+        //Physics
     float fallingSpeed = 0.f;
     float initialWalkSpeed = 0.f;
     float speed = 0.15f; 
@@ -63,6 +77,7 @@ private:
     //PRIVATE physics methods
     void checkGroundCollision(Ground& ground);
     void checkPlatformCollision(Platform& platforms);
+    void checkBulletCollision(Player& player);
     void applyFriction(float& walkSpeed, float friction);
 
     //PRIVATE texture methods
@@ -70,7 +85,7 @@ private:
 
     void loadData(); //Loads some variables from EnemySettings.json
 public:
-    Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, std::string type);
+    Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type);
     ~Skeleton();
 
     void updateAI();
@@ -82,3 +97,4 @@ public:
     void draw();
 
 };
+

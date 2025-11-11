@@ -9,12 +9,14 @@
 #include<TexturesIterHelper.h>
 #include<fstream>
 
+// Только предварительные объявления вместо include
+class Ground;
+class Platform; 
+class Player;
+
 class Enemy
 {
 private:
-    //TODO(may fill this up) Variables 
-
-
     void switchTexture(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper);
 public:
     Enemy(GameData& gameData);

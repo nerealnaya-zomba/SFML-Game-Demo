@@ -30,6 +30,11 @@ void Bullet::setSpriteScale(sf::Vector2f scale)
     bulletSprite_->setScale(scale);
 }
 
+sf::RectangleShape &Bullet::getBulletRect()
+{
+    return *this->bulletRect_;
+}
+
 sf::Vector2f Bullet::getPosition()
 {
     return bulletRect_->getPosition();

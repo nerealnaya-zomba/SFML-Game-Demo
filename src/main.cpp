@@ -82,7 +82,7 @@ int main()
     platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
     platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
     platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
-    Skeleton sklt(gameData,window,ground,platforms,"white");
+    Skeleton sklt(gameData,window,ground,platforms,player,"white");
     //Main loop
     while (window.isOpen())
     {
@@ -190,8 +190,11 @@ int main()
         }
         
         //Enemy logic
-        
+            //Skeleton control
+        sklt.updateAI();
+            //Skeleton physics
         sklt.updatePhysics();
+        
 
         
         //Player logic

@@ -1,10 +1,13 @@
 #include<Skeleton.h>
+#include "Ground.h"    
+#include "Platform.h"  
+#include "Player.h"    
 
 void Skeleton::checkGroundCollision(Ground& ground)
 {
     float playerX = skeletonRect->getPosition().x;
     float playerY = skeletonRect->getPosition().y+skeletonRect->getSize().y;
-    float groundY = ground.getRect().getPosition().y;
+    float groundY = ground.getRect().getPosition().y; //invalid use of incomplete type 'class Ground'GCC Enemy.h(13, 7): forward declaration of 'class Ground'
 
     if(playerY>=groundY)
     {
@@ -16,7 +19,7 @@ void Skeleton::checkGroundCollision(Ground& ground)
 
 void Skeleton::checkPlatformCollision(Platform& platforms)
 {
-    for (auto& rectPtr : platforms.getRects())  // меняем тип итератора
+    for (auto& rectPtr : platforms.getRects())  // incomplete type "Platform" is not allowedC/C++(70) invalid use of incomplete type 'class Platform'GCC Enemy.h(14, 7): forward declaration of 'class Platform'
     {
         // Получаем глобальные границы (для удобства)
         sf::FloatRect skeletonBounds = skeletonRect->getGlobalBounds();
@@ -71,6 +74,18 @@ void Skeleton::checkPlatformCollision(Platform& platforms)
                     fallingSpeed = -(fallingSpeed);
                 }
             }
+        }
+    }
+}
+
+void Skeleton::checkBulletCollision(Player& player)
+{
+    for (auto &&i : player_->bullets)
+    {
+        if(i->getBulletRect().getGlobalBounds().findIntersection(this->skeletonRect->getGlobalBounds()))
+        {
+            this->action_=skeletonAction::HURT;
+            break;
         }
     }
 }
@@ -137,11 +152,12 @@ void Skeleton::loadData()
     this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
 }
 
-Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, std::string type) : Enemy(gameData)
+Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type) : Enemy(gameData)
 {
     this->window = &window;
     this->ground_ = &ground;
     this->platform_ = &platform;
+    this->player_ = &player;
     this->type_=type;
     loadData();
 
@@ -173,8 +189,8 @@ Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground,
 
     //General rect initialization
     skeletonRect = new sf::RectangleShape();
-    float sizeX = 37.f*enemyScale_.x;
-    float sizeY = 53.f*enemyScale_.y; //FIXME Скелет не появляется, перед этим я добавил в enemySEttings scale и настроил подстройку rect и sprite под эти значения, чтобюы все совпадало. До этого скелет появлялся, сейчас ваще блин его нету.
+    float sizeX = 23.f*enemyScale_.x;
+    float sizeY = 47.f*enemyScale_.y; 
     skeletonRect->setSize({sizeX,sizeY});
     skeletonRect->setFillColor(sf::Color::Red);
     skeletonRect->setPosition(this->enemyPos);
@@ -184,10 +200,74 @@ Skeleton::~Skeleton()
 {
 }
 
-void Skeleton::updateAI()
-{
+void Skeleton::updateAI() //TODO Write better skeleton's intelligence
+{   
+    //NOTE ALL THE CODE BELOW I WRITED ONLY FOR TEST. IT'S ALL WORKS OKAY. U CAN FREELY DELETE THIS AND WRITE OWN LOGIC. SKELETON REACTS ON BULLET'S HIT IN checkBulletCollision() METHOD.
+    static int scopeIter = 0;
+    if(scopeIter==0)
+    {
+        static int localIter = 0;
+        action_ = skeletonAction::IDLE;
 
-}
+
+
+        localIter++;
+        if(localIter==60) scopeIter++;
+    } 
+    else if(scopeIter==1)
+    {
+        static int localIter = 0;
+        action_ = skeletonAction::WALKLEFT;
+        this->skeletonRect->move({-1.f,-0.f});
+
+
+        localIter++;
+        if(localIter==60) scopeIter++;
+    }
+    else if(scopeIter==2)
+    {
+        static int localIter = 0;
+        action_ = skeletonAction::WALKRIGHT;
+        this->skeletonRect->move({1.f,-0.f});
+
+
+        localIter++;
+        if(localIter==60) scopeIter++;
+    }
+    else if(scopeIter==3)
+    {
+        static int localIter = 0;
+        action_ = skeletonAction::HURT;
+
+        localIter++;
+        if(localIter==60) scopeIter++;
+    }
+    else if(scopeIter==4)
+    {
+        static int localIter = 0;
+        action_ = skeletonAction::DIE;
+
+        localIter++;
+        if(localIter==60) scopeIter++;
+    }
+    else if(scopeIter==5)
+    {
+        static int localIter = 0;
+        action_ = skeletonAction::ATTACK1;
+
+        localIter++;
+        if(localIter==60) scopeIter++;
+    }
+    else if(scopeIter==6)
+    {
+        static int localIter = 0;
+        action_ = skeletonAction::ATTACK2;
+
+        localIter++;
+        if(localIter==60) scopeIter++;
+    }
+
+}   
 
 void Skeleton::updatePhysics()
 {
@@ -229,13 +309,44 @@ void Skeleton::updatePhysics()
     //NOTE those methods must be always last
     checkGroundCollision(*ground_);
     checkPlatformCollision(*platform_);
+    checkBulletCollision(*player_);
 }
 
 void Skeleton::updateTextures()
 {
-    switchToNextSprite(skeletonSprite,*skeletonWhite_idleTextures,*skeletonWhite_idle_helper);
+    
+    switch(this->action_)
+    {
+        case skeletonAction::IDLE:
+            switchToNextSprite(skeletonSprite,*skeletonWhite_idleTextures,*skeletonWhite_idle_helper);
+        break;
 
-    this->skeletonSprite->setPosition(this->skeletonRect->getGlobalBounds().getCenter());
+        case skeletonAction::WALKLEFT:
+            switchToNextSprite(skeletonSprite,*skeletonWhite_walkTextures,*skeletonWhite_walk_helper);
+        break;
+
+        case skeletonAction::WALKRIGHT:
+            switchToNextSprite(skeletonSprite,*skeletonWhite_walkTextures,*skeletonWhite_walk_helper);
+        break;
+
+        case skeletonAction::HURT:
+            switchToNextSprite(skeletonSprite,*skeletonWhite_hurtTextures,*skeletonWhite_hurt_helper);
+        break;
+
+        case skeletonAction::DIE:
+            switchToNextSprite(skeletonSprite,*skeletonWhite_dieTextures,*skeletonWhite_die_helper);
+        break;
+
+        case skeletonAction::ATTACK1:
+            switchToNextSprite(skeletonSprite,*skeletonWhite_attack1Textures,*skeletonWhite_attack1_helper);
+        break;
+
+        case skeletonAction::ATTACK2:
+            switchToNextSprite(skeletonSprite,*skeletonWhite_attack2Textures,*skeletonWhite_attack2_helper);
+        break;
+    }
+    sf::Vector2f skeletonRectCenter = this->skeletonRect->getGlobalBounds().getCenter();
+    this->skeletonSprite->setPosition({skeletonRectCenter.x,skeletonRectCenter.y-15.f});
 }
 
 void Skeleton::draw()
