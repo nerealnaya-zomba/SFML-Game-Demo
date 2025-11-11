@@ -50,7 +50,7 @@ class Player {
 
     //Physics methods
     void updatePhysics();
-    void checkRectCollision(std::vector<sf::RectangleShape*> rects);
+    void checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects);
     void checkGroundCollision(sf::RectangleShape& groundRect);
     void moveBullets();
 

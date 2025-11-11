@@ -133,13 +133,13 @@ void Player::loadData()
     playerPosY_m = data["Player"]["PosY"];
 }
 
-void Player::checkRectCollision(std::vector<sf::RectangleShape*> rects)
+void Player::checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects)
 {
-    for (sf::RectangleShape* i : rects)
+    for (auto& rectPtr : rects)  // меняем тип итератора
     {
-                // Получаем глобальные границы (для удобства)
+        // Получаем глобальные границы (для удобства)
         sf::FloatRect playerBounds = playerRectangle_->getGlobalBounds();
-        sf::FloatRect platformBounds = i->getGlobalBounds();
+        sf::FloatRect platformBounds = rectPtr->getGlobalBounds();  // используем -> для shared_ptr
 
         // Проверяем пересечение
         if (playerBounds.findIntersection(platformBounds)) 
@@ -184,8 +184,6 @@ void Player::checkRectCollision(std::vector<sf::RectangleShape*> rects)
                             playerRectangle_->setPosition({playerBounds.position.x,playerBounds.position.y-2.f});
                         }
                     }
-                        
-
                 } else {
                     // Снизу
                     playerRectangle_->setPosition({playerBounds.position.x, platformBounds.position.y + platformBounds.size.y});
@@ -194,7 +192,6 @@ void Player::checkRectCollision(std::vector<sf::RectangleShape*> rects)
             }
         }
     }
-    
 }
 
 void Player::checkGroundCollision(sf::RectangleShape& groundRect)
