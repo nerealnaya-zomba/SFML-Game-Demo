@@ -204,67 +204,92 @@ void Skeleton::updateAI() //TODO Write better skeleton's intelligence
 {   
     //NOTE ALL THE CODE BELOW I WRITED ONLY FOR TEST. IT'S ALL WORKS OKAY. U CAN FREELY DELETE THIS AND WRITE OWN LOGIC. SKELETON REACTS ON BULLET'S HIT IN checkBulletCollision() METHOD.
     static int scopeIter = 0;
+    static int localIter = 0;
+    int countOfRepeats = 120;
     if(scopeIter==0)
     {
-        static int localIter = 0;
         action_ = skeletonAction::IDLE;
 
-
-
         localIter++;
-        if(localIter==60) scopeIter++;
+        if(localIter==countOfRepeats)
+        {
+            scopeIter++;
+            localIter = 0;
+        }
     } 
     else if(scopeIter==1)
     {
-        static int localIter = 0;
         action_ = skeletonAction::WALKLEFT;
         this->skeletonRect->move({-1.f,-0.f});
 
 
         localIter++;
-        if(localIter==60) scopeIter++;
+        if(localIter==countOfRepeats)
+        {
+            scopeIter++;
+            localIter = 0;
+        }
     }
     else if(scopeIter==2)
     {
-        static int localIter = 0;
         action_ = skeletonAction::WALKRIGHT;
         this->skeletonRect->move({1.f,-0.f});
 
 
         localIter++;
-        if(localIter==60) scopeIter++;
+        if(localIter==countOfRepeats)
+        {
+            scopeIter++;
+            localIter = 0;
+        }
     }
     else if(scopeIter==3)
     {
-        static int localIter = 0;
         action_ = skeletonAction::HURT;
 
         localIter++;
-        if(localIter==60) scopeIter++;
+        if(localIter==countOfRepeats)
+        {
+            scopeIter++;
+            localIter = 0;
+        }
     }
     else if(scopeIter==4)
     {
-        static int localIter = 0;
         action_ = skeletonAction::DIE;
 
         localIter++;
-        if(localIter==60) scopeIter++;
+        if(localIter==countOfRepeats)
+        {
+            scopeIter++;
+            localIter = 0;
+        }
     }
     else if(scopeIter==5)
     {
-        static int localIter = 0;
         action_ = skeletonAction::ATTACK1;
 
         localIter++;
-        if(localIter==60) scopeIter++;
+        if(localIter==countOfRepeats)
+        {
+            scopeIter++;
+            localIter = 0;
+        }
     }
     else if(scopeIter==6)
     {
-        static int localIter = 0;
         action_ = skeletonAction::ATTACK2;
 
         localIter++;
-        if(localIter==60) scopeIter++;
+        if(localIter==countOfRepeats)
+        {
+            scopeIter++;
+            localIter = 0;
+        }
+    }
+    else{
+        scopeIter=0;
+        localIter=0;
     }
 
 }   
@@ -351,6 +376,6 @@ void Skeleton::updateTextures()
 
 void Skeleton::draw()
 {
-    window->draw(*skeletonRect);
+    //window->draw(*skeletonRect); //REMOVELATER Only for skeleton hitbox overview.
     window->draw(*skeletonSprite);
 }
