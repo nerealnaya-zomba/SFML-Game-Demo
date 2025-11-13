@@ -27,7 +27,6 @@ static void sizeUpRectangleOnHover(sf::RectangleShape& rect, sf::RectangleShape&
     if(mouseRect.getGlobalBounds().findIntersection(rect.getGlobalBounds()))
     {
         isSizeUp = true;
-        
     }
     else
     {

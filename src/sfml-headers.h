@@ -3,6 +3,7 @@
 //Local includes
 #include <MainMenu.h>
 #include <Mounting.h>
+#include <VisualEffects.h>
 
 //Local include objects
 #include<Player.h>

@@ -24,9 +24,12 @@ public:
     
     sf::Vector2f offsetToMove_{};
 
-    void moveBullet();
+    //Control
+    void destroyBullet();
 
-    void update();
+    //Physics
+    void moveBullet();
+    void update(); //NOTE: not used for anyting. Empty method.
 
 
     void draw(sf::RenderWindow& window);

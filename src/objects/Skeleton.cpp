@@ -1,9 +1,18 @@
 #include<Skeleton.h>
 #include "Ground.h"    
 #include "Platform.h"  
-#include "Player.h"    
+#include "Player.h"
 
-void Skeleton::checkGroundCollision(Ground& ground)
+void Skeleton::onBulletHit()
+{
+    isPlayingHurtAnimation = true;
+    action_ = skeletonAction::HURT;
+    // Сбрасываем итератор чтобы анимация началась с начала
+    skeletonWhite_hurt_helper->ptrToTexture = 0;
+    skeletonWhite_hurt_helper->iterationCounter = 0;
+}
+
+void Skeleton::checkGroundCollision(Ground &ground)
 {
     float playerX = skeletonRect->getPosition().x;
     float playerY = skeletonRect->getPosition().y+skeletonRect->getSize().y;
@@ -80,12 +89,15 @@ void Skeleton::checkPlatformCollision(Platform& platforms)
 
 void Skeleton::checkBulletCollision(Player& player)
 {
-    for (auto &&i : player_->bullets)
-    {
-        if(i->getBulletRect().getGlobalBounds().findIntersection(this->skeletonRect->getGlobalBounds()))
-        {
-            this->action_=skeletonAction::HURT;
-            break;
+    for (auto it = player_->bullets.begin(); it != player_->bullets.end(); ) {
+        if((*it)->getBulletRect().getGlobalBounds().findIntersection(this->skeletonRect->getGlobalBounds())) {
+            onBulletHit();
+            // Удаляем пулю
+            it = player_->bullets.erase(it);
+            // Убавить здоровье
+            // ...
+        } else {
+            ++it;
         }
     }
 }
@@ -107,40 +119,33 @@ void Skeleton::applyFriction(float &walkSpeed, float friction)
     }
 }
 
-void Skeleton::switchToNextSprite(sf::Sprite* enemySprite, std::vector<sf::Texture> &texturesArray, texturesIterHelper &iterHelper)
+bool Skeleton::switchToNextSprite(sf::Sprite* enemySprite,
+        std::vector<sf::Texture>& texturesArray, 
+        texturesIterHelper& iterHelper, 
+        switchSprite_SwitchOption option)
 {
-    if(iterHelper.iterationCounter<iterHelper.iterationsTillSwitch)
+    if(iterHelper.iterationCounter < iterHelper.iterationsTillSwitch)
     {
         iterHelper.iterationCounter++;
+        return true; // анимация еще идет
     }
-    else
+
+    // Переключаем текстуру
+    enemySprite->setTexture(texturesArray.at(iterHelper.ptrToTexture));
+    iterHelper.ptrToTexture++;
+    iterHelper.iterationCounter = 0;
+
+    // Достигли конца анимации
+    if(iterHelper.ptrToTexture >= iterHelper.countOfTextures)
     {
-        //Forward-backward logic
-        if(iterHelper.ptrToTexture == iterHelper.countOfTextures)
-        {
-            iterHelper.goForward = false;
-        }
-        else if(iterHelper.ptrToTexture == 0)
-        {
-            iterHelper.goForward = true;
-        }
-
-        //Switch sprites
-        enemySprite->setTexture(texturesArray.at(iterHelper.ptrToTexture));
-
-        //Forward-backward logic
-        if(iterHelper.goForward)
-        {
-            iterHelper.ptrToTexture++;
-        }
-        else
-        {
-            iterHelper.ptrToTexture--;
-        }
-
-        //reset iteration counter after all switches
-        iterHelper.iterationCounter = 0;
+        iterHelper.ptrToTexture = 0;
+        
+        if(option == switchSprite_SwitchOption::Single)
+            return false; // Single анимация ЗАВЕРШЕНА
+        // Loop продолжается автоматически
     }
+
+    return true; // анимация еще идет
 }
 
 void Skeleton::loadData()
@@ -202,95 +207,7 @@ Skeleton::~Skeleton()
 
 void Skeleton::updateAI() //TODO Write better skeleton's intelligence
 {   
-    //NOTE ALL THE CODE BELOW I WRITED ONLY FOR TEST. IT'S ALL WORKS OKAY. U CAN FREELY DELETE THIS AND WRITE OWN LOGIC. SKELETON REACTS ON BULLET'S HIT IN checkBulletCollision() METHOD.
-    static int scopeIter = 0;
-    static int localIter = 0;
-    int countOfRepeats = 120;
-    if(scopeIter==0)
-    {
-        action_ = skeletonAction::IDLE;
 
-        localIter++;
-        if(localIter==countOfRepeats)
-        {
-            scopeIter++;
-            localIter = 0;
-        }
-    } 
-    else if(scopeIter==1)
-    {
-        action_ = skeletonAction::WALKLEFT;
-        this->skeletonRect->move({-1.f,-0.f});
-
-
-        localIter++;
-        if(localIter==countOfRepeats)
-        {
-            scopeIter++;
-            localIter = 0;
-        }
-    }
-    else if(scopeIter==2)
-    {
-        action_ = skeletonAction::WALKRIGHT;
-        this->skeletonRect->move({1.f,-0.f});
-
-
-        localIter++;
-        if(localIter==countOfRepeats)
-        {
-            scopeIter++;
-            localIter = 0;
-        }
-    }
-    else if(scopeIter==3)
-    {
-        action_ = skeletonAction::HURT;
-
-        localIter++;
-        if(localIter==countOfRepeats)
-        {
-            scopeIter++;
-            localIter = 0;
-        }
-    }
-    else if(scopeIter==4)
-    {
-        action_ = skeletonAction::DIE;
-
-        localIter++;
-        if(localIter==countOfRepeats)
-        {
-            scopeIter++;
-            localIter = 0;
-        }
-    }
-    else if(scopeIter==5)
-    {
-        action_ = skeletonAction::ATTACK1;
-
-        localIter++;
-        if(localIter==countOfRepeats)
-        {
-            scopeIter++;
-            localIter = 0;
-        }
-    }
-    else if(scopeIter==6)
-    {
-        action_ = skeletonAction::ATTACK2;
-
-        localIter++;
-        if(localIter==countOfRepeats)
-        {
-            scopeIter++;
-            localIter = 0;
-        }
-    }
-    else{
-        scopeIter=0;
-        localIter=0;
-    }
 
 }   
 
@@ -340,36 +257,29 @@ void Skeleton::updatePhysics()
 void Skeleton::updateTextures()
 {
     
-    switch(this->action_)
-    {
-        case skeletonAction::IDLE:
-            switchToNextSprite(skeletonSprite,*skeletonWhite_idleTextures,*skeletonWhite_idle_helper);
-        break;
-
-        case skeletonAction::WALKLEFT:
-            switchToNextSprite(skeletonSprite,*skeletonWhite_walkTextures,*skeletonWhite_walk_helper);
-        break;
-
-        case skeletonAction::WALKRIGHT:
-            switchToNextSprite(skeletonSprite,*skeletonWhite_walkTextures,*skeletonWhite_walk_helper);
-        break;
-
-        case skeletonAction::HURT:
-            switchToNextSprite(skeletonSprite,*skeletonWhite_hurtTextures,*skeletonWhite_hurt_helper);
-        break;
-
-        case skeletonAction::DIE:
-            switchToNextSprite(skeletonSprite,*skeletonWhite_dieTextures,*skeletonWhite_die_helper);
-        break;
-
-        case skeletonAction::ATTACK1:
-            switchToNextSprite(skeletonSprite,*skeletonWhite_attack1Textures,*skeletonWhite_attack1_helper);
-        break;
-
-        case skeletonAction::ATTACK2:
-            switchToNextSprite(skeletonSprite,*skeletonWhite_attack2Textures,*skeletonWhite_attack2_helper);
-        break;
+    if (isPlayingHurtAnimation) {
+        // Проигрываем HURT анимацию один раз
+        pulseSprite(*skeletonSprite,sf::Color(255,0,0,255),5.f,sf::seconds(0.5f));
+        if (!switchToNextSprite(skeletonSprite, *skeletonWhite_hurtTextures, 
+                              *skeletonWhite_hurt_helper, switchSprite_SwitchOption::Single)) {
+            // Анимация завершена - возвращаем обычное состояние
+            isPlayingHurtAnimation = false;
+            skeletonSprite->setColor({255,255,255,255});
+            action_ = skeletonAction::IDLE; // или предыдущее действие
+        }
+        return; // Перекрываем другие анимации
     }
+
+    
+    // Обычные анимации
+    switch(this->action_) {
+        case skeletonAction::IDLE:
+            switchToNextSprite(skeletonSprite, *skeletonWhite_idleTextures, 
+                             *skeletonWhite_idle_helper, switchSprite_SwitchOption::Loop);
+            break;
+    }
+
+    //NOTE do not remove this. This thing moves sprite to the skeletonRect(hitbox)
     sf::Vector2f skeletonRectCenter = this->skeletonRect->getGlobalBounds().getCenter();
     this->skeletonSprite->setPosition({skeletonRectCenter.x,skeletonRectCenter.y-15.f});
 }

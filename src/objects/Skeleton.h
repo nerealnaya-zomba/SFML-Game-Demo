@@ -1,8 +1,9 @@
 #pragma once
-#include "Enemy.h"  // кавычки вместо <>
+#include "Enemy.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
+#include<VisualEffects.h>
 
 enum skeletonAction{
     WALKLEFT,
@@ -31,6 +32,7 @@ private:
         //Actions
     bool isIdle = true;
     bool isFalling = true;
+    bool isPlayingHurtAnimation = true;
     skeletonAction action_ = skeletonAction::IDLE;
         //Physics
     float fallingSpeed = 0.f;
@@ -74,6 +76,9 @@ private:
     std::vector<sf::Texture>* skeletonYellow_attack2Textures;
     texturesIterHelper* skeletonYellow_attack2_helper;
 
+    //PRIVATE action methods
+    void onBulletHit();
+
     //PRIVATE physics methods
     void checkGroundCollision(Ground& ground);
     void checkPlatformCollision(Platform& platforms);
@@ -81,7 +86,11 @@ private:
     void applyFriction(float& walkSpeed, float friction);
 
     //PRIVATE texture methods
-    void switchToNextSprite(sf::Sprite* enemySprite, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper);
+        //Loop forward-backwards
+    bool switchToNextSprite(sf::Sprite* enemySprite,
+        std::vector<sf::Texture>& texturesArray, 
+        texturesIterHelper& iterHelper, 
+        switchSprite_SwitchOption option=switchSprite_SwitchOption::Loop);
 
     void loadData(); //Loads some variables from EnemySettings.json
 public:

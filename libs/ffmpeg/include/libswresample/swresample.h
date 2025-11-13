@@ -141,7 +141,7 @@
  */
 
 #define SWR_FLAG_RESAMPLE 1 ///< Force resampling even if equal sample rate
-//TODO use int resample ?
+//TOO use int resample ?
 //long term TODO can we enable this dynamically?
 
 /** Dithering algorithms */

@@ -452,7 +452,7 @@ typedef struct AVOption {
         int64_t i64;
         double dbl;
         const char *str;
-        /* TODO those are unused now */
+        /* TOO those are unused now */
         AVRational q;
 
         /**

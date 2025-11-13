@@ -227,7 +227,7 @@ const char *av_get_media_type_string(enum AVMediaType media_type);
 #define FF_QP2LAMBDA 118 ///< factor to convert from H.263 QP to lambda
 #define FF_LAMBDA_MAX (256*128-1)
 
-#define FF_QUALITY_SCALE FF_LAMBDA_SCALE //FIXME maybe remove
+#define FF_QUALITY_SCALE FF_LAMBDA_SCALE //FIXE maybe remove
 
 /**
  * @}

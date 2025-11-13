@@ -40,6 +40,10 @@ sf::Vector2f Bullet::getPosition()
     return bulletRect_->getPosition();
 }
 
+void Bullet::destroyBullet()
+{
+}
+
 void Bullet::moveBullet()
 {
     distancePassed+=std::abs(offsetToMove_.x);

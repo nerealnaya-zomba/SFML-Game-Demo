@@ -9,6 +9,12 @@
 #include<TexturesIterHelper.h>
 #include<fstream>
 
+enum switchSprite_SwitchOption
+{
+    Single,
+    Loop
+};
+
 // Только предварительные объявления вместо include
 class Ground;
 class Platform; 

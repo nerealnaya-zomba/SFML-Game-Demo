@@ -2753,7 +2753,7 @@ typedef struct AVCodecParserContext {
                            (incremented by each av_parser_parse()) */
     int64_t next_frame_offset; /* offset of the next frame */
     /* video info */
-    int pict_type; /* XXX: Put it back in AVCodecContext. */
+    int pict_type; /* XX: Put it back in AVCodecContext. */
     /**
      * This field is used for proper frame duration computation in lavf.
      * It signals, how much longer the frame duration of the current frame
@@ -2763,7 +2763,7 @@ typedef struct AVCodecParserContext {
      *
      * It is used by codecs like H.264 to display telecined material.
      */
-    int repeat_pict; /* XXX: Put it back in AVCodecContext. */
+    int repeat_pict; /* XX: Put it back in AVCodecContext. */
     int64_t pts;     /* pts of the current frame */
     int64_t dts;     /* dts of the current frame */
 
@@ -3043,7 +3043,7 @@ void avcodec_string(char *buf, int buf_size, AVCodecContext *enc, int encode);
 
 int avcodec_default_execute(AVCodecContext *c, int (*func)(AVCodecContext *c2, void *arg2),void *arg, int *ret, int count, int size);
 int avcodec_default_execute2(AVCodecContext *c, int (*func)(AVCodecContext *c2, void *arg2, int, int),void *arg, int *ret, int count);
-//FIXME func typedef
+//FIXE func typedef
 
 /**
  * Fill AVFrame audio data and linesize pointers.
