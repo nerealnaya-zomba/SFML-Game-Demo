@@ -182,8 +182,8 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(cat1Textures,cat1Path, 2, 2)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    generateMipmapTextures(cat1Textures);
-    smoothTextures(cat1Textures);
+    // generateMipmapTextures(cat1Textures);
+    // smoothTextures(cat1Textures);
     this->catHelper.countOfTextures = 2;
     this->catHelper.iterationsTillSwitch = 72;
 

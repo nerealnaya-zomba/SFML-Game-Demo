@@ -242,7 +242,7 @@ int main()
 
 
         view.setCenter(player.playerRectangle_->getPosition());
-        //window.setView(view);
+        window.setView(view);
         
 
         window.display();
