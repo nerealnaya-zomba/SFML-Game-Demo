@@ -131,6 +131,7 @@ void Player::loadData()
     nlohmann::json data = nlohmann::json::parse(f);
     playerPosX_m = data["Player"]["PosX"];
     playerPosY_m = data["Player"]["PosY"];
+    DMG_ = data["Player"]["DMG"];
 }
 
 void Player::checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects)

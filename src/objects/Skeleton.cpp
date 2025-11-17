@@ -3,13 +3,39 @@
 #include "Platform.h"  
 #include "Player.h"
 
+void Skeleton::walkLeft()
+{
+    if(initialWalkSpeed<=(-maxWalkSpeed) || isPlayingHurtAnimation)
+    {
+        return; 
+    }
+    initialWalkSpeed-=speed;
+}
+
+void Skeleton::walkRight()
+{
+    if(initialWalkSpeed>=maxWalkSpeed || isPlayingHurtAnimation)
+    {
+        return;
+    }
+    initialWalkSpeed+=speed;
+}
+
 void Skeleton::onBulletHit()
 {
     isPlayingHurtAnimation = true;
     action_ = skeletonAction::HURT;
     // Сбрасываем итератор чтобы анимация началась с начала
-    skeletonWhite_hurt_helper->ptrToTexture = 0;
-    skeletonWhite_hurt_helper->iterationCounter = 0;
+    if((skeletonWhite_hurt_helper->ptrToTexture==(skeletonWhite_hurt_helper->countOfTextures)))
+    {
+        skeletonWhite_hurt_helper->ptrToTexture = 0;
+        skeletonWhite_hurt_helper->iterationCounter = 0;
+    }
+    //Обновление переменных
+        //Сбрасываем скорость хитбокса, чтобы он не бежал быстрее спрайта
+    initialWalkSpeed = 0.f;
+        //Уменьшаем здоровье
+    HP_-=player_->DMG_;
 }
 
 void Skeleton::checkGroundCollision(Ground &ground)
@@ -155,6 +181,10 @@ void Skeleton::loadData()
     
     //Pre-load variables
     this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
+    this->maxWalkSpeed = j["skeleton-white"]["maxSpeed"];
+    this->speed = j["skeleton-white"]["acceleration"];
+    this->frictionForce = j["skeleton-white"]["friction"];
+    this->HP_ = j["skeleton-white"]["HP"];
 }
 
 Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type) : Enemy(gameData)
@@ -199,17 +229,40 @@ Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground,
     skeletonRect->setSize({sizeX,sizeY});
     skeletonRect->setFillColor(sf::Color::Red);
     skeletonRect->setPosition(this->enemyPos);
+
+    //Intelligence clock start
+    iqCl_.start();
+
 }
 
 Skeleton::~Skeleton()
 {
+    delete this->skeletonSprite;
+    delete this->skeletonRect;
 }
 
 void Skeleton::updateAI() //TODO Write better skeleton's intelligence
-{   
+{
+    //Позиции для удобства
+    sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
+    sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
+
+    if(skeletonPos.x < playerPos.x)
+    {
+        walkRight();
+        this->action_ = skeletonAction::WALKRIGHT;
+    }
+    
+    else if(skeletonPos.x > playerPos.x)
+    {
+        walkLeft();
+        this->action_ = skeletonAction::WALKLEFT;
+    }
+    //TODO Написать логику, чтобы скелет перепрыгивал платформы
 
 
-}   
+
+}
 
 void Skeleton::updatePhysics()
 {
@@ -248,20 +301,27 @@ void Skeleton::updatePhysics()
     {
         skeletonRect->setPosition({0.f,skeletonRect->getPosition().y});
     }
+    
+    if(HP_<=0)
+    {
+        isPlayingDieAnimation = true;
+    }
+
     //NOTE those methods must be always last
     checkGroundCollision(*ground_);
     checkPlatformCollision(*platform_);
-    checkBulletCollision(*player_);
+    if(HP_>0) checkBulletCollision(*player_);
 }
 
 void Skeleton::updateTextures()
 {
-    
-    if (isPlayingHurtAnimation) {
+    if(!isAlive) return;
+
+    if (isPlayingHurtAnimation && HP_ > 0) {
         // Проигрываем HURT анимацию один раз
         pulseSprite(*skeletonSprite,sf::Color(255,0,0,255),5.f,sf::seconds(0.5f));
         if (!switchToNextSprite(skeletonSprite, *skeletonWhite_hurtTextures, 
-                              *skeletonWhite_hurt_helper, switchSprite_SwitchOption::Single)) {
+        *skeletonWhite_hurt_helper, switchSprite_SwitchOption::Single)) {
             // Анимация завершена - возвращаем обычное состояние
             isPlayingHurtAnimation = false;
             skeletonSprite->setColor({255,255,255,255});
@@ -269,14 +329,46 @@ void Skeleton::updateTextures()
         }
         return; // Перекрываем другие анимации
     }
+    if(isPlayingDieAnimation)
+    {
+        static int isCalled = 0;
+        if(isCalled != 15 )
+        {
+            pulseSprite(*skeletonSprite,sf::Color(255,0,0,255),5.f,sf::seconds(0.5f));
+            isCalled++;
+        } 
+        if(isCalled == 15 ) skeletonSprite->setColor({255,255,255,255}); //NOTE Остановился тут
+        
+
+        if (!switchToNextSprite(skeletonSprite, *skeletonWhite_dieTextures, 
+        *skeletonWhite_die_helper, switchSprite_SwitchOption::Single))
+        {
+            isPlayingDieAnimation = false;
+            isAlive = false;
+        }
+
+        return;
+    }
 
     
     // Обычные анимации
     switch(this->action_) {
         case skeletonAction::IDLE:
             switchToNextSprite(skeletonSprite, *skeletonWhite_idleTextures, 
-                             *skeletonWhite_idle_helper, switchSprite_SwitchOption::Loop);
-            break;
+                            *skeletonWhite_idle_helper, switchSprite_SwitchOption::Loop);
+        break;
+
+        case skeletonAction::WALKRIGHT:
+            skeletonSprite->setScale({this->enemyScale_.x,this->enemyScale_.y});
+            switchToNextSprite(skeletonSprite, *skeletonWhite_walkTextures,     
+                            *skeletonWhite_walk_helper, switchSprite_SwitchOption::Loop);   
+        break;
+
+        case skeletonAction::WALKLEFT:
+            skeletonSprite->setScale({-this->enemyScale_.x,this->enemyScale_.y});
+            switchToNextSprite(skeletonSprite, *skeletonWhite_walkTextures,
+                            *skeletonWhite_walk_helper, switchSprite_SwitchOption::Loop);
+        break;
     }
 
     //NOTE do not remove this. This thing moves sprite to the skeletonRect(hitbox)

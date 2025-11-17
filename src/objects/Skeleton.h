@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include<VisualEffects.h>
+#include<SFML/System.hpp>
 
 enum skeletonAction{
     WALKLEFT,
@@ -21,11 +22,11 @@ private:
         //Draw&display(window)
     sf::RenderWindow* window;
         //Ground
-        Ground* ground_; //NOTE used for physics
+    Ground* ground_; //NOTE used for physics
         //Platforms
-        Platform* platform_; //NOTE used for physics
+    Platform* platform_; //NOTE used for physics
         //Player
-        Player* player_; //NOTE used for physics
+    Player* player_; //NOTE used for physics
     //Variables
         //Selected skeleton type
     std::string type_;
@@ -33,13 +34,17 @@ private:
     bool isIdle = true;
     bool isFalling = true;
     bool isPlayingHurtAnimation = true;
+    bool isPlayingDieAnimation = false;
     skeletonAction action_ = skeletonAction::IDLE;
+        //Intelligence
+    sf::Clock iqCl_;
         //Physics
     float fallingSpeed = 0.f;
     float initialWalkSpeed = 0.f;
-    float speed = 0.15f; 
-    float maxWalkSpeed = 4.f;
-    float frictionForce = 0.1f;
+    float speed{}; // Loads from EnemySettings.json
+    float maxWalkSpeed{}; // Loads from EnemySettings.json
+    float frictionForce{}; // Loads from EnemySettings.json
+    int HP_; // Loads from EnemySettings.json
     sf::Vector2f enemyPos = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
         //Pre-load bindings
     sf::Vector2f enemyScale_; // Loads from EnemySettings.json
@@ -76,6 +81,10 @@ private:
     std::vector<sf::Texture>* skeletonYellow_attack2Textures;
     texturesIterHelper* skeletonYellow_attack2_helper;
 
+    //PRIVATE control methods
+    void walkLeft();
+    void walkRight();
+
     //PRIVATE action methods
     void onBulletHit();
 
@@ -96,6 +105,8 @@ private:
 public:
     Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type);
     ~Skeleton();
+    //PUBLIC Variables
+    bool isAlive = true;
 
     void updateAI();
 
@@ -106,4 +117,3 @@ public:
     void draw();
 
 };
-

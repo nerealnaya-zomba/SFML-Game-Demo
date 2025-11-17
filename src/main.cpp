@@ -232,7 +232,7 @@ int main()
         ground.draw(window,WINDOW_HEIGHT-39.f);
 
         //Enemy drawing
-        sklt.draw();
+        if(sklt.isAlive) sklt.draw();
         
         //Player drawing
         player.draw(window);
