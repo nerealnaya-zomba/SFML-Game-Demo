@@ -179,7 +179,7 @@ void Skeleton::loadData()
     std::ifstream in("data/enemySettings.json");
     nlohmann::json j = nlohmann::json::parse(in);
     
-    //Pre-load variables
+    //Подгружаемые из enemySettings.json значения переменных
     this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
     this->maxWalkSpeed = j["skeleton-white"]["maxSpeed"];
     this->speed = j["skeleton-white"]["acceleration"];
