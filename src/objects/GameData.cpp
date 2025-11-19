@@ -27,7 +27,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonWhite_idleTextures_, skeletonWhite_idlePath_, 8,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonWhite_idleTextures_);
+    generateMipmapTextures(skeletonWhite_idleTextures_);
     //smoothTextures(skeletonWhite_idleTextures_);
     this->skeletonWhite_idle_helper.countOfTextures = 7;
     this->skeletonWhite_idle_helper.iterationsTillSwitch = 9;
@@ -35,7 +35,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonWhite_walkTextures, skeletonWhite_walkPath_, 10,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonWhite_walkTextures);
+    generateMipmapTextures(skeletonWhite_walkTextures);
     //smoothTextures(skeletonWhite_walkTextures);
     this->skeletonWhite_walk_helper.countOfTextures = 9;
     this->skeletonWhite_walk_helper.iterationsTillSwitch = 9;
@@ -43,7 +43,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonWhite_hurtTextures, skeletonWhite_hurtPath_, 5,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonWhite_hurtTextures);
+    generateMipmapTextures(skeletonWhite_hurtTextures);
     //smoothTextures(skeletonWhite_hurtTextures);
     this->skeletonWhite_hurt_helper.countOfTextures = 4;
     this->skeletonWhite_hurt_helper.iterationsTillSwitch = 9;
@@ -51,7 +51,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonWhite_dieTextures, skeletonWhite_diePath_, 13,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonWhite_dieTextures);
+    generateMipmapTextures(skeletonWhite_dieTextures);
     //smoothTextures(skeletonWhite_dieTextures);
     this->skeletonWhite_die_helper.countOfTextures = 12;
     this->skeletonWhite_die_helper.iterationsTillSwitch = 9;
@@ -59,7 +59,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonWhite_attack1Textures, skeletonWhite_attack1Path_, 10,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonWhite_attack1Textures);
+    generateMipmapTextures(skeletonWhite_attack1Textures);
     //smoothTextures(skeletonWhite_attack1Textures);
     this->skeletonWhite_attack1_helper.countOfTextures = 9;
     this->skeletonWhite_attack1_helper.iterationsTillSwitch = 9;
@@ -67,7 +67,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonWhite_attack2Textures, skeletonWhite_attack2Path_, 9,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonWhite_attack2Textures);
+    generateMipmapTextures(skeletonWhite_attack2Textures);
     //smoothTextures(skeletonWhite_attack2Textures);
     this->skeletonWhite_attack2_helper.countOfTextures = 8;
     this->skeletonWhite_attack2_helper.iterationsTillSwitch = 9;
@@ -76,7 +76,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonYellow_idleTextures, skeletonYellow_idlePath_, 8,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonYellow_idleTextures);
+    generateMipmapTextures(skeletonYellow_idleTextures);
     //smoothTextures(skeletonYellow_idleTextures);
     this->skeletonYellow_idle_helper.countOfTextures = 7;
     this->skeletonYellow_idle_helper.iterationsTillSwitch = 9;
@@ -84,7 +84,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonYellow_walkTextures, skeletonYellow_walkPath_, 10,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonYellow_walkTextures);
+    generateMipmapTextures(skeletonYellow_walkTextures);
     //smoothTextures(skeletonYellow_walkTextures);
     this->skeletonYellow_walk_helper.countOfTextures = 9;
     this->skeletonYellow_walk_helper.iterationsTillSwitch = 9;
@@ -92,7 +92,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonYellow_hurtTextures, skeletonYellow_hurtPath_, 5,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonYellow_hurtTextures);
+    generateMipmapTextures(skeletonYellow_hurtTextures);
     //smoothTextures(skeletonYellow_hurtTextures);
     this->skeletonYellow_hurt_helper.countOfTextures = 4;
     this->skeletonYellow_hurt_helper.iterationsTillSwitch = 9;
@@ -100,7 +100,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonYellow_dieTextures, skeletonYellow_diePath_, 13,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonYellow_dieTextures);
+    generateMipmapTextures(skeletonYellow_dieTextures);
     //smoothTextures(skeletonYellow_dieTextures);
     this->skeletonYellow_die_helper.countOfTextures = 12;
     this->skeletonYellow_die_helper.iterationsTillSwitch = 9;
@@ -108,7 +108,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonYellow_attack1Textures, skeletonYellow_attack1Path_, 10,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonYellow_attack1Textures);
+    generateMipmapTextures(skeletonYellow_attack1Textures);
     //smoothTextures(skeletonYellow_attack1Textures);
     this->skeletonYellow_attack1_helper.countOfTextures = 9;
     this->skeletonYellow_attack1_helper.iterationsTillSwitch = 9;
@@ -116,7 +116,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(skeletonYellow_attack2Textures, skeletonYellow_attack2Path_, 9,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    //generateMipmapTextures(skeletonYellow_attack2Textures);
+    generateMipmapTextures(skeletonYellow_attack2Textures);
     //smoothTextures(skeletonYellow_attack2Textures);
     this->skeletonYellow_attack2_helper.countOfTextures = 8;
     this->skeletonYellow_attack2_helper.iterationsTillSwitch = 9;
@@ -182,7 +182,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initTextures(cat1Textures,cat1Path, 2, 2)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    // generateMipmapTextures(cat1Textures);
+    generateMipmapTextures(cat1Textures);
     // smoothTextures(cat1Textures);
     this->catHelper.countOfTextures = 2;
     this->catHelper.iterationsTillSwitch = 72;

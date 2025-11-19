@@ -21,6 +21,19 @@ void Skeleton::walkRight()
     initialWalkSpeed+=speed;
 }
 
+void Skeleton::chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos)
+{
+    if(skeletonPos.x < playerPos.x)
+    {
+        this->action_ = skeletonAction::WALKRIGHT;
+    }
+    
+    else if(skeletonPos.x > playerPos.x)
+    {
+        this->action_ = skeletonAction::WALKLEFT;
+    }
+}
+
 void Skeleton::onBulletHit()
 {
     isPlayingHurtAnimation = true;
@@ -180,11 +193,23 @@ void Skeleton::loadData()
     nlohmann::json j = nlohmann::json::parse(in);
     
     //Подгружаемые из enemySettings.json значения переменных
-    this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
-    this->maxWalkSpeed = j["skeleton-white"]["maxSpeed"];
-    this->speed = j["skeleton-white"]["acceleration"];
-    this->frictionForce = j["skeleton-white"]["friction"];
-    this->HP_ = j["skeleton-white"]["HP"];
+    if(type_=="white")
+    {
+        this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
+        this->maxWalkSpeed = j["skeleton-white"]["maxSpeed"];
+        this->speed = j["skeleton-white"]["acceleration"];
+        this->frictionForce = j["skeleton-white"]["friction"];
+        this->HP_ = j["skeleton-white"]["HP"];
+    }
+
+    else if(type_=="yellow")
+    {
+        this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
+        this->maxWalkSpeed = j["skeleton-yellow"]["maxSpeed"];
+        this->speed = j["skeleton-yellow"]["acceleration"];
+        this->frictionForce = j["skeleton-yellow"]["friction"];
+        this->HP_ = j["skeleton-yellow"]["HP"];
+    }
 }
 
 Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type, sf::Vector2f pos) : Enemy(gameData)
@@ -250,21 +275,27 @@ void Skeleton::updateAI() //TODO Write better skeleton's intelligence
     sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
     sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
 
-    if(skeletonPos.x < playerPos.x)
-    {
-        walkRight();
-        this->action_ = skeletonAction::WALKRIGHT;
-    }
     
-    else if(skeletonPos.x > playerPos.x)
+    chasePlayer(skeletonPos,playerPos);
+    
+
+
+
+}
+
+void Skeleton::updateControl()
+{
+    switch(action_)
     {
-        walkLeft();
-        this->action_ = skeletonAction::WALKLEFT;
+        case skeletonAction::WALKLEFT:
+            walkLeft();
+        break;
+
+        case skeletonAction::WALKRIGHT:
+            walkRight();
+        break;
+        //TODO Добавить прыжки и че нить еще
     }
-    //TODO Написать логику, чтобы скелет перепрыгивал платформы
-
-
-
 }
 
 void Skeleton::updatePhysics()

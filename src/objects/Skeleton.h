@@ -6,6 +6,7 @@
 #include<VisualEffects.h>
 #include<SFML/System.hpp>
 #include<HealthBar.h>
+#include<math.h>
 
 enum skeletonAction{
     WALKLEFT,
@@ -86,6 +87,10 @@ private:
     void walkLeft();
     void walkRight();
 
+    //PRIVATE AI methods
+    void chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos);
+
+
     //PRIVATE action methods
     void onBulletHit();
 
@@ -110,6 +115,8 @@ public:
     bool isAlive = true;
 
     void updateAI();
+
+    void updateControl();
 
     void updatePhysics();
 

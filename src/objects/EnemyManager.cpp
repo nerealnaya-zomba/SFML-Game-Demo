@@ -26,6 +26,14 @@ void EnemyManager<T>::updateAI_all()
     }
 }
 
+template <typename T>
+void EnemyManager<T>::updateControls_all()
+{
+    for (auto enemy : enemies) {
+        enemy->updateControl();
+    }
+}
+
 template<typename T>
 void EnemyManager<T>::updatePhysics_all()
 {

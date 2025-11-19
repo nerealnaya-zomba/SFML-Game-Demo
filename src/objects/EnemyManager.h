@@ -29,6 +29,8 @@ public:
         Update
     */
     void updateAI_all();
+
+    void updateControls_all();
     
     void updatePhysics_all();
 

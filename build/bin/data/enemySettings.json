@@ -10,6 +10,9 @@
         "friction": 0.05
     },
     "skeleton-yellow":{
-
+        "HP": 200,
+        "maxSpeed": 1.5,
+        "acceleration": 0.15,
+        "friction": 0.05
     }
 }

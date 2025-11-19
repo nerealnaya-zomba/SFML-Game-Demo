@@ -205,6 +205,7 @@ int main()
         //Player logic
             //Player control
         player.updateControls();
+        enemyManager.updateControls_all();
             //Physical logic
         player.updatePhysics();
         player.checkGroundCollision(ground.getRect());
