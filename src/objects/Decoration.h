@@ -21,31 +21,31 @@ public:
     //Textures and iters pointers
         //Plants
     std::vector<sf::Texture>* plant1Textures;
-    texturesIterHelper* plant1;
+    texturesIterHelper plant1;
 
     std::vector<sf::Texture>* plant2Textures;
-    texturesIterHelper* plant2;
+    texturesIterHelper plant2;
 
     std::vector<sf::Texture>* plant3Textures;
-    texturesIterHelper* plant3;
+    texturesIterHelper plant3;
 
     std::vector<sf::Texture>* plant4Textures;
-    texturesIterHelper* plant4;
+    texturesIterHelper plant4;
 
     std::vector<sf::Texture>* plant5Textures;
-    texturesIterHelper* plant5;
+    texturesIterHelper plant5;
 
     std::vector<sf::Texture>* plant6Textures;
-    texturesIterHelper* plant6;
+    texturesIterHelper plant6;
 
     std::vector<sf::Texture>* plant7Textures;
-    texturesIterHelper* plant7;
+    texturesIterHelper plant7;
 
     std::vector<sf::Texture>* jumpPlantTextures;
-    texturesIterHelper* jumpPlant;
+    texturesIterHelper jumpPlant;
         //Cat
     std::vector<sf::Texture>* cat1Textures;
-    texturesIterHelper* catHelper;
+    texturesIterHelper catHelper;
     private:
     //Sprites
         //Plants

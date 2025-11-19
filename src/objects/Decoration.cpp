@@ -233,22 +233,22 @@ void Decoration::smoothTextures(std::vector<sf::Texture> &texturesArray)
 void Decoration::updateTextures()
 {
 
-    switchToNextSprite(plant1Sprites,*plant1Textures,*plant1);
-    switchToNextSprite(plant2Sprites,*plant2Textures,*plant2);
-    switchToNextSprite(plant3Sprites,*plant3Textures,*plant3);
+    switchToNextSprite(plant1Sprites,*plant1Textures,plant1);
+    switchToNextSprite(plant2Sprites,*plant2Textures,plant2);
+    switchToNextSprite(plant3Sprites,*plant3Textures,plant3);
 
 
 
-    switchToNextSprite(plant4Sprites,*plant4Textures,*plant4);
-    switchToNextSprite(plant5Sprites,*plant5Textures,*plant5);
-    switchToNextSprite(plant6Sprites,*plant6Textures,*plant6);
-    switchToNextSprite(plant7Sprites,*plant7Textures,*plant7);
+    switchToNextSprite(plant4Sprites,*plant4Textures,plant4);
+    switchToNextSprite(plant5Sprites,*plant5Textures,plant5);
+    switchToNextSprite(plant6Sprites,*plant6Textures,plant6);
+    switchToNextSprite(plant7Sprites,*plant7Textures,plant7);
 
 
 
-    switchToNextSprite(cat1Sprites,*cat1Textures,*catHelper);
+    switchToNextSprite(cat1Sprites,*cat1Textures,catHelper);
 
-    switchToNextSprite(jumpPlantSprites,*jumpPlantTextures,*jumpPlant);
+    switchToNextSprite(jumpPlantSprites,*jumpPlantTextures,jumpPlant);
 
 }
 

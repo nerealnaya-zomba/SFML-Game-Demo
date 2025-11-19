@@ -4,7 +4,7 @@
         "scaleY":2.0
     },
     "skeleton-white":{
-        "HP": 30,
+        "HP": 100,
         "maxSpeed": 1.5,
         "acceleration": 0.15,
         "friction": 0.05

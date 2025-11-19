@@ -26,10 +26,10 @@ void Skeleton::onBulletHit()
     isPlayingHurtAnimation = true;
     action_ = skeletonAction::HURT;
     // Сбрасываем итератор чтобы анимация началась с начала
-    if((skeletonWhite_hurt_helper->ptrToTexture==(skeletonWhite_hurt_helper->countOfTextures)))
+    if((skeletonWhite_hurt_helper.ptrToTexture==(skeletonWhite_hurt_helper.countOfTextures)))
     {
-        skeletonWhite_hurt_helper->ptrToTexture = 0;
-        skeletonWhite_hurt_helper->iterationCounter = 0;
+        skeletonWhite_hurt_helper.ptrToTexture = 0;
+        skeletonWhite_hurt_helper.iterationCounter = 0;
     }
     //Обновление переменных
         //Сбрасываем скорость хитбокса, чтобы он не бежал быстрее спрайта
@@ -187,13 +187,14 @@ void Skeleton::loadData()
     this->HP_ = j["skeleton-white"]["HP"];
 }
 
-Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type) : Enemy(gameData)
+Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type, sf::Vector2f pos) : Enemy(gameData)
 {
     this->window = &window;
     this->ground_ = &ground;
     this->platform_ = &platform;
     this->player_ = &player;
     this->type_=type;
+    this->enemyPos = pos;
     loadData();
 
     std::transform(type.begin(), type.end(), type.begin(),
@@ -229,9 +230,11 @@ Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground,
     skeletonRect->setSize({sizeX,sizeY});
     skeletonRect->setFillColor(sf::Color::Red);
     skeletonRect->setPosition(this->enemyPos);
+    sf::Vector2f skeletonRectCenter = this->skeletonRect->getGlobalBounds().getCenter();
+    this->skeletonSprite->setPosition({skeletonRectCenter.x,skeletonRectCenter.y-15.f});
 
-    //Intelligence clock start
-    iqCl_.start();
+    //Health bar initialization
+    this->healthbar = new HealthBar(skeletonRect, window, sf::Color::Red, sf::Color::Green, {50.f, 5.f}, this->HP_,{0.f,-50.f});
 
 }
 
@@ -311,6 +314,7 @@ void Skeleton::updatePhysics()
     checkGroundCollision(*ground_);
     checkPlatformCollision(*platform_);
     if(HP_>0) checkBulletCollision(*player_);
+    healthbar->update(HP_);
 }
 
 void Skeleton::updateTextures()
@@ -319,9 +323,9 @@ void Skeleton::updateTextures()
 
     if (isPlayingHurtAnimation && HP_ > 0) {
         // Проигрываем HURT анимацию один раз
-        pulseSprite(*skeletonSprite,sf::Color(255,0,0,255),5.f,sf::seconds(0.5f));
+        pulseSprite(*skeletonSprite,sf::Color(255,0,0,255),1.f,sf::seconds(0.2f)); // Пульсация
         if (!switchToNextSprite(skeletonSprite, *skeletonWhite_hurtTextures, 
-        *skeletonWhite_hurt_helper, switchSprite_SwitchOption::Single)) {
+        skeletonWhite_hurt_helper, switchSprite_SwitchOption::Single)) {
             // Анимация завершена - возвращаем обычное состояние
             isPlayingHurtAnimation = false;
             skeletonSprite->setColor({255,255,255,255});
@@ -331,17 +335,18 @@ void Skeleton::updateTextures()
     }
     if(isPlayingDieAnimation)
     {
-        static int isCalled = 0;
-        if(isCalled != 15 )
-        {
-            pulseSprite(*skeletonSprite,sf::Color(255,0,0,255),5.f,sf::seconds(0.5f));
-            isCalled++;
-        } 
-        if(isCalled == 15 ) skeletonSprite->setColor({255,255,255,255}); //NOTE Остановился тут
+        // static int isCalled = 0;
+        // if(isCalled != 15 )
+        // {
+        //     pulseSprite(*skeletonSprite,sf::Color(255,0,0,255),1.f,sf::seconds(0.1f));
+        //     isCalled++;
+        // } 
+        // if(isCalled == 15 ) skeletonSprite->setColor({255,255,255,255}); //NOTE Остановился тут
         
+        skeletonSprite->setColor(sf::Color::Red);
 
         if (!switchToNextSprite(skeletonSprite, *skeletonWhite_dieTextures, 
-        *skeletonWhite_die_helper, switchSprite_SwitchOption::Single))
+        skeletonWhite_die_helper, switchSprite_SwitchOption::Single))
         {
             isPlayingDieAnimation = false;
             isAlive = false;
@@ -355,19 +360,19 @@ void Skeleton::updateTextures()
     switch(this->action_) {
         case skeletonAction::IDLE:
             switchToNextSprite(skeletonSprite, *skeletonWhite_idleTextures, 
-                            *skeletonWhite_idle_helper, switchSprite_SwitchOption::Loop);
+                            skeletonWhite_idle_helper, switchSprite_SwitchOption::Loop);
         break;
 
         case skeletonAction::WALKRIGHT:
             skeletonSprite->setScale({this->enemyScale_.x,this->enemyScale_.y});
             switchToNextSprite(skeletonSprite, *skeletonWhite_walkTextures,     
-                            *skeletonWhite_walk_helper, switchSprite_SwitchOption::Loop);   
+                            skeletonWhite_walk_helper, switchSprite_SwitchOption::Loop);   
         break;
 
         case skeletonAction::WALKLEFT:
             skeletonSprite->setScale({-this->enemyScale_.x,this->enemyScale_.y});
             switchToNextSprite(skeletonSprite, *skeletonWhite_walkTextures,
-                            *skeletonWhite_walk_helper, switchSprite_SwitchOption::Loop);
+                            skeletonWhite_walk_helper, switchSprite_SwitchOption::Loop);
         break;
     }
 
@@ -380,4 +385,15 @@ void Skeleton::draw()
 {
     //window->draw(*skeletonRect); //REMOVELATER Only for skeleton hitbox overview.
     window->draw(*skeletonSprite);
+    healthbar->draw();
+}
+
+sf::RectangleShape &Skeleton::getRect()
+{
+    return *this->skeletonRect;
+}
+
+int Skeleton::getHP()
+{
+    return this->HP_;
 }

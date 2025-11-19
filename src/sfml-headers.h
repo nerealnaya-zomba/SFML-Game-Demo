@@ -21,6 +21,8 @@
 #include<TexturesIterHelper.h>
 #include<Trail.h>
 #include<Skeleton.h>
+#include<EnemyManager.h>
+#include<HealthBar.h>
 
 //C libraries
 #include <iostream>

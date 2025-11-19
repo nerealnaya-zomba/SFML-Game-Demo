@@ -64,10 +64,10 @@ static void attachTexture(std::vector<sf::Texture>& fromTexture, std::vector<sf:
 {
     toTexture = &fromTexture;
 }
-static void attachTexture(std::vector<sf::Texture>& fromTexture, std::vector<sf::Texture>*& toTexture, texturesIterHelper& fromIter, texturesIterHelper*& toIter)
+static void attachTexture(std::vector<sf::Texture>& fromTexture, std::vector<sf::Texture>*& toTexture, texturesIterHelper& fromIter, texturesIterHelper& toIter)
 {
     toTexture = &fromTexture;
-    toIter = &fromIter;
+    toIter = fromIter;
 }
 static void attachTexture(sf::Texture& fromTexture, sf::Texture*& toTexture) 
 {

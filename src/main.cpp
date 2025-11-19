@@ -34,7 +34,7 @@ int main()
     //Main menu
     Menu menu(font,window,mouseRect);
     
-
+    
     
     
     
@@ -42,7 +42,9 @@ int main()
     Player player(gameData);
     Ground ground(gameData);
     Decoration decoration(gameData);
-
+    EnemyManager<Skeleton> enemyManager; //Skeleton manager
+    
+    
     sf::Color grassColor{0,80,0,255};
     float offset = -50.f;
     decoration.addDecoration("plant1",{100,1040+offset},{0.4f,0.3f}, grassColor);
@@ -82,7 +84,6 @@ int main()
     platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
     platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
     platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
-    Skeleton sklt(gameData,window,ground,platforms,player,"white");
     //Main loop
     while (window.isOpen())
     {
@@ -164,6 +165,10 @@ int main()
                     std::cout << "Shoot" << std::endl;
                     player.shoot(player.getSpriteScale().x>0 ? true : false);
                 }
+                if(keyPressed->scancode == sf::Keyboard::Scancode::Num1)
+                {
+                    enemyManager.add(new Skeleton(gameData,window,ground,platforms,player,"white",sf::Vector2f(sf::Mouse::getPosition().x,sf::Mouse::getPosition().y)));
+                }
             }
             //↑↑-----GAME-----↑↑
         }
@@ -191,9 +196,9 @@ int main()
         
         //Enemy logic
             //Skeleton control
-        sklt.updateAI();
+        enemyManager.updateAI_all();
             //Skeleton physics
-        sklt.updatePhysics();
+        enemyManager.updatePhysics_all();
         
 
         
@@ -207,7 +212,7 @@ int main()
         player.moveBullets();
 
         //Texture logic
-        sklt.updateTextures();
+        enemyManager.updateTextures_all();
         player.updateTextures();
         decoration.updateTextures();
         
@@ -232,7 +237,7 @@ int main()
         ground.draw(window,WINDOW_HEIGHT-39.f);
 
         //Enemy drawing
-        if(sklt.isAlive) sklt.draw();
+        enemyManager.draw_all();
         
         //Player drawing
         player.draw(window);
@@ -242,12 +247,10 @@ int main()
 
 
         view.setCenter(player.playerRectangle_->getPosition());
-        window.setView(view);
+        //window.setView(view); //NOTE Камера следует за игроком. Убрать если не нужно.
         
 
         window.display();
-
-        
         
         
     }

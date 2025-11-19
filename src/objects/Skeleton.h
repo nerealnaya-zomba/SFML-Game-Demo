@@ -5,6 +5,7 @@
 #include <vector>
 #include<VisualEffects.h>
 #include<SFML/System.hpp>
+#include<HealthBar.h>
 
 enum skeletonAction{
     WALKLEFT,
@@ -19,7 +20,7 @@ enum skeletonAction{
 class Skeleton : public Enemy{ //Ошибка: expected class name
 private:
     //References
-        //Draw&display(window)
+        //Draw & display
     sf::RenderWindow* window;
         //Ground
     Ground* ground_; //NOTE used for physics
@@ -33,11 +34,11 @@ private:
         //Actions
     bool isIdle = true;
     bool isFalling = true;
-    bool isPlayingHurtAnimation = true;
+    bool isPlayingHurtAnimation = false;
     bool isPlayingDieAnimation = false;
     skeletonAction action_ = skeletonAction::IDLE;
-        //Intelligence
-    sf::Clock iqCl_;
+        //HP bar
+    HealthBar* healthbar;
         //Physics
     float fallingSpeed = 0.f;
     float initialWalkSpeed = 0.f;
@@ -45,7 +46,7 @@ private:
     float maxWalkSpeed{}; // Loads from EnemySettings.json
     float frictionForce{}; // Loads from EnemySettings.json
     int HP_; // Loads from EnemySettings.json
-    sf::Vector2f enemyPos = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
+    sf::Vector2f enemyPos; //In constuctor
         //Pre-load bindings
     sf::Vector2f enemyScale_; // Loads from EnemySettings.json
         //Sprite
@@ -56,30 +57,30 @@ private:
     //Textures
         //Skeleton white
     std::vector<sf::Texture>* skeletonWhite_idleTextures;
-    texturesIterHelper* skeletonWhite_idle_helper;
+    texturesIterHelper skeletonWhite_idle_helper;
     std::vector<sf::Texture>* skeletonWhite_walkTextures;
-    texturesIterHelper* skeletonWhite_walk_helper;
+    texturesIterHelper skeletonWhite_walk_helper;
     std::vector<sf::Texture>* skeletonWhite_hurtTextures;
-    texturesIterHelper* skeletonWhite_hurt_helper;
+    texturesIterHelper skeletonWhite_hurt_helper;
     std::vector<sf::Texture>* skeletonWhite_dieTextures;
-    texturesIterHelper* skeletonWhite_die_helper;
+    texturesIterHelper skeletonWhite_die_helper;
     std::vector<sf::Texture>* skeletonWhite_attack1Textures;
-    texturesIterHelper* skeletonWhite_attack1_helper;
+    texturesIterHelper skeletonWhite_attack1_helper;
     std::vector<sf::Texture>* skeletonWhite_attack2Textures;
-    texturesIterHelper* skeletonWhite_attack2_helper;
+    texturesIterHelper skeletonWhite_attack2_helper;
         //Skeleton yellow
     std::vector<sf::Texture>* skeletonYellow_idleTextures;
-    texturesIterHelper* skeletonYellow_idle_helper;
+    texturesIterHelper skeletonYellow_idle_helper;
     std::vector<sf::Texture>* skeletonYellow_walkTextures;
-    texturesIterHelper* skeletonYellow_walk_helper;
+    texturesIterHelper skeletonYellow_walk_helper;
     std::vector<sf::Texture>* skeletonYellow_hurtTextures;
-    texturesIterHelper* skeletonYellow_hurt_helper;
+    texturesIterHelper skeletonYellow_hurt_helper;
     std::vector<sf::Texture>* skeletonYellow_dieTextures;
-    texturesIterHelper* skeletonYellow_die_helper;
+    texturesIterHelper skeletonYellow_die_helper;
     std::vector<sf::Texture>* skeletonYellow_attack1Textures;
-    texturesIterHelper* skeletonYellow_attack1_helper;
+    texturesIterHelper skeletonYellow_attack1_helper;
     std::vector<sf::Texture>* skeletonYellow_attack2Textures;
-    texturesIterHelper* skeletonYellow_attack2_helper;
+    texturesIterHelper skeletonYellow_attack2_helper;
 
     //PRIVATE control methods
     void walkLeft();
@@ -103,7 +104,7 @@ private:
 
     void loadData(); //Loads some variables from EnemySettings.json
 public:
-    Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type);
+    Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type, sf::Vector2f pos);
     ~Skeleton();
     //PUBLIC Variables
     bool isAlive = true;
@@ -116,4 +117,7 @@ public:
 
     void draw();
 
+    //Getters
+    sf::RectangleShape& getRect();
+    int getHP();
 };
