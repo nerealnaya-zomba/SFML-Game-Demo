@@ -134,7 +134,7 @@ void Player::loadData()
 
     this->DMG_ = data["Bullet"]["DMG"];
     this->bulletMaxDistance_ = data["Bullet"]["bulletMaxDistance"];
-    this->bulletMaxDistance_ = data["Bullet"]["bulletMaxDistance"];
+    this->bulletSpeed = data["Bullet"]["bulletSpeed"];
 
     this->dashForce = data["Dash"]["force"];
 }

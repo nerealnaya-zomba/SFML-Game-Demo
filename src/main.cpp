@@ -175,7 +175,6 @@ int main()
                     std::cout << "Dash" << std::endl;
                     player.dash();
                 }
-
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Num1)
                 {
                     enemyManager.add(new Skeleton(gameData,window,ground,platforms,player,"white",sf::Vector2f(sf::Mouse::getPosition().x,sf::Mouse::getPosition().y)));

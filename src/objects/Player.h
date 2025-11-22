@@ -29,15 +29,15 @@ class Player {
     float speed = 0.15f;
     float maxWalkSpeed = 4.f;
     float frictionForce = 0.1f;
-    int playerPosX_m{};
-    int playerPosY_m{};
+    float playerPosX_m{};
+    float playerPosY_m{};
     int DMG_{};
             //Bullet
-    float bulletSpeed = 5.f;
-    float bulletMaxDistance_ = 500.f;
+    float bulletSpeed;
+    float bulletMaxDistance_;
             //Dash
-    float dashForce{10.f};
-            //Trail
+    float dashForce{};
+        //Cooldown
     
 
     //Getters
@@ -86,10 +86,6 @@ class Player {
     void switchToNextRunningSprite();
     void switchToNextFallingSprite();
     void switchToNextBulletSprite();
-
-    //Rectangles
-    
-    
 
 
     //Sprite
