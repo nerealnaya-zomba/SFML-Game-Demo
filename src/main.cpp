@@ -3,6 +3,7 @@
 #include<nlohmann/json.hpp>
 int main()
 {
+    srand(time(NULL));
     //Window preferences
     auto window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), WINDOW_TITLE, (sf::Style::Titlebar | sf::Style::Close), sf::State::Fullscreen);
     window.setFramerateLimit(WINDOW_FPS);
@@ -122,7 +123,6 @@ int main()
                             }
                             else if(menu.exitDialogue->answer_m == AskDialogue::Answer::No)
                             {
-                                
                                 menu.exitDialogue->isCalled = false;
                                 menu.exitDialogue->answer_m = AskDialogue::Answer::NoAnswer;
                             }
@@ -150,24 +150,54 @@ int main()
 
            //↓↓-----GAME-----↓↓
            //Jump on up arrow
+            static bool isPressed_x = false;
+            static bool isPressed_z = false;
+            static bool isPressed_c = false;
             if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
-                if(keyPressed->scancode == sf::Keyboard::Scancode::Z)
+                if(keyPressed->scancode == sf::Keyboard::Scancode::Z && !isPressed_z)
                 {
                     if(!player.isFalling)
                     {
                         player.jump();
                     }
-                    
+                    isPressed_z = true;
                 }
-                if(keyPressed->scancode == sf::Keyboard::Scancode::X)
+                if(keyPressed->scancode == sf::Keyboard::Scancode::X && !isPressed_x)
                 {
+                    isPressed_x = true;
                     std::cout << "Shoot" << std::endl;
                     player.shoot(player.getSpriteScale().x>0 ? true : false);
                 }
+                if(keyPressed->scancode == sf::Keyboard::Scancode::C && !isPressed_c)
+                {
+                    isPressed_c = true;
+                    std::cout << "Dash" << std::endl;
+                    player.dash();
+                }
+
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Num1)
                 {
                     enemyManager.add(new Skeleton(gameData,window,ground,platforms,player,"white",sf::Vector2f(sf::Mouse::getPosition().x,sf::Mouse::getPosition().y)));
+                }
+                if(keyPressed->scancode == sf::Keyboard::Scancode::Num2)
+                {
+                    enemyManager.add(new Skeleton(gameData,window,ground,platforms,player,"yellow",sf::Vector2f(sf::Mouse::getPosition().x,sf::Mouse::getPosition().y)));
+                }
+            }
+            if(const auto* keyReleased = event->getIf<sf::Event::KeyReleased>())
+            {
+                if(keyReleased->scancode == sf::Keyboard::Scancode::X && isPressed_x)
+                {
+                    isPressed_x = false;
+                }
+                if(keyReleased->scancode == sf::Keyboard::Scancode::Z && isPressed_z)
+                {
+                    isPressed_z = false;
+                }
+                if(keyReleased->scancode == sf::Keyboard::Scancode::C && isPressed_c)
+                {
+                    isPressed_c = false;
                 }
             }
             //↑↑-----GAME-----↑↑
@@ -247,7 +277,7 @@ int main()
         platforms.draw(window);
 
 
-        view.setCenter(player.playerRectangle_->getPosition());
+        view.setCenter(player.playerRectangle_->getGlobalBounds().getCenter());
         //window.setView(view); //NOTE Камера следует за игроком. Убрать если не нужно.
         
 

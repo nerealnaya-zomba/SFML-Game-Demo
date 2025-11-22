@@ -35,6 +35,9 @@ class Player {
             //Bullet
     float bulletSpeed = 5.f;
     float bulletMaxDistance_ = 500.f;
+            //Dash
+    float dashForce{10.f};
+            //Trail
     
 
     //Getters
@@ -46,7 +49,8 @@ class Player {
     void walkRight();
     void jump();
     void fallDown();
-    //'false' for left  'true' for right
+    void dash();
+        //'false' for left  'true' for right
     void shoot(bool direction);
 
     //Physics methods

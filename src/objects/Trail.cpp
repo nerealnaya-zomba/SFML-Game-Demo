@@ -36,21 +36,27 @@ void Trail::drawTrail(sf::RenderWindow& window)
 
 void Trail::makeTrailDisappear()
 {
-    //Decrease alfa by 1 on each element
-    for (std::unique_ptr<sf::Sprite>& i : shapes)
-    {
-        sf::Color shapeColor = i->getColor();
-        for (size_t i = 0; i < speedOfTrailDisappearing; i++)
-        {
-            shapeColor.a--;
-        }
-        
-        i->setColor(shapeColor);
-    }
-    //If last element's alfa less or equeal 2, then remove it from array
-    if(!shapes.empty() && shapes.back()->getColor().a <=speedOfTrailDisappearing)
+    // Удаляем ВСЕ спрайты с достаточно низкой прозрачностью
+    while(!shapes.empty() && shapes.back()->getColor().a <= speedOfTrailDisappearing)
     {
         shapes.pop_back();
+    }
+    
+    // Или альтернативный вариант - удалять по прозрачности, а не по позиции:
+    shapes.erase(
+        std::remove_if(shapes.begin(), shapes.end(),
+            [this](const std::unique_ptr<sf::Sprite>& sprite) {
+                return sprite->getColor().a <= this->speedOfTrailDisappearing;
+            }),
+        shapes.end()
+    );
+    
+    // Уменьшаем alpha для оставшихся спрайтов
+    for(std::unique_ptr<sf::Sprite>& i : shapes)
+    {
+        sf::Color shapeColor = i->getColor();
+        shapeColor.a = std::max(0, shapeColor.a - speedOfTrailDisappearing);
+        i->setColor(shapeColor);
     }
 }
 

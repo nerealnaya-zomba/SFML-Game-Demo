@@ -1,0 +1,14 @@
+{
+    "Player":{
+        "PosX": 1000,
+        "PosY": 100
+    },
+    "Bullet":{
+        "bulletSpeed": 5.0,
+        "bulletMaxDistance": 500.0,
+        "DMG": 10
+    },
+    "Dash":{
+        "force": 10.0
+    }
+}

@@ -47,6 +47,8 @@ private:
     float maxWalkSpeed{}; // Loads from EnemySettings.json
     float frictionForce{}; // Loads from EnemySettings.json
     int HP_; // Loads from EnemySettings.json
+    float distanceToMakeAttack{}; // Loads from EnemySettings.json
+    bool knockbacks{};
     sf::Vector2f enemyPos; //In constuctor
         //Pre-load bindings
     sf::Vector2f enemyScale_; // Loads from EnemySettings.json
@@ -57,18 +59,18 @@ private:
 
     //Textures
         //Skeleton white
-    std::vector<sf::Texture>* skeletonWhite_idleTextures;
-    texturesIterHelper skeletonWhite_idle_helper;
-    std::vector<sf::Texture>* skeletonWhite_walkTextures;
-    texturesIterHelper skeletonWhite_walk_helper;
-    std::vector<sf::Texture>* skeletonWhite_hurtTextures;
-    texturesIterHelper skeletonWhite_hurt_helper;
-    std::vector<sf::Texture>* skeletonWhite_dieTextures;
-    texturesIterHelper skeletonWhite_die_helper;
-    std::vector<sf::Texture>* skeletonWhite_attack1Textures;
-    texturesIterHelper skeletonWhite_attack1_helper;
-    std::vector<sf::Texture>* skeletonWhite_attack2Textures;
-    texturesIterHelper skeletonWhite_attack2_helper;
+    std::vector<sf::Texture>* skeleton_idleTextures;
+    texturesIterHelper skeleton_idle_helper;
+    std::vector<sf::Texture>* skeleton_walkTextures;
+    texturesIterHelper skeleton_walk_helper;
+    std::vector<sf::Texture>* skeleton_hurtTextures;
+    texturesIterHelper skeleton_hurt_helper;
+    std::vector<sf::Texture>* skeleton_dieTextures;
+    texturesIterHelper skeleton_die_helper;
+    std::vector<sf::Texture>* skeleton_attack1Textures;
+    texturesIterHelper skeleton_attack1_helper;
+    std::vector<sf::Texture>* skeleton_attack2Textures;
+    texturesIterHelper skeleton_attack2_helper;
         //Skeleton yellow
     std::vector<sf::Texture>* skeletonYellow_idleTextures;
     texturesIterHelper skeletonYellow_idle_helper;
@@ -89,7 +91,7 @@ private:
 
     //PRIVATE AI methods
     void chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos);
-
+    void tryAttackPlayer();
 
     //PRIVATE action methods
     void onBulletHit();

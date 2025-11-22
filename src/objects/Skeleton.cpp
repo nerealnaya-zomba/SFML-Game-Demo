@@ -34,19 +34,35 @@ void Skeleton::chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos)
     }
 }
 
+void Skeleton::tryAttackPlayer()
+{
+    sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
+    sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
+    float distance = std::abs(skeletonPos.x - playerPos.x);
+    
+    // Проверяем дистанцию для атаки
+    if (distance < 80.f) {
+        // TODO Наносим урон игроку
+        //player_->HP_ -= 10;
+        
+        // Визуальный эффект при успешной атаке
+        //pulseSprite(*skeletonSprite, sf::Color(255, 255, 0, 255), 3.f, sf::seconds(0.3f));
+    }
+}
+
 void Skeleton::onBulletHit()
 {
     isPlayingHurtAnimation = true;
     action_ = skeletonAction::HURT;
     // Сбрасываем итератор чтобы анимация началась с начала
-    if((skeletonWhite_hurt_helper.ptrToTexture==(skeletonWhite_hurt_helper.countOfTextures)))
+    if((skeleton_hurt_helper.ptrToTexture==(skeleton_hurt_helper.countOfTextures)))
     {
-        skeletonWhite_hurt_helper.ptrToTexture = 0;
-        skeletonWhite_hurt_helper.iterationCounter = 0;
+        skeleton_hurt_helper.ptrToTexture = 0;
+        skeleton_hurt_helper.iterationCounter = 0;
     }
     //Обновление переменных
         //Сбрасываем скорость хитбокса, чтобы он не бежал быстрее спрайта
-    initialWalkSpeed = 0.f;
+    if(this->knockbacks) initialWalkSpeed = 0.f;
         //Уменьшаем здоровье
     HP_-=player_->DMG_;
 }
@@ -193,22 +209,24 @@ void Skeleton::loadData()
     nlohmann::json j = nlohmann::json::parse(in);
     
     //Подгружаемые из enemySettings.json значения переменных
+    this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
+    this->distanceToMakeAttack = j["general"]["distanceToMakeAttack"];
     if(type_=="white")
     {
-        this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
         this->maxWalkSpeed = j["skeleton-white"]["maxSpeed"];
         this->speed = j["skeleton-white"]["acceleration"];
         this->frictionForce = j["skeleton-white"]["friction"];
         this->HP_ = j["skeleton-white"]["HP"];
+        this->knockbacks = j["skeleton-white"]["knockbacks"];
     }
 
     else if(type_=="yellow")
     {
-        this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
         this->maxWalkSpeed = j["skeleton-yellow"]["maxSpeed"];
         this->speed = j["skeleton-yellow"]["acceleration"];
         this->frictionForce = j["skeleton-yellow"]["friction"];
         this->HP_ = j["skeleton-yellow"]["HP"];
+        this->knockbacks = j["skeleton-yellow"]["knockbacks"];
     }
 }
 
@@ -226,23 +244,23 @@ Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground,
     [](unsigned char c){ return std::tolower(c); }); //Transform "type" text to lowercase
     if(type == "white")
     {
-        attachTexture(gameData.skeletonWhite_idleTextures_, this->skeletonWhite_idleTextures, gameData.skeletonWhite_idle_helper, this->skeletonWhite_idle_helper);
-        attachTexture(gameData.skeletonWhite_walkTextures, this->skeletonWhite_walkTextures, gameData.skeletonWhite_walk_helper, this->skeletonWhite_walk_helper);
-        attachTexture(gameData.skeletonWhite_hurtTextures, this->skeletonWhite_hurtTextures, gameData.skeletonWhite_hurt_helper, this->skeletonWhite_hurt_helper);
-        attachTexture(gameData.skeletonWhite_dieTextures, this->skeletonWhite_dieTextures, gameData.skeletonWhite_die_helper, this->skeletonWhite_die_helper);
-        attachTexture(gameData.skeletonWhite_attack1Textures, this->skeletonWhite_attack1Textures, gameData.skeletonWhite_attack1_helper, this->skeletonWhite_attack1_helper);
-        attachTexture(gameData.skeletonWhite_attack2Textures, this->skeletonWhite_attack2Textures, gameData.skeletonWhite_attack2_helper, this->skeletonWhite_attack2_helper);
-        skeletonSprite = new sf::Sprite(skeletonWhite_idleTextures->at(0)); //Sprite initialization
+        attachTexture(gameData.skeletonWhite_idleTextures_, this->skeleton_idleTextures, gameData.skeletonWhite_idle_helper, this->skeleton_idle_helper);
+        attachTexture(gameData.skeletonWhite_walkTextures, this->skeleton_walkTextures, gameData.skeletonWhite_walk_helper, this->skeleton_walk_helper);
+        attachTexture(gameData.skeletonWhite_hurtTextures, this->skeleton_hurtTextures, gameData.skeletonWhite_hurt_helper, this->skeleton_hurt_helper);
+        attachTexture(gameData.skeletonWhite_dieTextures, this->skeleton_dieTextures, gameData.skeletonWhite_die_helper, this->skeleton_die_helper);
+        attachTexture(gameData.skeletonWhite_attack1Textures, this->skeleton_attack1Textures, gameData.skeletonWhite_attack1_helper, this->skeleton_attack1_helper);
+        attachTexture(gameData.skeletonWhite_attack2Textures, this->skeleton_attack2Textures, gameData.skeletonWhite_attack2_helper, this->skeleton_attack2_helper);
+        skeletonSprite = new sf::Sprite(this->skeleton_idleTextures->at(0)); //Sprite initialization
     }
     else if(type == "yellow")
     {
-        attachTexture(gameData.skeletonYellow_idleTextures, this->skeletonYellow_idleTextures, gameData.skeletonYellow_idle_helper, this->skeletonYellow_idle_helper);
-        attachTexture(gameData.skeletonYellow_walkTextures, this->skeletonYellow_walkTextures, gameData.skeletonYellow_walk_helper, this->skeletonYellow_walk_helper);
-        attachTexture(gameData.skeletonYellow_hurtTextures, this->skeletonYellow_hurtTextures, gameData.skeletonYellow_hurt_helper, this->skeletonYellow_hurt_helper);
-        attachTexture(gameData.skeletonYellow_dieTextures, this->skeletonYellow_dieTextures, gameData.skeletonYellow_die_helper, this->skeletonYellow_die_helper);
-        attachTexture(gameData.skeletonYellow_attack1Textures, this->skeletonYellow_attack1Textures, gameData.skeletonYellow_attack1_helper, this->skeletonYellow_attack1_helper);
-        attachTexture(gameData.skeletonYellow_attack2Textures, this->skeletonYellow_attack2Textures, gameData.skeletonYellow_attack2_helper, this->skeletonYellow_attack2_helper);
-        skeletonSprite = new sf::Sprite(skeletonYellow_idleTextures->at(0)); //Sprite initialization
+        attachTexture(gameData.skeletonYellow_idleTextures, this->skeleton_idleTextures, gameData.skeletonYellow_idle_helper, this->skeleton_idle_helper);
+        attachTexture(gameData.skeletonYellow_walkTextures, this->skeleton_walkTextures, gameData.skeletonYellow_walk_helper, this->skeleton_walk_helper);
+        attachTexture(gameData.skeletonYellow_hurtTextures, this->skeleton_hurtTextures, gameData.skeletonYellow_hurt_helper, this->skeleton_hurt_helper);
+        attachTexture(gameData.skeletonYellow_dieTextures, this->skeleton_dieTextures, gameData.skeletonYellow_die_helper, this->skeleton_die_helper);
+        attachTexture(gameData.skeletonYellow_attack1Textures, this->skeleton_attack1Textures, gameData.skeletonYellow_attack1_helper, this->skeleton_attack1_helper);
+        attachTexture(gameData.skeletonYellow_attack2Textures, this->skeleton_attack2Textures, gameData.skeletonYellow_attack2_helper, this->skeleton_attack2_helper);
+        skeletonSprite = new sf::Sprite(this->skeleton_idleTextures->at(0)); //Sprite initialization
     }
     //General sprite init
     skeletonSprite->setScale(enemyScale_);
@@ -271,16 +289,31 @@ Skeleton::~Skeleton()
 
 void Skeleton::updateAI() //TODO Write better skeleton's intelligence
 {
-    //Позиции для удобства
+    // Позиции для удобства
     sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
     sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
-
     
-    chasePlayer(skeletonPos,playerPos);
-    
+    float distanceX = std::abs(skeletonPos.x - playerPos.x);
+    float distanceY = std::abs(skeletonPos.y - playerPos.y);
 
-
-
+    // АТАКА: если игрок близко И скелет не атакует сейчас
+    if (distanceX < this->distanceToMakeAttack && distanceY < this->distanceToMakeAttack) {
+        // Проверяем что не атакуем в данный момент
+        if (action_ != ATTACK1 && action_ != ATTACK2) {
+            // Случайный выбор атаки
+            if (rand() % 2 == 0) {
+                action_ = skeletonAction::ATTACK1;
+            } else {
+                action_ = skeletonAction::ATTACK2;
+            }
+        }
+    } 
+    else {
+        // Преследование если не атакуем
+        if (action_ != ATTACK1 && action_ != ATTACK2) {
+            chasePlayer(skeletonPos, playerPos);
+        }
+    }
 }
 
 void Skeleton::updateControl()
@@ -352,62 +385,88 @@ void Skeleton::updateTextures()
 {
     if(!isAlive) return;
 
+    // Анимация получения урона
     if (isPlayingHurtAnimation && HP_ > 0) {
-        // Проигрываем HURT анимацию один раз
-        pulseSprite(*skeletonSprite,sf::Color(255,0,0,255),1.f,sf::seconds(0.2f)); // Пульсация
-        if (!switchToNextSprite(skeletonSprite, *skeletonWhite_hurtTextures, 
-        skeletonWhite_hurt_helper, switchSprite_SwitchOption::Single)) {
-            // Анимация завершена - возвращаем обычное состояние
+        pulseSprite(*skeletonSprite, sf::Color(255,0,0,255), 1.f, sf::seconds(0.2f));
+        if (!switchToNextSprite(skeletonSprite, *skeleton_hurtTextures, 
+        skeleton_hurt_helper, switchSprite_SwitchOption::Single)) {
             isPlayingHurtAnimation = false;
             skeletonSprite->setColor({255,255,255,255});
-            action_ = skeletonAction::IDLE; // или предыдущее действие
+            action_ = skeletonAction::IDLE;
         }
-        return; // Перекрываем другие анимации
-    }
-    if(isPlayingDieAnimation)
-    {
-        // static int isCalled = 0;
-        // if(isCalled != 15 )
-        // {
-        //     pulseSprite(*skeletonSprite,sf::Color(255,0,0,255),1.f,sf::seconds(0.1f));
-        //     isCalled++;
-        // } 
-        // if(isCalled == 15 ) skeletonSprite->setColor({255,255,255,255}); //NOTE Остановился тут
         
+        sf::Vector2f skeletonRectCenter = this->skeletonRect->getGlobalBounds().getCenter();
+        this->skeletonSprite->setPosition({skeletonRectCenter.x,skeletonRectCenter.y-15.f});
+        return;
+    }
+    
+    // Анимация смерти
+    if(isPlayingDieAnimation) {   
         skeletonSprite->setColor(sf::Color::Red);
-
-        if (!switchToNextSprite(skeletonSprite, *skeletonWhite_dieTextures, 
-        skeletonWhite_die_helper, switchSprite_SwitchOption::Single))
-        {
+        if (!switchToNextSprite(skeletonSprite, *skeleton_dieTextures, 
+        skeleton_die_helper, switchSprite_SwitchOption::Single)) {
             isPlayingDieAnimation = false;
             isAlive = false;
         }
-
+        
+        sf::Vector2f skeletonRectCenter = this->skeletonRect->getGlobalBounds().getCenter();
+        this->skeletonSprite->setPosition({skeletonRectCenter.x,skeletonRectCenter.y-15.f});
         return;
     }
 
-    
+    // АНИМАЦИИ АТАКИ
+    if (action_ == ATTACK1 || action_ == ATTACK2) {
+        bool attackFinished = false;
+        
+        if (action_ == ATTACK1) {
+            attackFinished = !switchToNextSprite(skeletonSprite, *skeleton_attack1Textures,
+                            skeleton_attack1_helper, switchSprite_SwitchOption::Single);
+            
+            // Наносим урон в середине анимации
+            if (skeleton_attack1_helper.ptrToTexture == skeleton_attack1_helper.countOfTextures / 2) {
+                tryAttackPlayer();
+            }
+        } else {
+            attackFinished = !switchToNextSprite(skeletonSprite, *skeleton_attack2Textures,
+                            skeleton_attack2_helper, switchSprite_SwitchOption::Single);
+            
+            // Наносим урон в середине анимации
+            if (skeleton_attack2_helper.ptrToTexture == skeleton_attack2_helper.countOfTextures / 2) {
+                tryAttackPlayer();
+            }
+        }
+        
+        // Завершаем атаку
+        if (attackFinished) {
+            action_ = skeletonAction::IDLE; // Возвращаемся в покой после атаки
+        }
+        
+        sf::Vector2f skeletonRectCenter = this->skeletonRect->getGlobalBounds().getCenter();
+        this->skeletonSprite->setPosition({skeletonRectCenter.x,skeletonRectCenter.y-15.f});
+        return;
+    }
+
     // Обычные анимации
     switch(this->action_) {
         case skeletonAction::IDLE:
-            switchToNextSprite(skeletonSprite, *skeletonWhite_idleTextures, 
-                            skeletonWhite_idle_helper, switchSprite_SwitchOption::Loop);
-        break;
+            switchToNextSprite(skeletonSprite, *skeleton_idleTextures, 
+                            skeleton_idle_helper, switchSprite_SwitchOption::Loop);
+            break;
 
         case skeletonAction::WALKRIGHT:
             skeletonSprite->setScale({this->enemyScale_.x,this->enemyScale_.y});
-            switchToNextSprite(skeletonSprite, *skeletonWhite_walkTextures,     
-                            skeletonWhite_walk_helper, switchSprite_SwitchOption::Loop);   
-        break;
+            switchToNextSprite(skeletonSprite, *skeleton_walkTextures,     
+                            skeleton_walk_helper, switchSprite_SwitchOption::Loop);   
+            break;
 
         case skeletonAction::WALKLEFT:
             skeletonSprite->setScale({-this->enemyScale_.x,this->enemyScale_.y});
-            switchToNextSprite(skeletonSprite, *skeletonWhite_walkTextures,
-                            skeletonWhite_walk_helper, switchSprite_SwitchOption::Loop);
-        break;
+            switchToNextSprite(skeletonSprite, *skeleton_walkTextures,
+                            skeleton_walk_helper, switchSprite_SwitchOption::Loop);
+            break;
     }
 
-    //NOTE do not remove this. This thing moves sprite to the skeletonRect(hitbox)
+    // Позиционирование спрайта
     sf::Vector2f skeletonRectCenter = this->skeletonRect->getGlobalBounds().getCenter();
     this->skeletonSprite->setPosition({skeletonRectCenter.x,skeletonRectCenter.y-15.f});
 }

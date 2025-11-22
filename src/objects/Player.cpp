@@ -127,11 +127,16 @@ void Player::saveData()
 
 void Player::loadData()
 {
-    std::fstream f("GameData.json");
+    std::fstream f("PlayerConfig.json");
     nlohmann::json data = nlohmann::json::parse(f);
-    playerPosX_m = data["Player"]["PosX"];
-    playerPosY_m = data["Player"]["PosY"];
-    DMG_ = data["Player"]["DMG"];
+    this->playerPosX_m = data["Player"]["PosX"];
+    this->playerPosY_m = data["Player"]["PosY"];
+
+    this->DMG_ = data["Bullet"]["DMG"];
+    this->bulletMaxDistance_ = data["Bullet"]["bulletMaxDistance"];
+    this->bulletMaxDistance_ = data["Bullet"]["bulletMaxDistance"];
+
+    this->dashForce = data["Dash"]["force"];
 }
 
 void Player::checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects)
@@ -252,6 +257,15 @@ void Player::fallDown()
 {
 }
 
+void Player::dash()
+{
+    if(playerSprite->getScale().x>0){
+        initialWalkSpeed = dashForce;
+    } else{
+        initialWalkSpeed = -dashForce;
+    }
+}
+
 void Player::shoot(bool direction)
 {
     std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),this->bulletMaxDistance_);
@@ -262,7 +276,7 @@ void Player::shoot(bool direction)
         {
             bulletPtr->offsetToMove_=sf::Vector2f(bulletSpeed,0.f);
         }
-        else bulletPtr->offsetToMove_=sf::Vector2f(bulletSpeed+initialWalkSpeed,0.f);
+        else bulletPtr->offsetToMove_=sf::Vector2f(bulletSpeed+(initialWalkSpeed*1.5),0.f);
     }
     else
     {
@@ -271,7 +285,7 @@ void Player::shoot(bool direction)
         {
             bulletPtr->offsetToMove_=sf::Vector2f(-bulletSpeed,0.f);
         }
-        else bulletPtr->offsetToMove_=sf::Vector2f(-bulletSpeed+initialWalkSpeed,0.f);
+        else bulletPtr->offsetToMove_=sf::Vector2f(-bulletSpeed+(initialWalkSpeed*1.5),0.f);
         bulletPtr->setSpriteScale({-1.f,1.f});
     }
 
@@ -438,11 +452,19 @@ void Player::draw(sf::RenderWindow& window)
 
 void Player::drawPlayerTrail(sf::RenderWindow& window)
 {
-    trail->trailColor = sf::Color(0,255,255,80);
-    trail->trailColor = sf::Color(0,0,0,70);
+    //trail->trailColor = sf::Color(0,255,255,80);
     trail->speedOfTrailDisappearing = 5;
-    
-    trail->generateTrail(window);
+    trail->trailColor = sf::Color(0,0,0,80);
+    // Трейл только когда игрок ДВИГАЕТСЯ
+    if(std::abs(initialWalkSpeed) > 0.1f) {
+        if(std::abs(initialWalkSpeed) < maxWalkSpeed*1.5) {
+            trail->trailColor = sf::Color(0,0,0,80); // Обычная скорость
+        } else {
+            trail->trailColor = sf::Color(0,0,0,180); // Макс скорость
+        }
+        trail->generateTrail(window);
+    }
+
     trail->makeTrailDisappear();
     trail->drawTrail(window);
 }

@@ -1,18 +1,21 @@
 {
     "general":{
         "scaleX":2.0,
-        "scaleY":2.0
+        "scaleY":2.0,
+        "distanceToMakeAttack": 100.0
     },
     "skeleton-white":{
         "HP": 100,
         "maxSpeed": 1.5,
         "acceleration": 0.15,
-        "friction": 0.05
+        "friction": 0.00,
+        "knockbacks": true
     },
     "skeleton-yellow":{
         "HP": 200,
-        "maxSpeed": 1.5,
+        "maxSpeed": 2.5,
         "acceleration": 0.15,
-        "friction": 0.05
+        "friction": 0.02,
+        "knockbacks": false
     }
 }
