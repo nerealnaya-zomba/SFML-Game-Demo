@@ -240,6 +240,7 @@ int main()
         player.checkGroundCollision(ground.getRect());
         player.checkRectCollision(platforms.getRects());
         player.moveBullets();
+        player.takeDMG(10);
 
         //Texture logic
         enemyManager.updateTextures_all();

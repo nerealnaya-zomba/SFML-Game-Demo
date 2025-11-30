@@ -29,16 +29,17 @@ class Player {
     float speed = 0.15f;
     float maxWalkSpeed = 4.f;
     float frictionForce = 0.1f;
-    float playerPosX_m{};
-    float playerPosY_m{};
-    int DMG_{};
+    float playerPosX_m{}; //PlayerConfig.json
+    float playerPosY_m{}; //PlayerConfig.json
+    int HP{}; //PlayerConfig.json
+    int DMG_{}; //PlayerConfig.json
             //Bullet
-    float bulletSpeed;
-    float bulletMaxDistance_;
+    float bulletSpeed; //PlayerConfig.json
+    float bulletMaxDistance_; //PlayerConfig.json
             //Dash
-    float dashForce{};
-        //Cooldown
-    
+    bool isDashAvaiable = false;
+    float dashForce{}; //PlayerConfig.json
+    sf::Clock dash_Clock;
 
     //Getters
     sf::Vector2f getSpriteScale();
@@ -52,6 +53,11 @@ class Player {
     void dash();
         //'false' for left  'true' for right
     void shoot(bool direction);
+        //Damage
+    bool takeDMG(int count);
+    sf::Clock takeDMG_timer;
+    int32_t takeDMG_cooldown = 1000; //PlayerConfig.json //[ ] add in playerconfg
+    bool takeDMG_isOnCooldown = false;
 
     //Physics methods
     void updatePhysics();

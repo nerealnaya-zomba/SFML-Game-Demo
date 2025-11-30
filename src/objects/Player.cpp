@@ -291,6 +291,30 @@ void Player::shoot(bool direction)
 
     bullets.push_back(std::move(bulletPtr));
 }
+/*
+    Returns true on successful hit \ Returns false on unsucessful hit
+    
+    Has cooldown that declared in Player.h
+*/
+bool Player::takeDMG(int count) 
+{
+    if(takeDMG_isOnCooldown)
+    {
+        if(takeDMG_timer.getElapsedTime().asMilliseconds() >= takeDMG_cooldown)
+        {
+            takeDMG_isOnCooldown = false;
+            takeDMG_timer.stop();
+        }
+        return false;
+    }
+    if(!takeDMG_isOnCooldown)
+    {
+        this->HP -= count;
+        takeDMG_isOnCooldown = true;
+        takeDMG_timer.restart();
+        return true;
+    }
+}
 
 void Player::updateControls()
 {
