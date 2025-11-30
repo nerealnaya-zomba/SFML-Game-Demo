@@ -337,11 +337,11 @@ void Player::bloodExplode()
     for (int i = 0; i < 40; i++) {
         bloodParticles.emplace_back(
             sf::Vector2f(playerPos.x,playerPos.y),
-            sf::Vector2f(random(-150,150), random(-450,-150)*2),
+            sf::Vector2f(random(-150,150), random(-450,-150)*1.5),
             sf::Vector2f(random(-60,60), random(-60,60)),
             sf::Color(255, 0, 0),
             2.0f,
-            150.0f,
+            150.0f*3,
             0.8f,
             2.0f
         );
