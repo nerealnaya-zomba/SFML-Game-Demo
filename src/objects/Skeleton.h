@@ -3,12 +3,12 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
-#include<VisualEffects.h>
-#include<SFML/System.hpp>
-#include<HealthBar.h>
-#include<math.h>
+#include <VisualEffects.h>
+#include <SFML/System.hpp>
+#include <HealthBar.h>
+#include <math.h>
 
-enum skeletonAction{
+enum skeletonAction {
     WALKLEFT,
     WALKRIGHT,
     IDLE,
@@ -18,49 +18,45 @@ enum skeletonAction{
     ATTACK2,
 };
 
-class Skeleton : public Enemy{ //Ошибка: expected class name
+class Skeleton : public Enemy {
 private:
-    //References
-        //Draw & display
-    sf::RenderWindow* window;
-        //Ground
-    Ground* ground_; //NOTE used for physics
-        //Platforms
-    Platform* platform_; //NOTE used for physics
-        //Player
-    Player* player_; //NOTE used for physics
-    //Variables
-        //Selected skeleton type
-    std::string type_;
-        //Actions
+    // External references
+    sf::RenderWindow* window;           // For rendering
+    Ground* ground_;                    // For ground collision detection
+    Platform* platform_;                // For platform collision detection  
+    Player* player_;                    // For player interaction
+
+    // Skeleton properties
+    std::string type_;                  // "white" or "yellow" skeleton type
+    HealthBar* healthbar;               // Health display
+
+    // State flags
     bool isIdle = true;
     bool isFalling = true;
     bool isPlayingHurtAnimation = false;
     bool isPlayingDieAnimation = false;
+    
     skeletonAction action_ = skeletonAction::IDLE;
-        //HP bar
-    HealthBar* healthbar;
-        //Physics
+
+    // Physics properties
     float fallingSpeed = 0.f;
     float initialWalkSpeed = 0.f;
-    float speed{}; // Loads from EnemySettings.json
-    float maxWalkSpeed{}; // Loads from EnemySettings.json
-    float frictionForce{}; // Loads from EnemySettings.json
-    int HP_; // Loads from EnemySettings.json
-    int DMG_;
-    float distanceToMakeAttack{}; // Loads from EnemySettings.json
-    float distanceToHit_byAttack{}; // Loads from EnemySettings.json
-    bool knockbacks{};
-    sf::Vector2f enemyPos; //In constuctor
-        //Pre-load bindings
-    sf::Vector2f enemyScale_; // Loads from EnemySettings.json
-        //Sprite
-    sf::Sprite* skeletonSprite;
-        //Rect //NOTE used for physics
-    sf::RectangleShape* skeletonRect; 
+    float speed{};                      // Movement speed from EnemySettings.json
+    float maxWalkSpeed{};               // Max speed from EnemySettings.json
+    float frictionForce{};              // Friction from EnemySettings.json
+    int HP_;                            // Health from EnemySettings.json
+    int DMG_;                           // Damage output
+    float distanceToMakeAttack{};       // Attack range from EnemySettings.json
+    float distanceToHit_byAttack{};     // Hit range from EnemySettings.json
+    bool knockbacks{};                  // If attacks cause knockback
+    sf::Vector2f enemyPos;              // Initial position from constructor
 
-    //Textures
-        //Skeleton white
+    // Visual properties
+    sf::Vector2f enemyScale_;           // Scale from EnemySettings.json
+    sf::Sprite* skeletonSprite;         // Main sprite
+    sf::RectangleShape* skeletonRect;   // Collision rectangle
+
+    // Texture arrays for white skeleton
     std::vector<sf::Texture>* skeleton_idleTextures;
     texturesIterHelper skeleton_idle_helper;
     std::vector<sf::Texture>* skeleton_walkTextures;
@@ -73,7 +69,8 @@ private:
     texturesIterHelper skeleton_attack1_helper;
     std::vector<sf::Texture>* skeleton_attack2Textures;
     texturesIterHelper skeleton_attack2_helper;
-        //Skeleton yellow
+
+    // Texture arrays for yellow skeleton
     std::vector<sf::Texture>* skeletonYellow_idleTextures;
     texturesIterHelper skeletonYellow_idle_helper;
     std::vector<sf::Texture>* skeletonYellow_walkTextures;
@@ -87,48 +84,46 @@ private:
     std::vector<sf::Texture>* skeletonYellow_attack2Textures;
     texturesIterHelper skeletonYellow_attack2_helper;
 
-    //PRIVATE control methods
+    // Movement control
     void walkLeft();
     void walkRight();
 
-    //PRIVATE AI methods
+    // AI behavior
     void chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos);
     void tryAttackPlayer();
 
-    //PRIVATE action methods
+    // Action handlers
     void onBulletHit();
 
-    //PRIVATE physics methods
+    // Physics and collision
     void checkGroundCollision(Ground& ground);
     void checkPlatformCollision(Platform& platforms);
     void checkBulletCollision(Player& player);
     void applyFriction(float& walkSpeed, float friction);
 
-    //PRIVATE texture methods
-        //Loop forward-backwards
+    // Animation system
     bool switchToNextSprite(sf::Sprite* enemySprite,
         std::vector<sf::Texture>& texturesArray, 
         texturesIterHelper& iterHelper, 
-        switchSprite_SwitchOption option=switchSprite_SwitchOption::Loop);
+        switchSprite_SwitchOption option = switchSprite_SwitchOption::Loop);
 
-    void loadData(); //Loads some variables from EnemySettings.json
+    // Data management
+    void loadData(); // Load from EnemySettings.json
+
 public:
-    Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, Platform& platform, Player& player, std::string type, sf::Vector2f pos);
+    Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, 
+             Platform& platform, Player& player, std::string type, sf::Vector2f pos);
     ~Skeleton();
-    //PUBLIC Variables
+
     bool isAlive = true;
+    // Core update methods
+    void updateAI();        // Artificial intelligence
+    void updateControl();   // Movement control
+    void updatePhysics();   // Physics simulation
+    void updateTextures();  // Animation updates
+    void draw();           // Rendering
 
-    void updateAI();
-
-    void updateControl();
-
-    void updatePhysics();
-
-    void updateTextures();
-
-    void draw();
-
-    //Getters
+    // Getters
     sf::RectangleShape& getRect();
     int getHP();
 };

@@ -1,0 +1,12 @@
+{
+    "Particle":{
+        "startPosition":{"X":100, "Y":100},
+        "initialVelocity":{"XFrom":-150, "XTo":150,"YFrom":-450, "YTo":-150},
+        "startAcceleration":{"XFrom":-60, "XTo":60,"YFrom":-60, "YTo":60},
+        "particleColor":{"R":255,"G":0,"B":0,"A":255},
+        "particleRadius": 2.0,
+        "gravityForce": 98.0,
+        "accelerationDamping": 0.85,
+        "particleLifetime": 2.0
+    }
+}

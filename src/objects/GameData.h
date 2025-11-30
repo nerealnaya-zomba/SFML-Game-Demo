@@ -1,118 +1,98 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include<TexturesIterHelper.h>
-#include<Mounting.h>
-#include<GameLoadingScreen.h>
-#include<nlohmann/json.hpp>
-#include<fstream>
-#include<iostream>
+#include <TexturesIterHelper.h>
+#include <Mounting.h>
+#include <GameLoadingScreen.h>
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <iostream>
 
-//Provides textures and saved data
+// Central resource manager for textures and game data
 class GameData
 {
 public:
-    GameData(sf::RenderWindow* window,sf::Font* font);
+    GameData(sf::RenderWindow* window, sf::Font* font);
     ~GameData();
 
-
+    // Public texture collections
     
-    //Textures
-        //Satiro
-    std::vector<sf::Texture> idleTextures{};    
+    // Player (Satiro) textures
+    std::vector<sf::Texture> idleTextures{};        // Idle animation frames
+    std::vector<sf::Texture> runningTextures{};     // Running animation frames
+    std::vector<sf::Texture> fallingTextures{};     // Falling animation frames
+    std::vector<sf::Texture> bulletTextures{};      // Bullet animation frames
 
-    std::vector<sf::Texture> runningTextures{};
+    // White skeleton textures with animation helpers
+    std::vector<sf::Texture> skeletonWhite_idleTextures_{};
+    texturesIterHelper skeletonWhite_idle_helper;
+    std::vector<sf::Texture> skeletonWhite_walkTextures{};
+    texturesIterHelper skeletonWhite_walk_helper;
+    std::vector<sf::Texture> skeletonWhite_hurtTextures{};
+    texturesIterHelper skeletonWhite_hurt_helper;
+    std::vector<sf::Texture> skeletonWhite_dieTextures{};
+    texturesIterHelper skeletonWhite_die_helper;
+    std::vector<sf::Texture> skeletonWhite_attack1Textures{};
+    texturesIterHelper skeletonWhite_attack1_helper;
+    std::vector<sf::Texture> skeletonWhite_attack2Textures{};
+    texturesIterHelper skeletonWhite_attack2_helper;
 
-    std::vector<sf::Texture> fallingTextures{};
+    // Yellow skeleton textures with animation helpers
+    std::vector<sf::Texture> skeletonYellow_idleTextures{};
+    texturesIterHelper skeletonYellow_idle_helper;
+    std::vector<sf::Texture> skeletonYellow_walkTextures{};
+    texturesIterHelper skeletonYellow_walk_helper;
+    std::vector<sf::Texture> skeletonYellow_hurtTextures{};
+    texturesIterHelper skeletonYellow_hurt_helper;
+    std::vector<sf::Texture> skeletonYellow_dieTextures{};
+    texturesIterHelper skeletonYellow_die_helper;
+    std::vector<sf::Texture> skeletonYellow_attack1Textures{};
+    texturesIterHelper skeletonYellow_attack1_helper;
+    std::vector<sf::Texture> skeletonYellow_attack2Textures{};
+    texturesIterHelper skeletonYellow_attack2_helper;
 
-        //Satiro bullet
-    std::vector<sf::Texture> bulletTextures{};
-
-        //Skeleton_white
-        std::vector<sf::Texture> skeletonWhite_idleTextures_{};    
-        texturesIterHelper skeletonWhite_idle_helper;
-
-        std::vector<sf::Texture> skeletonWhite_walkTextures{};    
-        texturesIterHelper skeletonWhite_walk_helper;
-
-        std::vector<sf::Texture> skeletonWhite_hurtTextures{};    
-        texturesIterHelper skeletonWhite_hurt_helper;
-
-        std::vector<sf::Texture> skeletonWhite_dieTextures{};    
-        texturesIterHelper skeletonWhite_die_helper;
-
-        std::vector<sf::Texture> skeletonWhite_attack1Textures{};    
-        texturesIterHelper skeletonWhite_attack1_helper;
-
-        std::vector<sf::Texture> skeletonWhite_attack2Textures{};    
-        texturesIterHelper skeletonWhite_attack2_helper;
-
-            //Skeleton_yellow
-        std::vector<sf::Texture> skeletonYellow_idleTextures{};    
-        texturesIterHelper skeletonYellow_idle_helper;
-
-        std::vector<sf::Texture> skeletonYellow_walkTextures{};    
-        texturesIterHelper skeletonYellow_walk_helper;
-
-        std::vector<sf::Texture> skeletonYellow_hurtTextures{};    
-        texturesIterHelper skeletonYellow_hurt_helper;
-
-        std::vector<sf::Texture> skeletonYellow_dieTextures{};    
-        texturesIterHelper skeletonYellow_die_helper;
-
-        std::vector<sf::Texture> skeletonYellow_attack1Textures{};    
-        texturesIterHelper skeletonYellow_attack1_helper;
-
-        std::vector<sf::Texture> skeletonYellow_attack2Textures{};    
-        texturesIterHelper skeletonYellow_attack2_helper;
-    
-        //Plants
+    // Decoration textures - plants
     std::vector<sf::Texture> plant1Textures;
     texturesIterHelper plant1;
-
     std::vector<sf::Texture> plant2Textures;
     texturesIterHelper plant2;
-
     std::vector<sf::Texture> plant3Textures;
     texturesIterHelper plant3;
-
     std::vector<sf::Texture> plant4Textures;
     texturesIterHelper plant4;
-
     std::vector<sf::Texture> plant5Textures;
     texturesIterHelper plant5;
-
     std::vector<sf::Texture> plant6Textures;
     texturesIterHelper plant6;
-
     std::vector<sf::Texture> plant7Textures;
     texturesIterHelper plant7;
-
     std::vector<sf::Texture> jumpPlantTextures;
     texturesIterHelper jumpPlant;
-        //Cat
+
+    // Cat decoration
     std::vector<sf::Texture> cat1Textures;
     texturesIterHelper catHelper;
-        //Ground
+
+    // Ground texture
     sf::Texture ground1Texture;
 
 private:
-    bool initSatiroTextures(std::vector<sf::Texture> &textures, std::vector<std::string> paths);
-    void generateMipmapTextures(std::vector<sf::Texture> &texturesArray);
-    void smoothTextures(std::vector<sf::Texture> &texturesArray);
+    // Texture loading and processing
+    bool initSatiroTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
+    void generateMipmapTextures(std::vector<sf::Texture>& texturesArray);
+    void smoothTextures(std::vector<sf::Texture>& texturesArray);
 
-    //Variables
-        //Logic
-    int succesedOperationsCount_m{}; //Needs for loading bar working properly
-    int allOperations_count_m{}; // Loading from launchSettings.json
-        //Menu
-    LoadingScreen* loadingScreen_m;
+    // Loading system variables
+    int succesedOperationsCount_m{};    // Tracks completed loading operations
+    int allOperations_count_m{};        // Total operations from launchSettings.json
+    LoadingScreen* loadingScreen_m;     // Loading screen display
 
-    //Save-load methods
+    // Data persistence
     void saveOperationsData();
     void loadData();
 
-    //Textures paths
-        //Satiro 
+    // Texture file paths
+    
+    // Player (Satiro) texture paths
     std::vector<std::string> idleTexturesPaths{
         "images/satiro-idle-1.png",
         "images/satiro-idle-2.png",
@@ -121,7 +101,7 @@ private:
         "images/satiro-idle-5.png",
         "images/satiro-idle-6.png",
     };
-    std::vector<std::string>  runningTexturesPaths{
+    std::vector<std::string> runningTexturesPaths{
         "images/satiro-running-1.png",
         "images/satiro-running-2.png",
         "images/satiro-running-3.png",
@@ -144,35 +124,24 @@ private:
         "images/Bullet/blue-bullet-3.png",
         "images/Bullet/blue-bullet-4.png"
     };
-        //SkeletonWhite
-            //Idle
-        std::string skeletonWhite_idlePath_{"images/creatures/enemies/skeleton_white/idle/skeleton-idle_"};
-            //Walk
-        std::string skeletonWhite_walkPath_{"images/creatures/enemies/skeleton_white/walk/Skeleton_White_Walk_"};
-            //Hurt
-        std::string skeletonWhite_hurtPath_{"images/creatures/enemies/skeleton_white/hurt/Skeleton_White_Hurt_"};
-            //Die
-        std::string skeletonWhite_diePath_{"images/creatures/enemies/skeleton_white/die/Skeleton_White_Die_"};
-            //Attack1
-        std::string skeletonWhite_attack1Path_{"images/creatures/enemies/skeleton_white/attack1/Skeleton_White_Attack1_"};
-            //Attack2
-        std::string skeletonWhite_attack2Path_{"images/creatures/enemies/skeleton_white/attack2/Skeleton_White_Attack2_"};
-        //SkeletonYellow
-            //Idle
-        std::string skeletonYellow_idlePath_{"images/creatures/enemies/skeleton_yellow/idle/Skeleton_Yellow_Idle_"};
-            //Walk
-        std::string skeletonYellow_walkPath_{"images/creatures/enemies/skeleton_yellow/walk/Skeleton_Yellow_Walk_"};
-            //Hurt
-        std::string skeletonYellow_hurtPath_{"images/creatures/enemies/skeleton_yellow/hurt/Skeleton_Yellow_Hurt_"};
-            //Die
-        std::string skeletonYellow_diePath_{"images/creatures/enemies/skeleton_yellow/die/Skeleton_Yellow_Die_"};
-            //Attack1
-        std::string skeletonYellow_attack1Path_{"images/creatures/enemies/skeleton_yellow/attack1/Skeleton_Yellow_Attack1_"};
-            //Attack2
-        std::string skeletonYellow_attack2Path_{"images/creatures/enemies/skeleton_yellow/attack2/Skeleton_Yellow_Attack2_"};
 
-        //Decorations
-            //Plants
+    // White skeleton texture paths
+    std::string skeletonWhite_idlePath_{"images/creatures/enemies/skeleton_white/idle/skeleton-idle_"};
+    std::string skeletonWhite_walkPath_{"images/creatures/enemies/skeleton_white/walk/Skeleton_White_Walk_"};
+    std::string skeletonWhite_hurtPath_{"images/creatures/enemies/skeleton_white/hurt/Skeleton_White_Hurt_"};
+    std::string skeletonWhite_diePath_{"images/creatures/enemies/skeleton_white/die/Skeleton_White_Die_"};
+    std::string skeletonWhite_attack1Path_{"images/creatures/enemies/skeleton_white/attack1/Skeleton_White_Attack1_"};
+    std::string skeletonWhite_attack2Path_{"images/creatures/enemies/skeleton_white/attack2/Skeleton_White_Attack2_"};
+
+    // Yellow skeleton texture paths
+    std::string skeletonYellow_idlePath_{"images/creatures/enemies/skeleton_yellow/idle/Skeleton_Yellow_Idle_"};
+    std::string skeletonYellow_walkPath_{"images/creatures/enemies/skeleton_yellow/walk/Skeleton_Yellow_Walk_"};
+    std::string skeletonYellow_hurtPath_{"images/creatures/enemies/skeleton_yellow/hurt/Skeleton_Yellow_Hurt_"};
+    std::string skeletonYellow_diePath_{"images/creatures/enemies/skeleton_yellow/die/Skeleton_Yellow_Die_"};
+    std::string skeletonYellow_attack1Path_{"images/creatures/enemies/skeleton_yellow/attack1/Skeleton_Yellow_Attack1_"};
+    std::string skeletonYellow_attack2Path_{"images/creatures/enemies/skeleton_yellow/attack2/Skeleton_Yellow_Attack2_"};
+
+    // Decoration texture paths
     std::string plant1Path{"images/decoration/Plant_1/Plant1_"};
     std::string plant2Path{"images/decoration/Plant_2/Plant2_"};
     std::string plant3Path{"images/decoration/Plant_3/Plant3_"};
@@ -181,8 +150,6 @@ private:
     std::string plant6Path{"images/decoration/Plant_6/Plant6_"};
     std::string plant7Path{"images/decoration/Plant_7/Plant7_"};
     std::string jumpPlantPath{"images/decoration/PlantJump/JumpPlant_"};
-            //Cat
     std::string cat1Path{"images/decoration/sleepingCat/cat/RetroCatsFree_"};
-        //Ground
     std::string ground1Path{"images/Ground/mramoric.png"};
 };

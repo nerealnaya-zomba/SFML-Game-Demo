@@ -1,118 +1,114 @@
 #pragma once
-#include<SFML/Graphics.hpp>
-#include<vector>
-#include<string>
-#include<iostream>
-#include<Mounting.h>
-#include<sfml-headers.h>
-#include<Trail.h>
-#include<Bullet.h>
-#include<list>
-#include<algorithm>
-#include<GameData.h>
-#include<nlohmann/json.hpp>
-#include<fstream>
-#include<Particle.h>
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <string>
+#include <iostream>
+#include <Mounting.h>
+#include <sfml-headers.h>
+#include <Trail.h>
+#include <Bullet.h>
+#include <list>
+#include <algorithm>
+#include <GameData.h>
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <Particle.h>
 
 class Player {
-    public:
-
+public:
     Player(GameData& gameTextures);
     virtual ~Player();
 
-    //Variables
-        //Logic
-            //Player
+    // Public variables
+    // Player state
     bool isIdle = true;
     bool isFalling = true;
     float fallingSpeed = 0.f;
     float initialWalkSpeed = 0.f;
-    float speed = 0.15f;
-    float maxWalkSpeed = 4.f;
-    float frictionForce = 0.1f;
-    float playerPosX_m{}; //PlayerConfig.json
-    float playerPosY_m{}; //PlayerConfig.json
-    int HP{}; //PlayerConfig.json
-    int DMG_{}; //PlayerConfig.json
-            //Bullet
-    float bulletSpeed; //PlayerConfig.json
-    float bulletMaxDistance_; //PlayerConfig.json
-            //Dash
+    float speed = 0.15f;                    // Movement acceleration
+    float maxWalkSpeed = 4.f;               // Maximum horizontal speed
+    float frictionForce = 0.1f;             // Ground friction
+    float playerPosX_m{};                   // Initial X position from PlayerConfig.json
+    float playerPosY_m{};                   // Initial Y position from PlayerConfig.json
+    int HP{};                               // Health points from PlayerConfig.json
+    int DMG_{};                             // Damage value from PlayerConfig.json
+    
+    // Bullet properties
+    float bulletSpeed;                      // From PlayerConfig.json
+    float bulletMaxDistance_;               // From PlayerConfig.json
+    
+    // Dash mechanics
     bool isDashAvaiable = false;
-    float dashForce{}; //PlayerConfig.json
-    sf::Clock dash_Clock;
-
-    //Getters
-    sf::Vector2f getSpriteScale();
-
-    //Control methods
-    void updateControls();
-    void walkLeft();
-    void walkRight();
-    void jump();
-    void fallDown();
-    void dash();
-        //'false' for left  'true' for right
-    void shoot(bool direction);
-        //Damage
-    bool takeDMG(int count);
-    std::vector<Particle> bloodParticles;
-    void bloodExplode();
+    float dashForce{};                      // From PlayerConfig.json
+    sf::Clock dash_Clock;                   // Dash cooldown timer
+    
+    // Damage system
     sf::Clock takeDMG_timer;
-    int32_t takeDMG_cooldown = 1000; //PlayerConfig.json //[ ] add in playerconfg
+    int32_t takeDMG_cooldown = 1000;        // From PlayerConfig.json
     bool takeDMG_isOnCooldown = false;
     
-    //Physics methods
-        //General
-    void updatePhysics();
-    void checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects);
-    void checkGroundCollision(sf::RectangleShape& groundRect);
-        //Bullets
-    void moveBullets();
-        //Particles
-    void updateParticles();
+    // Visual effects
+    std::vector<Particle> bloodParticles;
+    
+    // Game objects
+    sf::RectangleShape* playerRectangle_;   // Collision rectangle
+    Bullet* playerBullet_;                  // Bullet template
+    std::list<std::shared_ptr<Bullet>> bullets; // Active bullets
 
-    //Texture methods
+    // Public methods
+    
+    // Getters
+    sf::Vector2f getSpriteScale();
+
+    // Control methods
+    void updateControls();                  // Process player input
+    void walkLeft();                        // Move left
+    void walkRight();                       // Move right  
+    void jump();                            // Jump action
+    void fallDown();                        // Force fall
+    void dash();                            // Dash ability
+    void shoot(bool direction);             // Shoot (false=left, true=right)
+    
+    // Damage system
+    bool takeDMG(int count);                // Take damage, returns if damage was applied
+    void bloodExplode();                    // Create blood particle effect
+    
+    // Physics methods
+    void updatePhysics();                   // Update player physics
+    void checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects); // Platform collision
+    void checkGroundCollision(sf::RectangleShape& groundRect); // Ground collision
+    void moveBullets();                     // Update all active bullets
+    void updateParticles();                 // Update particle effects
+    
+    // Rendering methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
-    void updateTextures();
-    void drawBullets(sf::RenderWindow& window);
-    void draw(sf::RenderWindow& window);
-    void drawParticles(sf::RenderWindow& window);
-    //Other
-    void drawPlayerTrail(sf::RenderWindow& window);
-    sf::RectangleShape* playerRectangle_;
-    Bullet* playerBullet_;
-    std::list<std::shared_ptr<Bullet>> bullets;
+    void updateTextures();                  // Update sprite animations
+    void drawBullets(sf::RenderWindow& window); // Draw all bullets
+    void draw(sf::RenderWindow& window);    // Draw player
+    void drawParticles(sf::RenderWindow& window); // Draw particles
+    void drawPlayerTrail(sf::RenderWindow& window); // Draw movement trail
 
-    private:
-    //Textures
-    std::vector<sf::Texture>* idleTextures;    
+private:
+    // Texture arrays
+    std::vector<sf::Texture>* idleTextures;     // Idle animation frames
+    std::vector<sf::Texture>* runningTextures;  // Running animation frames  
+    std::vector<sf::Texture>* fallingTextures;  // Falling animation frames
+    std::vector<sf::Texture>* bulletTextures;   // Bullet animation frames
 
-    std::vector<sf::Texture>* runningTextures;
-
-    std::vector<sf::Texture>* fallingTextures;
-
-    std::vector<sf::Texture>* bulletTextures;
-
-
+    // Animation methods
     void switchToNextIdleSprite();
-    void switchToNextRunningSprite();
+    void switchToNextRunningSprite(); 
     void switchToNextFallingSprite();
     void switchToNextBulletSprite();
 
+    // Graphics
+    sf::Sprite* playerSprite;               // Main player sprite
+    Trail* trail;                           // Movement trail effect
 
-    //Sprite
-    sf::Sprite* playerSprite;
+    // Physics
+    void applyFriction(float& walkSpeed, float friction); // Apply friction to movement
 
-    //Physics
-    void applyFriction(float& walkSpeed, float friction);
-    
-
-    //Trail
-    Trail* trail;
-
-    //Save-load data methods
-    void saveData();
-    void loadData();
-
+    // Data persistence
+    void saveData();                        // Save player data to file
+    void loadData();                        // Load player data from file
 };
