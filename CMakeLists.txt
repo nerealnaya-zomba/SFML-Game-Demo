@@ -34,7 +34,8 @@ add_executable(main
     src/objects/GameData.cpp
     src/objects/GameLoadingScreen.cpp
     src/objects/Skeleton.cpp
-    src/objects/EnemyManager.cpp)
+    src/objects/EnemyManager.cpp
+    src/objects/Particle.cpp)
 
 target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/funcs ${CMAKE_SOURCE_DIR}/src/objects) #Project source files
 
