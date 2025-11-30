@@ -224,25 +224,26 @@ int main()
         }
         
         //Enemy logic
-            //Skeleton control
+            //Skeleton AI
         enemyManager.updateAI_all();
             //Skeleton physics
         enemyManager.updatePhysics_all();
         
-
-        
-        //Player logic
-            //Player control
+        //Contol logic
+            //Player contol
         player.updateControls();
+            //Enemy contol
         enemyManager.updateControls_all();
-            //Physical logic
+
+        //Logic
+            //Player logic
+                //Physical logic
         player.updatePhysics();
         player.checkGroundCollision(ground.getRect());
         player.checkRectCollision(platforms.getRects());
         player.moveBullets();
-        player.takeDMG(10);
 
-        //Texture logic
+        //Texture update
         enemyManager.updateTextures_all();
         player.updateTextures();
         decoration.updateTextures();
@@ -257,23 +258,23 @@ int main()
     
         //Drawing
 
-        //Background drawing
+            //Background drawing
         window.clear(gameBackGroundColor);
         gameBackground.drawBackground(window);
 
-        //Decorations drawing
+            //Decorations drawing
         decoration.draw(window);
-
-        //Ground drawing
+        
+            //Ground drawing
         ground.draw(window,WINDOW_HEIGHT-39.f);
 
-        //Enemy drawing
+            //Enemy drawing
         enemyManager.draw_all();
         
-        //Player drawing
+            //Player drawing
         player.draw(window);
         player.drawBullets(window);
-        //Game objects drawing
+            //Game objects drawing
         platforms.draw(window);
 
 
