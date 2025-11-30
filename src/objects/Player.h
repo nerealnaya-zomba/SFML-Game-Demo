@@ -12,6 +12,7 @@
 #include<GameData.h>
 #include<nlohmann/json.hpp>
 #include<fstream>
+#include<Particle.h>
 
 class Player {
     public:
@@ -55,22 +56,28 @@ class Player {
     void shoot(bool direction);
         //Damage
     bool takeDMG(int count);
+    std::vector<Particle> bloodParticles;
+    void bloodExplode();
     sf::Clock takeDMG_timer;
     int32_t takeDMG_cooldown = 1000; //PlayerConfig.json //[ ] add in playerconfg
     bool takeDMG_isOnCooldown = false;
     
     //Physics methods
+        //General
     void updatePhysics();
     void checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects);
     void checkGroundCollision(sf::RectangleShape& groundRect);
+        //Bullets
     void moveBullets();
+        //Particles
+    void updateParticles();
 
     //Texture methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     void updateTextures();
     void drawBullets(sf::RenderWindow& window);
     void draw(sf::RenderWindow& window);
-    
+    void drawParticles(sf::RenderWindow& window);
     //Other
     void drawPlayerTrail(sf::RenderWindow& window);
     sf::RectangleShape* playerRectangle_;

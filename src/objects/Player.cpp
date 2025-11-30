@@ -228,6 +228,18 @@ void Player::moveBullets()
     
 }
 
+void Player::updateParticles()
+{
+    for (auto& particle : bloodParticles) { 
+        particle.update();
+    }
+    bloodParticles.erase(
+        std::remove_if(bloodParticles.begin(), bloodParticles.end(),
+            [](const Particle& p) { return !p.getIsAlive(); }),
+        bloodParticles.end()
+    );
+}
+
 void Player::walkLeft()
 {
     if(initialWalkSpeed<=(-maxWalkSpeed))
@@ -310,10 +322,29 @@ bool Player::takeDMG(int count)
     if(!takeDMG_isOnCooldown)
     {
         this->HP -= count;
+        bloodExplode();
         takeDMG_isOnCooldown = true;
         takeDMG_timer.restart();
         std::cout << "Player hitted. HP: " << this->HP << std::endl; // REMOVELATER Player hitted debug
         return true;
+    }
+}
+
+void Player::bloodExplode()
+{
+    sf::Vector2f playerPos = this->playerRectangle_->getGlobalBounds().getCenter();
+
+    for (int i = 0; i < 40; i++) {
+        bloodParticles.emplace_back(
+            sf::Vector2f(playerPos.x,playerPos.y),
+            sf::Vector2f(random(-150,150), random(-450,-150)*2),
+            sf::Vector2f(random(-60,60), random(-60,60)),
+            sf::Color(255, 0, 0),
+            2.0f,
+            150.0f,
+            0.8f,
+            2.0f
+        );
     }
 }
 
@@ -339,6 +370,7 @@ void Player::updatePhysics()
 {
     applyFriction(initialWalkSpeed,this->frictionForce);
     
+    updateParticles();
     
     playerRectangle_->move({0.f,this->fallingSpeed});
     
@@ -470,9 +502,18 @@ void Player::draw(sf::RenderWindow& window)
 {
     drawPlayerTrail(window);
 
+    drawParticles(window);
+
     playerSprite->setPosition({(playerRectangle_->getPosition().x+playerRectangle_->getSize().x/2),(playerRectangle_->getPosition().y+playerRectangle_->getSize().y/2)-6.f});
     //window.draw(*playerRectangle);
     window.draw(*playerSprite);
+}
+
+void Player::drawParticles(sf::RenderWindow &window)
+{
+    for (auto& particle : bloodParticles) { //REMOVELATER particle
+        particle.draw(window);
+    }
 }
 
 void Player::drawPlayerTrail(sf::RenderWindow& window)
@@ -489,7 +530,6 @@ void Player::drawPlayerTrail(sf::RenderWindow& window)
         }
         trail->generateTrail(window);
     }
-
     trail->makeTrailDisappear();
     trail->drawTrail(window);
 }

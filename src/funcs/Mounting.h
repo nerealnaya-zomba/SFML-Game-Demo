@@ -73,3 +73,7 @@ static void attachTexture(sf::Texture& fromTexture, sf::Texture*& toTexture)
 {
     toTexture = &fromTexture;
 }
+//Other
+static int random(int min, int max) {
+    return rand() % (max - min + 1) + min;
+}

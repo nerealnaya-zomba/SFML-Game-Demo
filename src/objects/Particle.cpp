@@ -15,29 +15,35 @@ Particle::Particle(const sf::Vector2f& startPosition,
     , color(particleColor)
     , dampingFactor(accelerationDamping)
     , gravity(gravityForce)
-    , lifetime(particleLifetime)
     , maxLifetime(particleLifetime)
     , isAlive(true)
 {
     shape.setRadius(particleRadius);
     shape.setFillColor(color);
-    shape.setOrigin({particleRadius, particleRadius}); // Центрируем
+    shape.setOrigin({particleRadius, particleRadius});
     shape.setPosition(position);
+    
+    lifeClock.restart(); // Запускаем таймер при создании
 }
 
-void Particle::update(float deltaTime)
+void Particle::update()
 {
     if (!isAlive) return;
 
-    // Уменьшаем время жизни
-    lifetime -= deltaTime;
-    if (lifetime <= 0.0f) {
+    // Получаем время жизни частицы
+    float lifetime = lifeClock.getElapsedTime().asSeconds();
+    
+    // Проверяем время жизни
+    if (lifetime >= maxLifetime) {
         isAlive = false;
         return;
     }
 
-    // Затухание ускорения (очень быстрое)
-    currentAcceleration.x *= dampingFactor * deltaTime * 60.0f; // Нормализуем к кадрам в секунду
+    // Получаем дельту времени для плавного движения
+    float deltaTime = 1.0f / 60.0f; // Предполагаем 60 FPS
+
+    // Затухание ускорения
+    currentAcceleration.x *= dampingFactor * deltaTime * 60.0f;
     currentAcceleration.y *= dampingFactor * deltaTime * 60.0f;
 
     // Применяем ускорение к скорости
@@ -51,12 +57,12 @@ void Particle::update(float deltaTime)
     position.x += velocity.x * deltaTime;
     position.y += velocity.y * deltaTime;
 
-    // Обновляем графическую часть
+    // Обновляем графику
     shape.setPosition(position);
     
-    // Изменяем альфа-канал в зависимости от оставшегося времени жизни
-    float alpha = (lifetime / maxLifetime) * 255.0f;
-    color.a = static_cast<uint8_t>(alpha);
+    // Плавное исчезновение
+    float lifeRatio = 1.0f - (lifetime / maxLifetime);
+    color.a = static_cast<uint8_t>(lifeRatio * 255.0f);
     shape.setFillColor(color);
 }
 

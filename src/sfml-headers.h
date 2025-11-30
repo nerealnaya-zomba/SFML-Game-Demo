@@ -23,6 +23,7 @@
 #include<Skeleton.h>
 #include<EnemyManager.h>
 #include<HealthBar.h>
+#include<Particle.h>
 
 //C libraries
 #include <iostream>

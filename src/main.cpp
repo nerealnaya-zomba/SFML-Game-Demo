@@ -74,7 +74,7 @@ int main()
     decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f});
     decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
 
-
+    
 
     Platform platforms;
     platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
@@ -85,6 +85,9 @@ int main()
     platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
     platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
     platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
+
+    std::vector<Particle> particles;
+
     //Main loop
     while (window.isOpen())
     {
@@ -253,8 +256,30 @@ int main()
         {
             window.close();
         }
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3))
+        {
+                for (int i = 0; i < 1; i++) {
+                    particles.emplace_back(
+                        sf::Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2),
+                        sf::Vector2f(rand() % 300 - 150, rand() % -300 - 150),
+                        sf::Vector2f(rand() % 120 - 60, rand() % 120 - 60),
+                        sf::Color(255, 0, 0),
+                        2.0f,
+                        150.0f,
+                        0.8f,
+                        2.0f
+                    );
+                }
+        }
         
-        
+        for (auto& particle : particles) { //REMOVELATER particles
+            particle.update();  // ВСЁ ВНУТРИ - не нужно передавать время
+        }
+        particles.erase(
+            std::remove_if(particles.begin(), particles.end(),
+                [](const Particle& p) { return !p.getIsAlive(); }),
+            particles.end()
+        );
     
         //Drawing
 
@@ -276,7 +301,9 @@ int main()
         player.drawBullets(window);
             //Game objects drawing
         platforms.draw(window);
-
+        for (auto& particle : particles) { //REMOVELATER particle
+            particle.draw(window);
+        }
 
         view.setCenter(player.playerRectangle_->getGlobalBounds().getCenter());
         //window.setView(view); //NOTE Камера следует за игроком. Убрать если не нужно.
