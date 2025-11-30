@@ -312,7 +312,7 @@ bool Player::takeDMG(int count)
         this->HP -= count;
         takeDMG_isOnCooldown = true;
         takeDMG_timer.restart();
-        std::cout << "Player hitted. HP: " << this->HP << std::endl; // REMOVELATER
+        std::cout << "Player hitted. HP: " << this->HP << std::endl; // REMOVELATER Player hitted debug
         return true;
     }
 }

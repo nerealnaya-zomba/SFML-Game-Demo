@@ -58,7 +58,7 @@ class Player {
     sf::Clock takeDMG_timer;
     int32_t takeDMG_cooldown = 1000; //PlayerConfig.json //[ ] add in playerconfg
     bool takeDMG_isOnCooldown = false;
-
+    
     //Physics methods
     void updatePhysics();
     void checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects);
