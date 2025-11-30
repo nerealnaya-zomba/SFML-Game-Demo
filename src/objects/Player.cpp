@@ -293,7 +293,7 @@ void Player::shoot(bool direction)
 }
 /*
     Returns true on successful hit \ Returns false on unsucessful hit
-    
+
     Has cooldown that declared in Player.h
 */
 bool Player::takeDMG(int count) 
@@ -312,6 +312,7 @@ bool Player::takeDMG(int count)
         this->HP -= count;
         takeDMG_isOnCooldown = true;
         takeDMG_timer.restart();
+        std::cout << "Player hitted. HP: " << this->HP << std::endl; // REMOVELATER
         return true;
     }
 }

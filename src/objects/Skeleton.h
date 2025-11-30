@@ -47,7 +47,9 @@ private:
     float maxWalkSpeed{}; // Loads from EnemySettings.json
     float frictionForce{}; // Loads from EnemySettings.json
     int HP_; // Loads from EnemySettings.json
+    int DMG_;
     float distanceToMakeAttack{}; // Loads from EnemySettings.json
+    float distanceToHit_byAttack{}; // Loads from EnemySettings.json
     bool knockbacks{};
     sf::Vector2f enemyPos; //In constuctor
         //Pre-load bindings

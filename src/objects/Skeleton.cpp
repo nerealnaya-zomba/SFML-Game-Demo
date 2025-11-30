@@ -38,15 +38,13 @@ void Skeleton::tryAttackPlayer()
 {
     sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
     sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
-    float distance = std::abs(skeletonPos.x - playerPos.x);
-    
+    float distanceX = std::abs(skeletonPos.x - playerPos.x);
+    float distanceY = std::abs(skeletonPos.y - playerPos.y);
+
     // Проверяем дистанцию для атаки
-    if (distance < 80.f) {
+    if (distanceX < distanceToHit_byAttack && distanceY < skeletonRect->getSize().y) {
         // TODO Наносим урон игроку
-        //player_->HP_ -= 10;
-        
-        // Визуальный эффект при успешной атаке
-        //pulseSprite(*skeletonSprite, sf::Color(255, 255, 0, 255), 3.f, sf::seconds(0.3f));
+        player_->takeDMG(this->DMG_);
     }
 }
 
@@ -211,12 +209,14 @@ void Skeleton::loadData()
     //Подгружаемые из enemySettings.json значения переменных
     this->enemyScale_ = sf::Vector2f(j["general"]["scaleX"],j["general"]["scaleY"]);
     this->distanceToMakeAttack = j["general"]["distanceToMakeAttack"];
+    this->distanceToHit_byAttack = j["general"]["distanceToHit_byAttack"];
     if(type_=="white")
     {
         this->maxWalkSpeed = j["skeleton-white"]["maxSpeed"];
         this->speed = j["skeleton-white"]["acceleration"];
         this->frictionForce = j["skeleton-white"]["friction"];
         this->HP_ = j["skeleton-white"]["HP"];
+        this->DMG_ = j["skeleton-white"]["DMG"];
         this->knockbacks = j["skeleton-white"]["knockbacks"];
     }
 
@@ -226,6 +226,7 @@ void Skeleton::loadData()
         this->speed = j["skeleton-yellow"]["acceleration"];
         this->frictionForce = j["skeleton-yellow"]["friction"];
         this->HP_ = j["skeleton-yellow"]["HP"];
+        this->DMG_ = j["skeleton-yellow"]["DMG"];
         this->knockbacks = j["skeleton-yellow"]["knockbacks"];
     }
 }
@@ -417,7 +418,14 @@ void Skeleton::updateTextures()
     // АНИМАЦИИ АТАКИ
     if (action_ == ATTACK1 || action_ == ATTACK2) {
         bool attackFinished = false;
-        
+
+        //Скелет всегда смотрит в сторону игрока
+        if(player_->playerRectangle_->getPosition().x>skeletonRect->getPosition().x){
+            skeletonSprite->setScale({this->enemyScale_.x,this->enemyScale_.y});
+        } else{
+            skeletonSprite->setScale({-this->enemyScale_.x,this->enemyScale_.y});
+        } 
+
         if (action_ == ATTACK1) {
             attackFinished = !switchToNextSprite(skeletonSprite, *skeleton_attack1Textures,
                             skeleton_attack1_helper, switchSprite_SwitchOption::Single);
@@ -426,7 +434,7 @@ void Skeleton::updateTextures()
             if (skeleton_attack1_helper.ptrToTexture == skeleton_attack1_helper.countOfTextures / 2) {
                 tryAttackPlayer();
             }
-        } else {
+        } else { 
             attackFinished = !switchToNextSprite(skeletonSprite, *skeleton_attack2Textures,
                             skeleton_attack2_helper, switchSprite_SwitchOption::Single);
             
