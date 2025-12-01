@@ -56,12 +56,21 @@ public:
     Bullet* playerBullet_;                  // Bullet template
     std::list<std::shared_ptr<Bullet>> bullets; // Active bullets
 
+    std::vector<sf::Texture>* satiro_dieTextures;
+    texturesIterHelper satiro_die_helper;
+    std::vector<sf::Texture>* satiro_dashTextures;
+    texturesIterHelper satiro_dash_helper;
+    std::vector<sf::Texture>* satiro_hurtTextures;
+    texturesIterHelper satiro_hurt_helper;
+    std::vector<sf::Texture>* satiro_slideTextures;
+    texturesIterHelper satiro_slide_helper;
+
     // Public methods
     
-    // Getters
+        // Getters
     sf::Vector2f getSpriteScale();
-    
-    // Control methods
+
+        // Control methods
     void updateControls();                  // Process player input
     void walkLeft();                        // Move left
     void walkRight();                       // Move right  
@@ -70,18 +79,18 @@ public:
     void dash();                            // Dash ability
     void shoot(bool direction);             // Shoot (false=left, true=right)
     
-    // Damage system
+        // Damage system
     bool takeDMG(int count);                // Take damage, returns if damage was applied
     void bloodExplode();                    // Create blood particle effect
     
-    // Physics methods
+        // Physics methods
     void updatePhysics();                   // Update player physics
     void checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects); // Platform collision
     void checkGroundCollision(sf::RectangleShape& groundRect); // Ground collision
     void moveBullets();                     // Update all active bullets
     void updateParticles();                 // Update particle effects
     
-    // Rendering methods
+        // Rendering methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     void updateTextures();                  // Update sprite animations
     void drawBullets(sf::RenderWindow& window); // Draw all bullets
