@@ -22,6 +22,31 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initSatiroTextures(bulletTextures,bulletTexturesPaths)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
+    if(initTextures(satiro_dieTextures, satiro_diePath_, 9,2,1)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(satiro_dieTextures);
+    this->satiro_die_helper.countOfTextures = 8;
+    this->satiro_die_helper.iterationsTillSwitch = 9;
+    if(initTextures(satiro_dashTextures, satiro_dashPath_, 7,2,1)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(satiro_dashTextures);
+    this->satiro_dash_helper.countOfTextures = 6;
+    this->satiro_dash_helper.iterationsTillSwitch = 9;
+    if(initTextures(satiro_hurtTextures, satiro_hurtPath_, 3,2,1)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(satiro_hurtTextures);
+    this->satiro_hurt_helper.countOfTextures = 2;
+    this->satiro_hurt_helper.iterationsTillSwitch = 9;
+    if(initTextures(satiro_slideTextures, satiro_slidePath_, 3,2,1)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(satiro_slideTextures);
+    this->satiro_slide_helper.countOfTextures = 2;
+    this->satiro_slide_helper.iterationsTillSwitch = 9;
+
 
         //SkeletonWhite initialization
     if(initTextures(skeletonWhite_idleTextures_, skeletonWhite_idlePath_, 8,2,1)) succesedOperationsCount_m++;
