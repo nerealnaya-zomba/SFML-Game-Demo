@@ -131,6 +131,7 @@ void Player::loadData()
     nlohmann::json data = nlohmann::json::parse(f);
     this->playerPosX_m = data["Player"]["PosX"];
     this->playerPosY_m = data["Player"]["PosY"];
+    this->HP_ = data["Player"]["HP"];
 
     this->DMG_ = data["Bullet"]["DMG"];
     this->bulletMaxDistance_ = data["Bullet"]["bulletMaxDistance"];
@@ -242,6 +243,8 @@ void Player::updateParticles()
 
 void Player::walkLeft()
 {
+    if(!this->isAlive) return;
+
     if(initialWalkSpeed<=(-maxWalkSpeed))
     {
         return; 
@@ -251,6 +254,8 @@ void Player::walkLeft()
 
 void Player::walkRight()
 {
+    if(!this->isAlive) return;
+
     if(initialWalkSpeed>=maxWalkSpeed)
     {
         return;
@@ -260,6 +265,8 @@ void Player::walkRight()
 
 void Player::jump()
 {
+    if(!this->isAlive) return;
+
     std::cout << "Jump" << std::endl;
     playerRectangle_->setPosition({playerRectangle_->getPosition().x,playerRectangle_->getPosition().y-1.f});
     fallingSpeed = -5.5f;
@@ -271,6 +278,8 @@ void Player::fallDown()
 
 void Player::dash()
 {
+    if(!this->isAlive) return;
+
     if(playerSprite->getScale().x>0){
         initialWalkSpeed = dashForce;
     } else{
@@ -280,6 +289,8 @@ void Player::dash()
 
 void Player::shoot(bool direction)
 {
+    if(!this->isAlive) return;
+
     std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),this->bulletMaxDistance_);
     if(direction)
     {
@@ -321,11 +332,11 @@ bool Player::takeDMG(int count)
     }
     if(!takeDMG_isOnCooldown)
     {
-        this->HP -= count;
+        this->HP_ -= count;
         bloodExplode();
         takeDMG_isOnCooldown = true;
         takeDMG_timer.restart();
-        std::cout << "Player hitted. HP: " << this->HP << std::endl; // REMOVELATER Player hitted debug
+        std::cout << "Player hitted. HP: " << this->HP_ << std::endl; // REMOVELATER Player hitted debug
         return true;
     }
 }
@@ -350,6 +361,7 @@ void Player::bloodExplode()
 
 void Player::updateControls()
 {
+    if(!this->isAlive) return;
     isIdle = true;
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
@@ -371,6 +383,8 @@ void Player::updatePhysics()
     applyFriction(initialWalkSpeed,this->frictionForce);
     
     updateParticles();
+
+    if(this->HP_<=0) isAlive = false;
     
     playerRectangle_->move({0.f,this->fallingSpeed});
     
@@ -500,10 +514,10 @@ void Player::switchToNextBulletSprite()
 
 void Player::draw(sf::RenderWindow& window)
 {
+    if(!this->isAlive) return;
     drawPlayerTrail(window);
 
     drawParticles(window);
-
     playerSprite->setPosition({(playerRectangle_->getPosition().x+playerRectangle_->getSize().x/2),(playerRectangle_->getPosition().y+playerRectangle_->getSize().y/2)-6.f});
     //window.draw(*playerRectangle);
     window.draw(*playerSprite);

@@ -23,6 +23,7 @@ public:
     // Player state
     bool isIdle = true;
     bool isFalling = true;
+    bool isAlive = true;
     float fallingSpeed = 0.f;
     float initialWalkSpeed = 0.f;
     float speed = 0.15f;                    // Movement acceleration
@@ -30,7 +31,7 @@ public:
     float frictionForce = 0.1f;             // Ground friction
     float playerPosX_m{};                   // Initial X position from PlayerConfig.json
     float playerPosY_m{};                   // Initial Y position from PlayerConfig.json
-    int HP{};                               // Health points from PlayerConfig.json
+    int HP_{};                               // Health points from PlayerConfig.json
     int DMG_{};                             // Damage value from PlayerConfig.json
     
     // Bullet properties
@@ -59,7 +60,7 @@ public:
     
     // Getters
     sf::Vector2f getSpriteScale();
-
+    
     // Control methods
     void updateControls();                  // Process player input
     void walkLeft();                        // Move left

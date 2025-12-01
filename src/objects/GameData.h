@@ -15,7 +15,7 @@ public:
     ~GameData();
 
     // Public texture collections
-    
+
     // Player (Satiro) textures
     std::vector<sf::Texture> idleTextures{};        // Idle animation frames
     std::vector<sf::Texture> runningTextures{};     // Running animation frames
