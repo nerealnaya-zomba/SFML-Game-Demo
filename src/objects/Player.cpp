@@ -76,7 +76,7 @@ void Player::updateTextures()
             playerSprite->setScale({-(playerSprite->getScale().x),1.f});
         }
     }
-
+    
     if(isFalling)
     {  
         switchToNextFallingSprite();

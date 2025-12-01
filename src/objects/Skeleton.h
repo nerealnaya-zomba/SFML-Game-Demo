@@ -101,12 +101,6 @@ private:
     void checkBulletCollision(Player& player);
     void applyFriction(float& walkSpeed, float friction);
 
-    // Animation system
-    bool switchToNextSprite(sf::Sprite* enemySprite,
-        std::vector<sf::Texture>& texturesArray, 
-        texturesIterHelper& iterHelper, 
-        switchSprite_SwitchOption option = switchSprite_SwitchOption::Loop);
-
     // Data management
     void loadData(); // Load from EnemySettings.json
 

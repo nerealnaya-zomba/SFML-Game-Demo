@@ -58,8 +58,9 @@ static std::vector<std::string> find_files(const std::string& path, const std::s
     return result;
 }
 
-//Texture attaching
-    // "*&" means that we use reference to pointer. If there would be only "*", then that would mean we get copy of that pointer, not changing its own value.
+//Texture
+    //Attaching
+        // "*&" means that we use reference to pointer. If there would be only "*", then that would mean we get copy of that pointer, not changing its own value.
 static void attachTexture(std::vector<sf::Texture>& fromTexture, std::vector<sf::Texture>*& toTexture) 
 {
     toTexture = &fromTexture;
@@ -72,6 +73,40 @@ static void attachTexture(std::vector<sf::Texture>& fromTexture, std::vector<sf:
 static void attachTexture(sf::Texture& fromTexture, sf::Texture*& toTexture) 
 {
     toTexture = &fromTexture;
+}
+    //Using
+enum switchSprite_SwitchOption
+{
+    Single,
+    Loop
+};
+static bool switchToNextSprite(sf::Sprite* enemySprite,
+        std::vector<sf::Texture>& texturesArray, 
+        texturesIterHelper& iterHelper, 
+        switchSprite_SwitchOption option)
+{
+    if(iterHelper.iterationCounter < iterHelper.iterationsTillSwitch)
+    {
+        iterHelper.iterationCounter++;
+        return true; // анимация еще идет
+    }
+
+    // Переключаем текстуру
+    enemySprite->setTexture(texturesArray.at(iterHelper.ptrToTexture));
+    iterHelper.ptrToTexture++;
+    iterHelper.iterationCounter = 0;
+
+    // Достигли конца анимации
+    if(iterHelper.ptrToTexture >= iterHelper.countOfTextures)
+    {
+        iterHelper.ptrToTexture = 0;
+        
+        if(option == switchSprite_SwitchOption::Single)
+            return false; // Single анимация ЗАВЕРШЕНА
+        // Loop продолжается автоматически
+    }
+
+    return true; // анимация еще идет
 }
 //Other
 static int random(int min, int max) {

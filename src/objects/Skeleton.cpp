@@ -172,35 +172,6 @@ void Skeleton::applyFriction(float &walkSpeed, float friction)
     }
 }
 
-bool Skeleton::switchToNextSprite(sf::Sprite* enemySprite,
-        std::vector<sf::Texture>& texturesArray, 
-        texturesIterHelper& iterHelper, 
-        switchSprite_SwitchOption option)
-{
-    if(iterHelper.iterationCounter < iterHelper.iterationsTillSwitch)
-    {
-        iterHelper.iterationCounter++;
-        return true; // анимация еще идет
-    }
-
-    // Переключаем текстуру
-    enemySprite->setTexture(texturesArray.at(iterHelper.ptrToTexture));
-    iterHelper.ptrToTexture++;
-    iterHelper.iterationCounter = 0;
-
-    // Достигли конца анимации
-    if(iterHelper.ptrToTexture >= iterHelper.countOfTextures)
-    {
-        iterHelper.ptrToTexture = 0;
-        
-        if(option == switchSprite_SwitchOption::Single)
-            return false; // Single анимация ЗАВЕРШЕНА
-        // Loop продолжается автоматически
-    }
-
-    return true; // анимация еще идет
-}
-
 void Skeleton::loadData()
 {
     std::ifstream in("data/enemySettings.json");
