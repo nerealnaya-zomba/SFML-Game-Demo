@@ -80,7 +80,7 @@ enum switchSprite_SwitchOption
     Single,
     Loop
 };
-static bool switchToNextSprite(sf::Sprite* enemySprite,
+static bool switchToNextSprite(sf::Sprite* Sprite,
         std::vector<sf::Texture>& texturesArray, 
         texturesIterHelper& iterHelper, 
         switchSprite_SwitchOption option)
@@ -92,7 +92,7 @@ static bool switchToNextSprite(sf::Sprite* enemySprite,
     }
 
     // Переключаем текстуру
-    enemySprite->setTexture(texturesArray.at(iterHelper.ptrToTexture));
+    Sprite->setTexture(texturesArray.at(iterHelper.ptrToTexture));
     iterHelper.ptrToTexture++;
     iterHelper.iterationCounter = 0;
 

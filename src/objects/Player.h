@@ -33,6 +33,8 @@ public:
     float playerPosY_m{};                   // Initial Y position from PlayerConfig.json
     int HP_{};                               // Health points from PlayerConfig.json
     int DMG_{};                             // Damage value from PlayerConfig.json
+    //Player animation state
+    bool isPlayingDieAnimation = false;
     
     // Bullet properties
     float bulletSpeed;                      // From PlayerConfig.json
@@ -69,6 +71,7 @@ public:
     
         // Getters
     sf::Vector2f getSpriteScale();
+    sf::Vector2f getCenterPosition();
 
         // Control methods
     void updateControls();                  // Process player input
@@ -80,7 +83,7 @@ public:
     void shoot(bool direction);             // Shoot (false=left, true=right)
     
         // Damage system
-    bool takeDMG(int count);                // Take damage, returns if damage was applied
+    bool takeDMG(int count, sf::Vector2f knockback, bool side);                // Take damage, returns if damage was applied
     void bloodExplode();                    // Create blood particle effect
     
         // Physics methods

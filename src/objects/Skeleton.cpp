@@ -43,8 +43,14 @@ void Skeleton::tryAttackPlayer()
 
     // Проверяем дистанцию для атаки
     if (distanceX < distanceToHit_byAttack && distanceY < skeletonRect->getSize().y) {
-        // TODO Наносим урон игроку
-        player_->takeDMG(this->DMG_);
+        // TODO Наносим урон игроку и отбрасываем
+        bool hitSide; //Сторона отбрасывания
+        if(skeletonPos.x>playerPos.x){
+            hitSide = false;
+        } else {
+            hitSide = true;
+        }
+        player_->takeDMG(this->DMG_, this->knockback_,hitSide);
     }
 }
 
@@ -188,6 +194,7 @@ void Skeleton::loadData()
         this->frictionForce = j["skeleton-white"]["friction"];
         this->HP_ = j["skeleton-white"]["HP"];
         this->DMG_ = j["skeleton-white"]["DMG"];
+        this->knockback_ = sf::Vector2f(j["skeleton-white"]["KnockbackX"],j["skeleton-white"]["KnockbackY"]);
         this->knockbacks = j["skeleton-white"]["knockbacks"];
     }
 
@@ -198,6 +205,7 @@ void Skeleton::loadData()
         this->frictionForce = j["skeleton-yellow"]["friction"];
         this->HP_ = j["skeleton-yellow"]["HP"];
         this->DMG_ = j["skeleton-yellow"]["DMG"];
+        this->knockback_ = {j["skeleton-yellow"]["KnockbackX"],j["skeleton-white"]["KnockbackY"]};
         this->knockbacks = j["skeleton-yellow"]["knockbacks"];
     }
 }

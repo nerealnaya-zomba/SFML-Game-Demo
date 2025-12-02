@@ -8,6 +8,8 @@
     "skeleton-white":{
         "HP": 100,
         "DMG": 25,
+        "KnockbackX": 3,
+        "KnockbackY": 2,
         "maxSpeed": 1.5,
         "acceleration": 0.15,
         "friction": 0.00,
@@ -16,6 +18,8 @@
     "skeleton-yellow":{
         "HP": 200,
         "DMG": 50,
+        "KnockbackX": 6,
+        "KnockbackY": 4,
         "maxSpeed": 2.5,
         "acceleration": 0.15,
         "friction": 0.02,

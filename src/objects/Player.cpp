@@ -52,8 +52,31 @@ sf::Vector2f Player::getSpriteScale()
     return playerSprite->getScale();
 }
 
+sf::Vector2f Player::getCenterPosition()
+{
+    return playerRectangle_->getGlobalBounds().getCenter();
+}
+
 void Player::updateTextures()
 {
+    if(!isAlive)
+    {
+        sf::Texture &lastDieTexture = satiro_dieTextures->at(satiro_dieTextures->size()-1);
+        this->playerSprite->setTexture(lastDieTexture);
+        return; //Nothing happens if player not alive
+    }
+
+    if(isPlayingDieAnimation)
+    {
+        if(!switchToNextSprite(this->playerSprite,*this->satiro_dieTextures,satiro_die_helper,switchSprite_SwitchOption::Single))
+        {
+            isAlive = false;
+            isPlayingDieAnimation = false;
+            
+        }
+        return;
+    }
+
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
         if(!isFalling)
@@ -247,7 +270,7 @@ void Player::updateParticles()
 
 void Player::walkLeft()
 {
-    if(!this->isAlive) return;
+    if(!this->isAlive || isPlayingDieAnimation) return;
 
     if(initialWalkSpeed<=(-maxWalkSpeed))
     {
@@ -258,7 +281,7 @@ void Player::walkLeft()
 
 void Player::walkRight()
 {
-    if(!this->isAlive) return;
+    if(!this->isAlive || isPlayingDieAnimation) return;
 
     if(initialWalkSpeed>=maxWalkSpeed)
     {
@@ -269,7 +292,7 @@ void Player::walkRight()
 
 void Player::jump()
 {
-    if(!this->isAlive) return;
+    if(!this->isAlive || isPlayingDieAnimation) return;
 
     std::cout << "Jump" << std::endl;
     playerRectangle_->setPosition({playerRectangle_->getPosition().x,playerRectangle_->getPosition().y-1.f});
@@ -282,7 +305,7 @@ void Player::fallDown()
 
 void Player::dash()
 {
-    if(!this->isAlive) return;
+    if(!this->isAlive || isPlayingDieAnimation) return;
 
     if(playerSprite->getScale().x>0){
         initialWalkSpeed = dashForce;
@@ -293,7 +316,7 @@ void Player::dash()
 
 void Player::shoot(bool direction)
 {
-    if(!this->isAlive) return;
+    if(!this->isAlive || isPlayingDieAnimation) return;
 
     std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),this->bulletMaxDistance_);
     if(direction)
@@ -323,7 +346,7 @@ void Player::shoot(bool direction)
 
     Has cooldown that declared in Player.h
 */
-bool Player::takeDMG(int count) 
+bool Player::takeDMG(int count, sf::Vector2f knockback, bool side) 
 {
     if(takeDMG_isOnCooldown)
     {
@@ -336,6 +359,8 @@ bool Player::takeDMG(int count)
     }
     if(!takeDMG_isOnCooldown)
     {
+        this->fallingSpeed-=knockback.y;
+        side ? this->initialWalkSpeed-=knockback.x : this->initialWalkSpeed+=knockback.x;
         this->HP_ -= count;
         bloodExplode();
         takeDMG_isOnCooldown = true;
@@ -365,7 +390,7 @@ void Player::bloodExplode()
 
 void Player::updateControls()
 {
-    if(!this->isAlive) return;
+    if(!this->isAlive || isPlayingDieAnimation) return;
     isIdle = true;
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
@@ -388,7 +413,7 @@ void Player::updatePhysics()
     
     updateParticles();
 
-    if(this->HP_<=0) isAlive = false;
+    if(this->HP_<=0) isPlayingDieAnimation = true;
     
     playerRectangle_->move({0.f,this->fallingSpeed});
     
@@ -518,7 +543,6 @@ void Player::switchToNextBulletSprite()
 
 void Player::draw(sf::RenderWindow& window)
 {
-    if(!this->isAlive) return;
     drawPlayerTrail(window);
 
     drawParticles(window);

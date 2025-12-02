@@ -46,6 +46,7 @@ private:
     float frictionForce{};              // Friction from EnemySettings.json
     int HP_;                            // Health from EnemySettings.json
     int DMG_;                           // Damage output
+    sf::Vector2f knockback_;
     float distanceToMakeAttack{};       // Attack range from EnemySettings.json
     float distanceToHit_byAttack{};     // Hit range from EnemySettings.json
     bool knockbacks{};                  // If attacks cause knockback
