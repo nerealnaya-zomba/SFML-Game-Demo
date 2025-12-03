@@ -33,17 +33,20 @@ public:
     float playerPosY_m{};                   // Initial Y position from PlayerConfig.json
     int HP_{};                               // Health points from PlayerConfig.json
     int DMG_{};                             // Damage value from PlayerConfig.json
+    
     //Player animation state
     bool isPlayingDieAnimation = false;
     bool isPlayingHurtAnimation = false;
+    bool isPlayingDashAnimation = false;
     
     // Bullet properties
     float bulletSpeed;                      // From PlayerConfig.json
     float bulletMaxDistance_;               // From PlayerConfig.json
     
     // Dash mechanics
-    bool isDashAvaiable = false;
+    bool isDashOnCooldown = false;
     float dashForce{};                      // From PlayerConfig.json
+    float dashCooldown = 500;               // From PlayerConfig.json
     sf::Clock dash_Clock;                   // Dash cooldown timer
     
     // Damage system

@@ -85,6 +85,15 @@ void Player::updateTextures()
         return;
     }
 
+    if(isPlayingDashAnimation)
+    {
+        if(!switchToNextSprite(this->playerSprite,*this->satiro_dashTextures,satiro_dash_helper,switchSprite_SwitchOption::Single))
+        {
+            isPlayingDashAnimation= false;
+        }
+        return;
+    }
+
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
         if(!isFalling)
@@ -315,10 +324,26 @@ void Player::dash()
 {
     if(!this->isAlive || isPlayingDieAnimation) return;
 
-    if(playerSprite->getScale().x>0){
-        initialWalkSpeed = dashForce;
-    } else{
-        initialWalkSpeed = -dashForce;
+        if(isDashOnCooldown)
+    {
+        if(dash_Clock.getElapsedTime().asMilliseconds() >= dashCooldown)
+        {
+            isDashOnCooldown = false;
+            dash_Clock.stop();
+        }
+    }
+    if(!isDashOnCooldown)
+    {
+        //Cooldown
+        isPlayingDashAnimation = true;
+        isDashOnCooldown = true;
+        dash_Clock.restart();
+        if(playerSprite->getScale().x>0){
+            initialWalkSpeed = dashForce;
+        } else{
+            initialWalkSpeed = -dashForce;
+        }
+        std::cout << "Dash: "<< std::endl; // REMOVELATER Player dashed debug
     }
 }
 
