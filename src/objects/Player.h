@@ -35,6 +35,7 @@ public:
     int DMG_{};                             // Damage value from PlayerConfig.json
     //Player animation state
     bool isPlayingDieAnimation = false;
+    bool isPlayingHurtAnimation = false;
     
     // Bullet properties
     float bulletSpeed;                      // From PlayerConfig.json
@@ -95,10 +96,10 @@ public:
     
         // Rendering methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
-    void updateTextures();                  // Update sprite animations
-    void drawBullets(sf::RenderWindow& window); // Draw all bullets
-    void draw(sf::RenderWindow& window);    // Draw player
-    void drawParticles(sf::RenderWindow& window); // Draw particles
+    void updateTextures();                          // Update sprite animations
+    void drawBullets(sf::RenderWindow& window);     // Draw all bullets
+    void draw(sf::RenderWindow& window);            // Draw player
+    void drawParticles(sf::RenderWindow& window);   // Draw particles
     void drawPlayerTrail(sf::RenderWindow& window); // Draw movement trail
 
 private:

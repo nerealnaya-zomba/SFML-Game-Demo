@@ -27,7 +27,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     loadingScreen_m->draw();
     generateMipmapTextures(satiro_dieTextures);
     this->satiro_die_helper.countOfTextures = 8;
-    this->satiro_die_helper.iterationsTillSwitch = 9;
+    this->satiro_die_helper.iterationsTillSwitch = 20;
     if(initTextures(satiro_dashTextures, satiro_dashPath_, 7,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
@@ -38,8 +38,8 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
     generateMipmapTextures(satiro_hurtTextures);
-    this->satiro_hurt_helper.countOfTextures = 2;
-    this->satiro_hurt_helper.iterationsTillSwitch = 9;
+    this->satiro_hurt_helper.countOfTextures = 3;
+    this->satiro_hurt_helper.iterationsTillSwitch = 15;
     if(initTextures(satiro_slideTextures, satiro_slidePath_, 3,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();

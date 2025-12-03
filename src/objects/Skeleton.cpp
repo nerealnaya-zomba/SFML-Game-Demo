@@ -46,9 +46,9 @@ void Skeleton::tryAttackPlayer()
         // TODO Наносим урон игроку и отбрасываем
         bool hitSide; //Сторона отбрасывания
         if(skeletonPos.x>playerPos.x){
-            hitSide = false;
-        } else {
             hitSide = true;
+        } else {
+            hitSide = false;
         }
         player_->takeDMG(this->DMG_, this->knockback_,hitSide);
     }

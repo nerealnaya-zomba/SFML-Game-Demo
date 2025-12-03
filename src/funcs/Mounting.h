@@ -36,7 +36,7 @@ static bool initTextures(std::vector<sf::Texture> &textures, std::string path, i
         
         if (!texture->loadFromFile(filename.str())) 
         {
-            return false;
+            exit(EXIT_FAILURE);
         }
         textures.push_back(*texture);
         std::cout << "Loaded: " << filename.str() << std::endl;

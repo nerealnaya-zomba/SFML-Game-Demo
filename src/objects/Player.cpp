@@ -72,7 +72,15 @@ void Player::updateTextures()
         {
             isAlive = false;
             isPlayingDieAnimation = false;
-            
+        }
+        return;
+    }
+
+    if(isPlayingHurtAnimation)
+    {
+        if(!switchToNextSprite(this->playerSprite,*this->satiro_hurtTextures,satiro_hurt_helper,switchSprite_SwitchOption::Single))
+        {
+            isPlayingHurtAnimation = false;
         }
         return;
     }
@@ -359,10 +367,20 @@ bool Player::takeDMG(int count, sf::Vector2f knockback, bool side)
     }
     if(!takeDMG_isOnCooldown)
     {
+        //Knockback
         this->fallingSpeed-=knockback.y;
         side ? this->initialWalkSpeed-=knockback.x : this->initialWalkSpeed+=knockback.x;
+
+        //HP reduction
         this->HP_ -= count;
+
+        //Hurt animation enabling
+        isPlayingHurtAnimation = true;
+
+        //Blood
         bloodExplode();
+
+        //Cooldown
         takeDMG_isOnCooldown = true;
         takeDMG_timer.restart();
         std::cout << "Player hitted. HP: " << this->HP_ << std::endl; // REMOVELATER Player hitted debug
@@ -379,7 +397,7 @@ void Player::bloodExplode()
             sf::Vector2f(playerPos.x,playerPos.y),
             sf::Vector2f(random(-150,150), random(-450,-150)*1.5),
             sf::Vector2f(random(-60,60), random(-60,60)),
-            sf::Color(255, 0, 0),
+            sf::Color(255, 255, 255),
             2.0f,
             150.0f*3,
             0.8f,
