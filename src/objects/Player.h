@@ -31,7 +31,7 @@ public:
     float frictionForce = 0.1f;             // Ground friction
     float playerPosX_m{};                   // Initial X position from PlayerConfig.json
     float playerPosY_m{};                   // Initial Y position from PlayerConfig.json
-    int HP_{};                               // Health points from PlayerConfig.json
+    int HP_{};                              // Health points from PlayerConfig.json
     int DMG_{};                             // Damage value from PlayerConfig.json
     
     //Player animation state
@@ -46,12 +46,12 @@ public:
     // Dash mechanics
     bool isDashOnCooldown = false;
     float dashForce{};                      // From PlayerConfig.json
-    float dashCooldown = 500;               // From PlayerConfig.json
+    float dashCooldown{};                   // From PlayerConfig.json
     sf::Clock dash_Clock;                   // Dash cooldown timer
     
     // Damage system
     sf::Clock takeDMG_timer;
-    int32_t takeDMG_cooldown = 1000;        // From PlayerConfig.json
+    int32_t takeDMG_cooldown{};             // From PlayerConfig.json
     bool takeDMG_isOnCooldown = false;
     
     // Visual effects
@@ -86,16 +86,19 @@ public:
     void dash();                            // Dash ability
     void shoot(bool direction);             // Shoot (false=left, true=right)
     
+        //Dash particles
+    void dashParticles();
+
         // Damage system
-    bool takeDMG(int count, sf::Vector2f knockback, bool side);                // Take damage, returns if damage was applied
-    void bloodExplode();                    // Create blood particle effect
+    bool takeDMG(int count, sf::Vector2f knockback, bool side);                       // Take damage, returns if damage was applied
+    void bloodExplode();                                                              // Create blood particle effect
     
         // Physics methods
-    void updatePhysics();                   // Update player physics
+    void updatePhysics();                                                             // Update player physics
     void checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects); // Platform collision
-    void checkGroundCollision(sf::RectangleShape& groundRect); // Ground collision
-    void moveBullets();                     // Update all active bullets
-    void updateParticles();                 // Update particle effects
+    void checkGroundCollision(sf::RectangleShape& groundRect);                        // Ground collision
+    void moveBullets();                                                               // Update all active bullets
+    void updateParticles();                                                           // Update particle effects
     
         // Rendering methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);

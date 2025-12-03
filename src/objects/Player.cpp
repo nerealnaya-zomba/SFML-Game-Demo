@@ -85,18 +85,9 @@ void Player::updateTextures()
         return;
     }
 
-    if(isPlayingDashAnimation)
-    {
-        if(!switchToNextSprite(this->playerSprite,*this->satiro_dashTextures,satiro_dash_helper,switchSprite_SwitchOption::Single))
-        {
-            isPlayingDashAnimation= false;
-        }
-        return;
-    }
-
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
-        if(!isFalling)
+        if(!isFalling && !isPlayingDashAnimation)
         {
             switchToNextRunningSprite();
         }
@@ -107,7 +98,7 @@ void Player::updateTextures()
     }
     else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
     {
-        if(!isFalling)
+        if(!isFalling && !isPlayingDashAnimation)
         {
             switchToNextRunningSprite();
         }
@@ -116,7 +107,17 @@ void Player::updateTextures()
             playerSprite->setScale({-(playerSprite->getScale().x),1.f});
         }
     }
-    
+
+    if(isPlayingDashAnimation)
+    {
+        if(!switchToNextSprite(this->playerSprite,*this->satiro_dashTextures,satiro_dash_helper,switchSprite_SwitchOption::Single))
+        {
+            isPlayingDashAnimation= false;
+        }
+        dashParticles();
+        return;
+    }
+
     if(isFalling)
     {  
         switchToNextFallingSprite();
@@ -176,12 +177,14 @@ void Player::loadData()
     this->playerPosX_m = data["Player"]["PosX"];
     this->playerPosY_m = data["Player"]["PosY"];
     this->HP_ = data["Player"]["HP"];
+    this->takeDMG_cooldown = data["Player"]["takeDMG_cooldown"];
 
     this->DMG_ = data["Bullet"]["DMG"];
     this->bulletMaxDistance_ = data["Bullet"]["bulletMaxDistance"];
     this->bulletSpeed = data["Bullet"]["bulletSpeed"];
 
     this->dashForce = data["Dash"]["force"];
+    this->dashCooldown = data["Dash"]["Cooldown"];
 }
 
 void Player::checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects)
@@ -287,7 +290,7 @@ void Player::updateParticles()
 
 void Player::walkLeft()
 {
-    if(!this->isAlive || isPlayingDieAnimation) return;
+    if(!this->isAlive || isPlayingDieAnimation || isPlayingDashAnimation) return;       //Locking movement on Die, Dash
 
     if(initialWalkSpeed<=(-maxWalkSpeed))
     {
@@ -298,7 +301,7 @@ void Player::walkLeft()
 
 void Player::walkRight()
 {
-    if(!this->isAlive || isPlayingDieAnimation) return;
+    if(!this->isAlive || isPlayingDieAnimation || isPlayingDashAnimation) return;       //Locking movement on Die, Dash
 
     if(initialWalkSpeed>=maxWalkSpeed)
     {
@@ -309,7 +312,7 @@ void Player::walkRight()
 
 void Player::jump()
 {
-    if(!this->isAlive || isPlayingDieAnimation) return;
+    if(!this->isAlive || isPlayingDieAnimation || isPlayingDashAnimation) return;       //Locking movement on Die, Dash
 
     std::cout << "Jump" << std::endl;
     playerRectangle_->setPosition({playerRectangle_->getPosition().x,playerRectangle_->getPosition().y-1.f});
@@ -373,6 +376,44 @@ void Player::shoot(bool direction)
     }
 
     bullets.push_back(std::move(bulletPtr));
+}
+void Player::dashParticles()
+{
+    sf::Vector2f playerPos = this->playerRectangle_->getGlobalBounds().getCenter();
+        
+    for (int i = 0; i < 40; i++) {
+        sf::Color particleColor = sf::Color(255,255,255);
+        float playerRectDownSide = playerPos.y+(playerRectangle_->getSize().y/2);
+        float particleSpeed = random(-150,150);
+        float particleSize = 1.f;
+        float particleGravity = 0.f;
+        float accelerationDamping = 0.8f;
+        float particleLifeTime = 0.2f;
+
+        if(playerSprite->getScale().x > 0){
+            bloodParticles.emplace_back(
+            sf::Vector2f(playerPos.x,playerRectDownSide),
+            sf::Vector2f(particleSpeed, 0.f),
+            sf::Vector2f(random(-60,60), random(-60,60)),
+            sf::Color(particleColor),
+            particleSize,
+            particleGravity,
+            accelerationDamping,
+            particleLifeTime
+            );
+        } else{
+            bloodParticles.emplace_back(
+            sf::Vector2f(playerPos.x,playerRectDownSide),
+            sf::Vector2f(particleSpeed, 0.f),
+            sf::Vector2f(random(-60,60), random(-60,60)),
+            sf::Color(particleColor),
+            particleSize,
+            particleGravity,
+            accelerationDamping,
+            particleLifeTime 
+            );
+        } 
+    }
 }
 /*
     Returns true on successful hit \ Returns false on unsucessful hit
@@ -458,7 +499,7 @@ void Player::updatePhysics()
 
     if(this->HP_<=0) isPlayingDieAnimation = true;
     
-    playerRectangle_->move({0.f,this->fallingSpeed});
+    if(!isPlayingDashAnimation) playerRectangle_->move({0.f,this->fallingSpeed});
     
     playerRectangle_->move({initialWalkSpeed,0.f});
     
@@ -473,7 +514,13 @@ void Player::updatePhysics()
     }
     if(isFalling)
     {
-        fallingSpeed+=0.1f;
+        if(isPlayingDashAnimation)
+        {
+            fallingSpeed= 0.f;
+        } else{
+            fallingSpeed+=0.1f;
+        }
+        
     }
     else
     {

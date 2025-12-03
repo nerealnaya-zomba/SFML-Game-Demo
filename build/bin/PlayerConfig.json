@@ -2,7 +2,8 @@
     "Player":{
         "PosX": 1000,
         "PosY": 100,
-        "HP": 100
+        "HP": 1000,
+        "takeDMG_cooldown": 1000
     },
     "Bullet":{
         "bulletSpeed": 5.0,
@@ -10,6 +11,7 @@
         "DMG": 10
     },
     "Dash":{
-        "force": 10.0
+        "force": 10.0,
+        "Cooldown": 1000
     }
 }
