@@ -150,7 +150,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     loadingScreen_m->draw();
     generateMipmapTextures(plant7Textures);
     smoothTextures(plant7Textures);
-
+    
     // Cat decoration
     if(loadTexture(cat1Textures, cat1Path, catHelper, 72)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
