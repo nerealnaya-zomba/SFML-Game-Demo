@@ -19,9 +19,12 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(initSatiroTextures(fallingTextures,fallingTexturesPaths)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    if(initSatiroTextures(bulletTextures,bulletTexturesPaths)) succesedOperationsCount_m++;
+    if(initTextures(bulletTextures,bulletTexturesPath_,4,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
+    generateMipmapTextures(bulletTextures);
+    this->satiro_bullet_helper.countOfTextures = 3;
+    this->satiro_bullet_helper.iterationsTillSwitch = 7;
     if(initTextures(satiro_dieTextures, satiro_diePath_, 9,2,1)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();

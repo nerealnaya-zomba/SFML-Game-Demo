@@ -148,15 +148,12 @@ void Skeleton::checkPlatformCollision(Platform& platforms)
 
 void Skeleton::checkBulletCollision(Player& player)
 {
-    for (auto it = player_->bullets.begin(); it != player_->bullets.end(); ) {
-        if((*it)->getBulletRect().getGlobalBounds().findIntersection(this->skeletonRect->getGlobalBounds())) {
-            onBulletHit();
-            // Удаляем пулю
-            it = player_->bullets.erase(it);
+    for (auto it = player_->bullets.begin(); it != player_->bullets.end(); ++it) {
+        if((*it)->getBulletRect().getGlobalBounds().findIntersection(this->skeletonRect->getGlobalBounds()) && !(*it)->isSheduledToBeDestroyed) {
+            // Ставим в очередь на удаление
+            (*it)->isSheduledToBeDestroyed = true;
             // Убавить здоровье
-            // ...
-        } else {
-            ++it;
+            onBulletHit();
         }
     }
 }

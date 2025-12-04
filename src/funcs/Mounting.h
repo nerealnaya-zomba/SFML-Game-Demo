@@ -109,6 +109,10 @@ static bool switchToNextSprite(sf::Sprite* Sprite,
     return true; // анимация еще идет
 }
 //Other
+    //Random
 static int random(int min, int max) {
-    return rand() % (max - min + 1) + min;
+    return min + rand() % (max - min + 1);
+}
+static float random(float min, float max) {
+    return min + static_cast<float>(rand()) / RAND_MAX * (max - min);
 }

@@ -21,6 +21,7 @@ public:
     std::vector<sf::Texture> runningTextures{};     // Running animation frames
     std::vector<sf::Texture> fallingTextures{};     // Falling animation frames
     std::vector<sf::Texture> bulletTextures{};      // Bullet animation frames
+    texturesIterHelper satiro_bullet_helper;
     std::vector<sf::Texture> satiro_dieTextures{};      // Bullet animation frames
     texturesIterHelper satiro_die_helper;
     std::vector<sf::Texture> satiro_dashTextures{};      // Bullet animation frames
@@ -126,12 +127,7 @@ private:
         "images/satiro-falling-4.png",
         "images/satiro-falling-5.png",
     };
-    std::vector<std::string> bulletTexturesPaths{
-        "images/Bullet/blue-bullet-1.png",
-        "images/Bullet/blue-bullet-2.png",
-        "images/Bullet/blue-bullet-3.png",
-        "images/Bullet/blue-bullet-4.png"
-    };
+    std::string bulletTexturesPath_{"images/Bullet/blue-bullet-"};
     std::string satiro_diePath_{"images/satiro-die_"};
     std::string satiro_dashPath_{"images/satiro-dash_"};
     std::string satiro_hurtPath_{"images/satiro-hurt_"};

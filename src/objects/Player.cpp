@@ -3,6 +3,7 @@
 
 Player::Player(GameData& gameTextures)
 {
+    this->gameTextures = &gameTextures;
     //Loading data from GameData.json
     loadData();
 
@@ -10,7 +11,6 @@ Player::Player(GameData& gameTextures)
     attachTexture(gameTextures.idleTextures,this->idleTextures);
     attachTexture(gameTextures.runningTextures,this->runningTextures);
     attachTexture(gameTextures.fallingTextures,this->fallingTextures);
-    attachTexture(gameTextures.bulletTextures,this->bulletTextures);
     attachTexture(gameTextures.satiro_dieTextures,this->satiro_dieTextures,gameTextures.satiro_die_helper,this->satiro_die_helper);
     attachTexture(gameTextures.satiro_hurtTextures,this->satiro_hurtTextures,gameTextures.satiro_hurt_helper,this->satiro_hurt_helper);
     attachTexture(gameTextures.satiro_dashTextures,this->satiro_dashTextures,gameTextures.satiro_dash_helper,this->satiro_dash_helper);
@@ -126,7 +126,11 @@ void Player::updateTextures()
     {
         switchToNextIdleSprite();
     }
-    switchToNextBulletSprite();
+    for (auto &&i : bullets)
+    {
+        i->updateTextures();
+    }
+    
 }
 
 void Player::drawBullets(sf::RenderWindow& window)
@@ -264,16 +268,15 @@ void Player::checkGroundCollision(sf::RectangleShape& groundRect)
 
 void Player::moveBullets()
 {
-    //Find and erase bullet that out of bounds
-    bullets.remove_if([](std::shared_ptr<Bullet> &loc){
-        return (loc->distancePassed>=loc->maxDistance_);});
-    if(bullets.size()==0) bullets.clear();
+    // Удаляем пули которые можно удалить
+    bullets.remove_if([](std::shared_ptr<Bullet>& bullet) {
+        return bullet->canBeDeleted;
+    });
     
     for (auto &&i : bullets)
     {
-        i->moveBullet();
+        i->update();
     }
-    
 }
 
 void Player::updateParticles()
@@ -354,7 +357,7 @@ void Player::shoot(bool direction)
 {
     if(!this->isAlive || isPlayingDieAnimation) return;
 
-    std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),this->bulletMaxDistance_);
+    std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),this->bulletMaxDistance_,*this->gameTextures);
     if(direction)
     {
         //If-else removes the possibility of spawning bullets slower than the standard bullet speed.
@@ -382,7 +385,7 @@ void Player::dashParticles()
     sf::Vector2f playerPos = this->playerRectangle_->getGlobalBounds().getCenter();
         
     for (int i = 0; i < 40; i++) {
-        sf::Color particleColor = sf::Color(255,255,255);
+        sf::Color particleColor = sf::Color(150,150,150);
         float playerRectDownSide = playerPos.y+(playerRectangle_->getSize().y/2);
         float particleSpeed = random(-150,150);
         float particleSize = 1.f;
@@ -607,29 +610,7 @@ void Player::switchToNextRunningSprite()
     fps=1;
 }
 
-void Player::switchToNextBulletSprite()
-{
-    static int fps = 1;
-    if(fps!=WINDOW_FPS/12)
-    {   
-        fps++;
-        return;
-    }
-    static size_t i = 0;
 
-    for (auto &&loc : bullets)
-    {
-        loc->setSpriteTexture(bulletTextures->at(i));
-    }
-    
-    i++;
-    if(i == bulletTextures->size()-1)
-    {
-        i=0;
-    }
-    
-    fps=1;
-}
 
 void Player::draw(sf::RenderWindow& window)
 {

@@ -19,6 +19,8 @@ public:
     Player(GameData& gameTextures);
     virtual ~Player();
 
+    GameData* gameTextures;
+
     // Public variables
     // Player state
     bool isIdle = true;
@@ -113,13 +115,11 @@ private:
     std::vector<sf::Texture>* idleTextures;     // Idle animation frames
     std::vector<sf::Texture>* runningTextures;  // Running animation frames  
     std::vector<sf::Texture>* fallingTextures;  // Falling animation frames
-    std::vector<sf::Texture>* bulletTextures;   // Bullet animation frames
 
     // Animation methods
     void switchToNextIdleSprite();
     void switchToNextRunningSprite(); 
     void switchToNextFallingSprite();
-    void switchToNextBulletSprite();
 
     // Graphics
     sf::Sprite* playerSprite;               // Main player sprite
