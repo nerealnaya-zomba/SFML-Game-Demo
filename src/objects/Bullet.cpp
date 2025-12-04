@@ -118,7 +118,7 @@ void Bullet::makeAfterParticles()
 void Bullet::makeDeathParticles()
 {
     sf::Vector2f bulletPos = this->bulletRect_->getPosition();
-
+    sf::Color explodeColor = {127, 255, 212};
     for (int i = 0; i < 40; i++) {
         // Угол от 0 до 360 градусов
         float angle = random(0.f, 360.f) * 3.14159f / 180.f;
@@ -140,7 +140,7 @@ void Bullet::makeDeathParticles()
             sf::Vector2f(x, y),
             velocity,
             sf::Vector2f(random(-accel, accel), random(-accel, accel)),
-            sf::Color(127, 255, 212),
+            explodeColor,
             1.f,
             0.f,
             0.8f,

@@ -1,61 +1,67 @@
 #pragma once
-#include<SFML/Graphics.hpp>
-#include<Particle.h>
-#include<Mounting.h>
-#include<algorithm>
-#include<GameData.h>
-#include<vector>
-#include<TexturesIterHelper.h>
+#include <SFML/Graphics.hpp>
+#include <Particle.h>
+#include <Mounting.h>
+#include <algorithm>
+#include <GameData.h>
+#include <vector>
+#include <TexturesIterHelper.h>
 
 class Bullet
 {
 private:
-    sf::RectangleShape* bulletRect_;
-    std::vector<sf::Texture>* bulletTextures_;
-    texturesIterHelper satiro_bullet_helper;
-    sf::Sprite* bulletSprite_;
+    // Graphics components
+    sf::RectangleShape* bulletRect_;           // Collision rectangle (hitbox)
+    std::vector<sf::Texture>* bulletTextures_; // Animation texture frames
+    texturesIterHelper satiro_bullet_helper;   // Animation control helper
+    sf::Sprite* bulletSprite_;                 // Visual representation
     
 public:
-    float maxDistance_{100.f};
-    float distancePassed{};
-    Bullet(sf::Vector2f pos, float maxDistance, GameData& gamedata); //maxDistance changes in constructor
+    // Bullet properties
+    float maxDistance_{100.f};                 // Maximum travel distance
+    float distancePassed{};                    // Current distance traveled
+    
+    // State flags
+    bool canBeDeleted = false;                 // Safe to remove from memory
+    bool isSheduledToBeDestroyed = false;      // Marked for destruction (hit something)
+    bool isMakedDeathParticles = false;        // Death particles already created
+    
+    // Movement
+    sf::Vector2f offsetToMove_{};              // Movement per frame
+    
+    // Particle system
+    std::vector<Particle> particles;           // Visual effect particles
+    sf::Clock makeParticles_clock;             // Timer for particle cooldown
+    float makeParticles_cooldown = 50;         // Cooldown in milliseconds
+    bool makeParticles_isOnCooldown = false;   // Cooldown state
+
+    // Constructor & Destructor
+    Bullet(sf::Vector2f startPosition, float maxDistance, GameData& gamedata);
     virtual ~Bullet();
 
-    //Setters
-    void setSpriteTexture(sf::Texture& texture);
-    void setSpriteScale(sf::Vector2f scale);
-    //Getters
-    sf::RectangleShape& getBulletRect();
+    // Setters
+    void setSpriteTexture(sf::Texture& texture); // Change sprite texture
+    void setSpriteScale(sf::Vector2f scale);     // Change sprite scale
 
-    sf::Vector2f getPosition();
-    
-    sf::Vector2f offsetToMove_{};
+    // Getters
+    sf::RectangleShape& getBulletRect();         // Get collision rectangle
+    sf::Vector2f getPosition();                  // Get current position
 
-    bool canBeDeleted = false;
-    bool isSheduledToBeDestroyed = false;
-    bool isMakedDeathParticles = false;
+    // Physics & movement
+    void moveBullet();                           // Update bullet position
+    void update();                               // Main update method (physics + particles)
 
-    //Control
-    void destroyBullet();
+    // Animation
+    void updateTextures();                       // Update sprite animation frames
 
-    //Physics
-    void moveBullet();
-    void update(); 
+    // Particle effects
+    void makeAfterParticles();                   // Create trail particles
+    void makeDeathParticles();                   // Create explosion particles on death
+    void updateParticles();                      // Update all particles
 
-    //Texture
-    void updateTextures();
+    // Cleanup
+    void destroyBullet();                        // Prepare bullet for deletion //NOTE Useless method. Does nothing.
 
-    //Particles
-    std::vector<Particle> particles;
-    void makeAfterParticles();
-    void makeDeathParticles();
-    void updateParticles();
-    sf::Clock makeParticles_clock;
-    float makeParticles_cooldown = 50; //Milliseconds
-    bool makeParticles_isOnCooldown = false;
-
-
-    void draw(sf::RenderWindow& window);
+    // Rendering
+    void draw(sf::RenderWindow& window);         // Draw bullet and particles
 };
-
-

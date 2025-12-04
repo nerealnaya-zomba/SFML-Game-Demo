@@ -470,7 +470,7 @@ void Player::bloodExplode()
             2.0f,
             150.0f*3,
             0.8f,
-            2.0f
+            1.0f
         );
     }
 }
