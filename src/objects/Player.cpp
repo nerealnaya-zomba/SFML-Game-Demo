@@ -281,13 +281,13 @@ void Player::moveBullets()
 
 void Player::updateParticles()
 {
-    for (auto& particle : bloodParticles) { 
+    for (auto& particle : particles) { 
         particle.update();
     }
-    bloodParticles.erase(
-        std::remove_if(bloodParticles.begin(), bloodParticles.end(),
+    particles.erase(
+        std::remove_if(particles.begin(), particles.end(),
             [](const Particle& p) { return !p.getIsAlive(); }),
-        bloodParticles.end()
+        particles.end()
     );
 }
 
@@ -394,7 +394,7 @@ void Player::dashParticles()
         float particleLifeTime = 0.2f;
 
         if(playerSprite->getScale().x > 0){
-            bloodParticles.emplace_back(
+            particles.emplace_back(
             sf::Vector2f(playerPos.x,playerRectDownSide),
             sf::Vector2f(particleSpeed, 0.f),
             sf::Vector2f(random(-60,60), random(-60,60)),
@@ -405,7 +405,7 @@ void Player::dashParticles()
             particleLifeTime
             );
         } else{
-            bloodParticles.emplace_back(
+            particles.emplace_back(
             sf::Vector2f(playerPos.x,playerRectDownSide),
             sf::Vector2f(particleSpeed, 0.f),
             sf::Vector2f(random(-60,60), random(-60,60)),
@@ -462,15 +462,15 @@ void Player::bloodExplode()
     sf::Vector2f playerPos = this->playerRectangle_->getGlobalBounds().getCenter();
 
     for (int i = 0; i < 40; i++) {
-        bloodParticles.emplace_back(
+        particles.emplace_back(
             sf::Vector2f(playerPos.x,playerPos.y),
             sf::Vector2f(random(-150,150), random(-450,-150)*1.5),
             sf::Vector2f(random(-60,60), random(-60,60)),
-            sf::Color(255, 255, 255),
+            sf::Color(138, 3, 3),
             2.0f,
             150.0f*3,
             0.8f,
-            1.0f
+            3.0f
         );
     }
 }
@@ -624,7 +624,7 @@ void Player::draw(sf::RenderWindow& window)
 
 void Player::drawParticles(sf::RenderWindow &window)
 {
-    for (auto& particle : bloodParticles) { //REMOVELATER particle
+    for (auto& particle : particles) {
         particle.draw(window);
     }
 }

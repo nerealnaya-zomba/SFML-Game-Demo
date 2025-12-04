@@ -57,7 +57,7 @@ public:
     bool takeDMG_isOnCooldown = false;
     
     // Visual effects
-    std::vector<Particle> bloodParticles;
+    std::vector<Particle> particles;
     
     // Game objects
     sf::RectangleShape* playerRectangle_;   // Collision rectangle
