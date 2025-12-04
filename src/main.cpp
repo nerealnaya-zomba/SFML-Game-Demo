@@ -152,56 +152,79 @@ int main()
            //↑↑-----MAIN MENU-----↑↑ 
 
            //↓↓-----GAME-----↓↓
-           //Jump on up arrow
-            static bool isPressed_x = false;
-            static bool isPressed_z = false;
-            static bool isPressed_c = false;
+            // //    Jump on up arrow
+            // bool isEnabledStoppingAutoRepeat_z = false;
+            // bool isEnabledStoppingAutoRepeat_x = false;
+            // bool isEnabledStoppingAutoRepeat_c = false;
+
+            // static bool isPressed_x = false;
+            // static bool isPressed_z = false;
+            // static bool isPressed_c = false;
+
             if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
-                if(keyPressed->scancode == sf::Keyboard::Scancode::Z && !isPressed_z)
-                {
-                    if(!player.isFalling)
-                    {
-                        player.jump();
-                    }
-                    isPressed_z = true;
-                }
-                if(keyPressed->scancode == sf::Keyboard::Scancode::X && !isPressed_x)
-                {
-                    isPressed_x = true;
-                    std::cout << "Shoot" << std::endl;
-                    player.shoot(player.getSpriteScale().x>0 ? true : false);
-                }
-                if(keyPressed->scancode == sf::Keyboard::Scancode::C && !isPressed_c)
-                {
-                    isPressed_c = true;
-                    std::cout << "Dash" << std::endl;
-                    player.dash();
-                }
+                // if(keyPressed->scancode == sf::Keyboard::Scancode::Z)
+                // {
+                //     if(!isPressed_z || !isEnabledStoppingAutoRepeat_z)
+                //     {
+                //         if(!player.isFalling)
+                //         {
+                //             player.jump();
+                //         }
+                //         isPressed_z = true;
+                //     }
+                // }
+                
+                // if(keyPressed->scancode == sf::Keyboard::Scancode::X)
+                // {
+                //     if(!isPressed_x || !isEnabledStoppingAutoRepeat_x)
+                //     {
+                //         std::cout << "Shoot" << std::endl;
+                //         player.shoot(player.getSpriteScale().x > 0);
+                //         isPressed_x = true;
+                //     }
+                // }
+                
+                // if(keyPressed->scancode == sf::Keyboard::Scancode::C)
+                // {
+                //     if(!isPressed_c || !isEnabledStoppingAutoRepeat_c)
+                //     {
+                //         std::cout << "Dash" << std::endl;
+                //         player.dash();
+                //         isPressed_c = true;
+                //     }
+                // }
+                
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Num1)
                 {
-                    enemyManager.add(new Skeleton(gameData,window,ground,platforms,player,"white",sf::Vector2f(sf::Mouse::getPosition().x,sf::Mouse::getPosition().y)));
+                    enemyManager.add(new Skeleton(gameData, window, ground, platforms, player, "white", 
+                        sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y)));
                 }
+                
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Num2)
                 {
-                    enemyManager.add(new Skeleton(gameData,window,ground,platforms,player,"yellow",sf::Vector2f(sf::Mouse::getPosition().x,sf::Mouse::getPosition().y)));
+                    enemyManager.add(new Skeleton(gameData, window, ground, platforms, player, "yellow", 
+                        sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y)));
                 }
             }
-            if(const auto* keyReleased = event->getIf<sf::Event::KeyReleased>())
-            {
-                if(keyReleased->scancode == sf::Keyboard::Scancode::X && isPressed_x)
-                {
-                    isPressed_x = false;
-                }
-                if(keyReleased->scancode == sf::Keyboard::Scancode::Z && isPressed_z)
-                {
-                    isPressed_z = false;
-                }
-                if(keyReleased->scancode == sf::Keyboard::Scancode::C && isPressed_c)
-                {
-                    isPressed_c = false;
-                }
-            }
+
+            // if(const auto* keyReleased = event->getIf<sf::Event::KeyReleased>())
+            // {
+            //     if(keyReleased->scancode == sf::Keyboard::Scancode::X)
+            //     {
+            //         isPressed_x = false;
+            //     }
+                
+            //     if(keyReleased->scancode == sf::Keyboard::Scancode::Z)
+            //     {
+            //         isPressed_z = false;
+            //     }
+                
+            //     if(keyReleased->scancode == sf::Keyboard::Scancode::C)
+            //     {
+            //         isPressed_c = false;
+            //     }
+            // }
             //↑↑-----GAME-----↑↑
         }
         //Main menu drawing

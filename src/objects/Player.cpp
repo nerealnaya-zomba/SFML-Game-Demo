@@ -478,18 +478,59 @@ void Player::bloodExplode()
 void Player::updateControls()
 {
     if(!this->isAlive || isPlayingDieAnimation) return;
+    
+    // Обновляем готовность действий по таймерам
+    if (!canShoot && shootTimer.getElapsedTime().asMilliseconds() >= ButtonRepeat_shootCooldown) {
+        canShoot = true;
+    }
+    
+    if (!canJump && jumpTimer.getElapsedTime().asMilliseconds() >= ButtonRepeat_jumpCooldown) {
+        canJump = true;
+    }
+    
+    if (!canDash && dashTimer.getElapsedTime().asMilliseconds() >= ButtonRepeat_dashCooldown) {
+        canDash = true;
+    }
+    
+    // Shooting (X key)
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && canShoot)
+    {
+        std::cout << "Shoot" << std::endl;
+        shoot(getSpriteScale().x > 0);
+        canShoot = false;
+        shootTimer.restart();
+    }
+    
+    // Jumping (Z key)
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z) && canJump)
+    {
+        if(!isFalling)
+        {
+            jump();
+            canJump = false;
+            jumpTimer.restart();
+        }
+    }
+    
+    // Dash (C key)
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C) && canDash)
+    {
+        std::cout << "Dash" << std::endl;
+        dash();
+        canDash = false;
+        dashTimer.restart();
+    }
+    
+    // Moving right-left
     isIdle = true;
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
         isIdle = false;
-
         walkLeft();
     }
     else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
     {
         isIdle = false;
-
-        
         walkRight();
     }
 }

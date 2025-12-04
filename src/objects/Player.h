@@ -35,6 +35,21 @@ public:
     float playerPosY_m{};                   // Initial Y position from PlayerConfig.json
     int HP_{};                              // Health points from PlayerConfig.json
     int DMG_{};                             // Damage value from PlayerConfig.json
+
+    // Таймеры для кнопок
+    sf::Clock shootTimer;
+    sf::Clock jumpTimer;
+    sf::Clock dashTimer;
+    
+    // Задержки (в секундах)
+    float ButtonRepeat_shootCooldown = 100;
+    float ButtonRepeat_jumpCooldown  = 100;
+    float ButtonRepeat_dashCooldown  = 100;
+    
+    // Флаги готовности
+    bool canShoot = true;
+    bool canJump = true;
+    bool canDash = true;
     
     //Player animation state
     bool isPlayingDieAnimation = false;
