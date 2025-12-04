@@ -42,9 +42,9 @@ public:
     sf::Clock dashTimer;
     
     // Задержки (в секундах)
-    float ButtonRepeat_shootCooldown = 100;
-    float ButtonRepeat_jumpCooldown  = 100;
-    float ButtonRepeat_dashCooldown  = 100;
+    float ButtonRepeat_shootCooldown{};
+    float ButtonRepeat_jumpCooldown{};
+    float ButtonRepeat_dashCooldown{};
     
     // Флаги готовности
     bool canShoot = true;

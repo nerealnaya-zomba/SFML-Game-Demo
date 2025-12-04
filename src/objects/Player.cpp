@@ -178,17 +178,25 @@ void Player::loadData()
 {
     std::fstream f("PlayerConfig.json");
     nlohmann::json data = nlohmann::json::parse(f);
+    //Player
     this->playerPosX_m = data["Player"]["PosX"];
     this->playerPosY_m = data["Player"]["PosY"];
     this->HP_ = data["Player"]["HP"];
     this->takeDMG_cooldown = data["Player"]["takeDMG_cooldown"];
 
+    //Jump
+    this->ButtonRepeat_jumpCooldown = data["Jump"]["repeatCooldown"];
+
+    //Bullet
     this->DMG_ = data["Bullet"]["DMG"];
     this->bulletMaxDistance_ = data["Bullet"]["bulletMaxDistance"];
     this->bulletSpeed = data["Bullet"]["bulletSpeed"];
+    this->ButtonRepeat_shootCooldown = data["Bullet"]["repeatCooldown"];
 
+    //Dash
     this->dashForce = data["Dash"]["force"];
     this->dashCooldown = data["Dash"]["Cooldown"];
+    this->ButtonRepeat_dashCooldown = data["Dash"]["repeatCooldown"];
 }
 
 void Player::checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects)
@@ -482,14 +490,17 @@ void Player::updateControls()
     // Обновляем готовность действий по таймерам
     if (!canShoot && shootTimer.getElapsedTime().asMilliseconds() >= ButtonRepeat_shootCooldown) {
         canShoot = true;
+        shootTimer.stop();
     }
     
     if (!canJump && jumpTimer.getElapsedTime().asMilliseconds() >= ButtonRepeat_jumpCooldown) {
         canJump = true;
+        jumpTimer.stop();
     }
     
     if (!canDash && dashTimer.getElapsedTime().asMilliseconds() >= ButtonRepeat_dashCooldown) {
         canDash = true;
+        dashTimer.stop();
     }
     
     // Shooting (X key)

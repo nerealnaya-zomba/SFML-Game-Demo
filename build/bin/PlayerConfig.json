@@ -5,13 +5,18 @@
         "HP": 1000,
         "takeDMG_cooldown": 1000
     },
+    "Jump":{
+        "repeatCooldown": 100
+    },
     "Bullet":{
         "bulletSpeed": 5.0,
         "bulletMaxDistance": 500.0,
-        "DMG": 10
+        "DMG": 10,
+        "repeatCooldown": 100
     },
     "Dash":{
         "force": 10.0,
-        "Cooldown": 1000
+        "Cooldown": 1000,
+        "repeatCooldown": 100
     }
 }
