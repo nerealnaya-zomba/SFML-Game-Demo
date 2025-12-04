@@ -86,7 +86,9 @@ public:
 
 private:
     // Texture loading and processing
+    int standartIterationsTillSwitch = 7;
     bool initSatiroTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
+    bool loadTexture(std::vector<sf::Texture> &textures,std::string path, texturesIterHelper& helper, int pauseTillSwitch);
     void generateMipmapTextures(std::vector<sf::Texture>& texturesArray);
     void smoothTextures(std::vector<sf::Texture>& texturesArray);
 

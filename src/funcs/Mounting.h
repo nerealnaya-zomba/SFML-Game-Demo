@@ -5,6 +5,9 @@
 #include<filesystem>
 #include<vector>
 #include<TexturesIterHelper.h>
+#include <fstream> 
+#include <sstream>
+#include <iomanip>
 
 static void setRectangleOriginToMiddle(sf::RectangleShape& rect)
 {
@@ -19,31 +22,172 @@ static void setTextOriginToMiddle(sf::Text& text)
     text.setOrigin({text.getLocalBounds().size.x/2, text.getLocalBounds().size.y/2});
 }
 //Loading
-static bool initTextures(std::vector<sf::Texture> &textures, std::string path, int texturesCount, int maxDigits = 5, int counterA = 0)
+static bool initTextures(std::vector<sf::Texture> &textures, std::string path, 
+                         int texturesCount, int maxDigits = 5, int startCounter = 0)
 {
-    sf::Texture* texture = new sf::Texture;
-    std::string basePath = path;
-    int counter = counterA;
+    // Очищаем вектор на случай повторного использования
+    textures.clear();
     
-    while (counter<=texturesCount) {
-        // Форматируем число с ведущими нулями (00000, 00001, ...)
+    std::string basePath = path;
+    
+    for (int counter = startCounter; counter < startCounter + texturesCount; counter++) {
         std::ostringstream filename;
         filename << basePath 
+                 << std::setw(maxDigits) << std::setfill('0') << counter 
+                 << ".png";
+
+        sf::Texture texture;
+        if (!texture.loadFromFile(filename.str())) {
+            std::cerr << "Failed to load image: " << filename.str() << std::endl;
+            return false;
+        }
+        textures.push_back(texture);
+    }
+    
+    return true;
+}
+
+static int countTexturesInFolder(std::string path, int maxDigits = 5, int startCounter = 0)
+{
+    int count = 0;
+    int counter = startCounter;
+    
+    while (true) {
+        // Форматируем имя файла с ведущими нулями
+        std::ostringstream filename;
+        filename << path 
                 << std::setw(maxDigits) << std::setfill('0') << counter 
                 << ".png";
 
-        // Пытаемся загрузить текстуру
-        
-        if (!texture->loadFromFile(filename.str())) 
-        {
-            exit(EXIT_FAILURE);
+        // Проверяем существует ли файл
+        std::ifstream file(filename.str()); 
+        if (!file.good()) {
+            break; // Файл не найден - заканчиваем подсчет
         }
-        textures.push_back(*texture);
-        std::cout << "Loaded: " << filename.str() << std::endl;
+        
+        count++;
         counter++;
-
     }
-    return true;
+    
+    return count;
+}
+
+static void analyzeTextureSequence(std::string path, int& maxDigits, int& startCounter, int& count) 
+{
+    maxDigits = 0;
+    startCounter = 0;
+    count = 0;
+    
+    // Определяем максимальные digits - ищем паттерн в пути
+    // Пример: ".../skeleton-idle_00000.png" -> digits=5
+    std::size_t lastUnderscore = path.find_last_of('_');
+    if (lastUnderscore != std::string::npos) {
+        std::string suffix = path.substr(lastUnderscore + 1);
+        maxDigits = suffix.length();
+    }
+    
+    // Пробуем найти startCounter
+    int counter = 0;
+    int foundStart = -1;
+    
+    // Сканируем от 0 до 99999
+    for (int i = 0; i < 100000; i++) {
+        std::ostringstream filename;
+        filename << path 
+                << std::setw(maxDigits) << std::setfill('0') << i 
+                << ".png";
+
+        std::ifstream file(filename.str());
+        if (file.good()) {
+            if (foundStart == -1) {
+                foundStart = i; // Первый найденный файл
+            }
+            count++;
+        } 
+        else if (foundStart != -1) {
+            break; // Нашли начало, но файл отсутствует - закончили
+        }
+    }
+    
+    if (foundStart != -1) {
+        startCounter = foundStart;
+    }
+}
+
+// Или одна функция которая всё возвращает в структуре:
+struct TextureSequenceInfo {
+    int maxDigits;
+    int startCounter;
+    int count;
+};
+
+static TextureSequenceInfo analyzeTextureSequence(std::string path)
+{
+    TextureSequenceInfo info{5, 0, 0}; // Значения по умолчанию
+    
+    // Убираем .png если есть
+    if (path.size() > 4 && path.substr(path.size() - 4) == ".png") {
+        path = path.substr(0, path.size() - 4);
+    }
+    
+    // ПРОСТОЙ ПОДХОД: пробуем разные форматы, пока не найдем файлы
+    const std::vector<std::pair<int, int>> patterns = {
+        {5, 0}, // 00000, 00001 (растения, скелетоны)
+        {2, 1}, // 01, 02 (пули)
+        {4, 0}, // 0000, 0001
+        {3, 0}, // 000, 001
+        {2, 0}, // 00, 01
+        {1, 1}  // 1, 2, 3
+    };
+    
+    for (const auto& pattern : patterns) {
+        int digits = pattern.first;
+        int start = pattern.second;
+        int count = 0;
+        
+        // Убираем цифры из конца пути, если они есть
+        std::string basePath = path;
+        while (!basePath.empty() && std::isdigit(basePath.back())) {
+            basePath.pop_back();
+        }
+        
+        // Проверяем файлы
+        bool foundAtLeastOne = false;
+        for (int i = start; i < start + 1000; i++) {
+            std::ostringstream filename;
+            filename << basePath 
+                     << std::setw(digits) << std::setfill('0') << i 
+                     << ".png";
+            
+            std::ifstream file(filename.str());
+            if (file.good()) {
+                count++;
+                foundAtLeastOne = true;
+            } else {
+                if (foundAtLeastOne) {
+                    break; // Нашли последовательность файлов, которая прервалась
+                } else {
+                    break; // Не нашли первый файл с этим форматом
+                }
+            }
+        }
+        
+        if (count > 0) {
+            info.maxDigits = digits;
+            info.startCounter = start;
+            info.count = count;
+            
+            // Отладочный вывод
+            std::cout << "Found pattern for " << basePath 
+                      << ": digits=" << digits 
+                      << ", start=" << start 
+                      << ", count=" << count << std::endl;
+            return info;
+        }
+    }
+    
+    std::cerr << "WARNING: No textures found for path: " << path << std::endl;
+    return info; // Возвращаем значения по умолчанию
 }
 
 namespace fs = std::filesystem;
