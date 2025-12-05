@@ -1,6 +1,12 @@
 #include<Bullet.h>
 
-Bullet::Bullet(sf::Vector2f pos, float maxDistance, GameData& gamedata)
+void Bullet::setOffSetToMove(sf::Vector2f offset)
+{
+    this->offsetToMove_ = offset;
+    this->maxReduction = 1.f;
+}
+
+Bullet::Bullet(sf::Vector2f pos, float maxDistance, GameData &gamedata)
 {
     maxDistance_=maxDistance;
     bulletRect_ = new sf::RectangleShape();
@@ -47,9 +53,23 @@ void Bullet::moveBullet()
 {
     if(isSheduledToBeDestroyed) return;
 
+    if(distancePassed>=(maxDistance_/4)*2) speedReduction();
+
     distancePassed+=std::abs(offsetToMove_.x);
     bulletRect_->move(offsetToMove_);
     bulletSprite_->move(offsetToMove_);
+}
+
+void Bullet::speedReduction()
+{
+    if(offsetToMove_.x > maxReduction) {
+        offsetToMove_.x -= speedReductionValue;
+        if(offsetToMove_.x < maxReduction) offsetToMove_.x = maxReduction;
+    }
+    else if(offsetToMove_.x < -maxReduction) {
+        offsetToMove_.x += speedReductionValue;
+        if(offsetToMove_.x > -maxReduction) offsetToMove_.x = -maxReduction;
+    }
 }
 
 void Bullet::update()

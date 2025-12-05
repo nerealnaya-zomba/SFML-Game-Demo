@@ -135,10 +135,10 @@ private:
     bool recentlySwitchedDirection = false;
 
     // Константы
-    const float TIME_TO_CHECK_DEADEND = 1000.0f;    // Время проверки тупика (мс)
+    const float TIME_TO_CHECK_DEADEND = 300.0f;    // Время проверки тупика (мс)
     const float MIN_DISTANCE_FOR_DEADEND = 10.0f;   // Минимальное расстояние для детекции тупика
     const float DIRECTION_SWITCH_COOLDOWN = 300.0f; // Задержка перед сменой направления
-    const float DIRECTION_SWITCH_OFFSET = 5.0f;     // Отступ от границы для смены направления
+    const float DIRECTION_SWITCH_OFFSET = 100.0f;     // Отступ от границы для смены направления
     // Состояния
     bool isFirstEnter = true;
     bool isEncounteredNewDeadEnd = false;

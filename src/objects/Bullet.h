@@ -20,6 +20,8 @@ public:
     // Bullet properties
     float maxDistance_{100.f};                 // Maximum travel distance
     float distancePassed{};                    // Current distance traveled
+    float speedReductionValue = 0.05f;
+    float maxReduction;
     
     // State flags
     bool canBeDeleted = false;                 // Safe to remove from memory
@@ -28,7 +30,8 @@ public:
     
     // Movement
     sf::Vector2f offsetToMove_{};              // Movement per frame
-    
+    void setOffSetToMove(sf::Vector2f offset);
+
     // Particle system
     std::vector<Particle> particles;           // Visual effect particles
     sf::Clock makeParticles_clock;             // Timer for particle cooldown
@@ -49,6 +52,7 @@ public:
 
     // Physics & movement
     void moveBullet();                           // Update bullet position
+    void speedReduction();                       //NOTE THIS METHOD DOES NOTHING BECAYSE SPEED OF BULLET DEFINED IN Player.h
     void update();                               // Main update method (physics + particles)
 
     // Animation

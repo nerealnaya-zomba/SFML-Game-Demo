@@ -12,7 +12,8 @@
         "bulletSpeed": 5.0,
         "bulletMaxDistance": 500.0,
         "DMG": 10,
-        "repeatCooldown": 100
+        "repeatCooldown": 100,
+        "bulletSpeedReduction": 0.1
     },
     "Dash":{
         "force": 10.0,

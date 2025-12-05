@@ -59,7 +59,7 @@ public:
     // Bullet properties
     float bulletSpeed;                      // From PlayerConfig.json
     float bulletMaxDistance_;               // From PlayerConfig.json
-    
+    float bulletSpeedReduction;             // From PlayerConfig.json
     // Dash mechanics
     bool isDashOnCooldown = false;
     float dashForce{};                      // From PlayerConfig.json
