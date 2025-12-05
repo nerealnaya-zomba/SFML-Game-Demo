@@ -18,6 +18,19 @@ enum skeletonAction {
     ATTACK2,
 };
 
+enum PatrolState {
+    PATROL_EXPLORING_LEFT,   // Исследуем левую границу
+    PATROL_EXPLORING_RIGHT,  // Исследуем правую границу
+    PATROL_PATROLLING        // Патрулируем между границами
+};
+
+enum ExplorationState {
+    EXPLORE_NONE,      // Не исследовали
+    EXPLORE_LEFT,      // Исследуем левую сторону
+    EXPLORE_RIGHT,     // Исследуем правую сторону
+    PATROLLING         // Патрулируем между найденными границами
+};
+
 class Skeleton : public Enemy {
 private:
     // External references
@@ -31,10 +44,14 @@ private:
     HealthBar* healthbar;               // Health display
 
     // State flags
+        //Physics
     bool isIdle = true;
     bool isFalling = true;
+        //Animation
     bool isPlayingHurtAnimation = false;
     bool isPlayingDieAnimation = false;
+        //AI
+    bool isPlayerOutOfReach = false;
     
     skeletonAction action_ = skeletonAction::IDLE;
 
@@ -91,6 +108,62 @@ private:
 
     // AI behavior
     void chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos);
+    void patrol();
+    void makeRandomPatrolVariables();
+    
+    sf::Clock switchTimer;
+    // Состояние исследования
+    ExplorationState explorationState = EXPLORE_NONE;
+
+    // Таймеры для детекции тупиков
+    sf::Clock exploreTimer;
+    sf::Clock deadEndCheckTimer;
+    sf::Clock directionSwitchTimer;
+
+    // Стартовая позиция для измерения движения
+    float exploreStartPos = 0.0f;
+
+    // Границы патрулирования
+    float leftBound = 0.0f;
+    float rightBound = 0.0f;
+
+    // Флаги исследованных сторон
+    bool leftExplored = false;
+    bool rightExplored = false;
+
+    // Защита от быстрого переключения направления
+    bool recentlySwitchedDirection = false;
+
+    // Константы
+    const float TIME_TO_CHECK_DEADEND = 1000.0f;    // Время проверки тупика (мс)
+    const float MIN_DISTANCE_FOR_DEADEND = 10.0f;   // Минимальное расстояние для детекции тупика
+    const float DIRECTION_SWITCH_COOLDOWN = 300.0f; // Задержка перед сменой направления
+    const float DIRECTION_SWITCH_OFFSET = 5.0f;     // Отступ от границы для смены направления
+    // Состояния
+    bool isFirstEnter = true;
+    bool isEncounteredNewDeadEnd = false;
+    bool makeRandomStart = false;
+    
+    // Границы патрулирования
+    float patrolLeftBound;
+    float patrolRightBound;
+    
+    // Позиции для детекции застревания
+    float pastSkeletonPos = 0.0f;
+    float currentSkeletonPos = 0.0f;
+    PatrolState patrolState = PATROL_PATROLLING;
+    // Таймеры
+    sf::Clock updateClock;
+    sf::Clock isPlayerOutOfReachClock;
+    sf::Clock patrolDeadEndClock;
+    
+    // Параметры (в миллисекундах)
+    const float UPDATE_INTERVAL = 50.0f;
+    const float DEADEND_DETECTION_TIME = 500.0f;
+    const float PATROL_SWITCH_DELAY = 1000.0f;
+    const float MIN_MOVEMENT_THRESHOLD = 5.0f; // пикселей
+    
+    // Дистанции
     void tryAttackPlayer();
 
     // Action handlers

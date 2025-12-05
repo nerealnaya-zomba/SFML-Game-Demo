@@ -34,6 +34,142 @@ void Skeleton::chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos)
     }
 }
 
+void Skeleton::patrol()
+{
+    currentSkeletonPos = skeletonRect->getGlobalBounds().getCenter().x;
+    
+    // Первый вход в патрулирование
+    if(isFirstEnter)
+    {
+        isFirstEnter = false;
+        
+        // Сброс флагов исследования
+        leftExplored = false;
+        rightExplored = false;
+        
+        // Выбираем случайную сторону для начала исследования
+        if(rand() % 2 == 0)
+        {
+            explorationState = EXPLORE_LEFT;
+            action_ = skeletonAction::WALKLEFT;
+        }
+        else
+        {
+            explorationState = EXPLORE_RIGHT;
+            action_ = skeletonAction::WALKRIGHT;
+        }
+        
+        exploreStartPos = currentSkeletonPos;
+        deadEndCheckTimer.restart();
+        return;
+    }
+    
+    // Если мы все еще в фазе исследования (не патрулируем)
+    if(explorationState != PATROLLING)
+    {
+        // Проверяем, не уперлись ли мы в тупик
+        if(deadEndCheckTimer.getElapsedTime().asMilliseconds() >= TIME_TO_CHECK_DEADEND)
+        {
+            float distanceMoved = std::abs(currentSkeletonPos - exploreStartPos);
+            
+            if(distanceMoved < MIN_DISTANCE_FOR_DEADEND)
+            {
+                // ОБНАРУЖЕН ТУПИК
+                if(explorationState == EXPLORE_LEFT && !leftExplored)
+                {
+                    // Сохраняем левую границу
+                    leftBound = currentSkeletonPos;
+                    leftExplored = true;
+                }
+                else if(explorationState == EXPLORE_RIGHT && !rightExplored)
+                {
+                    // Сохраняем правую границу
+                    rightBound = currentSkeletonPos;
+                    rightExplored = true;
+                }
+                
+                // Проверяем, исследованы ли обе стороны
+                if(leftExplored && rightExplored)
+                {
+                    explorationState = PATROLLING;
+                    // Определяем начальное направление для патрулирования
+                    if(currentSkeletonPos > (leftBound + rightBound) / 2.0f)
+                        action_ = skeletonAction::WALKLEFT;
+                    else
+                        action_ = skeletonAction::WALKRIGHT;
+                }
+                else
+                {
+                    // Переключаемся на исследование другой стороны
+                    if(!leftExplored)
+                    {
+                        explorationState = EXPLORE_LEFT;
+                        action_ = skeletonAction::WALKLEFT;
+                    }
+                    else if(!rightExplored)
+                    {
+                        explorationState = EXPLORE_RIGHT;
+                        action_ = skeletonAction::WALKRIGHT;
+                    }
+                    
+                    // Сбрасываем таймер и начальную позицию для нового исследования
+                    exploreStartPos = currentSkeletonPos;
+                    deadEndCheckTimer.restart();
+                }
+            }
+            else
+            {
+                // Не тупик - продолжаем движение
+                exploreStartPos = currentSkeletonPos;
+                deadEndCheckTimer.restart();
+            }
+        }
+    }
+    // Фаза патрулирования между найденными границами
+    else
+    {
+        if(!recentlySwitchedDirection)
+        {
+            // Проверяем достижение границ
+            if(action_ == skeletonAction::WALKLEFT && 
+               currentSkeletonPos <= leftBound + DIRECTION_SWITCH_OFFSET)
+            {
+                action_ = skeletonAction::WALKRIGHT;
+                recentlySwitchedDirection = true;
+                directionSwitchTimer.restart();
+            }
+            else if(action_ == skeletonAction::WALKRIGHT && 
+                    currentSkeletonPos >= rightBound - DIRECTION_SWITCH_OFFSET)
+            {
+                action_ = skeletonAction::WALKLEFT;
+                recentlySwitchedDirection = true;
+                directionSwitchTimer.restart();
+            }
+        }
+        
+        // Сброс защиты от быстрого переключения
+        if(recentlySwitchedDirection && 
+           directionSwitchTimer.getElapsedTime().asMilliseconds() >= DIRECTION_SWITCH_COOLDOWN)
+        {
+            recentlySwitchedDirection = false;
+        }
+    }
+}
+
+void Skeleton::makeRandomPatrolVariables()
+{
+    if(makeRandomStart != isPlayerOutOfReach)
+    {
+        makeRandomStart = isPlayerOutOfReach;
+        isFirstEnter = true;
+        explorationState = EXPLORE_NONE;
+        leftExplored = false;
+        rightExplored = false;
+        leftBound = 0.0f;
+        rightBound = 0.0f;
+    }
+}
+
 void Skeleton::tryAttackPlayer()
 {
     sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
@@ -186,7 +322,8 @@ void Skeleton::loadData()
     this->distanceToHit_byAttack = j["general"]["distanceToHit_byAttack"];
     if(type_=="white")
     {
-        this->maxWalkSpeed = j["skeleton-white"]["maxSpeed"];
+        //this->maxWalkSpeed = j["skeleton-white"]["maxSpeed"];
+        this->maxWalkSpeed = random(1.5f,3.0f);
         this->speed = j["skeleton-white"]["acceleration"];
         this->frictionForce = j["skeleton-white"]["friction"];
         this->HP_ = j["skeleton-white"]["HP"];
@@ -264,32 +401,53 @@ Skeleton::~Skeleton()
     delete this->skeletonRect;
 }
 
-void Skeleton::updateAI() //TODO Write better skeleton's intelligence
+void Skeleton::updateAI()
 {
-    // Позиции для удобства
+    if(!isAlive) return;
+    
     sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
     sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
-    
     float distanceX = std::abs(skeletonPos.x - playerPos.x);
     float distanceY = std::abs(skeletonPos.y - playerPos.y);
-
-    // АТАКА: если игрок близко И скелет не атакует сейчас
-    if (distanceX < this->distanceToMakeAttack && distanceY < this->distanceToMakeAttack) {
-        // Проверяем что не атакуем в данный момент
-        if (action_ != ATTACK1 && action_ != ATTACK2) {
+    
+    // Атака, если игрок близко
+    if(distanceX < distanceToMakeAttack && distanceY < distanceToMakeAttack) 
+    {
+        if(action_ != ATTACK1 && action_ != ATTACK2) {
             // Случайный выбор атаки
-            if (rand() % 2 == 0) {
-                action_ = skeletonAction::ATTACK1;
-            } else {
-                action_ = skeletonAction::ATTACK2;
-            }
+            action_ = (rand() % 2 == 0) ? ATTACK1 : ATTACK2;
+        }
+    }
+    else if(!isPlayerOutOfReach) 
+    {
+        // Преследование
+        chasePlayer(skeletonPos, playerPos);
+    }
+    
+    // Проверка, досягаем ли игрок по вертикали
+    float skeletonTopY = skeletonRect->getGlobalBounds().getCenter().y-(skeletonRect->getSize().y/2);
+    float playerBottomY = player_->playerRectangle_->getGlobalBounds().getCenter().y+(player_->playerRectangle_->getSize().y/2);
+    
+    if(playerBottomY < skeletonTopY) {
+        // Игрок выше скелета (недосягаем)
+        if(!isPlayerOutOfReachClock.isRunning()) {
+            isPlayerOutOfReachClock.restart();
+        }
+        
+        if(isPlayerOutOfReachClock.getElapsedTime().asMilliseconds() >= PATROL_SWITCH_DELAY) {
+            isPlayerOutOfReach = true;
         }
     } 
     else {
-        // Преследование если не атакуем
-        if (action_ != ATTACK1 && action_ != ATTACK2) {
-            chasePlayer(skeletonPos, playerPos);
-        }
+        // Игрок достижим
+        isPlayerOutOfReachClock.restart();
+        isPlayerOutOfReach = false;
+    }
+    
+    // Переключение в режим патрулирования
+    if(isPlayerOutOfReach) {
+        makeRandomPatrolVariables();
+        patrol();
     }
 }
 

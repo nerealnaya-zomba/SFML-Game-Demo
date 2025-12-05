@@ -260,3 +260,10 @@ static int random(int min, int max) {
 static float random(float min, float max) {
     return min + static_cast<float>(rand()) / RAND_MAX * (max - min);
 }
+static bool checkInterval(sf::Clock& clock, float intervalMs) {
+    if (clock.getElapsedTime().asMilliseconds() >= intervalMs) {
+        clock.restart();
+        return true;
+    }
+    return false;
+}
