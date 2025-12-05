@@ -463,6 +463,7 @@ bool Player::takeDMG(int count, sf::Vector2f knockback, bool side)
         std::cout << "Player hitted. HP: " << this->HP_ << std::endl; // REMOVELATER Player hitted debug
         return true;
     }
+    return false;
 }
 
 void Player::bloodExplode()
