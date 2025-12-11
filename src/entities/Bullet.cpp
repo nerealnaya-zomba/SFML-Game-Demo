@@ -1,9 +1,15 @@
 #include<Bullet.h>
 
-void Bullet::setOffSetToMove(sf::Vector2f offset)
+void Bullet::setSpeed(sf::Vector2f offset)
 {
-    this->offsetToMove_ = offset;
+    this->speed_ = offset;
     this->maxReduction = 1.f;
+    originalSpeed_ = speed_;
+
+    double reductionDistance = maxDistance_ / 2.0;
+    reductionDistance /= abs(originalSpeed_.x);
+    speedReductionValue = (abs(speed_.x) - maxReduction) / (reductionDistance);
+
 }
 
 Bullet::Bullet(sf::Vector2f pos, float maxDistance, GameData &gamedata)
@@ -53,29 +59,33 @@ void Bullet::moveBullet()
 {
     if(isSheduledToBeDestroyed) return;
 
-    if(distancePassed>=(maxDistance_/4)*2) speedReduction();
+    if(distancePassed>=(maxDistance_/4)*2) speedReduction(); // Задействовать уменьшение скорости на 2/4 пройденных пути
 
-    distancePassed+=std::abs(offsetToMove_.x);
-    bulletRect_->move(offsetToMove_);
-    bulletSprite_->move(offsetToMove_);
+    distancePassed+=std::abs(speed_.x);
+    bulletRect_->move(speed_);
+    bulletSprite_->move(speed_);
 }
 
 void Bullet::speedReduction()
 {
-    if(offsetToMove_.x > maxReduction) {
-        offsetToMove_.x -= speedReductionValue;
-        if(offsetToMove_.x < maxReduction) offsetToMove_.x = maxReduction;
+    if(speed_.x > maxReduction) {
+        speed_.x -= speedReductionValue;
+        if(speed_.x < maxReduction) speed_.x = maxReduction;
     }
-    else if(offsetToMove_.x < -maxReduction) {
-        offsetToMove_.x += speedReductionValue;
-        if(offsetToMove_.x > -maxReduction) offsetToMove_.x = -maxReduction;
+    else if(speed_.x < -maxReduction) {
+        speed_.x += speedReductionValue;
+        if(speed_.x > -maxReduction) speed_.x = -maxReduction;
     }
+    double reductionDistance = maxDistance_ / 2;
+    reductionDistance /= abs(speed_.x);
+    speedReductionValue = (abs(originalSpeed_.x) - maxReduction) / (reductionDistance);
 }
 
 void Bullet::update()
 {
     moveBullet();
-
+    std::cout << "Speed: " << speed_.x << std::endl;
+    std::cout << "Reduction: " << speedReductionValue << std::endl;
     //Остаточные частицы
     if(!makeParticles_isOnCooldown){   
         makeAfterParticles();

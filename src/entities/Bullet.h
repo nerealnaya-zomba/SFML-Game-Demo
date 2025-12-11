@@ -6,6 +6,9 @@
 #include <GameData.h>
 #include <vector>
 #include <TexturesIterHelper.h>
+#include<Defines.h>
+
+const float SPEED_REDUCTION_RATIO = 0.01f; //1.5% от скорости пули
 
 class Bullet
 {
@@ -17,11 +20,11 @@ private:
     sf::Sprite* bulletSprite_;                 // Visual representation
     
 public:
-    // Bullet properties
-    float maxDistance_{100.f};                 // Maximum travel distance
-    float distancePassed{};                    // Current distance traveled
-    float speedReductionValue = 0.05f;
-    float maxReduction;
+    // Bullet properties 
+    double maxDistance_{};                 // Maximum travel distance
+    double distancePassed{};                    // Current distance traveled
+    double speedReductionValue{};                 // Was 0.05f, when speed = 5.f
+    double maxReduction;
     
     // State flags
     bool canBeDeleted = false;                 // Safe to remove from memory
@@ -29,13 +32,13 @@ public:
     bool isMakedDeathParticles = false;        // Death particles already created
     
     // Movement
-    sf::Vector2f offsetToMove_{};              // Movement per frame
-    void setOffSetToMove(sf::Vector2f offset);
+    sf::Vector2f speed_{};              // Movement per frame
+    sf::Vector2f originalSpeed_{};
 
     // Particle system
     std::vector<Particle> particles;           // Visual effect particles
     sf::Clock makeParticles_clock;             // Timer for particle cooldown
-    float makeParticles_cooldown = 50;         // Cooldown in milliseconds
+    double makeParticles_cooldown = 50;         // Cooldown in milliseconds
     bool makeParticles_isOnCooldown = false;   // Cooldown state
 
     // Constructor & Destructor
@@ -43,6 +46,7 @@ public:
     virtual ~Bullet();
 
     // Setters
+    void setSpeed(sf::Vector2f offset);
     void setSpriteTexture(sf::Texture& texture); // Change sprite texture
     void setSpriteScale(sf::Vector2f scale);     // Change sprite scale
 
@@ -52,7 +56,7 @@ public:
 
     // Physics & movement
     void moveBullet();                           // Update bullet position
-    void speedReduction();                       //NOTE THIS METHOD DOES NOTHING BECAYSE SPEED OF BULLET DEFINED IN Player.h
+    void speedReduction();                       
     void update();                               // Main update method (physics + particles)
 
     // Animation

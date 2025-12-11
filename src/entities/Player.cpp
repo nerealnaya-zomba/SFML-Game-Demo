@@ -373,18 +373,18 @@ void Player::shoot(bool direction)
         //If-else removes the possibility of spawning bullets slower than the standard bullet speed.
         if(bulletSpeed+initialWalkSpeed<bulletSpeed)
         {
-            bulletPtr->setOffSetToMove(sf::Vector2f(bulletSpeed,0.f));
+            bulletPtr->setSpeed(sf::Vector2f(bulletSpeed,0.f));
         }
-        else bulletPtr->setOffSetToMove(sf::Vector2f(bulletSpeed+(initialWalkSpeed*1.5),0.f));
+        else bulletPtr->setSpeed(sf::Vector2f(bulletSpeed+(initialWalkSpeed*1.5),0.f));
     }
     else
     {
         //If-else removes the possibility of spawning bullets slower than the standard bullet speed.
         if(-bulletSpeed+initialWalkSpeed>-bulletSpeed)
         {
-            bulletPtr->setOffSetToMove(sf::Vector2f(-bulletSpeed,0.f));
+            bulletPtr->setSpeed(sf::Vector2f(-bulletSpeed,0.f));
         }
-        else bulletPtr->setOffSetToMove(sf::Vector2f(-bulletSpeed+(initialWalkSpeed*1.5),0.f));
+        else bulletPtr->setSpeed(sf::Vector2f(-bulletSpeed+(initialWalkSpeed*1.5),0.f));
         bulletPtr->setSpriteScale({-1.f,1.f});
     }
 
