@@ -20,24 +20,33 @@ FetchContent_MakeAvailable(json) #JSON connecting
 
 add_executable(main 
     src/main.cpp 
-    src/objects/Player.cpp 
-    src/objects/Menu.cpp 
-    src/objects/Trail.cpp
-    src/objects/Platform.cpp
-    src/objects/Background.cpp
-    src/objects/Ground.cpp
-    src/objects/Decoration.cpp
-    src/objects/Enemy.cpp
-    src/objects/Bullet.cpp
-    src/objects/AskDialogue.cpp
-    src/objects/LoadScreen.cpp
-    src/objects/GameData.cpp
-    src/objects/GameLoadingScreen.cpp
-    src/objects/Skeleton.cpp
-    src/objects/EnemyManager.cpp
-    src/objects/Particle.cpp)
+    src/entities/Player.cpp 
+    src/ui/Menu.cpp 
+    src/graphics/Trail.cpp
+    src/systems/Platform.cpp
+    src/graphics/Background.cpp
+    src/systems/Ground.cpp
+    src/graphics/Decoration.cpp
+    src/core/Enemy.cpp
+    src/entities/Bullet.cpp
+    src/ui/AskDialogue.cpp
+    src/ui/LoadScreen.cpp
+    src/core/GameData.cpp
+    src/ui/GameLoadingScreen.cpp
+    src/entities/Skeleton.cpp
+    src/core/EnemyManager.cpp
+    src/graphics/Particle.cpp)
 
-target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/funcs ${CMAKE_SOURCE_DIR}/src/objects) #Project source files
+target_include_directories(main PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src 
+    ${CMAKE_SOURCE_DIR}/src/funcs 
+    ${CMAKE_SOURCE_DIR}/src/objects 
+    ${CMAKE_SOURCE_DIR}/src/core
+    ${CMAKE_SOURCE_DIR}/src/entities
+    ${CMAKE_SOURCE_DIR}/src/graphics
+    ${CMAKE_SOURCE_DIR}/src/systems
+    ${CMAKE_SOURCE_DIR}/src/ui
+    ${CMAKE_SOURCE_DIR}/src/utils) #Project source files
 
 # FFmpeg
 target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/include)
