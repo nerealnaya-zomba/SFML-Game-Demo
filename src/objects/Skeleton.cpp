@@ -345,6 +345,8 @@ void Skeleton::updateAI() {
     float distanceX = std::abs(skeletonPos.x - playerPos.x);
     float distanceY = std::abs(skeletonPos.y - playerPos.y);
     
+    //Player center to check if he passes left or right bound
+    float playerCenterX = this->player_->playerRectangle_->getGlobalBounds().getCenter().x;
     // Атака при близости игрока
     if (distanceX < distanceToMakeAttack && distanceY < distanceToMakeAttack) {
         if (action_ != ATTACK1 && action_ != ATTACK2) {
@@ -360,8 +362,20 @@ void Skeleton::updateAI() {
     float playerBottomY = player_->playerRectangle_->getGlobalBounds().getCenter().y + (player_->playerRectangle_->getSize().y / 2);
     float playerTopY = player_->playerRectangle_->getGlobalBounds().getCenter().y - (player_->playerRectangle_->getSize().y / 2);
     
-    if (playerBottomY < skeletonTopY || playerTopY > skeletonBotY) {
-        // Игрок недосягаем
+    bool isPlayerUnreachable = (playerBottomY < skeletonTopY || playerTopY > skeletonBotY) 
+                            && !(playerCenterX > leftBound && playerCenterX < rightBound);
+
+    // Проверка, находится ли игрок в зоне преследования (внутри границ патрулирования)
+    bool isPlayerInPatrolZone = (playerCenterX > leftBound && playerCenterX < rightBound);
+
+    // Проверка вертикальной досягаемости игрока
+    bool isPlayerVerticallyReachable = !(playerBottomY < skeletonTopY || playerTopY > skeletonBotY);
+
+    // Игрок достижим только если он и внутри зоны патрулирования, и на одном уровне
+    bool isPlayerReachable = isPlayerInPatrolZone && isPlayerVerticallyReachable;
+
+    if (!isPlayerReachable) {
+        // Игрок недосягаем - запускаем/продолжаем таймер
         if (!isPlayerOutOfReachClock.isRunning()) {
             isPlayerOutOfReachClock.restart();
         }
@@ -370,12 +384,12 @@ void Skeleton::updateAI() {
             isPlayerOutOfReach = true;
         }
     } else {
-        // Игрок достижим
+        // Игрок достижим - сбрасываем таймер и выходим из режима патрулирования
         isPlayerOutOfReachClock.restart();
         isPlayerOutOfReach = false;
     }
-    
-    // Переключение в патрулирование
+
+    // Переключение в патрулирование только если игрок недосягаем
     if (isPlayerOutOfReach) {
         makeRandomPatrolVariables();
         patrol();
