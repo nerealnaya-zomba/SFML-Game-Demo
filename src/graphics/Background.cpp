@@ -10,7 +10,12 @@ Background::Background()
 
     //Sprite init
     sky = new sf::Sprite(*skyTexture);
-    sky->setScale({1920.f / 768.f, 1080.f / 416.f});
+
+    //Calibrating background to window width and height
+    float window_width = static_cast<float>(WINDOW_WIDTH);
+    float window_height = static_cast<float>(WINDOW_HEIGHT);
+    sky->setScale({window_width / 768.f, window_height / 416.f});
+
     mansion = new sf::Sprite(*mansionTexture);
     mansion->setScale({WINDOW_WIDTH / 768.f, WINDOW_HEIGHT / 416.f});
 }
