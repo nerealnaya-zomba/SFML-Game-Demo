@@ -11,7 +11,7 @@ template<typename T>
  — updatePhysics()
  — updateTextures();
  — draw();
-Booleans:
+Booleans: 
  — isAlive
 */
 class EnemyManager{

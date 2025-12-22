@@ -296,7 +296,7 @@ int main()
         }
         
         for (auto& particle : particles) { //REMOVELATER particles
-            particle.update();  // ВСЁ ВНУТРИ - не нужно передавать время
+            particle.update();
         }
         particles.erase(
             std::remove_if(particles.begin(), particles.end(),
