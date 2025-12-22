@@ -77,14 +77,14 @@ int main()
     
 
     Platform platforms;
-    platforms.addPlatform({WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},"Single-angled");
-    platforms.addPlatform({WINDOW_WIDTH-300-100,WINDOW_HEIGHT-200},"Single-square");
-    platforms.addPlatform({WINDOW_WIDTH-400-100,WINDOW_HEIGHT-280},"Single-flat");
-    platforms.addPlatform({WINDOW_WIDTH-500-200,WINDOW_HEIGHT-380},"Double-horizontal-1");
-    platforms.addPlatform({WINDOW_WIDTH-600-300,WINDOW_HEIGHT-480},"Double-horizontal-2");
-    platforms.addPlatform({WINDOW_WIDTH-700-350,WINDOW_HEIGHT-580},"Double-vertical");
-    platforms.addPlatform({WINDOW_WIDTH-800-500,WINDOW_HEIGHT-680},"Triple");
-    platforms.addPlatform({WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800},"Quadruple");
+    platforms.addPlatform({WINDOW_WIDTH-300,WINDOW_HEIGHT-100},"Single-angled");
+    platforms.addPlatform({WINDOW_WIDTH-400,WINDOW_HEIGHT-200},"Single-square");
+    platforms.addPlatform({WINDOW_WIDTH-500,WINDOW_HEIGHT-280},"Single-flat");
+    platforms.addPlatform({WINDOW_WIDTH-700,WINDOW_HEIGHT-380},"Double-horizontal-1");
+    platforms.addPlatform({WINDOW_WIDTH-900,WINDOW_HEIGHT-480},"Double-horizontal-2");
+    platforms.addPlatform({WINDOW_WIDTH-1050,WINDOW_HEIGHT-580},"Double-vertical");
+    platforms.addPlatform({WINDOW_WIDTH-1300,WINDOW_HEIGHT-680},"Triple");
+    platforms.addPlatform({WINDOW_WIDTH-1400,WINDOW_HEIGHT-800},"Quadruple");
 
     std::vector<Particle> particles;
 
@@ -327,9 +327,6 @@ int main()
         for (auto& particle : particles) { //REMOVELATER particle
             particle.draw(window);
         }
-
-        view.setCenter(player.playerRectangle_->getGlobalBounds().getCenter());
-        //window.setView(view); //NOTE Камера следует за игроком. Убрать если не нужно.
         
 
         window.display();

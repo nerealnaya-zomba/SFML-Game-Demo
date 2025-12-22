@@ -1,0 +1,177 @@
+{
+    "Presets": {
+        "isConstant": true,
+        "Size": {"Width": 1920, "Height": 1080}
+    },
+    "Platforms": [
+        {
+            "Type": "Single-angled",
+            "Position": {"X": 1620, "Y": 980}
+        },
+        {
+            "Type": "Single-square",
+            "Position": {"X": 1520, "Y": 880}
+        },
+        {
+            "Type": "Single-flat",
+            "Position": {"X": 1420, "Y": 800}
+        },
+        {
+            "Type": "Double-horizontal-1",
+            "Position": {"X": 1220, "Y": 700}
+        },
+        {
+            "Type": "Double-horizontal-2",
+            "Position": {"X": 1020, "Y": 600}
+        },
+        {
+            "Type": "Double-vertical",
+            "Position": {"X": 870, "Y": 500}
+        },
+        {
+            "Type": "Triple",
+            "Position": {"X": 620, "Y": 400}
+        },
+        {
+            "Type": "Quadruple",
+            "Position": {"X": 520, "Y": 280}
+        }
+    ],
+    "Decorations": [
+        {
+            "Name": "plant1",
+            "Position": {"X": 100, "Y": 990},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant2",
+            "Position": {"X": 200, "Y": 1005},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant3",
+            "Position": {"X": 300, "Y": 985},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant1",
+            "Position": {"X": 400, "Y": 990},
+            "Scale": {"X": -0.6, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant2",
+            "Position": {"X": 500, "Y": 1005},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant3",
+            "Position": {"X": 600, "Y": 985},
+            "Scale": {"X": -0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant1",
+            "Position": {"X": 700, "Y": 1008},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant2",
+            "Position": {"X": 800, "Y": 995},
+            "Scale": {"X": -0.6, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant3",
+            "Position": {"X": 1000, "Y": 998},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant2",
+            "Position": {"X": 1100, "Y": 1005},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant3",
+            "Position": {"X": 1200, "Y": 985},
+            "Scale": {"X": -0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant1",
+            "Position": {"X": 1300, "Y": 1008},
+            "Scale": {"X": 0.6, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant2",
+            "Position": {"X": 1400, "Y": 995},
+            "Scale": {"X": -0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant3",
+            "Position": {"X": 1500, "Y": 998},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant3",
+            "Position": {"X": 1600, "Y": 985},
+            "Scale": {"X": -0.6, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant1",
+            "Position": {"X": 1700, "Y": 1008},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant2",
+            "Position": {"X": 1800, "Y": 995},
+            "Scale": {"X": -0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "plant3",
+            "Position": {"X": 1900, "Y": 998},
+            "Scale": {"X": 0.4, "Y": 0.3},
+            "Color": {"R": 0, "G": 80, "B": 0, "A": 255}
+        },
+        {
+            "Name": "cat",
+            "Position": {"X": 520, "Y": 280},
+            "Scale": {"X": 1.0, "Y": 1.0}
+        },
+        {
+            "Name": "plant4",
+            "Position": {"X": 1620, "Y": 980},
+            "Scale": {"X": 0.4, "Y": 0.4}
+        },
+        {
+            "Name": "plant4",
+            "Position": {"X": 1660, "Y": 980},
+            "Scale": {"X": -0.4, "Y": 0.4}
+        },
+        {
+            "Name": "plant5",
+            "Position": {"X": 1370, "Y": 660},
+            "Scale": {"X": 0.4, "Y": 0.4}
+        },
+        {
+            "Name": "plant6",
+            "Position": {"X": 1250, "Y": 660},
+            "Scale": {"X": -0.4, "Y": 0.4}
+        }
+    ],
+    "Background": {},
+    "Ground": {}
+}
