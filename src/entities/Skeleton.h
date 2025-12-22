@@ -145,7 +145,7 @@ public:
 
     bool isAlive = true;
     
-    void updateAI();
+    void updateAI();            //FIXME Работает как то глупо. AIшка какашку написала, нужно вручную.
     void updateControl();
     void updatePhysics();
     void updateTextures();
