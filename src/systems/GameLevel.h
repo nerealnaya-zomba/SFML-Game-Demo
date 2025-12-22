@@ -40,8 +40,8 @@ public:
     std::string levelName;
     //////////////////////////////////////////////////
 
-    void update();                       // IMPLEMENTME
-    void draw(sf::RenderWindow& window); // IMPLEMENTME
+    void update();                      
+    void draw(sf::RenderWindow& window);
 
     //////////////////////////////////////////////////
     // Должен подгружать данные из json файла.

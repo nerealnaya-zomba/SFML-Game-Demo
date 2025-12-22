@@ -33,3 +33,31 @@ void GameLevelManager::draw(sf::RenderWindow &window)
 
     levelIt->second->draw(window);
 }
+
+void GameLevel::update()
+{
+    for (auto &&i : decorations)
+    {
+        i->updateTextures();
+    }
+}
+
+void GameLevel::draw(sf::RenderWindow &window)
+{
+    for (auto &&i : platforms)
+    {
+        i->draw(window);
+    }
+    for (auto &&i : decorations)
+    {
+        i->draw(window);
+    }
+    for (auto &&i : background)
+    {
+        i->drawBackground(window);
+    }
+    for (auto &&i : ground)
+    {
+        i->draw(window, 100.f); //FIXME ???? Что за второй аргумент в вызове метода ???? Разобраться
+    }
+}
