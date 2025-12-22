@@ -32,6 +32,17 @@ private:
     //////////////////////////////////////////////////
     bool isConstant = true;
 
+public:
+    GameLevel();                // IMPLEMENTME
+    ~GameLevel();               // IMPLEMENTME
+
+    //////////////////Variables///////////////////////
+    std::string levelName;
+    //////////////////////////////////////////////////
+
+    void update();                       // IMPLEMENTME
+    void draw(sf::RenderWindow& window); // IMPLEMENTME
+
     //////////////////////////////////////////////////
     // Должен подгружать данные из json файла.
     // Данные ето позиции и тип платформ, декораций, земли, фона. А также название уровня.
@@ -51,16 +62,6 @@ private:
     //////////////////////////////////////////////////
     void resetTobase();         // IMPLEMENTME
 
-public:
-    GameLevel();                // IMPLEMENTME
-    ~GameLevel();               // IMPLEMENTME
-
-    //////////////////Variables///////////////////////
-    std::string levelName;
-    //////////////////////////////////////////////////
-
-    void update();                       // IMPLEMENTME
-    void draw(sf::RenderWindow& window); // IMPLEMENTME
 };
 
 //////////////////////////////////////////////////////
@@ -76,19 +77,20 @@ private:
     std::map<std::string, std::shared_ptr< GameLevel >> levels;
 
     std::map<std::string, std::shared_ptr< GameLevel >>::iterator levelIt;
-    //////////////////////////////////////////////////
-    // Меняет указатель на уровень с ключем <name> в std::map levels
-    //////////////////////////////////////////////////
-    void goToLevel(std::string name);   //IMPLEMENTME
+    
 
 public:
     GameLevelManager();
     ~GameLevelManager();
 
     //////////////////////////////////////////////////
-    // Отрисовывает уровень на который указывает итератор
+    // Перемещает итератор на уровень с ключем <name> в std::map levels
     //////////////////////////////////////////////////
-    void goToLevel(std::string name);   //IMPLEMENTME
+    void goToLevel(std::string name);
+
+    //////////////////////////////////////////////////
+    // Отрисовывает/обновляет уровень на который указывает итератор
+    //////////////////////////////////////////////////
     void update();
-    void draw();
+    void draw(sf::RenderWindow& window);
 };
