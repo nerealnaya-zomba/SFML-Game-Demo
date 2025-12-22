@@ -15,10 +15,10 @@ class GameLevel
 {
 private:
     sf::Vector2f size;
-    std::vector<std::shared_ptr<Platform>> platforms;
-    std::vector<std::shared_ptr<Decoration>> decorations;
-    std::vector<std::shared_ptr<Background>> background;
-    std::vector<std::shared_ptr<Ground>> ground;
+    std::vector<std::shared_ptr< Platform   >> platforms;
+    std::vector<std::shared_ptr< Decoration >> decorations;
+    std::vector<std::shared_ptr< Background >> background;
+    std::vector<std::shared_ptr< Ground     >> ground;
 
     //////////////////////////////////////////////////
     // Определяет, нужно ли сбрасывать состояние объектов на уровне.
@@ -59,7 +59,6 @@ public:
     std::string levelName;
     //////////////////////////////////////////////////
 
-
     void update();                       // IMPLEMENTME
     void draw(sf::RenderWindow& window); // IMPLEMENTME
 };
@@ -74,8 +73,9 @@ private:
     // string - Название уровня, подгружается из GameLevel
     // GameLevel - Экземляр уровня
     //////////////////////////////////////////////////
-    std::map<std::string, std::shared_ptr<GameLevel>> levels;
+    std::map<std::string, std::shared_ptr< GameLevel >> levels;
 
+    std::map<std::string, std::shared_ptr< GameLevel >>::iterator levelIt;
     //////////////////////////////////////////////////
     // Меняет указатель на уровень с ключем <name> в std::map levels
     //////////////////////////////////////////////////
@@ -84,4 +84,11 @@ private:
 public:
     GameLevelManager();
     ~GameLevelManager();
+
+    //////////////////////////////////////////////////
+    // Отрисовывает уровень на который указывает итератор
+    //////////////////////////////////////////////////
+    void goToLevel(std::string name);   //IMPLEMENTME
+    void update();
+    void draw();
 };
