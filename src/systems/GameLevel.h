@@ -1,3 +1,4 @@
+#pragma once
 #include<iostream>
 #include<SFML/Graphics.hpp>
 #include<Background.h>
@@ -14,11 +15,11 @@
 class GameLevel
 {
 private:
-    sf::Vector2f size;
-    std::vector<std::shared_ptr< Platform   >> platforms;
-    std::vector<std::shared_ptr< Decoration >> decorations;
-    std::vector<std::shared_ptr< Background >> background;
-    std::vector<std::shared_ptr< Ground     >> ground;
+    sf::Vector2f size;                                          // Длинна и ширина уровня
+    std::vector<std::shared_ptr< Platform   >> platforms;       // Платформы
+    std::vector<std::shared_ptr< Decoration >> decorations;     // Декорации
+    std::vector<std::shared_ptr< Background >> background;      // Фон
+    std::vector<std::shared_ptr< Ground     >> ground;          // Пол
 
     //////////////////////////////////////////////////
     // Определяет, нужно ли сбрасывать состояние объектов на уровне.
@@ -62,6 +63,9 @@ public:
     //////////////////////////////////////////////////
     void resetTobase();         // IMPLEMENTME
 
+    //Getters
+    sf::Vector2f getLevelSize() const;
+
 };
 
 //////////////////////////////////////////////////////
@@ -93,4 +97,7 @@ public:
     //////////////////////////////////////////////////
     void update();
     void draw(sf::RenderWindow& window);
+
+    //Getters
+    sf::Vector2f getCurrentLevelSize() const;
 };
