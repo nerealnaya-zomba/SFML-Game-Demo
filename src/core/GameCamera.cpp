@@ -29,9 +29,9 @@ void GameCamera::movementUpdate(float deltatime)
         speed *= brakeFactor * 0.95f;  // Плавное замедление
     }
 
-    // Зажим скорости в рамки максимальной (ИСПРАВЛЕНО!)
+    // Зажим скорости в рамки максимальной
     speed.x = std::clamp(speed.x, -maxSpeed.x, maxSpeed.x);
-    speed.y = std::clamp(speed.y, -maxSpeed.y, maxSpeed.y);  // было speed.x
+    speed.y = std::clamp(speed.y, -maxSpeed.y, maxSpeed.y);
     
     // Логи
     std::cout << "Camera speed: {"<< speed.x << ", " << speed.y << "};" << std:: endl;
