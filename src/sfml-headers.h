@@ -24,6 +24,7 @@
 #include<EnemyManager.h>
 #include<HealthBar.h>
 #include<Particle.h>
+#include<GameCamera.h>
 
 //C libraries
 #include <iostream>

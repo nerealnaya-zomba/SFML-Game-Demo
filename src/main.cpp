@@ -33,17 +33,18 @@ int main()
     Background gameBackground;
 
     //Main menu
-    Menu menu(font,window,mouseRect);
-    
-    
+    Menu menu(font,window,mouseRect);                       // Menu
+
+    GameLevelManager levelManager;                          // Level manager
     
     
     
     //Game
-    Player player(gameData);
-    Ground ground(gameData);
-    Decoration decoration(gameData);
-    EnemyManager<Skeleton> enemyManager; //Skeleton manager
+    Player player(gameData);                                // Player
+    GameCamera camera(view,player,levelManager);            // Camera
+    Ground ground(gameData);                                // Ground
+    Decoration decoration(gameData);                        // Decoration
+    EnemyManager<Skeleton> enemyManager;                    // Skeleton manager
     
     
     sf::Color grassColor{0,80,0,255};
@@ -324,11 +325,15 @@ int main()
         player.drawBullets(window);
             //Game objects drawing
         platforms.draw(window);
-        for (auto& particle : particles) { //REMOVELATER particle
+        for (auto& particle : particles) {  //REMOVELATER particle
             particle.draw(window);
         }
-        
-
+        //////////////////
+        // Camera updating
+        //////////////////
+        camera.update();
+        window.setView(view);
+        //////////////////
         window.display();
         
         
