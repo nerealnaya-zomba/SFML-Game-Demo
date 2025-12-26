@@ -164,8 +164,11 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     generateMipmapTextures(jumpPlantTextures);
     smoothTextures(jumpPlantTextures);
 
-        //Ground initialization
+    // Ground initialization
+        // Mramoric
     ground1Texture.loadFromFile(ground1Path) ? std::cout << "Texture loaded: images/Ground/mramoric.png" << std::endl : std::cout << "Error loading texture: images/Ground/mramoric.png" << std::endl;
+        //TODO Сделать так, чтобы можно было загружать текстуры в std::map<std::string, sf::Texture>. Ключ это название файла. Нужно чтобы можно было вызывать только нужные текстуры.
+    //if(loadTexture(groundTileSetGreenTextures,groundTileSetGreenPath))
 
     //Save load info
     if(succesedOperationsCount_m!=allOperations_count_m)
@@ -217,6 +220,24 @@ bool GameData::loadTexture(std::vector<sf::Texture> &textures, std::string path,
     
     helper.countOfTextures = seq.count - 1;
     helper.iterationsTillSwitch = pauseTillSwitch;
+
+    // ОЧЕНЬ ВАЖНО: передаем количество текстур, а не последний номер
+    return initTextures(textures, path, seq.count, seq.maxDigits, seq.startCounter);
+}
+bool GameData::loadTexture(std::vector<sf::Texture> &textures, std::string path)
+{
+    TextureSequenceInfo seq = analyzeTextureSequence(path);
+    
+    if (seq.count == 0) {
+        std::cerr << "ERROR: No textures found for path: " << path << std::endl;
+        return false;
+    }
+    
+    // Отладочный вывод
+    std::cout << "Loading textures: " << path 
+              << ", start=" << seq.startCounter 
+              << ", count=" << seq.count 
+              << ", digits=" << seq.maxDigits << std::endl;
 
     // ОЧЕНЬ ВАЖНО: передаем количество текстур, а не последний номер
     return initTextures(textures, path, seq.count, seq.maxDigits, seq.startCounter);

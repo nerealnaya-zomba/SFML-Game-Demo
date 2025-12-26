@@ -6,21 +6,35 @@
 #include<GameData.h>
 #include<windows.h>
 
+//////////////////////////////////////////////////
+// Пол должен иметь точку начала и точку конца.
+// 
+// Должна указываться высота, на которой будет стоять пол.
+// 
+// Если существо презается в пол сбоку, то он не должен проходить насквозь. Должна работать коллизия по бокам.
+// 
+// Должна иметься возможность выбирать текстуру пола.
+////////////////////////////////////////////////// TODO Доделать этот класс
 class Ground
 {
-    public:
-    Ground(GameData& gameTextures);
-    ~Ground();
-
-    void draw(sf::RenderWindow& window, float yPos);
-    
-    sf::RectangleShape& getRect();
-
-
-    private:
+private:
     sf::RectangleShape* ground1Rect_m;
     sf::Texture* ground1Texture_m;
     sf::Sprite* ground1Sprite_m;
+
+    sf::Vector2f point_begin, point_end;                // Точка начала и конца пола.
+    float height;                                       // Высота пола
+    float yPos;                                         // Позиция пола по Y коорд.
     
+    
+public:
+    Ground(GameData& gameTextures);
+    ~Ground();
+
+
+    void draw(sf::RenderWindow& window, float yPos);
+    
+    // Getters 
+    sf::RectangleShape& getRect();
 
 };

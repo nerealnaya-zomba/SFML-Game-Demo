@@ -77,6 +77,7 @@ void GameLevel::draw(sf::RenderWindow &window)
 
 void GameLevel::loadLevelData()
 {
+    
 }
 
 void GameLevel::saveLevelData()

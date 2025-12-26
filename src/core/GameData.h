@@ -6,8 +6,23 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
+#include <map>
 
+// TODO
 // Central resource manager for textures and game data
+////////////////////////////////////////////////////// NOTE Гайд по загрузке текстур
+// Как загрузить текстуру: 
+// Если нужен texturesIterHelper(для зацикленного переключения текстур):
+//  — Создать std::string{<название_первой_текстуры>_}
+//  — Создать std::vector<sf::Texture> и название
+//  — Создать texturesIterHelper
+//  — В конструкторе дописать loadTexture(<std::vector<sf::Textures>>, <std::string>, texturesIterHelper , <ЗадержкаДоПереключенияНаСледующуюТекстуру>)
+// 
+// Если нужен вектор со статичными текстурами, и ключами доступа по их названию в директории:
+//  —
+//  —
+//  —
+//////////////////////////////////////////////////////
 class GameData
 {
 public:
@@ -17,18 +32,18 @@ public:
     // Public texture collections
 
     // Player (Satiro) textures
-    std::vector<sf::Texture> idleTextures{};        // Idle animation frames
-    std::vector<sf::Texture> runningTextures{};     // Running animation frames
-    std::vector<sf::Texture> fallingTextures{};     // Falling animation frames
-    std::vector<sf::Texture> bulletTextures{};      // Bullet animation frames
+    std::vector<sf::Texture> idleTextures{};            // Idle animation frames
+    std::vector<sf::Texture> runningTextures{};         // Running animation frames
+    std::vector<sf::Texture> fallingTextures{};         // Falling animation frames
+    std::vector<sf::Texture> bulletTextures{};          // Bullet animation frames
     texturesIterHelper satiro_bullet_helper;
     std::vector<sf::Texture> satiro_dieTextures{};      // Bullet animation frames
     texturesIterHelper satiro_die_helper;
-    std::vector<sf::Texture> satiro_dashTextures{};      // Bullet animation frames
+    std::vector<sf::Texture> satiro_dashTextures{};     // Bullet animation frames
     texturesIterHelper satiro_dash_helper;
-    std::vector<sf::Texture> satiro_hurtTextures{};      // Bullet animation frames
+    std::vector<sf::Texture> satiro_hurtTextures{};     // Bullet animation frames
     texturesIterHelper satiro_hurt_helper;
-    std::vector<sf::Texture> satiro_slideTextures{};      // Bullet animation frames
+    std::vector<sf::Texture> satiro_slideTextures{};    // Bullet animation frames
     texturesIterHelper satiro_slide_helper;
 
     // White skeleton textures with animation helpers
@@ -83,12 +98,14 @@ public:
 
     // Ground texture
     sf::Texture ground1Texture;
+    std::map<std::string,sf::Texture> TileSetGreenTextures;
 
 private:
     // Texture loading and processing
     int standartIterationsTillSwitch = 7;
     bool initSatiroTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     bool loadTexture(std::vector<sf::Texture> &textures,std::string path, texturesIterHelper& helper, int pauseTillSwitch);
+    bool loadTexture(std::vector<sf::Texture> &textures, std::string path);
     void generateMipmapTextures(std::vector<sf::Texture>& texturesArray);
     void smoothTextures(std::vector<sf::Texture>& texturesArray);
 
@@ -162,4 +179,5 @@ private:
     std::string jumpPlantPath{"images/decoration/PlantJump/JumpPlant_"};
     std::string cat1Path{"images/decoration/sleepingCat/cat/RetroCatsFree_"};
     std::string ground1Path{"images/Ground/mramoric.png"};
+    std::string groundTileSetGreenPath{"images/Ground/TileSetGreen/TileSetGreen_"};
 };
