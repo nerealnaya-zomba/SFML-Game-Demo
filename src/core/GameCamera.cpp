@@ -4,23 +4,13 @@ void GameCamera::movementUpdate(float deltatime)
 {
     this->targetPos = player->getCenterPosition();
 
-    ///////////////////////////////////////////////////////////////////////
+
     // Выравнивание цели, чтобы не заходила за края
-    // REMINDER СУПЕР ВАЖНО! После того как закончишь с менеджером уровней поменяй выбвыбвыбвыбвыб
-    ///////////////////////////////////////////////////////////////////////
+    // REMINDER СУПЕР ВАЖНО! После того как закончишь с менеджером уровней поменяй WINDOW_WIDTH WINDOW_HEIGHT на levelSize
+ 
     float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
     float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
-    // if(targetPos.x>viewAreaWidth){
-    //     targetPos.x = viewAreaWidth;
-    // } else if(targetPos.x<(WINDOW_WIDTH-viewAreaWidth)){
-    //     targetPos.x = (WINDOW_WIDTH-viewAreaWidth);
-    // } // Horizontal
-    // if(targetPos.y>viewAreaHeight){
-    //     targetPos.y = viewAreaHeight;
-    // } else if(targetPos.y<(WINDOW_HEIGHT-viewAreaHeight)){
-    //     targetPos.y = (WINDOW_HEIGHT-viewAreaHeight);
-    // } // Vertical
-    // ///////////////////////////////////////////////////////////////////////
+
 
     sf::Vector2f offset = targetPos - cameraPos;
     float distance = std::sqrt(offset.x * offset.x + offset.y * offset.y);
