@@ -7,7 +7,7 @@ void GameCamera::movementUpdate(float deltatime)
 
     // Выравнивание цели, чтобы не заходила за края
     // REMINDER СУПЕР ВАЖНО! После того как закончишь с менеджером уровней поменяй WINDOW_WIDTH WINDOW_HEIGHT на levelSize
- 
+
     float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
     float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
 
