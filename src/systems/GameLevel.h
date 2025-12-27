@@ -19,7 +19,7 @@ private:
     std::vector<std::shared_ptr< Platform   >> platforms;       // Платформы
     std::vector<std::shared_ptr< Decoration >> decorations;     // Декорации
     std::vector<std::shared_ptr< Background >> background;      // Фон
-    std::vector<std::shared_ptr< Ground     >> ground;          // Пол
+    std::vector<std::shared_ptr< Ground     >> ground;          // Пол //'Ground' was not declared in this scope; did you mean 'round'?
 
     //////////////////////////////////////////////////
     // Определяет, нужно ли сбрасывать состояние объектов на уровне.

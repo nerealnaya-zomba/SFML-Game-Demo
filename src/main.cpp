@@ -33,18 +33,18 @@ int main()
     Background gameBackground;
 
     //Main menu
-    Menu menu(font,window,mouseRect);                       // Menu
+    Menu menu(font,window,mouseRect);                               // Menu
 
-    GameLevelManager levelManager;                          // Level manager
+    GameLevelManager levelManager;                                  // Level manager
     
     
     
     //Game
-    Player player(gameData);                                // Player
-    GameCamera camera(view,player,levelManager);            // Camera
-    Ground ground(gameData);                                // Ground
-    Decoration decoration(gameData);                        // Decoration
-    EnemyManager<Skeleton> enemyManager;                    // Skeleton manager
+    Player player(gameData);                                        // Player
+    GameCamera camera(view,player,levelManager);                    // Camera
+    Ground ground(gameData,levelManager,"TileSetGreen_21.png");     // Ground
+    Decoration decoration(gameData);                                // Decoration
+    EnemyManager<Skeleton> enemyManager;                            // Skeleton manager
     
     
     sf::Color grassColor{0,80,0,255};

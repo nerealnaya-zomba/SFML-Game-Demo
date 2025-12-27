@@ -1,9 +1,10 @@
 #include "Ground.h"
+#include<GameLevel.h>
 
-Ground::Ground(GameData& gameTextures)
+Ground::Ground(GameData& gameTextures, GameLevelManager& levelManager, std::string groundFileName) 
 {
     //Texture attaching
-    attachTexture(gameTextures.TileSetGreenTextures.find("TileSetGreen_02.png")->second,this->ground1Texture_m);
+    attachTexture(gameTextures.TileSetGreenTextures.find(groundFileName)->second,this->ground1Texture_m);
 
     ground1Sprite_m = new sf::Sprite(*ground1Texture_m);
 
@@ -18,16 +19,17 @@ Ground::~Ground()
 }
 void Ground::draw(sf::RenderWindow& window, float yPos)
 {
+    sf::Vector2u tilesetsize = ground1Sprite_m->getTexture().getSize();
     float offSet = 8.f;
     ground1Rect_m->setPosition({0,yPos+offSet});
     float nextPos = 0.f;
-    for (size_t i = 0; i < WINDOW_WIDTH/126.f; i++)
+    for (size_t i = 0; i < WINDOW_WIDTH/tilesetsize.x; i++)
     {
         ground1Sprite_m->setPosition({nextPos,yPos});
         
         window.draw(*ground1Sprite_m);
         //39.f, 126.f is the width and height of mramoric.png
-        nextPos += 126.f;
+        nextPos += tilesetsize.x;
     }
     
 }
@@ -39,4 +41,9 @@ sf::RectangleShape &Ground::getRect()
         throw std::runtime_error("ground is nullptr");
     }
     return *this->ground1Rect_m;
+}
+
+void Ground::setOffset(float offset)
+{
+    this->offset = offset;
 }
