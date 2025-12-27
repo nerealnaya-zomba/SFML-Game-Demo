@@ -2,15 +2,14 @@
 
 void GameCamera::movementUpdate(float deltatime)
 {
-    this->targetPos = player->getCenterPosition();
-
-
-    // Выравнивание цели, чтобы не заходила за края
+    
     // REMINDER СУПЕР ВАЖНО! После того как закончишь с менеджером уровней поменяй WINDOW_WIDTH WINDOW_HEIGHT на levelSize
-
     float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
     float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
 
+    //Условия для коллизии цели с краями уровня
+    if((player->getCenterPosition().x<(WINDOW_WIDTH-(viewAreaHeight/2))) && (player->getCenterPosition().x>(0.f+(viewAreaHeight/2)))) this->targetPos.x = player->getCenterPosition().x;
+    if((player->getCenterPosition().y<(WINDOW_HEIGHT-(viewAreaHeight/2))) && (player->getCenterPosition().y>(0.f+(viewAreaHeight/2)))) this->targetPos.y = player->getCenterPosition().y;
 
     sf::Vector2f offset = targetPos - cameraPos;
     float distance = std::sqrt(offset.x * offset.x + offset.y * offset.y);
