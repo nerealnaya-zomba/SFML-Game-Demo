@@ -8,6 +8,7 @@
 #include <fstream> 
 #include <sstream>
 #include <iomanip>
+#include <map>
 
 static void setRectangleOriginToMiddle(sf::RectangleShape& rect)
 {
@@ -42,6 +43,32 @@ static bool initTextures(std::vector<sf::Texture> &textures, std::string path,
             return false;
         }
         textures.push_back(texture);
+    }
+    
+    return true;
+}
+
+static bool initTextures(std::map<std::string,sf::Texture> &textures, std::string path, 
+                         int texturesCount, int maxDigits = 5, int startCounter = 0)
+{
+    // Очищаем вектор на случай повторного использования
+    textures.clear();
+    
+    std::string basePath = path;
+    
+    for (int counter = startCounter; counter < startCounter + texturesCount; counter++) {
+        std::ostringstream filename;
+        filename << basePath 
+                 << std::setw(maxDigits) << std::setfill('0') << counter 
+                 << ".png";
+
+        sf::Texture texture;
+        if (!texture.loadFromFile(filename.str())) {
+            std::cerr << "Failed to load image: " << filename.str() << std::endl;
+            return false;
+        }
+        std::string only_filename = path.substr(path.find_last_of("/\\") + 1);
+        textures.emplace(path,texture);
     }
     
     return true;
