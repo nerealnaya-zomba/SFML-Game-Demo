@@ -53,8 +53,8 @@ public:
         }
     }
 
-    void draw() {
-        if (window) {
+    void draw(bool isAlive) {
+        if (window && isAlive) {
             window->draw(backRect);
             window->draw(frontRect);
         }

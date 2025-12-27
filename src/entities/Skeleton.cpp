@@ -550,7 +550,7 @@ void Skeleton::updateTextures() {
 void Skeleton::draw() {
     // window->draw(*skeletonRect); // Для отладки хитбокса
     window->draw(*skeletonSprite);
-    healthbar->draw();
+    healthbar->draw(!(this->isPlayingDieAnimation));
 }
 
 // ========== ГЕТТЕРЫ ==========
