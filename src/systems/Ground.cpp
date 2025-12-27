@@ -1,8 +1,11 @@
 #include "Ground.h"
 #include<GameLevel.h>
 
-Ground::Ground(GameData& gameTextures, GameLevelManager& levelManager, std::string groundFileName) 
+Ground::Ground(GameData& gameTextures, GameLevelManager& levelManager, std::string groundFileName, unsigned int point_begin, unsigned int point_end, unsigned int yPos) 
 {
+    this->point_begin = point_begin;
+    this->point_end   = point_end;
+    this->yPos        = yPos;
     //Texture attaching
     attachTexture(gameTextures.TileSetGreenTextures.find(groundFileName)->second,this->ground1Texture_m);
 
@@ -17,15 +20,16 @@ Ground::~Ground()
     delete ground1Rect_m;
     delete ground1Sprite_m;
 }
-void Ground::draw(sf::RenderWindow& window, float yPos)
+void Ground::draw(sf::RenderWindow& window)
 {
     sf::Vector2u tilesetsize = ground1Sprite_m->getTexture().getSize();
+    if(yPos==0) yPos = WINDOW_HEIGHT-tilesetsize.y;
     float offSet = 8.f;
     ground1Rect_m->setPosition({0,yPos+offSet});
-    float nextPos = 0.f;
-    for (size_t i = 0; i < WINDOW_WIDTH/tilesetsize.x; i++)
+    unsigned int nextPos = this->point_begin;
+    for (size_t i = 0; i < point_end/tilesetsize.x; i++)
     {
-        ground1Sprite_m->setPosition({nextPos,yPos});
+        ground1Sprite_m->setPosition({static_cast<float>(nextPos),static_cast<float>(yPos)});
         
         window.draw(*ground1Sprite_m);
         //39.f, 126.f is the width and height of mramoric.png

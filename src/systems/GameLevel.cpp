@@ -71,7 +71,7 @@ void GameLevel::draw(sf::RenderWindow &window)
     }
     for (auto &&i : ground)
     {
-        i->draw(window, 100.f); //FIXME ???? Что за второй аргумент в вызове метода ???? Разобраться
+        i->draw(window);
     }
 }
 
