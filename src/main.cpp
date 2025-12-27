@@ -40,11 +40,11 @@ int main()
     
     
     //Game
-    Player player(gameData);                                        // Player
-    GameCamera camera(view,player,levelManager);                    // Camera
+    Player player(gameData);                                                        // Player
+    GameCamera camera(view,player,levelManager);                                    // Camera
     Ground ground(gameData,levelManager,"TileSetGreen_21.png",0u,WINDOW_WIDTH);     // Ground
-    Decoration decoration(gameData);                                // Decoration
-    EnemyManager<Skeleton> enemyManager;                            // Skeleton manager
+    Decoration decoration(gameData);                                                // Decoration
+    EnemyManager<Skeleton> enemyManager;                                            // Skeleton manager
     
     
     sf::Color grassColor{0,80,0,255};
@@ -75,9 +75,6 @@ int main()
     decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f});
     decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
 
-    decoration.addDecoration("portalGreen",{400,400},{1.f,1.f});
-
-    
 
     Platform platforms;
     platforms.addPlatform({WINDOW_WIDTH-300,WINDOW_HEIGHT-100},"Single-angled");
