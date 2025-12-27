@@ -97,7 +97,7 @@ public:
     texturesIterHelper catHelper;
 
     // Ground texture
-    sf::Texture ground1Texture;
+    sf::Texture mramoric;
     std::map<std::string,sf::Texture> TileSetGreenTextures;
 
 private:
@@ -105,7 +105,7 @@ private:
     int standartIterationsTillSwitch = 7;
     bool initSatiroTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     bool loadTexture(std::vector<sf::Texture> &textures,std::string path, texturesIterHelper& helper, int pauseTillSwitch);
-    bool loadTexture(std::vector<sf::Texture> &textures, std::string path);
+    bool loadTexture(std::map<std::string,sf::Texture> &textures, std::string path);
     void generateMipmapTextures(std::vector<sf::Texture>& texturesArray);
     void smoothTextures(std::vector<sf::Texture>& texturesArray);
 
