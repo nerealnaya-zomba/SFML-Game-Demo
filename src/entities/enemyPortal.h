@@ -23,9 +23,10 @@ private:
     bool isSizingDown = false;
     bool isExist = true;
     bool isHalfPassed = false;
+    bool isEnemyWalkedOut = false;      // Вышел ли противник из портала
 
     sf::Clock portalClock;              // Считает время сколько портал существует
-
+    
     sf::Sprite* portalSprite;
     texturesIterHelper portalHelper;
 
@@ -51,4 +52,9 @@ public:
 
     //Getters
     bool getIsExist();
+    bool getIsHalfPassed();
+    bool getIsEnemyWalkedOut();
+
+    //Setters
+    void setIsEnemyWalkedOut(bool value);
 };

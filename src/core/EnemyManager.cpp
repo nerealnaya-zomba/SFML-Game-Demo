@@ -16,7 +16,7 @@ template <typename T>
 void EnemyManager<T>::add(T *enemy)
 {
     enemies.push_back(enemy);
-}
+}   
 
 template<typename T>
 void EnemyManager<T>::updateAI_all()

@@ -37,6 +37,7 @@ enemyPortal::enemyPortal(GameData& data, sf::Vector2f position)
     // Portal sprite
     this->portalSprite = new sf::Sprite(data.portalGreenTextures.at(0));
     this->portalSprite->setScale(PORTAL_BASE_SCALE);
+    setSpriteOriginToMiddle(*this->portalSprite);
     this->portalSprite->setPosition(position);
     
     // Portal helper
@@ -78,4 +79,19 @@ void enemyPortal::draw(sf::RenderWindow &window)
 bool enemyPortal::getIsExist()
 {
     return this->isExist;
+}
+
+bool enemyPortal::getIsHalfPassed()
+{
+    return this->isHalfPassed;
+}
+
+bool enemyPortal::getIsEnemyWalkedOut()
+{
+    return this->isEnemyWalkedOut;
+}
+
+void enemyPortal::setIsEnemyWalkedOut(bool value)
+{
+    this->isEnemyWalkedOut = value;
 }

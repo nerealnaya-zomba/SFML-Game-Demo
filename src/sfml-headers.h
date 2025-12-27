@@ -25,6 +25,7 @@
 #include<HealthBar.h>
 #include<Particle.h>
 #include<GameCamera.h>
+#include<enemyPortal.h>
 
 //C libraries
 #include <iostream>

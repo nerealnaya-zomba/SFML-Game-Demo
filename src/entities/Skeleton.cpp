@@ -273,6 +273,7 @@ Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground,
     this->player_ = &player;
     this->type_ = type;
     this->enemyPos = pos;
+    this->portal = new enemyPortal(gameData,pos);
     
     loadData();
 
@@ -340,6 +341,7 @@ Skeleton::~Skeleton() {
 // ========== ОБНОВЛЕНИЕ ИИ ==========
 void Skeleton::updateAI() {
     if (!isAlive) return;
+    if(!portal->getIsHalfPassed()) return;
     
     sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
     sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
@@ -399,6 +401,8 @@ void Skeleton::updateAI() {
 
 // ========== УПРАВЛЕНИЕ ==========
 void Skeleton::updateControl() {
+    if(!portal->getIsHalfPassed()) return;
+    
     switch (action_) {
         case WALKLEFT:
             walkLeft();
@@ -412,6 +416,9 @@ void Skeleton::updateControl() {
 
 // ========== ФИЗИКА ==========
 void Skeleton::updatePhysics() {
+    portal->update();
+    if(!portal->getIsHalfPassed()) return;
+
     applyFriction(initialWalkSpeed, frictionForce);
     
     skeletonRect->move({0.f, fallingSpeed});
@@ -453,6 +460,8 @@ void Skeleton::updatePhysics() {
 // ========== АНИМАЦИИ ==========
 void Skeleton::updateTextures() {
     if (!isAlive) return;
+    portal->updateTextures();
+    if(!portal->getIsHalfPassed()) return;
 
     // Анимация получения урона
     if (isPlayingHurtAnimation && HP_ > 0) {
@@ -550,8 +559,9 @@ void Skeleton::updateTextures() {
 // ========== ОТРИСОВКА ==========
 void Skeleton::draw() {
     // window->draw(*skeletonRect); // Для отладки хитбокса
-    window->draw(*skeletonSprite);
-    healthbar->draw(!(this->isPlayingDieAnimation));
+    if(portal->getIsHalfPassed()) window->draw(*skeletonSprite);
+    if(portal->getIsHalfPassed()) healthbar->draw(!(this->isPlayingDieAnimation));
+    if(portal->getIsExist()) portal->draw(*window);
 }
 
 // ========== ГЕТТЕРЫ ==========
@@ -561,4 +571,9 @@ sf::RectangleShape &Skeleton::getRect() {
 
 int Skeleton::getHP() {
     return HP_;
+}
+
+sf::Vector2f Skeleton::getPosition()
+{
+    return this->skeletonRect->getPosition();
 }

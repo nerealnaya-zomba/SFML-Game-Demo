@@ -8,6 +8,7 @@
 #include <SFML/System.hpp>
 #include <HealthBar.h>
 #include <math.h>
+#include <enemyPortal.h>
 
 // Анимационные состояния скелета
 enum skeletonAction {
@@ -27,6 +28,9 @@ private:
     Ground* ground_;
     Platform* platform_;  
     Player* player_;
+
+    // Портал
+    enemyPortal* portal;
 
     // Основные свойства
     std::string type_;              // "white" или "yellow"
@@ -151,6 +155,8 @@ public:
     void updateTextures();
     void draw();
 
+    // Getters
     sf::RectangleShape& getRect();
     int getHP();
+    sf::Vector2f getPosition();
 };

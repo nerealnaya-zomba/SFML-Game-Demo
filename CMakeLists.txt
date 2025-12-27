@@ -37,7 +37,8 @@ add_executable(main
     src/core/EnemyManager.cpp
     src/graphics/Particle.cpp
     src/core/GameCamera.cpp
-    src/systems/GameLevel.cpp)
+    src/systems/GameLevel.cpp
+    src/entities/enemyPortal.cpp)
 
 target_include_directories(main PRIVATE 
     ${CMAKE_SOURCE_DIR}/src 
