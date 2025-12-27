@@ -3,8 +3,9 @@
 #include <Mounting.h>
 #include<GameData.h>
 
-const sf::Vector2f PORTAL_BASE_SCALE = {1.f,1.f};
-const unsigned int PORTAL_EXIST_TIME = 2000;
+const sf::Vector2f PORTAL_OPENED_SCALE = {3.f,3.f};
+const sf::Vector2f PORTAL_START_SCALE = {0.f,0.f};
+const unsigned int PORTAL_EXIST_TIME = 700;
 
 /////////////////////////////////////////////////////
 // Представляет собой портал, который появляется на 2 секунды:
@@ -20,7 +21,6 @@ private:
     /////////////////////////////////////////////////////
 
     bool isSizingUp = true;
-    bool isSizingDown = false;
     bool isExist = true;
     bool isHalfPassed = false;
     bool isEnemyWalkedOut = false;      // Вышел ли противник из портала
@@ -57,4 +57,5 @@ public:
 
     //Setters
     void setIsEnemyWalkedOut(bool value);
+    void setPosition(sf::Vector2f position);
 };

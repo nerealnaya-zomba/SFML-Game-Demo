@@ -326,6 +326,7 @@ Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground,
     
     sf::Vector2f rectCenter = skeletonRect->getGlobalBounds().getCenter();
     skeletonSprite->setPosition({rectCenter.x, rectCenter.y - 15.f});
+    portal->setPosition(rectCenter);
 
     // Полоска здоровья
     healthbar = new HealthBar(skeletonRect, window, sf::Color::Red, sf::Color::Green, 

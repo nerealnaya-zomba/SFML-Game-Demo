@@ -2,8 +2,8 @@
 
 void enemyPortal::sizeUp()
 {
-    float sizeUpSpeedX =  PORTAL_BASE_SCALE.x / (PORTAL_EXIST_TIME/2);
-    float sizeUpSpeedY =  PORTAL_BASE_SCALE.y / (PORTAL_EXIST_TIME/2);
+    float sizeUpSpeedX =  PORTAL_OPENED_SCALE.x / (PORTAL_EXIST_TIME/2);
+    float sizeUpSpeedY =  PORTAL_OPENED_SCALE.y / (PORTAL_EXIST_TIME/2);
 
     sf::Vector2f portalSpriteScale = this->portalSprite->getScale();
 
@@ -15,8 +15,8 @@ void enemyPortal::sizeUp()
 
 void enemyPortal::sizeDown()
 {
-    float sizeDownSpeedX = PORTAL_BASE_SCALE.x / (PORTAL_EXIST_TIME / 2);
-    float sizeDownSpeedY = PORTAL_BASE_SCALE.y / (PORTAL_EXIST_TIME / 2);
+    float sizeDownSpeedX = PORTAL_OPENED_SCALE.x / (PORTAL_EXIST_TIME / 2);
+    float sizeDownSpeedY = PORTAL_OPENED_SCALE.y / (PORTAL_EXIST_TIME / 2);
 
     sf::Vector2f portalSpriteScale = this->portalSprite->getScale();
 
@@ -36,7 +36,7 @@ enemyPortal::enemyPortal(GameData& data, sf::Vector2f position)
 
     // Portal sprite
     this->portalSprite = new sf::Sprite(data.portalGreenTextures.at(0));
-    this->portalSprite->setScale(PORTAL_BASE_SCALE);
+    this->portalSprite->setScale(PORTAL_START_SCALE);
     setSpriteOriginToMiddle(*this->portalSprite);
     this->portalSprite->setPosition(position);
     
@@ -50,7 +50,9 @@ enemyPortal::~enemyPortal()
 
 void enemyPortal::update()
 {
-    if(this->portalClock.getElapsedTime().asMilliseconds()<=(PORTAL_EXIST_TIME/2))
+    isSizingUp = this->portalClock.getElapsedTime().asMilliseconds()<=(PORTAL_EXIST_TIME/2);
+
+    if(isSizingUp)
     {
         this->sizeUp();
     }   // Sizing up
@@ -94,4 +96,9 @@ bool enemyPortal::getIsEnemyWalkedOut()
 void enemyPortal::setIsEnemyWalkedOut(bool value)
 {
     this->isEnemyWalkedOut = value;
+}
+
+void enemyPortal::setPosition(sf::Vector2f position)
+{
+    this->portalSprite->setPosition(position);
 }
