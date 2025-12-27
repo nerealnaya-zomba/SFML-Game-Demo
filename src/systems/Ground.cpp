@@ -12,7 +12,7 @@ Ground::Ground(GameData& gameTextures, GameLevelManager& levelManager, std::stri
     ground1Sprite_m = new sf::Sprite(*ground1Texture_m);
 
     ground1Rect_m = new sf::RectangleShape();
-    ground1Rect_m->setSize({WINDOW_WIDTH,39.f});
+    ground1Rect_m->setSize({WINDOW_WIDTH,ground1Sprite_m->getTexture().getSize().y});
     ground1Rect_m->setPosition({0,0});
 }
 Ground::~Ground()

@@ -251,10 +251,12 @@ enum switchSprite_SwitchOption
     Single,
     Loop
 };
+namespace gameUtils
+{
 static bool switchToNextSprite(sf::Sprite* Sprite,
-        std::vector<sf::Texture>& texturesArray, 
-        texturesIterHelper& iterHelper, 
-        switchSprite_SwitchOption option)
+    std::vector<sf::Texture>& texturesArray, 
+    texturesIterHelper& iterHelper, 
+    switchSprite_SwitchOption option)
 {
     if(iterHelper.iterationCounter < iterHelper.iterationsTillSwitch)
     {
@@ -279,6 +281,8 @@ static bool switchToNextSprite(sf::Sprite* Sprite,
 
     return true; // анимация еще идет
 }
+}
+
 //Other
     //Random
 static int random(int min, int max) {

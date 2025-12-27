@@ -1,5 +1,5 @@
 #include<Bullet.h>
-
+using namespace gameUtils;
 void Bullet::setSpeed(sf::Vector2f offset)
 {
     this->speed_ = offset;

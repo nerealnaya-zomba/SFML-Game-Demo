@@ -75,6 +75,8 @@ int main()
     decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f});
     decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
 
+    decoration.addDecoration("portalGreen",{400,400},{1.f,1.f});
+
     
 
     Platform platforms;

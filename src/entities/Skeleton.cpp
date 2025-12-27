@@ -2,6 +2,7 @@
 #include "Ground.h"    
 #include "Platform.h"  
 #include "Player.h"
+using namespace gameUtils;
 
 // ========== ДВИЖЕНИЕ ==========
 void Skeleton::walkLeft() {

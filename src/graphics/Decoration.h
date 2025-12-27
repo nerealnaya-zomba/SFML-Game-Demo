@@ -46,6 +46,9 @@ public:
         //Cat
     std::vector<sf::Texture>* cat1Textures;
     texturesIterHelper catHelper;
+        //Portal
+    std::vector<sf::Texture>* portalGreenTextures;
+    texturesIterHelper portalGreen;
     private:
     //Sprites
         //Plants
@@ -66,7 +69,8 @@ public:
     std::vector<std::unique_ptr<sf::Sprite>> jumpPlantSprites;
         //Cat
     std::vector<std::unique_ptr<sf::Sprite>> cat1Sprites;
-    
+        //Portal
+    std::vector<std::unique_ptr<sf::Sprite>> portalGreenSprites;
 
     //Switches sprite's texture to next
     void switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper);

@@ -163,12 +163,19 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     loadingScreen_m->draw();
     generateMipmapTextures(jumpPlantTextures);
     smoothTextures(jumpPlantTextures);
+    
+    // Portal green
+    if(loadTexture(portalGreenTextures, portalGreenPath, portalGreen, 5)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(jumpPlantTextures);
+    smoothTextures(jumpPlantTextures);
 
     // Ground initialization
         // Mramoric
     mramoric.loadFromFile(ground1Path) ? std::cout << "Texture loaded: images/Ground/mramoric.png" << std::endl : std::cout << "Error loading texture: images/Ground/mramoric.png" << std::endl;
         // TileSetGreen
-    if(loadTexture(TileSetGreenTextures,groundTileSetGreenPath)) succesedOperationsCount_m++;
+    if(loadTexture(portalGreenTextures,portalGreenPath,portalGreen,5)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
     generateMipmapTextures(jumpPlantTextures);

@@ -17,6 +17,8 @@ Decoration::Decoration(GameData& gameTextures)
     //jumpPlant
     attachTexture(gameTextures.cat1Textures, this->cat1Textures, gameTextures.catHelper, this->catHelper);
 
+    //portalGreen
+    attachTexture(gameTextures.portalGreenTextures, this->portalGreenTextures,gameTextures.portalGreen, this->portalGreen);
 }
 
 Decoration::~Decoration()
@@ -160,6 +162,21 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setColor(color);
         jumpPlantSprites.push_back(std::move(sprite));
     }
+    else if(name == "portalGreen")
+    {
+        //Error handling
+        if(portalGreenTextures == nullptr || portalGreenTextures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(portalGreenTextures->at(0));
+        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
+        sprite->setPosition(position);
+        sprite->setScale(scale);
+        sprite->setColor(color);
+        portalGreenSprites.push_back(std::move(sprite));
+    }
 
 }
 
@@ -249,6 +266,17 @@ void Decoration::updateTextures()
     switchToNextSprite(cat1Sprites,*cat1Textures,catHelper);
 
     switchToNextSprite(jumpPlantSprites,*jumpPlantTextures,jumpPlant);
+    std::for_each(portalGreenSprites.begin(), portalGreenSprites.end(),
+    [this](const std::unique_ptr<sf::Sprite>& spritePtr) {
+        gameUtils::switchToNextSprite(
+            spritePtr.get(),           // Получаем сырой указатель из unique_ptr
+            *portalGreenTextures,      // Разыменовываем указатель на вектор
+            portalGreen,               // Итератор-хелпер
+            switchSprite_SwitchOption::Single
+        );
+    });
+    
+    
 
 }
 
@@ -290,6 +318,11 @@ void Decoration::draw(sf::RenderWindow &window)
     {
         window.draw(*i);
     }
+    for (auto &&i : portalGreenSprites)
+    {
+        window.draw(*i);
+    }
+    
     
 }
 

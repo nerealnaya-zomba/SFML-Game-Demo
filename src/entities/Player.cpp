@@ -1,6 +1,6 @@
 #include<Player.h>
 
-
+using namespace gameUtils;
 Player::Player(GameData& gameTextures)
 {
     this->gameTextures = &gameTextures;
