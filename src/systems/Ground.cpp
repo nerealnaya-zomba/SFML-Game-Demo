@@ -3,7 +3,7 @@
 Ground::Ground(GameData& gameTextures)
 {
     //Texture attaching
-    attachTexture(gameTextures.mramoric,this->ground1Texture_m);
+    attachTexture(gameTextures.TileSetGreenTextures.find("TileSetGreen_02.png")->second,this->ground1Texture_m);
 
     ground1Sprite_m = new sf::Sprite(*ground1Texture_m);
 

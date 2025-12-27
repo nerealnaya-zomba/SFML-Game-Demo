@@ -8,20 +8,19 @@
 #include <iostream>
 #include <map>
 
-// TODO
 // Central resource manager for textures and game data
 ////////////////////////////////////////////////////// NOTE Гайд по загрузке текстур
 // Как загрузить текстуру: 
 // Если нужен texturesIterHelper(для зацикленного переключения текстур):
-//  — Создать std::string{<название_первой_текстуры>_}
+//  — Создать std::string{<название_первой_текстуры>_} путь
 //  — Создать std::vector<sf::Texture> и название
 //  — Создать texturesIterHelper
 //  — В конструкторе дописать loadTexture(<std::vector<sf::Textures>>, <std::string>, texturesIterHelper , <ЗадержкаДоПереключенияНаСледующуюТекстуру>)
 // 
 // Если нужен вектор со статичными текстурами, и ключами доступа по их названию в директории:
-//  —
-//  —
-//  —
+//  — Создать std::string{<название_первой_текстуры>_}
+//  — Создать std::map<std::string,sf::Texture> и название
+//  — В конструкторе дописать loadTexture(<std::vector<sf::Textures>> название, <std::string> путь)
 //////////////////////////////////////////////////////
 class GameData
 {
