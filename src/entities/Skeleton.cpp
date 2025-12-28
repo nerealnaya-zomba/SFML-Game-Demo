@@ -403,6 +403,35 @@ void Skeleton::updateAI() {
         makeRandomPatrolVariables();
         patrol();
     }
+
+    // Регистрирование что скелет "завис" и слишком долго АФК
+    if(action_ == ATTACK1 || action_ == ATTACK2 || leftExplored == false || rightExplored == false){    // Сбрасываем АФК таймеры, если выполняются действия
+        AFKPastPosUpdateTimer.restart();
+        AFKTimeTimer.reset();
+    } 
+    afk_current_pos = skeletonRect->getGlobalBounds().getCenter().x;
+    if(checkInterval(AFKPastPosUpdateTimer,AFK_BEFORE_UPDATE_TIME) || !AFKPastPosUpdateTimer.isRunning())
+    {
+        AFKPastPosUpdateTimer.restart();
+        afk_past_pos = skeletonRect->getGlobalBounds().getCenter().x;
+    }
+    if(abs(afk_current_pos - afk_past_pos) < afk_detect_difference) {       // Если выполняется - скелет в АФК
+        AFKTimeTimer.start();
+        if(AFKTimeTimer.getElapsedTime().asMilliseconds() > MAX_AFK_TIME){  // Сбрасываем переменные, если он был слишком долго афк
+            leftExplored               = false;
+            rightExplored              = false;
+            recentlySwitchedDirection  = false;
+            isFirstEnter               = true;
+            makeRandomStart            = false;
+            leftBound                  = 0.0f;
+            rightBound                 = 0.0f;
+            explorationState           = ExplorationState::EXPLORE_NONE;
+        }
+    } else {
+        AFKTimeTimer.reset();
+    }
+    
+
 }
 
 // ========== УПРАВЛЕНИЕ ==========

@@ -108,24 +108,33 @@ private:
     ExplorationState explorationState = EXPLORE_NONE;
     sf::Clock deadEndCheckTimer;
     sf::Clock directionSwitchTimer;
+    sf::Clock AFKTimeTimer;                     // Отсчитывает время, сколько скелет находится в AFK
+    sf::Clock AFKPastPosUpdateTimer;            // Нужен для обновления прошлой позиции скелета
     
-    float exploreStartPos = 0.0f;
-    float leftBound = 0.0f;
-    float rightBound = 0.0f;
-    bool leftExplored = false;
-    bool rightExplored = false;
-    bool recentlySwitchedDirection = false;
-    bool isFirstEnter = true;
-    bool makeRandomStart = false;
-    float currentSkeletonPos = 0.0f;
+    float exploreStartPos           = 0.0f;
+    float leftBound                 = 0.0f;
+    float rightBound                = 0.0f;
+    bool leftExplored               = false;
+    bool rightExplored              = false;
+    bool recentlySwitchedDirection  = false;
+    bool isFirstEnter               = true;
+    bool makeRandomStart            = false;
+    float currentSkeletonPos        = 0.0f;
+    float afk_past_pos              = 0.0f;     // Значение обновляемое каждые AFK_BEFORE_UPDATE_TIME миллисекунд
+    float afk_current_pos           = 0.0f;     // Значение обновляемое каждый кадр
+    float afk_detect_difference     = 2.0f;     // Разница которая должна быть между afk_past_pos и afk_current_pos чтобы НЕ заметить что скелет в АФК // NOTE 2.f хз почему, просто так. но Много лучше не ставить, и слишком мало тож
+
     
     // Константы ИИ
-    const float TIME_TO_CHECK_DEADEND = 300.0f;
-    const float MIN_DISTANCE_FOR_DEADEND = 10.0f;
-    const float DIRECTION_SWITCH_COOLDOWN = 300.0f;
-    const float DIRECTION_SWITCH_OFFSET = 100.0f;
-    const float PATROL_SWITCH_DELAY = 1000.0f;
-    
+    const float TIME_TO_CHECK_DEADEND       = 300.0f;
+    const float MIN_DISTANCE_FOR_DEADEND    = 10.0f;
+    const float DIRECTION_SWITCH_COOLDOWN   = 300.0f;
+    const float DIRECTION_SWITCH_OFFSET     = 100.0f;
+    const float PATROL_SWITCH_DELAY         = 1000.0f;
+
+    const float MAX_AFK_TIME                = 1400.0f;
+    const float AFK_BEFORE_UPDATE_TIME      = 200.f;
+
     // Таймеры
     sf::Clock isPlayerOutOfReachClock;
 
