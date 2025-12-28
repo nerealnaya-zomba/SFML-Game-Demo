@@ -100,6 +100,7 @@ private:
     void chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos);
     void patrol();
     void makeRandomPatrolVariables();
+    void resetAllThatHeKnows();
     
     // Система патрулирования
     enum PatrolState { PATROL_EXPLORING_LEFT, PATROL_EXPLORING_RIGHT, PATROL_PATROLLING };
@@ -110,6 +111,7 @@ private:
     sf::Clock directionSwitchTimer;
     sf::Clock AFKTimeTimer;                     // Отсчитывает время, сколько скелет находится в AFK
     sf::Clock AFKPastPosUpdateTimer;            // Нужен для обновления прошлой позиции скелета
+    sf::Clock blackoutTimer;                    // Таймер для амнезии
     
     float exploreStartPos           = 0.0f;
     float leftBound                 = 0.0f;
@@ -134,6 +136,7 @@ private:
 
     const float MAX_AFK_TIME                = 1400.0f;
     const float AFK_BEFORE_UPDATE_TIME      = 200.f;
+    const float timeToResetALLThatHeKnows   = 10000.f;  // Стереть все, что знает скелет через это время. Нужно чтобы скелет не контролировал маленький участок территории всю жизнь
 
     // Таймеры
     sf::Clock isPlayerOutOfReachClock;

@@ -120,6 +120,18 @@ void Skeleton::makeRandomPatrolVariables() {
     }
 }
 
+void Skeleton::resetAllThatHeKnows()
+{
+    leftExplored               = false;
+    rightExplored              = false;
+    recentlySwitchedDirection  = false;
+    isFirstEnter               = true;
+    makeRandomStart            = false;
+    leftBound                  = 0.0f;
+    rightBound                 = 0.0f;
+    explorationState           = ExplorationState::EXPLORE_NONE;
+}
+
 // ========== АТАКА ИГРОКА ==========
 void Skeleton::tryAttackPlayer() {
     sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
@@ -418,19 +430,19 @@ void Skeleton::updateAI() {
     if(abs(afk_current_pos - afk_past_pos) < afk_detect_difference) {       // Если выполняется - скелет в АФК
         AFKTimeTimer.start();
         if(AFKTimeTimer.getElapsedTime().asMilliseconds() > MAX_AFK_TIME){  // Сбрасываем переменные, если он был слишком долго афк
-            leftExplored               = false;
-            rightExplored              = false;
-            recentlySwitchedDirection  = false;
-            isFirstEnter               = true;
-            makeRandomStart            = false;
-            leftBound                  = 0.0f;
-            rightBound                 = 0.0f;
-            explorationState           = ExplorationState::EXPLORE_NONE;
+            resetAllThatHeKnows();
         }
     } else {
         AFKTimeTimer.reset();
     }
-    
+
+    // Таймер амнезии
+    if(action_ == ATTACK1 || action_ == ATTACK2 || leftExplored == false || rightExplored == false){    // Обновить таймер если он еще не исследовал границы или атакует
+        blackoutTimer.restart();
+    }
+    if(checkInterval(blackoutTimer,timeToResetALLThatHeKnows)){                                         // Если его время вышло, забыть все.
+        resetAllThatHeKnows();
+    }
 
 }
 
