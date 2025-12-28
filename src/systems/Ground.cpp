@@ -17,7 +17,7 @@ Ground::Ground(GameData& gameTextures, GameLevelManager& levelManager, std::stri
 
     // Инициализация хитбокса
     ground1Rect_m = new sf::RectangleShape();
-    ground1Rect_m->setSize({WINDOW_WIDTH,ground1Sprite_m->getTexture().getSize().y});
+    ground1Rect_m->setSize({WINDOW_WIDTH,static_cast<float>(ground1Sprite_m->getTexture().getSize().y)});
     ground1Rect_m->setPosition({0,0});
 
     
