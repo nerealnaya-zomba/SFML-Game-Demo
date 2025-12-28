@@ -12,3 +12,5 @@ out
 *.exe
 libs/ffmpeg/bin
 compile_commands.json
+renameBashCommand.txt
+.psd
