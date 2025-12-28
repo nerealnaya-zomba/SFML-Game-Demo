@@ -100,7 +100,6 @@ public:
     texturesIterHelper portalGreen;
 
     // Ground texture
-    sf::Texture mramoric;
     std::map<std::string,sf::Texture> TileSetGreenTextures;
 
 private:
@@ -110,7 +109,9 @@ private:
     bool loadTexture(std::vector<sf::Texture> &textures,std::string path, texturesIterHelper& helper, int pauseTillSwitch);
     bool loadTexture(std::map<std::string,sf::Texture> &textures, std::string path);
     void generateMipmapTextures(std::vector<sf::Texture>& texturesArray);
+    void generateMipmapTextures(std::map<std::string, sf::Texture> &texturesArray);
     void smoothTextures(std::vector<sf::Texture>& texturesArray);
+    void smoothTextures(std::map<std::string, sf::Texture> &texturesArray);
 
     // Loading system variables
     int succesedOperationsCount_m{};    // Tracks completed loading operations
@@ -181,7 +182,6 @@ private:
     std::string plant7Path{"images/decoration/Plant_7/Plant7_"};
     std::string jumpPlantPath{"images/decoration/PlantJump/JumpPlant_"};
     std::string cat1Path{"images/decoration/sleepingCat/cat/RetroCatsFree_"};
-    std::string ground1Path{"images/Ground/mramoric.png"};
     std::string groundTileSetGreenPath{"images/Ground/TileSetGreen/TileSetGreen_"};
     std::string portalGreenPath{"images/decoration/portalGreen/portal_green_"};
 };

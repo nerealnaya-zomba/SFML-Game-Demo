@@ -168,14 +168,12 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     if(loadTexture(portalGreenTextures, portalGreenPath, portalGreen, 5)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    generateMipmapTextures(jumpPlantTextures);
-    smoothTextures(jumpPlantTextures);
+    generateMipmapTextures(portalGreenTextures);
+    smoothTextures(portalGreenTextures);
 
     // Ground initialization
-        // Mramoric
-    mramoric.loadFromFile(ground1Path) ? std::cout << "Texture loaded: images/Ground/mramoric.png" << std::endl : std::cout << "Error loading texture: images/Ground/mramoric.png" << std::endl;
         // TileSetGreen
-    if(loadTexture(portalGreenTextures,portalGreenPath,portalGreen,5)) succesedOperationsCount_m++;
+    if(loadTexture(TileSetGreenTextures,groundTileSetGreenPath)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
     generateMipmapTextures(jumpPlantTextures);
@@ -254,6 +252,21 @@ bool GameData::loadTexture(std::map<std::string,sf::Texture> &textures, std::str
     return initTextures(textures, path, seq.count, seq.maxDigits, seq.startCounter);
 }
 
+void GameData::generateMipmapTextures(std::map<std::string, sf::Texture> &texturesArray)
+{
+    for (auto &i : texturesArray)
+    {
+        if(i.second.generateMipmap())
+        {
+            std::cout << "Mipmap generated\n"; 
+        }
+        else
+        {
+            std::cout << "Error while generating mipmap\n";
+        }
+    }
+}
+
 void GameData::generateMipmapTextures(std::vector<sf::Texture> &texturesArray)
 {
     for (auto &i : texturesArray)
@@ -274,6 +287,14 @@ void GameData::smoothTextures(std::vector<sf::Texture> &texturesArray)
     for (auto &i : texturesArray)
     {
         i.setSmooth(true);
+    }
+}
+
+void GameData::smoothTextures(std::map<std::string, sf::Texture> &texturesArray)
+{
+    for (auto &i : texturesArray)
+    {
+        i.second.setSmooth(true);
     }
 }
 

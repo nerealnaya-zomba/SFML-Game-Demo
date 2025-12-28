@@ -6,7 +6,10 @@
 #include<GameData.h>
 #include<windows.h>
 
-class GameLevelManager;
+const float BASE_GROUND_OFFSET = 8.f;
+
+class GameLevelManager; // NOTE Нужен для избежания ошибки зависимостей
+
 //////////////////////////////////////////////////
 // Пол должен иметь точку начала и точку конца.
 // 
@@ -25,15 +28,16 @@ private:
 
     unsigned int point_begin, point_end;                // Точка начала и конца пола.
     float height;                                       // Высота пола
-    float yPos;                                         // Позиция пола по Y коорд.
+    unsigned int yPos;                                  // Позиция пола по Y коорд. // FIXME Поменять на unsigned int
     float offset;                                       // Коллизия по Y координате + offset. Чем больше offset - тем ниже проваливается игрок, прежде чем сработает коллизия
     
-    
+    sf::Vector2u tilesetsize;                           // Размер текстуры в пикселях
+    float offSet;
 public:
     //////////////////////////////////////////////////
     // groundFileName - Имя файла из images\Ground\TileSetGreen
     //////////////////////////////////////////////////
-    Ground(GameData& gameTextures, GameLevelManager& levelManager, std::string groundFileName, unsigned int point_begin, unsigned int point_end, unsigned int yPos = 0);
+    Ground(GameData& gameTextures, GameLevelManager& levelManager, std::string groundFileName, unsigned int point_begin, unsigned int point_end, unsigned int yPos = 0u, float offSet = BASE_GROUND_OFFSET);
     ~Ground();
 
 

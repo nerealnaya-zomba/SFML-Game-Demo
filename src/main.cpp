@@ -42,7 +42,7 @@ int main()
     //Game
     Player player(gameData);                                                        // Player
     GameCamera camera(view,player,levelManager);                                    // Camera
-    Ground ground(gameData,levelManager,"TileSetGreen_21.png",0u,WINDOW_WIDTH);     // Ground
+    Ground ground(gameData,levelManager,"TileSetGreen_26.png",0u,WINDOW_WIDTH+100);     // Ground
     Decoration decoration(gameData);                                                // Decoration
     EnemyManager<Skeleton> enemyManager;                                            // Skeleton manager
     

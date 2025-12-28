@@ -5,7 +5,7 @@
 
 const sf::Vector2f PORTAL_OPENED_SCALE = {3.f,3.f};
 const sf::Vector2f PORTAL_START_SCALE = {0.f,0.f};
-const unsigned int PORTAL_EXIST_TIME = 700;
+const unsigned int PORTAL_EXIST_TIME = 1000;
 
 /////////////////////////////////////////////////////
 // Представляет собой портал, который появляется на 2 секунды:
