@@ -171,13 +171,44 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     generateMipmapTextures(portalGreenTextures);
     smoothTextures(portalGreenTextures);
 
+    //Mossy
+    if(loadTexture(MossyBackgroundDecorationsTextures,MossyBackgroundDecorationsPath)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(MossyBackgroundDecorationsTextures);
+    smoothTextures(MossyBackgroundDecorationsTextures);
+    
+    if(loadTexture(MossyDecorationsHazardsTextures,MossyDecorationsHazardsPath)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(MossyDecorationsHazardsTextures);
+    smoothTextures(MossyDecorationsHazardsTextures);
+
+    if(loadTexture(MossyHangingPlantsTextures,MossyHangingPlantsPath)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(MossyHangingPlantsTextures);
+    smoothTextures(MossyHangingPlantsTextures);
+
+    if(loadTexture(MossyHillsTextures,MossyHillsPath)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(MossyHillsTextures);
+    smoothTextures(MossyHillsTextures);
+
+    if(loadTexture(MossyTileSetTextures,MossyTileSetPath)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(MossyTileSetTextures);
+    smoothTextures(MossyTileSetTextures);
+
     // Ground initialization
         // TileSetGreen
     if(loadTexture(TileSetGreenTextures,groundTileSetGreenPath)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    generateMipmapTextures(jumpPlantTextures);
-    smoothTextures(jumpPlantTextures);
+    generateMipmapTextures(TileSetGreenTextures);
+    smoothTextures(TileSetGreenTextures);
 
     //Save load info
     if(succesedOperationsCount_m!=allOperations_count_m)

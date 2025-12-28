@@ -90,6 +90,12 @@ public:
     texturesIterHelper plant7;
     std::vector<sf::Texture> jumpPlantTextures;
     texturesIterHelper jumpPlant;
+    // Decoration textures - Mossy
+    std::map<std::string,sf::Texture> MossyBackgroundDecorationsTextures;
+    std::map<std::string,sf::Texture> MossyDecorationsHazardsTextures;
+    std::map<std::string,sf::Texture> MossyHangingPlantsTextures;
+    std::map<std::string,sf::Texture> MossyHillsTextures;
+    std::map<std::string,sf::Texture> MossyTileSetTextures;
 
     // Cat decoration
     std::vector<sf::Texture> cat1Textures;
@@ -184,4 +190,9 @@ private:
     std::string cat1Path{"images/decoration/sleepingCat/cat/RetroCatsFree_"};
     std::string groundTileSetGreenPath{"images/Ground/TileSetGreen/TileSetGreen_"};
     std::string portalGreenPath{"images/decoration/portalGreen/portal_green_"};
+    std::string MossyBackgroundDecorationsPath{"images/decoration/MossyBackgroundDecorations/MossyBackgroundDecoration_"};
+    std::string MossyDecorationsHazardsPath{"images/decoration/MossyDecorationsHazards/MossyDecorationHazard_"};
+    std::string MossyHangingPlantsPath{"images/decoration/MossyHangingPlants/MossyHangingPlants_"};
+    std::string MossyHillsPath{"images/decoration/MossyHills/MossyHills_"};
+    std::string MossyTileSetPath{"images/decoration/MossyTileSet/MossyTileSet_"};
 };
