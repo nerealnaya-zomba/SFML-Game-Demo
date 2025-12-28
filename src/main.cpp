@@ -22,7 +22,6 @@ int main()
     
     GameData gameData(&window,&font);
 
-    //return 0; //REMOVELATER THIS TO STOP DEBUGGING gameTextures
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
@@ -33,9 +32,9 @@ int main()
     Background gameBackground;
 
     //Main menu
-    Menu menu(font,window,mouseRect);                               // Menu
+    Menu menu(font,window,mouseRect);                                               // Menu
 
-    GameLevelManager levelManager;                                  // Level manager
+    GameLevelManager levelManager;                                                  // Level manager
     
     
     

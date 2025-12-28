@@ -359,6 +359,11 @@ void Skeleton::updateAI() {
     } else if (!isPlayerOutOfReach) {
         chasePlayer(skeletonPos, playerPos);
     }
+    // Перезапуск таймеров проверки тупика и смены направления если скелет атакует
+    if(action_ == ATTACK1 || action_ == ATTACK2){
+        deadEndCheckTimer.restart();
+        directionSwitchTimer.restart();
+    } 
     
     // Проверка досягаемости игрока по вертикали
     float skeletonTopY = skeletonRect->getGlobalBounds().getCenter().y - (skeletonRect->getSize().y / 2);

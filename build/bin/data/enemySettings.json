@@ -12,7 +12,7 @@
         "KnockbackY": 4,
         "maxSpeed": 1.5,
         "acceleration": 0.15,
-        "friction": 0.00,
+        "friction": 0.03,
         "knockbacks": true
     },
     "skeleton-yellow":{
