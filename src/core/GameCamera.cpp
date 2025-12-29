@@ -46,9 +46,6 @@ void GameCamera::movementUpdate(float deltatime)
         speed *= brakeFactor * 0.95f;  // Плавное замедление
     }
 
-    // Логи
-    std::cout << "Camera speed: {"<< speed.x << ", " << speed.y << "};" << std:: endl;
-    std::cout << "Target position: {"<< targetPos.x << ", " << targetPos.y << "};" << std:: endl;
 }
 
 void GameCamera::mapBorderCollision()
@@ -127,4 +124,25 @@ void GameCamera::update()
         this->view->setCenter(this->cameraPos);
         return;
     }
+}
+
+float GameCamera::getZoom()
+{
+    return ZOOM_SCALE;
+}
+
+sf::Vector2f GameCamera::getScreenViewSize()
+{
+    float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
+    float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
+
+
+    return sf::Vector2f(viewAreaWidth,viewAreaHeight);
+}
+
+sf::Vector2f GameCamera::getScreenViewPos()
+{
+    sf::Vector2f pos = {view->getCenter().x-(getScreenViewSize().x)/2,
+                        view->getCenter().y-(getScreenViewSize().y)/2};
+    return pos;
 }

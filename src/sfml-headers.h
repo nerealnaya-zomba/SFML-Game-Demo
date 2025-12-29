@@ -29,6 +29,7 @@
 
 //C libraries
 #include <iostream>
+#include<math.h>
 
 //SFML
 #include <SFML/Graphics.hpp>

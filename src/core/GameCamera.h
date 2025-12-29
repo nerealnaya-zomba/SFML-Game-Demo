@@ -35,6 +35,9 @@ private:
 
     sf::Vector2f mapBorders;                        // Края карты, чтобы камера не заходила за края
 
+    sf::Vector2f screenViewSize;                    // Размер области которую видит игрок.  
+    sf::Vector2f screenViewPos;                     // Позиция области которую видит игрок. Origin позиции с левого верхнего угла
+    
     float brakeRadius = BASE_BRAKE_RADIUS;          // Радиус вокруг цели, при котором срабатывает тормоз
 
     bool chasePlayer = true;                        // Должна ли камера преследовать игрока
@@ -72,6 +75,11 @@ public:
     void pointCameraAt(sf::Vector2f pos, std::function<bool()> condition);  // IMPLEMENTME
     void pointCameraAt(sf::Vector2f pos, unsigned int time);                // IMPLEMENTME
 
-    //Setters
+    // Setters
     void setMoveSpeed(sf::Vector2f pos);                                    // IMPLEMENTME
+
+    // Getters
+    float getZoom();
+    sf::Vector2f getScreenViewSize();
+    sf::Vector2f getScreenViewPos();
 };

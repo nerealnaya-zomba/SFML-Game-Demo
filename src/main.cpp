@@ -193,17 +193,25 @@ int main()
                 //         isPressed_c = true;
                 //     }
                 // }
-                
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Num1)
                 {
+                    std::cout << "CameraPos: " << camera.getScreenViewPos().x << ", " << camera.getScreenViewPos().y << std::endl;
+                    std::cout << "CameraSize: " << camera.getScreenViewSize().x << ", " << camera.getScreenViewSize().y << std::endl << std::endl;
+                    std::cout << "MousePos: " << mousePos.x << ", " << mousePos.y << std::endl << std::endl;
+
                     enemyManager.add(new Skeleton(gameData, window, ground, platforms, player, "white", 
-                        sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y)));
+                        sf::Vector2f(
+                            camera.getScreenViewPos().x + (sf::Mouse::getPosition(window).x-30)*ZOOM_SCALE,
+                            camera.getScreenViewPos().y + (sf::Mouse::getPosition(window).y-50)*ZOOM_SCALE
+                        )));
                 }
                 
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Num2)
                 {
                     enemyManager.add(new Skeleton(gameData, window, ground, platforms, player, "yellow", 
-                        sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y)));
+                        sf::Vector2f(sf::Mouse::getPosition(window).x, 
+                                    sf::Mouse::getPosition(window).y)));
                 }
             }
 
