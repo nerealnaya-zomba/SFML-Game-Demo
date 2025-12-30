@@ -67,7 +67,7 @@ void GameLevel::draw(sf::RenderWindow &window)
     }
     for (auto &&i : background)
     {
-        i->drawBackground(window);
+        i->draw(window);
     }
     for (auto &&i : ground)
     {

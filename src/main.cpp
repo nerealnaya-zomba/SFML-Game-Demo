@@ -29,8 +29,8 @@ int main()
     //Background
     sf::Color menuBackGroundColor({0u,0u,0u});
     sf::Color gameBackGroundColor({0,0,0,255});
-    Background gameBackground;
-
+    Background gameBackground({WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"",Type::Single);
+    
     //Main menu
     Menu menu(font,window,mouseRect);                                               // Menu
 
@@ -311,7 +311,7 @@ int main()
 
             //Background drawing
         window.clear(gameBackGroundColor);
-        gameBackground.drawBackground(window);
+        gameBackground.draw(window);
 
             //Decorations drawing
         decoration.draw(window);

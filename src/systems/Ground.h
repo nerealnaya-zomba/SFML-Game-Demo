@@ -28,7 +28,7 @@ private:
 
     unsigned int point_begin, point_end;                // Точка начала и конца пола.
     float height;                                       // Высота пола
-    unsigned int yPos;                                  // Позиция пола по Y коорд. // FIXME Поменять на unsigned int
+    unsigned int yPos;                                  // Позиция пола по Y коорд. 
     float offset;                                       // Коллизия по Y координате + offset. Чем больше offset - тем ниже проваливается игрок, прежде чем сработает коллизия
     
     sf::Vector2u tilesetsize;                           // Размер текстуры в пикселях
