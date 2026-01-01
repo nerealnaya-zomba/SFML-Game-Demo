@@ -7,14 +7,37 @@
 #include<GameData.h>
 #include<TexturesIterHelper.h>
 #include<windows.h>
-#include<map>
-class Decoration //Takes too much responsibility on self
+#include<unordered_map>
+#include<bitset>
+
+struct Vector2fHash{
+    std::size_t operator()(const sf::Vector2f& v) const{
+        std::size_t h1 = std::hash<float>{}(v.x);
+        std::size_t h2 = std::hash<float>{}(v.y);
+        return h1 ^ (h2 << 1);
+    }
+};
+struct Vector2fEqual {
+    bool operator()(const sf::Vector2f& a, const sf::Vector2f& b) const {
+        return a.x == b.x && a.y == b.y;
+    }
+};
+
+class Decoration 
 {
-public:
+public: 
+    // Запрещаем копирование
+    Decoration(const Decoration&) = delete;
+    Decoration& operator=(const Decoration&) = delete;
+
+    // Разрешаем перемещение
+    Decoration(Decoration&&) = default;
+    Decoration& operator=(Decoration&&) = default;
+
     Decoration(GameData& gameTextures);
     ~Decoration();
 
-    void addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Color color=sf::Color::White);
+    void addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, sf::Color color  = sf::Color::White);
     void updateTextures();
     void draw(sf::RenderWindow& window);
 
@@ -40,7 +63,7 @@ public:
 
     std::vector<sf::Texture>* plant7Textures;
     texturesIterHelper plant7;
-
+    
     std::vector<sf::Texture>* jumpPlantTextures;
     texturesIterHelper jumpPlant;
         //Cat
@@ -56,31 +79,36 @@ public:
     private:
     //Sprites
         //Plants
-    std::vector<std::unique_ptr<sf::Sprite>> plant1Sprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> plant1Sprites;
     
-    std::vector<std::unique_ptr<sf::Sprite>> plant2Sprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> plant2Sprites;
     
-    std::vector<std::unique_ptr<sf::Sprite>> plant3Sprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> plant3Sprites;
     
-    std::vector<std::unique_ptr<sf::Sprite>> plant4Sprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> plant4Sprites;
     
-    std::vector<std::unique_ptr<sf::Sprite>> plant5Sprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> plant5Sprites;
     
-    std::vector<std::unique_ptr<sf::Sprite>> plant6Sprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> plant6Sprites;
     
-    std::vector<std::unique_ptr<sf::Sprite>> plant7Sprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> plant7Sprites;
 
-    std::vector<std::unique_ptr<sf::Sprite>> jumpPlantSprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> jumpPlantSprites;
         //Cat
-    std::vector<std::unique_ptr<sf::Sprite>> cat1Sprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> cat1Sprites;
         //Portal
-    std::vector<std::unique_ptr<sf::Sprite>> portalGreenSprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> portalGreenSprites;
     
     //Static-sprites
-    std::vector<std::unique_ptr<sf::Sprite>> staticSprites;
+    std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual> staticSprites;
 
     //Switches sprite's texture to next
     void switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper);
+    void switchToNextSprite(
+        std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual>& spritesArray, 
+        std::vector<sf::Texture>& texturesArray, 
+        texturesIterHelper& iterHelper
+    );
 
     //Optional
     void generateMipmapTextures(std::vector<sf::Texture>& texturesArray);

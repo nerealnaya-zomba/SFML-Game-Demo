@@ -18,7 +18,6 @@ Decoration::Decoration(GameData& gameTextures)
 
     //portalGreen
     attachTexture(gameTextures.portalGreenTextures, this->portalGreenTextures,gameTextures.portalGreen, this->portalGreen);
-
     //Static-textures
     attachTexture(gameTextures.allStaticTextures,this->staticTextures);
 }
@@ -27,7 +26,7 @@ Decoration::~Decoration()
 {
 }
 
-void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Color color)
+void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, sf::Color color)
 {
     if(name == "plant1")
     {
@@ -42,7 +41,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant1Sprites.push_back(std::move(sprite));
+        plant1Sprites.emplace(parallaxFactor,std::move(sprite));
     }
     else if(name == "plant2")
     {
@@ -57,7 +56,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant2Sprites.push_back(std::move(sprite));
+        plant2Sprites.emplace(parallaxFactor,std::move(sprite));
     }
     else if(name == "plant3")
     {
@@ -72,7 +71,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant3Sprites.push_back(std::move(sprite));
+        plant3Sprites.emplace(parallaxFactor,std::move(sprite));
     }
     else if(name == "plant4")
     {
@@ -87,7 +86,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant4Sprites.push_back(std::move(sprite));
+        plant4Sprites.emplace(parallaxFactor,std::move(sprite));
     }
     else if(name == "plant5")
     {
@@ -102,7 +101,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant5Sprites.push_back(std::move(sprite));
+        plant5Sprites.emplace(parallaxFactor,std::move(sprite));
     }
     else if(name == "plant6")
     {
@@ -117,7 +116,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant6Sprites.push_back(std::move(sprite));
+        plant6Sprites.emplace(parallaxFactor,std::move(sprite));
     }
     else if(name == "plant7")
     {
@@ -132,7 +131,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant7Sprites.push_back(std::move(sprite));
+        plant7Sprites.emplace(parallaxFactor,std::move(sprite));
     }
     else if(name == "cat")
     {
@@ -147,7 +146,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        cat1Sprites.push_back(std::move(sprite));
+        cat1Sprites.emplace(parallaxFactor,std::move(sprite));
     }
     else if(name == "jumpPlant")
     {
@@ -162,7 +161,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        jumpPlantSprites.push_back(std::move(sprite));
+        jumpPlantSprites.emplace(parallaxFactor,std::move(sprite));
     }
     else if(name == "portalGreen")
     {
@@ -177,7 +176,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        portalGreenSprites.push_back(std::move(sprite));
+        portalGreenSprites.emplace(parallaxFactor,std::move(sprite));
     }
     //Static-textures assertion
     else{
@@ -187,7 +186,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
             sprite->setPosition(position);
             sprite->setScale(scale);
             sprite->setColor(color);
-            staticSprites.push_back(std::move(sprite));
+            staticSprites.emplace(parallaxFactor,std::move(sprite));
         }
         catch(std::out_of_range& ex){
             std::cout << ex.what() << std::endl;
@@ -239,7 +238,46 @@ void Decoration::switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& sp
     }
 }
 
+void Decoration::switchToNextSprite(std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual>& spritesArray, 
+        std::vector<sf::Texture>& texturesArray, 
+        texturesIterHelper& iterHelper)
+{
+    if(iterHelper.iterationCounter<iterHelper.iterationsTillSwitch)
+    {
+        iterHelper.iterationCounter++;
+    }
+    else
+    {
+        //Forward-backward logic
+        if(iterHelper.ptrToTexture == iterHelper.countOfTextures)
+        {
+            iterHelper.goForward = false;
+        }
+        else if(iterHelper.ptrToTexture == 0)
+        {
+            iterHelper.goForward = true;
+        }
 
+        //Switch sprites
+        for (auto &&i : spritesArray)
+        {
+            i.second->setTexture(texturesArray.at(iterHelper.ptrToTexture));
+        }
+
+        //Forward-backward logic
+        if(iterHelper.goForward)
+        {
+            iterHelper.ptrToTexture++;
+        }
+        else
+        {
+            iterHelper.ptrToTexture--;
+        }
+
+        //reset iteration counter after all switches
+        iterHelper.iterationCounter = 0;
+    }
+}
 
 void Decoration::generateMipmapTextures(std::vector<sf::Texture> &texturesArray)
 {
@@ -285,65 +323,64 @@ void Decoration::updateTextures()
     switchToNextSprite(cat1Sprites,*cat1Textures,catHelper);
 
     switchToNextSprite(jumpPlantSprites,*jumpPlantTextures,jumpPlant);
+
     std::for_each(portalGreenSprites.begin(), portalGreenSprites.end(),
-    [this](const std::unique_ptr<sf::Sprite>& spritePtr) {
+    [this](auto& pair) {
         gameUtils::switchToNextSprite(
-            spritePtr.get(),           // Получаем сырой указатель из unique_ptr
-            *portalGreenTextures,      // Разыменовываем указатель на вектор
-            portalGreen,               // Итератор-хелпер
-            switchSprite_SwitchOption::Single
+            pair.second.get(),                          // Получаем сырой указатель из unique_ptr
+            *portalGreenTextures,                       // Разыменовываем указатель на вектор
+            portalGreen,                                // Итератор-хелпер
+            switchSprite_SwitchOption::Loop
         );
     });
     
-    
-
 }
 
 void Decoration::draw(sf::RenderWindow &window)
 {
     for (auto &i : plant1Sprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &i : plant2Sprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &i : plant3Sprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &i : plant4Sprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &i : plant5Sprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &i : plant6Sprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &i : plant7Sprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &i : cat1Sprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &i : jumpPlantSprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &&i : portalGreenSprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     for (auto &&i : staticSprites)
     {
-        window.draw(*i);
+        window.draw(*i.second);
     }
     
     

@@ -51,36 +51,37 @@ int main()
     EnemyManager<Skeleton> enemyManager;                                            // Skeleton manager
     
     
-    sf::Color grassColor{0,80,0,255};
+    sf::Color grassColor{255,255,255,255};
     float offset = -50.f;
-    decoration.addDecoration("plant1",{100,1040+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{200,1055+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{300,1035+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant1",{400,1040+offset},{-0.6f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{500,1055+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{600,1035+offset},{-0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant1",{700,1058+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{800,1045+offset},{-0.6f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1000,1048+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{1100,1055+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1200,1035+offset},{-0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant1",{1300,1058+offset},{0.6f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{1400,1045+offset},{-0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1500,1048+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1600,1035+offset},{-0.6f,0.3f}, grassColor);
-    decoration.addDecoration("plant1",{1700,1058+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant2",{1800,1045+offset},{-0.4f,0.3f}, grassColor);
-    decoration.addDecoration("plant3",{1900,1048+offset},{0.4f,0.3f}, grassColor);
-    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800+80},{1.f,1.f});
+    sf::Vector2f parrallaxF = {0.f,0.f};
+    decoration.addDecoration("plant1",{100,1040+offset},{0.4f,0.3f},parrallaxF, grassColor);
+    decoration.addDecoration("plant2",{200,1055+offset},{0.4f,0.3f}, parrallaxF, grassColor);
+    decoration.addDecoration("plant3",{300,1035+offset},{0.4f,0.3f}, parrallaxF, grassColor);
+    decoration.addDecoration("plant1",{400,1040+offset},{-0.6f,0.3f},parrallaxF, grassColor);
+    decoration.addDecoration("plant2",{500,1055+offset},{0.4f,0.3f}, parrallaxF, grassColor);
+    decoration.addDecoration("plant3",{600,1035+offset},{-0.4f,0.3f},parrallaxF, grassColor);
+    decoration.addDecoration("plant1",{700,1058+offset},{0.4f,0.3f}, parrallaxF, grassColor);
+    decoration.addDecoration("plant2",{800,1045+offset},{-0.6f,0.3f},parrallaxF, grassColor);
+    decoration.addDecoration("plant3",{1000,1048+offset},{0.4f,0.3f}, parrallaxF, grassColor);
+    decoration.addDecoration("plant2",{1100,1055+offset},{0.4f,0.3f}, parrallaxF, grassColor);
+    decoration.addDecoration("plant3",{1200,1035+offset},{-0.4f,0.3f},parrallaxF, grassColor);
+    decoration.addDecoration("plant1",{1300,1058+offset},{0.6f,0.3f},parrallaxF, grassColor);
+    decoration.addDecoration("plant2",{1400,1045+offset},{-0.4f,0.3f},parrallaxF, grassColor);
+    decoration.addDecoration("plant3",{1500,1048+offset},{0.4f,0.3f}, parrallaxF, grassColor);
+    decoration.addDecoration("plant3",{1600,1035+offset},{-0.6f,0.3f},parrallaxF, grassColor);
+    decoration.addDecoration("plant1",{1700,1058+offset},{0.4f,0.3f}, parrallaxF, grassColor);
+    decoration.addDecoration("plant2",{1800,1045+offset},{-0.4f,0.3f},parrallaxF, grassColor);
+    decoration.addDecoration("plant3",{1900,1048+offset},{0.4f,0.3f}, parrallaxF, grassColor);
+    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800+80},{1.f,1.f},parrallaxF);
     
-    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},{0.4f,0.4f});
-    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-60,WINDOW_HEIGHT-100},{-0.4f,0.4f});
+    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},{0.4f,0.4f},parrallaxF);
+    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-60,WINDOW_HEIGHT-100},{-0.4f,0.4f},parrallaxF);
 
-    decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f});
-    decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
+    decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f},parrallaxF);
+    decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f},parrallaxF);
 
-    decoration.addDecoration("MossyBackgroundDecoration_03.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
-    decoration.addDecoration("MossyDecorationHazard_06.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.2f,0.2f});
+    decoration.addDecoration("MossyBackgroundDecoration_03.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f},parrallaxF);
+    decoration.addDecoration("MossyDecorationHazard_06.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.2f,0.2f},parrallaxF);
 
 
     Platform platforms;
