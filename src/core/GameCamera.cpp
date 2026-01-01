@@ -8,8 +8,12 @@ void GameCamera::movementUpdate(float deltatime)
     float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
 
     //Условия для коллизии цели с краями уровня
-    if((player->getCenterPosition().x<(WINDOW_WIDTH-(viewAreaHeight/2))) && (player->getCenterPosition().x>(0.f+(viewAreaHeight/2)))) this->targetPos.x = player->getCenterPosition().x;
-    if((player->getCenterPosition().y<(WINDOW_HEIGHT-(viewAreaHeight/2))) && (player->getCenterPosition().y>(0.f+(viewAreaHeight/2)))) this->targetPos.y = player->getCenterPosition().y;
+    if((player->getCenterPosition().x<(WINDOW_WIDTH-(viewAreaHeight/2))) && (player->getCenterPosition().x>(0.f+(viewAreaHeight/2)))){
+        this->targetPos.x = player->getCenterPosition().x;
+    } 
+    if((player->getCenterPosition().y<(WINDOW_HEIGHT-(viewAreaHeight/2))) && (player->getCenterPosition().y>(0.f+(viewAreaHeight/2)))) {
+        this->targetPos.y = player->getCenterPosition().y;
+    } 
 
     sf::Vector2f offset = targetPos - cameraPos;
     float distance = std::sqrt(offset.x * offset.x + offset.y * offset.y);
@@ -30,15 +34,17 @@ void GameCamera::movementUpdate(float deltatime)
     // Интегрируем (упрощённый Euler)
     speed += totalForce * deltatime;
 
-    //mapBorderCollision();
-
     // Зажим скорости в рамки максимальной
     speed.x = std::clamp(speed.x, -maxSpeed.x, maxSpeed.x);
     speed.y = std::clamp(speed.y, -maxSpeed.y, maxSpeed.y);
 
     //Условия для коллизии камеры с краями уровня
-    if(((cameraPos.x + speed.x * deltatime)<(WINDOW_WIDTH-viewAreaWidth/2)) && ((cameraPos.x + speed.x * deltatime) > (viewAreaWidth/2))) cameraPos.x += speed.x * deltatime;
-    if(((cameraPos.y + speed.y * deltatime)<(WINDOW_HEIGHT-viewAreaHeight/2)) && ((cameraPos.y + speed.y * deltatime) > (viewAreaHeight/2))) cameraPos.y += speed.y * deltatime;
+    if(((cameraPos.x + speed.x * deltatime)<(WINDOW_WIDTH-viewAreaWidth/2)) && ((cameraPos.x + speed.x * deltatime) > (viewAreaWidth/2))) {
+        cameraPos.x += speed.x * deltatime;
+    } 
+    if(((cameraPos.y + speed.y * deltatime)<(WINDOW_HEIGHT-viewAreaHeight/2)) && ((cameraPos.y + speed.y * deltatime) > (viewAreaHeight/2))) {
+        cameraPos.y += speed.y * deltatime;
+    } 
     
     // Дополнительное мягкое торможение вблизи цели
     if (distance < brakeRadius) {
@@ -126,12 +132,12 @@ void GameCamera::update()
     }
 }
 
-float GameCamera::getZoom()
+float GameCamera::getZoom() const
 {
     return ZOOM_SCALE;
 }
 
-sf::Vector2f GameCamera::getScreenViewSize()
+sf::Vector2f GameCamera::getScreenViewSize() const
 {
     float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
     float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
@@ -140,9 +146,19 @@ sf::Vector2f GameCamera::getScreenViewSize()
     return sf::Vector2f(viewAreaWidth,viewAreaHeight);
 }
 
-sf::Vector2f GameCamera::getScreenViewPos()
+sf::Vector2f GameCamera::getScreenViewPos() const
 {
     sf::Vector2f pos = {view->getCenter().x-(getScreenViewSize().x)/2,
                         view->getCenter().y-(getScreenViewSize().y)/2};
     return pos;
+}
+
+sf::Vector2f GameCamera::getSpeed() const
+{
+    return this->speed;
+}
+
+sf::Vector2f GameCamera::getCameraCenter() const
+{
+    return view->getCenter();
 }

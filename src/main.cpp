@@ -26,10 +26,10 @@ int main()
     //Mouse
     sf::RectangleShape mouseRect({1.f,1.f});
 
-    //Background
+    //Background vars
     sf::Color menuBackGroundColor({0u,0u,0u});
     sf::Color gameBackGroundColor({0,0,0,255});
-    Background gameBackground(gameData,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_10.png",Type::SingleBackground);
+    
     
     //Main menu
     Menu menu(font,window,mouseRect);                                               // Menu
@@ -42,6 +42,7 @@ int main()
     Player player(gameData);                                                        // Player
     GameCamera camera(view,player,levelManager);                                    // Camera
     Ground ground(gameData,levelManager,"TileSetGreen_02.png",0u,WINDOW_WIDTH+100);     // Ground
+    Background gameBackground(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_10.png",{0.95f,0.f},Type::SingleBackground);
     Decoration decoration(gameData);                                                // Decoration
     EnemyManager<Skeleton> enemyManager;                                            // Skeleton manager
     
@@ -274,6 +275,9 @@ int main()
         player.checkGroundCollision(ground.getRect());
         player.checkRectCollision(platforms.getRects());
         player.moveBullets();
+            //Background logic
+                //Parallax
+            gameBackground.update();
 
         //Texture update
         enemyManager.updateTextures_all();

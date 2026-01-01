@@ -79,7 +79,9 @@ public:
     void setMoveSpeed(sf::Vector2f pos);                                    // IMPLEMENTME
 
     // Getters
-    float getZoom();
-    sf::Vector2f getScreenViewSize();
-    sf::Vector2f getScreenViewPos();
+    float getZoom()                     const;
+    sf::Vector2f getScreenViewSize()    const;
+    sf::Vector2f getScreenViewPos()     const;
+    sf::Vector2f getSpeed()             const;
+    sf::Vector2f getCameraCenter()      const;
 };
