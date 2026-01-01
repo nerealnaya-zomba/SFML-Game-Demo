@@ -1,6 +1,6 @@
 #include<Background.h>
 
-Background::Background(sf::Vector2f pos, std::string bgName, Type t = Type::Single) : position(pos), name(bgName), type(t)
+Background::Background(sf::Vector2f pos, std::string bgName, Type t = Type::SingleBackground) : position(pos), name(bgName), type(t)
 {
     //Texture init
     this->skyTexture = new sf::Texture();
@@ -27,12 +27,12 @@ Background::~Background()
 void Background::draw(sf::RenderWindow &window)
 {
     switch(type){
-        case Type::Single:
+        case Type::SingleBackground:
         window.draw(*sky);
         window.draw(*mansion);
         break;
 
-        case Type::Repeated:                    // IMPLEMENTME
+        case Type::RepeatedBackground:                    // IMPLEMENTME
         break;
 
         default:break;

@@ -7,7 +7,7 @@
 #include<GameData.h>
 #include<TexturesIterHelper.h>
 #include<windows.h>
-
+#include<map>
 class Decoration //Takes too much responsibility on self
 {
 public:
@@ -49,6 +49,10 @@ public:
         //Portal
     std::vector<sf::Texture>* portalGreenTextures;
     texturesIterHelper portalGreen;
+    
+    //Static-textures
+    std::map<std::string,sf::Texture>* staticTextures;
+        
     private:
     //Sprites
         //Plants
@@ -71,6 +75,9 @@ public:
     std::vector<std::unique_ptr<sf::Sprite>> cat1Sprites;
         //Portal
     std::vector<std::unique_ptr<sf::Sprite>> portalGreenSprites;
+    
+    //Static-sprites
+    std::vector<std::unique_ptr<sf::Sprite>> staticSprites;
 
     //Switches sprite's texture to next
     void switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper);

@@ -171,40 +171,37 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     generateMipmapTextures(portalGreenTextures);
     smoothTextures(portalGreenTextures);
 
-    //Mossy
-    if(loadTexture(MossyBackgroundDecorationsTextures,MossyBackgroundDecorationsPath)) succesedOperationsCount_m++;
+    //Static-textures
+        //Mossy
+    if(loadTexture(allStaticTextures,MossyBackgroundDecorationsPath, false)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    generateMipmapTextures(MossyBackgroundDecorationsTextures);
-    smoothTextures(MossyBackgroundDecorationsTextures);
+
     
-    if(loadTexture(MossyDecorationsHazardsTextures,MossyDecorationsHazardsPath)) succesedOperationsCount_m++;
+    if(loadTexture(allStaticTextures,MossyDecorationsHazardsPath, false)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    generateMipmapTextures(MossyDecorationsHazardsTextures);
-    smoothTextures(MossyDecorationsHazardsTextures);
 
-    if(loadTexture(MossyHangingPlantsTextures,MossyHangingPlantsPath)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(MossyHangingPlantsTextures);
-    smoothTextures(MossyHangingPlantsTextures);
 
-    if(loadTexture(MossyHillsTextures,MossyHillsPath)) succesedOperationsCount_m++;
+    if(loadTexture(allStaticTextures,MossyHangingPlantsPath, false)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    generateMipmapTextures(MossyHillsTextures);
-    smoothTextures(MossyHillsTextures);
 
-    if(loadTexture(MossyTileSetTextures,MossyTileSetPath)) succesedOperationsCount_m++;
+
+    if(loadTexture(allStaticTextures,MossyHillsPath, false)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-    generateMipmapTextures(MossyTileSetTextures);
-    smoothTextures(MossyTileSetTextures);
+
+
+    if(loadTexture(allStaticTextures,MossyTileSetPath, false)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(allStaticTextures);
+    smoothTextures(allStaticTextures);
 
     // Ground initialization
         // TileSetGreen
-    if(loadTexture(TileSetGreenTextures,groundTileSetGreenPath)) succesedOperationsCount_m++;
+    if(loadTexture(TileSetGreenTextures,groundTileSetGreenPath, true)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
     generateMipmapTextures(TileSetGreenTextures);
@@ -264,7 +261,7 @@ bool GameData::loadTexture(std::vector<sf::Texture> &textures, std::string path,
     // ОЧЕНЬ ВАЖНО: передаем количество текстур, а не последний номер
     return initTextures(textures, path, seq.count, seq.maxDigits, seq.startCounter);
 }
-bool GameData::loadTexture(std::map<std::string,sf::Texture> &textures, std::string path)
+bool GameData::loadTexture(std::map<std::string,sf::Texture> &textures, std::string path, bool clearOnReuse = true)
 {
     TextureSequenceInfo seq = analyzeTextureSequence(path);
     
@@ -278,9 +275,10 @@ bool GameData::loadTexture(std::map<std::string,sf::Texture> &textures, std::str
               << ", start=" << seq.startCounter 
               << ", count=" << seq.count 
               << ", digits=" << seq.maxDigits << std::endl;
-
+    
     // ОЧЕНЬ ВАЖНО: передаем количество текстур, а не последний номер
-    return initTextures(textures, path, seq.count, seq.maxDigits, seq.startCounter);
+    if(clearOnReuse) return initTextures(textures, path, seq.count, seq.maxDigits, seq.startCounter);
+    else return initTextures(textures, path, seq.count, seq.maxDigits, seq.startCounter, false);
 }
 
 void GameData::generateMipmapTextures(std::map<std::string, sf::Texture> &texturesArray)

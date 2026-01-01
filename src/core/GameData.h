@@ -90,12 +90,9 @@ public:
     texturesIterHelper plant7;
     std::vector<sf::Texture> jumpPlantTextures;
     texturesIterHelper jumpPlant;
-    // Decoration textures - Mossy
-    std::map<std::string,sf::Texture> MossyBackgroundDecorationsTextures;
-    std::map<std::string,sf::Texture> MossyDecorationsHazardsTextures;
-    std::map<std::string,sf::Texture> MossyHangingPlantsTextures;
-    std::map<std::string,sf::Texture> MossyHillsTextures;
-    std::map<std::string,sf::Texture> MossyTileSetTextures;
+    //Static-textures
+        // Decoration textures - Mossy
+    std::map<std::string,sf::Texture> allStaticTextures;                     //NOTE Все текстуры, которые статичны. Вызываются по их названию: mossy_1.png
 
     // Cat decoration
     std::vector<sf::Texture> cat1Textures;
@@ -107,13 +104,16 @@ public:
 
     // Ground texture
     std::map<std::string,sf::Texture> TileSetGreenTextures;
+    
+    //Background textures
+
 
 private:
     // Texture loading and processing
     int standartIterationsTillSwitch = 7;
     bool initSatiroTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     bool loadTexture(std::vector<sf::Texture> &textures,std::string path, texturesIterHelper& helper, int pauseTillSwitch);
-    bool loadTexture(std::map<std::string,sf::Texture> &textures, std::string path);
+    bool loadTexture(std::map<std::string,sf::Texture> &textures, std::string path, bool clearOnReuse);
     void generateMipmapTextures(std::vector<sf::Texture>& texturesArray);
     void generateMipmapTextures(std::map<std::string, sf::Texture> &texturesArray);
     void smoothTextures(std::vector<sf::Texture>& texturesArray);

@@ -10,7 +10,6 @@ Decoration::Decoration(GameData& gameTextures)
     attachTexture(gameTextures.plant5Textures, this->plant5Textures, gameTextures.plant5,this->plant5);
     attachTexture(gameTextures.plant6Textures, this->plant6Textures, gameTextures.plant6,this->plant6);
     attachTexture(gameTextures.plant7Textures, this->plant7Textures, gameTextures.plant7,this->plant7);
-
     //Cat
     attachTexture(gameTextures.jumpPlantTextures, this->jumpPlantTextures, gameTextures.jumpPlant, this->jumpPlant);
 
@@ -19,6 +18,9 @@ Decoration::Decoration(GameData& gameTextures)
 
     //portalGreen
     attachTexture(gameTextures.portalGreenTextures, this->portalGreenTextures,gameTextures.portalGreen, this->portalGreen);
+
+    //Static-textures
+    attachTexture(gameTextures.allStaticTextures,this->staticTextures);
 }
 
 Decoration::~Decoration()
@@ -177,7 +179,24 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setColor(color);
         portalGreenSprites.push_back(std::move(sprite));
     }
-
+    //Static-textures assertion
+    else{
+        try{
+            auto sprite = std::make_unique<sf::Sprite>(staticTextures->at(name));
+            sprite->setOrigin(sprite->getGlobalBounds().getCenter());
+            sprite->setPosition(position);
+            sprite->setScale(scale);
+            sprite->setColor(color);
+            staticSprites.push_back(std::move(sprite));
+        }
+        catch(std::out_of_range& ex){
+            std::cout << ex.what() << std::endl;
+            
+            exit(1);
+        }
+    }
+    
+    
 }
 
 void Decoration::switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper)
@@ -319,6 +338,10 @@ void Decoration::draw(sf::RenderWindow &window)
         window.draw(*i);
     }
     for (auto &&i : portalGreenSprites)
+    {
+        window.draw(*i);
+    }
+    for (auto &&i : staticSprites)
     {
         window.draw(*i);
     }

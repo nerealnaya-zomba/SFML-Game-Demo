@@ -29,7 +29,7 @@ int main()
     //Background
     sf::Color menuBackGroundColor({0u,0u,0u});
     sf::Color gameBackGroundColor({0,0,0,255});
-    Background gameBackground({WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"",Type::Single);
+    Background gameBackground({WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"",Type::SingleBackground);
     
     //Main menu
     Menu menu(font,window,mouseRect);                                               // Menu
@@ -73,6 +73,9 @@ int main()
 
     decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f});
     decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
+
+    decoration.addDecoration("MossyBackgroundDecoration_03.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f});
+    decoration.addDecoration("MossyDecorationHazard_06.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.2f,0.2f});
 
 
     Platform platforms;

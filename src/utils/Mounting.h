@@ -49,10 +49,10 @@ static bool initTextures(std::vector<sf::Texture> &textures, std::string path,
 }
 
 static bool initTextures(std::map<std::string,sf::Texture> &textures, std::string path, 
-                         int texturesCount, int maxDigits = 5, int startCounter = 0)
+                         int texturesCount, int maxDigits = 5, int startCounter = 0, bool clearOnReuse = true)
 {
     // Очищаем вектор на случай повторного использования
-    textures.clear();
+    if(clearOnReuse) textures.clear();
     
     std::string basePath = path;
     
@@ -240,6 +240,10 @@ static void attachTexture(std::vector<sf::Texture>& fromTexture, std::vector<sf:
 {
     toTexture = &fromTexture;
     toIter = fromIter;
+}
+static void attachTexture(std::map<std::string,sf::Texture>& fromTexture, std::map<std::string,sf::Texture>*& toTexture) 
+{
+    toTexture = &fromTexture;
 }
 static void attachTexture(sf::Texture& fromTexture, sf::Texture*& toTexture) 
 {

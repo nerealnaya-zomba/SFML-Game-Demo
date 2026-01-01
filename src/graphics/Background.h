@@ -4,7 +4,7 @@
 #include<iostream>
 #include<Defines.h>
 
-enum Type{Repeated, Single};
+enum Type{RepeatedBackground, SingleBackground};
 ////////////////////////////////////////////////// IMPLEMENTME
 // Представляет собой фон уровня. 
 // На фон уровня можно выбирать как картинку, так и видео (FFMPEG в помощь).
