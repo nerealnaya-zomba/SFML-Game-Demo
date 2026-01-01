@@ -42,7 +42,11 @@ int main()
     Player player(gameData);                                                        // Player
     GameCamera camera(view,player,levelManager);                                    // Camera
     Ground ground(gameData,levelManager,"TileSetGreen_02.png",0u,WINDOW_WIDTH+100);     // Ground
-    Background gameBackground(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_10.png",{0.95f,0.f},Type::SingleBackground);
+    Background gameBackground(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_35.png",{0.0f,0.f},Type::SingleBackground);
+    Background gameBackground1(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_36.png",{0.96f,0.98f},Type::SingleBackground);
+    Background gameBackground2(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_37.png",{0.88f,0.96f},Type::SingleBackground);
+    Background gameBackground3(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_38.png",{0.72f,0.94f},Type::SingleBackground);
+
     Decoration decoration(gameData);                                                // Decoration
     EnemyManager<Skeleton> enemyManager;                                            // Skeleton manager
     
@@ -278,6 +282,9 @@ int main()
             //Background logic
                 //Parallax
             gameBackground.update();
+            gameBackground1.update();
+            gameBackground2.update();
+            gameBackground3.update();
 
         //Texture update
         enemyManager.updateTextures_all();
@@ -319,6 +326,9 @@ int main()
             //Background drawing
         window.clear(gameBackGroundColor);
         gameBackground.draw(window);
+        gameBackground1.draw(window);
+        gameBackground2.draw(window);
+        gameBackground3.draw(window);
 
             //Decorations drawing
         decoration.draw(window);
