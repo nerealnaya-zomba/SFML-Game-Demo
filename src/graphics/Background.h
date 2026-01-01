@@ -3,6 +3,7 @@
 #include<vector>
 #include<iostream>
 #include<Defines.h>
+#include<GameData.h>
 
 enum Type{RepeatedBackground, SingleBackground};
 ////////////////////////////////////////////////// IMPLEMENTME
@@ -16,7 +17,7 @@ enum Type{RepeatedBackground, SingleBackground};
 class Background
 {  
     public:
-    Background(sf::Vector2f pos, std::string bgName, Type type);
+    Background(GameData& data, sf::Vector2f pos, std::string bgName, Type type);
     ~Background();
 
     //////////////////////////////////////////////////
@@ -28,11 +29,7 @@ class Background
     Type type;                  // Тип фона
     sf::Vector2f position;      // Позиция
     std::string name;           // Название фона
-    ////////////////////////////////////////////////// УСТАРЕВШИЕ
-    sf::Sprite* sky;
-    sf::Sprite* mansion;
-    sf::Texture* skyTexture;
-    sf::Texture* mansionTexture;
-    ////////////////////////////////////////////////// УСТАРЕВШИЕ
+
+    sf::Sprite* bgFront;
 
 };

@@ -106,7 +106,7 @@ public:
     std::map<std::string,sf::Texture> TileSetGreenTextures;
     
     //Background textures
-
+    std::map<std::string,sf::Texture> backgroundTextures;
 
 private:
     // Texture loading and processing
@@ -195,4 +195,7 @@ private:
     std::string MossyHangingPlantsPath{"images/decoration/MossyHangingPlants/MossyHangingPlants_"};
     std::string MossyHillsPath{"images/decoration/MossyHills/MossyHills_"};
     std::string MossyTileSetPath{"images/decoration/MossyTileSet/MossyTileSet_"};
+    
+    //Background texture path
+    std::string backgroundPath{"images/Background/Background_"};
 };

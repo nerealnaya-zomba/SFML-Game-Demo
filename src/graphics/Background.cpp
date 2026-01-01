@@ -1,23 +1,15 @@
 #include<Background.h>
 
-Background::Background(sf::Vector2f pos, std::string bgName, Type t = Type::SingleBackground) : position(pos), name(bgName), type(t)
+Background::Background(GameData& data,sf::Vector2f pos, std::string bgName, Type t = Type::SingleBackground) : position(pos), name(bgName), type(t)
 {
-    //Texture init
-    this->skyTexture = new sf::Texture();
-    skyTexture->loadFromFile("images/Background/Background_0.png") ? std::cout << "Texture loaded: images/Background/Background_0.png" << std::endl : std::cout << "Error loading texture: images/Background/Background_0.png" << std::endl;;
-    this->mansionTexture = new sf::Texture();
-    mansionTexture->loadFromFile("images/Background/Background_1.png") ? std::cout << "Texture loaded: images/Background/Background_1.png" << std::endl : std::cout << "Error loading texture: images/Background/Background_1.png" << std::endl;
-
-    //Sprite init
-    sky = new sf::Sprite(*skyTexture);
-
-    //Calibrating background to window width and height
-    float window_width = static_cast<float>(WINDOW_WIDTH);
-    float window_height = static_cast<float>(WINDOW_HEIGHT);
-    sky->setScale({window_width / 768.f, window_height / 416.f});
-
-    mansion = new sf::Sprite(*mansionTexture);
-    mansion->setScale({WINDOW_WIDTH / 768.f, WINDOW_HEIGHT / 416.f});
+    // Получаем ссылку на нужную текстуру
+    sf::Texture& bgTexture = data.backgroundTextures.at(bgName);
+    bgFront = new sf::Sprite(bgTexture);
+    
+    // Уменьшаем размер фона, до размера окна
+    sf::Vector2f windowSizes = {static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT)};
+    sf::Vector2f mansionSizes = {static_cast<float>(bgTexture.getSize().x),static_cast<float>(bgTexture.getSize().y)};
+    bgFront->setScale({windowSizes.x/mansionSizes.x , windowSizes.y/mansionSizes.y });
 }
 
 Background::~Background()
@@ -28,8 +20,7 @@ void Background::draw(sf::RenderWindow &window)
 {
     switch(type){
         case Type::SingleBackground:
-        window.draw(*sky);
-        window.draw(*mansion);
+        window.draw(*bgFront);
         break;
 
         case Type::RepeatedBackground:                    // IMPLEMENTME

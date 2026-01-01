@@ -29,7 +29,7 @@ int main()
     //Background
     sf::Color menuBackGroundColor({0u,0u,0u});
     sf::Color gameBackGroundColor({0,0,0,255});
-    Background gameBackground({WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"",Type::SingleBackground);
+    Background gameBackground(gameData,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_10.png",Type::SingleBackground);
     
     //Main menu
     Menu menu(font,window,mouseRect);                                               // Menu
@@ -41,7 +41,7 @@ int main()
     //Game
     Player player(gameData);                                                        // Player
     GameCamera camera(view,player,levelManager);                                    // Camera
-    Ground ground(gameData,levelManager,"TileSetGreen_26.png",0u,WINDOW_WIDTH+100);     // Ground
+    Ground ground(gameData,levelManager,"TileSetGreen_02.png",0u,WINDOW_WIDTH+100);     // Ground
     Decoration decoration(gameData);                                                // Decoration
     EnemyManager<Skeleton> enemyManager;                                            // Skeleton manager
     

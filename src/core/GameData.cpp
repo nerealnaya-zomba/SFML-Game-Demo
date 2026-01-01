@@ -207,6 +207,13 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     generateMipmapTextures(TileSetGreenTextures);
     smoothTextures(TileSetGreenTextures);
 
+    //Background initialization
+    if(loadTexture(backgroundTextures,backgroundPath, true)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(backgroundTextures);
+    smoothTextures(backgroundTextures);
+
     //Save load info
     if(succesedOperationsCount_m!=allOperations_count_m)
     {
