@@ -25,7 +25,7 @@ Decoration::~Decoration()
 {
 }
 
-void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, sf::Color color)
+void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color)
 {
     if(name == "plant1")
     {
@@ -40,7 +40,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant1Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        plant1Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant2")
     {
@@ -55,7 +55,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant2Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        plant2Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant3")
     {
@@ -70,7 +70,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant3Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        plant3Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant4")
     {
@@ -85,7 +85,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant4Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        plant4Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant5")
     {
@@ -100,7 +100,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant5Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        plant5Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant6")
     {
@@ -115,7 +115,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant6Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        plant6Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant7")
     {
@@ -130,7 +130,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant7Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        plant7Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "cat")
     {
@@ -145,7 +145,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        cat1Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        cat1Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "jumpPlant")
     {
@@ -160,7 +160,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        jumpPlantSprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        jumpPlantSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "portalGreen")
     {
@@ -175,7 +175,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        portalGreenSprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+        portalGreenSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     //Static-textures assertion
     else{
@@ -185,7 +185,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
             sprite->setPosition(position);
             sprite->setScale(scale);
             sprite->setColor(color);
-            staticSprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
+            staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
         }
         catch(std::out_of_range& ex){
             std::cout << ex.what() << std::endl;
@@ -237,7 +237,9 @@ void Decoration::switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& sp
     }
 }
 
-void Decoration::switchToNextSprite(std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual>& spritesArray, 
+void Decoration::switchToNextSprite(std::unordered_multimap<
+        Vector2fPairWithZ,
+        std::unique_ptr<sf::Sprite>,Vector2fPairWithZHash,Vector2fPairWithZEqual>& spritesArray, 
         std::vector<sf::Texture>& texturesArray, 
         texturesIterHelper& iterHelper)
 {
@@ -282,62 +284,60 @@ void Decoration::updateParallax()
 {
     for (auto &i : plant1Sprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &i : plant2Sprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &i : plant3Sprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &i : plant4Sprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &i : plant5Sprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &i : plant6Sprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &i : plant7Sprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &i : cat1Sprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &i : jumpPlantSprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &&i : portalGreenSprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
     for (auto &&i : staticSprites)
     {
-        applyParalaxes(i);
+        applyParalaxes(i.first.posData,i.second);
     }
 }
 
 void Decoration::applyParalaxes(
-    std::pair<
-        const std::pair<sf::Vector2f, sf::Vector2f>,  
-        std::unique_ptr<sf::Sprite>
-    >& element 
+        const std::pair<sf::Vector2f, sf::Vector2f>& vectorPair ,   // for std::pair : first - parallaxFactor, second - baseObjectPos  
+        const std::unique_ptr<sf::Sprite>& sprite                   // second arg. in std::unordered_map
 ) {
-    sf::Vector2f baseObjectPos = element.first.second;
-    sf::Vector2f parallaxFactor = element.first.first;
+    sf::Vector2f baseObjectPos = vectorPair.second;
+    sf::Vector2f parallaxFactor = vectorPair.first;
     
     sf::Vector2f difference = baseObjectPos - camera->getCameraCenter();
-    if (element.second) {
-        element.second.get()->setPosition({
+    if (sprite.get()) {
+        sprite.get()->setPosition({
             camera->getCameraCenter().x + (difference.x * parallaxFactor.x),
             camera->getCameraCenter().y + (difference.y * parallaxFactor.y)
         });

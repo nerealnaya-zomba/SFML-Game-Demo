@@ -43,6 +43,30 @@ struct Vector2fPairEqual {
                 (pva.first.x  == pvb.first.x  && pva.first.y  == pvb.first.y );
     }
 };
+struct Vector2fPairWithZ {
+    std::pair<sf::Vector2f, sf::Vector2f> posData;
+    int z;
+
+    Vector2fPairWithZ() = default;
+    Vector2fPairWithZ(const std::pair<sf::Vector2f,sf::Vector2f>& p, int& zi) 
+        : posData(p), z(zi) {};
+    Vector2fPairWithZ(std::pair<sf::Vector2f, sf::Vector2f>&& p, int zi) 
+        : posData(std::move(p)), z(zi) {};
+};
+struct Vector2fPairWithZHash {
+    std::size_t operator()(const Vector2fPairWithZ& data) const {
+        Vector2fPairHash pairHasher;
+        std::size_t h1 = pairHasher(data.posData);
+        std::size_t h2 = std::hash<int>{}(data.z);
+        return h1 ^ (h2 << 1);
+    }
+};
+struct Vector2fPairWithZEqual {
+    bool operator()(const Vector2fPairWithZ& a, const Vector2fPairWithZ& b) const {
+        Vector2fPairEqual pairEqual;
+        return pairEqual(a.posData, b.posData) && (a.z == b.z);
+    }
+};
 
 class Decoration 
 {
@@ -58,7 +82,7 @@ public:
     Decoration(GameData& gameTextures, GameCamera& c);
     ~Decoration();
 
-    void addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, sf::Color color  = sf::Color::White);
+    void addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z = 0, sf::Color color = sf::Color::White);
     void updateTextures();
     void draw(sf::RenderWindow& window);
 
@@ -103,43 +127,98 @@ public:
     GameCamera* camera;
     //Sprites
         //Plants
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> plant1Sprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > plant1Sprites; 
     
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> plant2Sprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > plant2Sprites;
     
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> plant3Sprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > plant3Sprites;
     
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> plant4Sprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > plant4Sprites;
     
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> plant5Sprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > plant5Sprites;
     
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> plant6Sprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > plant6Sprites;
     
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> plant7Sprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > plant7Sprites;
 
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> jumpPlantSprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > jumpPlantSprites;
         //Cat
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> cat1Sprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > cat1Sprites;
         //Portal
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> portalGreenSprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > portalGreenSprites;
     
     //Static-sprites
-    std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual> staticSprites;
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > staticSprites;
 
     //Switches sprite's texture to next
     void switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper);
     void switchToNextSprite(
-        std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual>& spritesArray, 
+        std::unordered_multimap<
+        Vector2fPairWithZ,
+        std::unique_ptr<sf::Sprite>,Vector2fPairWithZHash,Vector2fPairWithZEqual>& spritesArray, 
         std::vector<sf::Texture>& texturesArray, 
         texturesIterHelper& iterHelper
     );
 
     void updateParallax();
     void applyParalaxes(
-    std::pair<
-        const std::pair<sf::Vector2f, sf::Vector2f>,  
-        std::unique_ptr<sf::Sprite>
-    >& element 
+        const std::pair<sf::Vector2f, sf::Vector2f>& vectorPair ,  
+        const std::unique_ptr<sf::Sprite>& sprite 
     );
 
     //Optional
