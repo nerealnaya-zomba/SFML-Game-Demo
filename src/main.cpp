@@ -39,50 +39,93 @@ int main()
     
     
     //Game
-    Player player(gameData);                                                        // Player
-    GameCamera camera(view,player,levelManager);                                    // Camera
+    Player player(gameData);                                                            // Player
+    GameCamera camera(view,player,levelManager);                                        // Camera
     Ground ground(gameData,levelManager,"TileSetGreen_02.png",0u,WINDOW_WIDTH+100);     // Ground
     Background gameBackground(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_35.png",{0.0f,0.f},Type::SingleBackground);
     Background gameBackground1(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_36.png",{0.96f,0.98f},Type::SingleBackground);
     Background gameBackground2(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_37.png",{0.88f,0.96f},Type::SingleBackground);
     Background gameBackground3(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_38.png",{0.72f,0.94f},Type::SingleBackground);
 
-    Decoration decoration(gameData);                                                // Decoration
-    EnemyManager<Skeleton> enemyManager;                                            // Skeleton manager
+    Decoration decoration(gameData,camera);                                                 // Decoration
+    EnemyManager<Skeleton> enemyManager;                                                    // Skeleton manager
     
     
     sf::Color grassColor{255,255,255,255};
-    float offset = -50.f;
-    sf::Vector2f parrallaxF = {0.f,0.f};
-    decoration.addDecoration("plant1",{100,1040+offset},{0.4f,0.3f},parrallaxF, grassColor);
-    decoration.addDecoration("plant2",{200,1055+offset},{0.4f,0.3f}, parrallaxF, grassColor);
-    decoration.addDecoration("plant3",{300,1035+offset},{0.4f,0.3f}, parrallaxF, grassColor);
-    decoration.addDecoration("plant1",{400,1040+offset},{-0.6f,0.3f},parrallaxF, grassColor);
-    decoration.addDecoration("plant2",{500,1055+offset},{0.4f,0.3f}, parrallaxF, grassColor);
-    decoration.addDecoration("plant3",{600,1035+offset},{-0.4f,0.3f},parrallaxF, grassColor);
-    decoration.addDecoration("plant1",{700,1058+offset},{0.4f,0.3f}, parrallaxF, grassColor);
-    decoration.addDecoration("plant2",{800,1045+offset},{-0.6f,0.3f},parrallaxF, grassColor);
-    decoration.addDecoration("plant3",{1000,1048+offset},{0.4f,0.3f}, parrallaxF, grassColor);
-    decoration.addDecoration("plant2",{1100,1055+offset},{0.4f,0.3f}, parrallaxF, grassColor);
-    decoration.addDecoration("plant3",{1200,1035+offset},{-0.4f,0.3f},parrallaxF, grassColor);
-    decoration.addDecoration("plant1",{1300,1058+offset},{0.6f,0.3f},parrallaxF, grassColor);
-    decoration.addDecoration("plant2",{1400,1045+offset},{-0.4f,0.3f},parrallaxF, grassColor);
-    decoration.addDecoration("plant3",{1500,1048+offset},{0.4f,0.3f}, parrallaxF, grassColor);
-    decoration.addDecoration("plant3",{1600,1035+offset},{-0.6f,0.3f},parrallaxF, grassColor);
-    decoration.addDecoration("plant1",{1700,1058+offset},{0.4f,0.3f}, parrallaxF, grassColor);
-    decoration.addDecoration("plant2",{1800,1045+offset},{-0.4f,0.3f},parrallaxF, grassColor);
-    decoration.addDecoration("plant3",{1900,1048+offset},{0.4f,0.3f}, parrallaxF, grassColor);
-    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-800+80},{1.f,1.f},parrallaxF);
+    float offset = 350.f;
+    sf::Vector2f parrallaxF = {0.70f,0.70f};
+    sf::Vector2f parrallaxF1 = {1.f,1.f};
+    float grassSizeReduction = 40.f;
+    float randomParallax = random(1.2f,1.8);
+    sf::Vector2f scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant1",{100,1040+offset},scale,parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant2",{200,1055+offset},scale, parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant3",{300,1035+offset},scale, parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant1",{400,1040+offset},scale,parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant2",{500,1055+offset},scale, parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant3",{600,1035+offset},scale,parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant1",{700,1058+offset},scale, parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant2",{800,1045+offset},scale,parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant3",{1000,1048+offset},scale, parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant2",{1100,1055+offset},scale, parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant3",{1200,1035+offset},scale,parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant1",{1300,1058+offset},scale,parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant2",{1400,1045+offset},scale,parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant3",{1500,1048+offset},scale, parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant3",{1600,1035+offset},scale,parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant1",{1700,1058+offset},scale, parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant2",{1800,1045+offset},scale,parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("plant3",{1900,1048+offset},scale, parrallaxF/randomParallax, grassColor);
+    randomParallax = random(1.2f,1.8);
+    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
+    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-52},{1.f,1.f},{1.f,1.f});
     
-    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},{0.4f,0.4f},parrallaxF);
-    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-60,WINDOW_HEIGHT-100},{-0.4f,0.4f},parrallaxF);
+    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},{0.4f,0.4f},parrallaxF1);
+    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-60,WINDOW_HEIGHT-100},{-0.4f,0.4f},parrallaxF1);
 
-    decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f},parrallaxF);
-    decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f},parrallaxF);
+    decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f},parrallaxF1);
+    decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f},parrallaxF1);
 
-    decoration.addDecoration("MossyBackgroundDecoration_03.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f},parrallaxF);
-    decoration.addDecoration("MossyDecorationHazard_06.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.2f,0.2f},parrallaxF);
+    // decoration.addDecoration("MossyBackgroundDecoration_03.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f},parrallaxF);
+    // decoration.addDecoration("MossyDecorationHazard_06.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.2f,0.2f},parrallaxF);
 
+    decoration.addDecoration("portalGreen",{WINDOW_WIDTH-1400+200,WINDOW_HEIGHT-420},{-0.2f,0.2f},parrallaxF/2.f);
+    decoration.addDecoration("portalGreen",{WINDOW_WIDTH-1400+500,WINDOW_HEIGHT-620},{-0.55f,0.55f},parrallaxF);
+    decoration.addDecoration("portalGreen",{WINDOW_WIDTH-600,WINDOW_HEIGHT-720},{-0.4f,0.4f},parrallaxF/1.5f);
 
     Platform platforms;
     platforms.addPlatform({WINDOW_WIDTH-300,WINDOW_HEIGHT-100},"Single-angled");
@@ -90,9 +133,14 @@ int main()
     platforms.addPlatform({WINDOW_WIDTH-500,WINDOW_HEIGHT-280},"Single-flat");
     platforms.addPlatform({WINDOW_WIDTH-700,WINDOW_HEIGHT-380},"Double-horizontal-1");
     platforms.addPlatform({WINDOW_WIDTH-900,WINDOW_HEIGHT-480},"Double-horizontal-2");
-    platforms.addPlatform({WINDOW_WIDTH-1050,WINDOW_HEIGHT-580},"Double-vertical");
     platforms.addPlatform({WINDOW_WIDTH-1300,WINDOW_HEIGHT-680},"Triple");
     platforms.addPlatform({WINDOW_WIDTH-1400,WINDOW_HEIGHT-800},"Quadruple");
+
+    platforms.addPlatform({0.f+300.f,WINDOW_HEIGHT-100},"Single-angled");
+    platforms.addPlatform({0.f+400.f,WINDOW_HEIGHT-200},"Single-square");
+    platforms.addPlatform({0.f+500.f,WINDOW_HEIGHT-280},"Single-flat");
+    platforms.addPlatform({0.f+700.f,WINDOW_HEIGHT-380},"Double-horizontal-1");
+    platforms.addPlatform({0.f+900.f,WINDOW_HEIGHT-480},"Double-horizontal-2");
 
     std::vector<Particle> particles;
 

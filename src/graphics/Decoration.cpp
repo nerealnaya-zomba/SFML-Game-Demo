@@ -1,25 +1,24 @@
 #include "Decoration.h"
 
-Decoration::Decoration(GameData& gameTextures)
+Decoration::Decoration(GameData& gameTextures, GameCamera& c)
+: data(&gameTextures), camera(&c)
 {
     //Plants
-    attachTexture(gameTextures.plant1Textures, this->plant1Textures, gameTextures.plant1,this->plant1);
-    attachTexture(gameTextures.plant2Textures, this->plant2Textures, gameTextures.plant2,this->plant2);
-    attachTexture(gameTextures.plant3Textures, this->plant3Textures, gameTextures.plant3,this->plant3);
-    attachTexture(gameTextures.plant4Textures, this->plant4Textures, gameTextures.plant4,this->plant4);
-    attachTexture(gameTextures.plant5Textures, this->plant5Textures, gameTextures.plant5,this->plant5);
-    attachTexture(gameTextures.plant6Textures, this->plant6Textures, gameTextures.plant6,this->plant6);
-    attachTexture(gameTextures.plant7Textures, this->plant7Textures, gameTextures.plant7,this->plant7);
+    attachTexture(gameTextures.plant1Textures,      this->plant1Textures,       gameTextures.plant1,        this->plant1        );
+    attachTexture(gameTextures.plant2Textures,      this->plant2Textures,       gameTextures.plant2,        this->plant2        );
+    attachTexture(gameTextures.plant3Textures,      this->plant3Textures,       gameTextures.plant3,        this->plant3        );
+    attachTexture(gameTextures.plant4Textures,      this->plant4Textures,       gameTextures.plant4,        this->plant4        );
+    attachTexture(gameTextures.plant5Textures,      this->plant5Textures,       gameTextures.plant5,        this->plant5        );
+    attachTexture(gameTextures.plant6Textures,      this->plant6Textures,       gameTextures.plant6,        this->plant6        );
+    attachTexture(gameTextures.plant7Textures,      this->plant7Textures,       gameTextures.plant7,        this->plant7        );
     //Cat
-    attachTexture(gameTextures.jumpPlantTextures, this->jumpPlantTextures, gameTextures.jumpPlant, this->jumpPlant);
-
+    attachTexture(gameTextures.jumpPlantTextures,   this->jumpPlantTextures,    gameTextures.jumpPlant,     this->jumpPlant     );
     //jumpPlant
-    attachTexture(gameTextures.cat1Textures, this->cat1Textures, gameTextures.catHelper, this->catHelper);
-
+    attachTexture(gameTextures.cat1Textures,        this->cat1Textures,         gameTextures.catHelper,     this->catHelper     );
     //portalGreen
-    attachTexture(gameTextures.portalGreenTextures, this->portalGreenTextures,gameTextures.portalGreen, this->portalGreen);
+    attachTexture(gameTextures.portalGreenTextures, this->portalGreenTextures,  gameTextures.portalGreen,   this->portalGreen   );
     //Static-textures
-    attachTexture(gameTextures.allStaticTextures,this->staticTextures);
+    attachTexture(gameTextures.allStaticTextures,   this->staticTextures                                                        );
 }
 
 Decoration::~Decoration()
@@ -41,7 +40,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant1Sprites.emplace(parallaxFactor,std::move(sprite));
+        plant1Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     else if(name == "plant2")
     {
@@ -56,7 +55,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant2Sprites.emplace(parallaxFactor,std::move(sprite));
+        plant2Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     else if(name == "plant3")
     {
@@ -71,7 +70,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant3Sprites.emplace(parallaxFactor,std::move(sprite));
+        plant3Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     else if(name == "plant4")
     {
@@ -86,7 +85,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant4Sprites.emplace(parallaxFactor,std::move(sprite));
+        plant4Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     else if(name == "plant5")
     {
@@ -101,7 +100,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant5Sprites.emplace(parallaxFactor,std::move(sprite));
+        plant5Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     else if(name == "plant6")
     {
@@ -116,7 +115,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant6Sprites.emplace(parallaxFactor,std::move(sprite));
+        plant6Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     else if(name == "plant7")
     {
@@ -131,7 +130,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        plant7Sprites.emplace(parallaxFactor,std::move(sprite));
+        plant7Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     else if(name == "cat")
     {
@@ -146,7 +145,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        cat1Sprites.emplace(parallaxFactor,std::move(sprite));
+        cat1Sprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     else if(name == "jumpPlant")
     {
@@ -161,7 +160,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        jumpPlantSprites.emplace(parallaxFactor,std::move(sprite));
+        jumpPlantSprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     else if(name == "portalGreen")
     {
@@ -176,7 +175,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-        portalGreenSprites.emplace(parallaxFactor,std::move(sprite));
+        portalGreenSprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
     }
     //Static-textures assertion
     else{
@@ -186,7 +185,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
             sprite->setPosition(position);
             sprite->setScale(scale);
             sprite->setColor(color);
-            staticSprites.emplace(parallaxFactor,std::move(sprite));
+            staticSprites.emplace(std::pair(parallaxFactor,position),std::move(sprite));
         }
         catch(std::out_of_range& ex){
             std::cout << ex.what() << std::endl;
@@ -238,7 +237,7 @@ void Decoration::switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& sp
     }
 }
 
-void Decoration::switchToNextSprite(std::unordered_multimap<sf::Vector2f,std::unique_ptr<sf::Sprite>,Vector2fHash,Vector2fEqual>& spritesArray, 
+void Decoration::switchToNextSprite(std::unordered_multimap<std::pair<sf::Vector2f,sf::Vector2f>,std::unique_ptr<sf::Sprite>,Vector2fPairHash,Vector2fPairEqual>& spritesArray, 
         std::vector<sf::Texture>& texturesArray, 
         texturesIterHelper& iterHelper)
 {
@@ -278,6 +277,73 @@ void Decoration::switchToNextSprite(std::unordered_multimap<sf::Vector2f,std::un
         iterHelper.iterationCounter = 0;
     }
 }
+
+void Decoration::updateParallax()
+{
+    for (auto &i : plant1Sprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &i : plant2Sprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &i : plant3Sprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &i : plant4Sprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &i : plant5Sprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &i : plant6Sprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &i : plant7Sprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &i : cat1Sprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &i : jumpPlantSprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &&i : portalGreenSprites)
+    {
+        applyParalaxes(i);
+    }
+    for (auto &&i : staticSprites)
+    {
+        applyParalaxes(i);
+    }
+}
+
+void Decoration::applyParalaxes(
+    std::pair<
+        const std::pair<sf::Vector2f, sf::Vector2f>,  
+        std::unique_ptr<sf::Sprite>
+    >& element 
+) {
+    sf::Vector2f baseObjectPos = element.first.second;
+    sf::Vector2f parallaxFactor = element.first.first;
+    
+    sf::Vector2f difference = baseObjectPos - camera->getCameraCenter();
+    if (element.second) {
+        element.second.get()->setPosition({
+            camera->getCameraCenter().x + (difference.x * parallaxFactor.x),
+            camera->getCameraCenter().y + (difference.y * parallaxFactor.y)
+        });
+    }
+}
+
 
 void Decoration::generateMipmapTextures(std::vector<sf::Texture> &texturesArray)
 {
@@ -324,16 +390,9 @@ void Decoration::updateTextures()
 
     switchToNextSprite(jumpPlantSprites,*jumpPlantTextures,jumpPlant);
 
-    std::for_each(portalGreenSprites.begin(), portalGreenSprites.end(),
-    [this](auto& pair) {
-        gameUtils::switchToNextSprite(
-            pair.second.get(),                          // Получаем сырой указатель из unique_ptr
-            *portalGreenTextures,                       // Разыменовываем указатель на вектор
-            portalGreen,                                // Итератор-хелпер
-            switchSprite_SwitchOption::Loop
-        );
-    });
-    
+    switchToNextSprite(portalGreenSprites,*portalGreenTextures,portalGreen);
+
+    updateParallax();
 }
 
 void Decoration::draw(sf::RenderWindow &window)

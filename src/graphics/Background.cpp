@@ -44,7 +44,6 @@ void Background::draw(sf::RenderWindow &window)
 
 void Background::applyParallax()
 {
-    float parallax_factor;
     sf::Vector2f difference = camera->getCameraCenter()-position;
     difference = {difference.x,difference.y};
     bgFront->setPosition({
