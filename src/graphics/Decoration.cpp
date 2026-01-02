@@ -440,7 +440,9 @@ void Decoration::draw(sf::RenderWindow &window)
     for (auto &&i : staticSprites)
     {
         window.draw(*i.second);
-    }
+    }   // СТАРОЕ
+
+    //TODO Сделать отрисовку по Z. Чем Z ниже, тем первей отрисовывается, чем выше - тем позже.
     
     
 }
