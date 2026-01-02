@@ -19,6 +19,8 @@ Decoration::Decoration(GameData& gameTextures, GameCamera& c)
     attachTexture(gameTextures.portalGreenTextures, this->portalGreenTextures,  gameTextures.portalGreen,   this->portalGreen   );
     //Static-textures
     attachTexture(gameTextures.allStaticTextures,   this->staticTextures                                                        );
+
+    pushPointersOfUnorderedMultimapsToVector();
 }
 
 Decoration::~Decoration()
@@ -40,7 +42,9 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         plant1Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        
     }
     else if(name == "plant2")
     {
@@ -55,6 +59,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         plant2Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant3")
@@ -70,6 +75,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         plant3Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant4")
@@ -85,6 +91,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         plant4Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant5")
@@ -100,6 +107,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         plant5Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant6")
@@ -115,6 +123,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         plant6Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "plant7")
@@ -130,6 +139,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         plant7Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "cat")
@@ -145,6 +155,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         cat1Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "jumpPlant")
@@ -160,6 +171,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         jumpPlantSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     else if(name == "portalGreen")
@@ -175,6 +187,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
+        all_Z.insert(z);
         portalGreenSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
     }
     //Static-textures assertion
@@ -185,6 +198,7 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
             sprite->setPosition(position);
             sprite->setScale(scale);
             sprite->setColor(color);
+            all_Z.insert(z);
             staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
         }
         catch(std::out_of_range& ex){
@@ -197,7 +211,22 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
     
 }
 
-void Decoration::switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper)
+void Decoration::pushPointersOfUnorderedMultimapsToVector()
+{
+    multimap_pointers.push_back(&this->plant1Sprites);
+    multimap_pointers.push_back(&this->plant2Sprites);   
+    multimap_pointers.push_back(&this->plant3Sprites);   
+    multimap_pointers.push_back(&this->plant4Sprites);   
+    multimap_pointers.push_back(&this->plant5Sprites);   
+    multimap_pointers.push_back(&this->plant6Sprites);   
+    multimap_pointers.push_back(&this->plant7Sprites);   
+    multimap_pointers.push_back(&this->staticSprites);   
+    multimap_pointers.push_back(&this->jumpPlantSprites);
+    multimap_pointers.push_back(&this->cat1Sprites);   
+    multimap_pointers.push_back(&this->portalGreenSprites);      
+}
+
+void Decoration::switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>> &spritesArray, std::vector<sf::Texture> &texturesArray, texturesIterHelper &iterHelper)
 {
     
     if(iterHelper.iterationCounter<iterHelper.iterationsTillSwitch)
@@ -395,52 +424,28 @@ void Decoration::updateTextures()
     updateParallax();
 }
 
+void Decoration::drawByZOrder(sf::RenderWindow& window)
+{
+    for (int z : all_Z) {
+        // 3. Проходим по всем картам
+        for (auto* spriteMap : multimap_pointers) {
+            // 4. Проходим по всем элементам в текущей карте
+            for (const auto& pair : *spriteMap) {
+                // 5. Если Z совпадает - рисуем
+                if (pair.first.z == z) {
+                    if (pair.second) {  // Проверка на nullptr
+                        window.draw(*pair.second);
+                    }
+                }
+            }
+        }
+    }
+    
+}
+
 void Decoration::draw(sf::RenderWindow &window)
 {
-    for (auto &i : plant1Sprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &i : plant2Sprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &i : plant3Sprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &i : plant4Sprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &i : plant5Sprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &i : plant6Sprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &i : plant7Sprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &i : cat1Sprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &i : jumpPlantSprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &&i : portalGreenSprites)
-    {
-        window.draw(*i.second);
-    }
-    for (auto &&i : staticSprites)
-    {
-        window.draw(*i.second);
-    }   // СТАРОЕ
+    drawByZOrder(window);
 
     //TODO Сделать отрисовку по Z. Чем Z ниже, тем первей отрисовывается, чем выше - тем позже.
     

@@ -10,6 +10,7 @@
 #include<unordered_map>
 #include<bitset>
 #include<GameCamera.h>
+#include<set>
 
 class GameCamera;
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +68,9 @@ struct Vector2fPairWithZEqual {
         return pairEqual(a.posData, b.posData) && (a.z == b.z);
     }
 };
-
+////////////////////////////////////////////////////////////
+// Основной класс для отображения декораций
+////////////////////////////////////////////////////////////
 class Decoration 
 {
 public: 
@@ -84,6 +87,7 @@ public:
 
     void addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z = 0, sf::Color color = sf::Color::White);
     void updateTextures();
+    void drawByZOrder(sf::RenderWindow& window);
     void draw(sf::RenderWindow& window);
 
     //Textures and iters pointers
@@ -204,6 +208,18 @@ public:
     Vector2fPairWithZHash,
     Vector2fPairWithZEqual
     > staticSprites;
+
+    // Указатели на все массивы со спрайтами
+    std::vector<std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    >*> multimap_pointers;
+    // Массив всех существующих Z позиций
+    std::set<int> all_Z;
+
+    void pushPointersOfUnorderedMultimapsToVector();
 
     //Switches sprite's texture to next
     void switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>>& spritesArray, std::vector<sf::Texture>& texturesArray, texturesIterHelper& iterHelper);
