@@ -446,9 +446,5 @@ void Decoration::drawByZOrder(sf::RenderWindow& window)
 void Decoration::draw(sf::RenderWindow &window)
 {
     drawByZOrder(window);
-
-    //TODO Сделать отрисовку по Z. Чем Z ниже, тем первей отрисовывается, чем выше - тем позже.
-    
-    
 }
 

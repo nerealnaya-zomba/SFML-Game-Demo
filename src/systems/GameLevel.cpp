@@ -1,6 +1,7 @@
 #include<GameLevel.h>
 
-GameLevelManager::GameLevelManager()
+GameLevelManager::GameLevelManager(GameData& d, Player& p)
+    :  data(&d), player(&p) 
 {
     this->levelIt = levels.begin();
 }
@@ -39,15 +40,20 @@ sf::Vector2f GameLevelManager::getCurrentLevelSize() const
     return levelIt->second->getLevelSize();
 }
 
-GameLevel::GameLevel()
+GameLevel::GameLevel(GameData& d, Player& p)
 {
+    
 }
 
 GameLevel::~GameLevel()
 {
 }
 
-void GameLevel::update()
+void GameLevel::updatePlatforms()
+{
+}
+
+void GameLevel::updateDecorations()
 {
     for (auto &&i : decorations)
     {
@@ -55,24 +61,64 @@ void GameLevel::update()
     }
 }
 
-void GameLevel::draw(sf::RenderWindow &window)
+void GameLevel::updateBackgrounds()
+{
+    for (auto &&i : background)
+    {
+        i->update();
+    }
+}
+
+void GameLevel::updateGrounds()
+{
+}
+
+void GameLevel::update()
+{
+    updatePlatforms();
+    updateDecorations();
+    updateBackgrounds();
+    updateGrounds();
+}
+
+void GameLevel::drawPlatforms(sf::RenderWindow& window)
 {
     for (auto &&i : platforms)
     {
         i->draw(window);
     }
+}
+
+void GameLevel::drawDecorations(sf::RenderWindow& window)
+{
     for (auto &&i : decorations)
     {
         i->draw(window);
     }
+}
+
+void GameLevel::drawBackgrounds(sf::RenderWindow& window)
+{
     for (auto &&i : background)
     {
         i->draw(window);
     }
+}
+
+void GameLevel::drawGrounds(sf::RenderWindow& window)
+{
     for (auto &&i : ground)
     {
         i->draw(window);
     }
+}
+
+void GameLevel::draw(sf::RenderWindow &window)
+{
+    void drawPlatforms(sf::RenderWindow& window);
+    void drawDecorations(sf::RenderWindow& window);
+    void drawBackgrounds(sf::RenderWindow& window);
+    void drawGrounds(sf::RenderWindow& window);
 }
 
 void GameLevel::loadLevelData()

@@ -22,7 +22,9 @@ private:
     std::vector<std::shared_ptr< Platform   >> platforms;       // Платформы
     std::vector<std::shared_ptr< Decoration >> decorations;     // Декорации
     std::vector<std::shared_ptr< Background >> background;      // Фон
-    std::vector<std::shared_ptr< Ground     >> ground;          // Пол 
+    std::vector<std::shared_ptr< Ground     >> ground;          // Пол
+
+    Player* player;
 
     //////////////////////////////////////////////////
     // Определяет, нужно ли сбрасывать состояние объектов на уровне.
@@ -36,16 +38,40 @@ private:
     //////////////////////////////////////////////////
     bool isConstant = true;
 
+    ////////////////////////////////////////////////////
+    // Обновляет уровень на который указывает итератор
+    ////////////////////////////////////////////////////
+    void updatePlatforms();     // NOTE Не реализовано т.к. у объекта update()
+    void updateDecorations();   
+    void updateBackgrounds();   
+    void updateGrounds();       // NOTE Не реализовано т.к. у объекта update()
+    ////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////
+    // Обновляет уровень на который указывает итератор
+    ////////////////////////////////////////////////////
+    void drawPlatforms(sf::RenderWindow& window);
+    void drawDecorations(sf::RenderWindow& window);
+    void drawBackgrounds(sf::RenderWindow& window);
+    void drawGrounds(sf::RenderWindow& window);
+    ////////////////////////////////////////////////////
 public:
-    GameLevel();                // IMPLEMENTME
-    ~GameLevel();               // IMPLEMENTME
+    GameLevel(GameData& d, Player& p);  // IMPLEMENTME    // NOTE Stopped here
+    ~GameLevel();                       // IMPLEMENTME
 
     //////////////////Variables///////////////////////
     std::string levelName;
     //////////////////////////////////////////////////
 
-    void update();                      
-    void draw(sf::RenderWindow& window);
+    ////////////////////////////////////////////////////
+    // Обновляет уровень на который указывает итератор
+    ////////////////////////////////////////////////////
+    void update();                           
+
+    ////////////////////////////////////////////////////
+    // Обновляет уровень на который указывает итератор
+    ////////////////////////////////////////////////////
+    void draw(sf::RenderWindow& window);     
 
     //////////////////////////////////////////////////
     // Должен подгружать данные из json файла.
@@ -77,6 +103,10 @@ public:
 class GameLevelManager
 {
 private:
+    // Указатели на внешние объекты
+    Player* player;
+    GameData* data;
+
     //////////////////////////////////////////////////
     // string - Название уровня, подгружается из GameLevel
     // GameLevel - Экземляр уровня
@@ -84,22 +114,29 @@ private:
     std::map<std::string, std::shared_ptr< GameLevel >> levels;
 
     std::map<std::string, std::shared_ptr< GameLevel >>::iterator levelIt;
-    
+
+    void loadLevelData();   // IMPLEMENTME Загружает информацию о кол-ве уровней c data/levelData(на каждый level.json) создается один объект GameLevel.
 
 public:
-    GameLevelManager();
+    GameLevelManager(GameData& d, Player& p);
     ~GameLevelManager();
 
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     // Перемещает итератор на уровень с ключем <name> в std::map levels
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     void goToLevel(std::string name);
 
-    //////////////////////////////////////////////////
-    // Отрисовывает/обновляет уровень на который указывает итератор
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    // Обновляет уровень на который указывает итератор
+    ////////////////////////////////////////////////////
     void update();
-    void draw(sf::RenderWindow& window);
+    ////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////
+    // Отрисовывает уровень на который указывает итератор
+    ////////////////////////////////////////////////////
+    void draw(sf::RenderWindow& window);    
+    ////////////////////////////////////////////////////
 
     //Getters
     sf::Vector2f getCurrentLevelSize() const;
