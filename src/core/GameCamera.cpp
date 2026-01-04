@@ -104,11 +104,10 @@ void GameCamera::mapBorderCollision()
     }
 }
 
-GameCamera::GameCamera(sf::View& view, Player& player, GameLevelManager& levelManager)
+GameCamera::GameCamera(sf::View& view, Player& player)
 {
     // Привязываю ссылки к указателям
     this->player = &player;
-    this->levelManager = &levelManager;
     this->view = &view;
 
     this->view->zoom( ZOOM_SCALE ); // Приближаем камеру
@@ -130,6 +129,11 @@ void GameCamera::update()
         this->view->setCenter(this->cameraPos);
         return;
     }
+}
+
+void GameCamera::attachGameLevelManager(GameLevelManager &m)
+{
+    this->levelManager = &m;
 }
 
 float GameCamera::getZoom() const

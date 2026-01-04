@@ -59,7 +59,7 @@ private:
     //////////////////////////////////////////////////
     void mapBorderCollision(); // NOTE Не работал корректно, так что я его сейчас не использую. Вместо этого я в movementUpdate() использовал другой вариант.
 public:
-    GameCamera(sf::View& view, Player& player, GameLevelManager& levelManager);
+    GameCamera(sf::View& view, Player& player);
     ~GameCamera();
 
     //////////////////////////////////////////////////
@@ -77,6 +77,7 @@ public:
 
     // Setters
     void setMoveSpeed(sf::Vector2f pos);                                    // IMPLEMENTME
+    void attachGameLevelManager(GameLevelManager& m);
 
     // Getters
     float getZoom()                     const;
