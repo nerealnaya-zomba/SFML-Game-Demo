@@ -201,7 +201,7 @@ void Player::loadData()
     this->ButtonRepeat_dashCooldown = data["Dash"]["repeatCooldown"];
 }
 
-void Player::checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects)
+void Player::checkPlatformRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects)
 {
     for (auto& rectPtr : rects)  // меняем тип итератора
     {

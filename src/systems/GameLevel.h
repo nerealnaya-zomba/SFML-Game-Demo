@@ -8,6 +8,7 @@
 #include<vector>
 #include<memory.h>
 #include<map>
+#include<fstream>
 
 class Background;
 class Decoration;
@@ -19,12 +20,15 @@ class GameLevel
 {
 private:
     sf::Vector2f size;                                          // Длинна и ширина уровня
-    std::vector<std::shared_ptr< Platform   >> platforms;       // Платформы
-    std::vector<std::shared_ptr< Decoration >> decorations;     // Декорации
+    std::shared_ptr< Platform   > platforms;                    // Платформы
+    std::shared_ptr< Decoration > decorations;                  // Декорации
     std::vector<std::shared_ptr< Background >> background;      // Фон
     std::vector<std::shared_ptr< Ground     >> ground;          // Пол
 
     Player* player;
+    GameData* data;
+    GameCamera* camera;
+    GameLevelManager* manager;
 
     //////////////////////////////////////////////////
     // Определяет, нужно ли сбрасывать состояние объектов на уровне.
@@ -39,25 +43,17 @@ private:
     bool isConstant = true;
 
     ////////////////////////////////////////////////////
-    // Обновляет уровень на который указывает итератор
+    // Инициализация объектов
     ////////////////////////////////////////////////////
-    void updatePlatforms();     // NOTE Не реализовано т.к. у объекта update()
-    void updateDecorations();   
-    void updateBackgrounds();   
-    void updateGrounds();       // NOTE Не реализовано т.к. у объекта update()
-    ////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////
-    // Обновляет уровень на который указывает итератор
-    ////////////////////////////////////////////////////
-    void drawPlatforms(sf::RenderWindow& window);
-    void drawDecorations(sf::RenderWindow& window);
-    void drawBackgrounds(sf::RenderWindow& window);
-    void drawGrounds(sf::RenderWindow& window);
+    void initializePlatforms(const nlohmann::json& data);
+    void initializeDecorations(const nlohmann::json& data);
+    void initializeBackground(const nlohmann::json& data);
+    void initializeGround(const nlohmann::json& data);
     ////////////////////////////////////////////////////
 public:
-    GameLevel(GameData& d, Player& p);  // IMPLEMENTME    // NOTE Stopped here
-    ~GameLevel();                       // IMPLEMENTME
+
+    GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, const std::string& fileNamePath);
+    ~GameLevel();                       
 
     //////////////////Variables///////////////////////
     std::string levelName;
@@ -66,12 +62,28 @@ public:
     ////////////////////////////////////////////////////
     // Обновляет уровень на который указывает итератор
     ////////////////////////////////////////////////////
-    void update();                           
-
+    void update();           
     ////////////////////////////////////////////////////
     // Обновляет уровень на который указывает итератор
     ////////////////////////////////////////////////////
-    void draw(sf::RenderWindow& window);     
+    void updatePlatforms();     // NOTE Не реализовано т.к. у объекта нет update()
+    void updateDecorations();   
+    void updateBackgrounds();   
+    void updateGrounds();       // NOTE Не реализовано т.к. у объекта нет update()
+    ////////////////////////////////////////////////////                
+
+    ////////////////////////////////////////////////////
+    // Рисует уровень на который указывает итератор
+    ////////////////////////////////////////////////////
+    void draw(sf::RenderWindow& window);
+    ////////////////////////////////////////////////////
+    // Рисует уровень на который указывает итератор
+    ////////////////////////////////////////////////////
+    void drawPlatforms(sf::RenderWindow& window);
+    void drawDecorations(sf::RenderWindow& window);
+    void drawBackgrounds(sf::RenderWindow& window);
+    void drawGrounds(sf::RenderWindow& window);
+    ////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////
     // Должен подгружать данные из json файла.
@@ -79,7 +91,7 @@ public:
     //
     // Если doResetToBase==true, подгружает данные о уровне из основного файла, а если нет - из файла сохранения уровня(хранится в json)
     //////////////////////////////////////////////////
-    void loadLevelData();       // IMPLEMENTME
+    void loadLevelData(const std::string& fileName);       
 
     //////////////////////////////////////////////////
     // Должен сохранять некоторые состояние объектов на уровне.
@@ -94,7 +106,8 @@ public:
 
     //Getters
     sf::Vector2f getLevelSize() const;
-
+    std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
+    sf::RectangleShape& getGroundRect();
 };
 
 //////////////////////////////////////////////////////
@@ -106,6 +119,7 @@ private:
     // Указатели на внешние объекты
     Player* player;
     GameData* data;
+    GameCamera* camera;
 
     //////////////////////////////////////////////////
     // string - Название уровня, подгружается из GameLevel
@@ -115,29 +129,45 @@ private:
 
     std::map<std::string, std::shared_ptr< GameLevel >>::iterator levelIt;
 
-    void loadLevelData();   // IMPLEMENTME Загружает информацию о кол-ве уровней c data/levelData(на каждый level.json) создается один объект GameLevel.
+    void initializeLevels(const std::string levelsFolder);   
 
 public:
-    GameLevelManager(GameData& d, Player& p);
+    GameLevelManager(GameData &d, Player &p, GameCamera& c, const std::string& levelsFolder);
     ~GameLevelManager();
 
     ////////////////////////////////////////////////////
     // Перемещает итератор на уровень с ключем <name> в std::map levels
     ////////////////////////////////////////////////////
-    void goToLevel(std::string name);
+    void goToLevel(std::string levelName);
 
     ////////////////////////////////////////////////////
     // Обновляет уровень на который указывает итератор
     ////////////////////////////////////////////////////
     void update();
     ////////////////////////////////////////////////////
+    // Обновляет уровень на который указывает итератор
+    ////////////////////////////////////////////////////
+    void updatePlatforms();     // NOTE Не реализовано т.к. у объекта нет update()
+    void updateDecorations();   
+    void updateBackgrounds();   
+    void updateGrounds();       // NOTE Не реализовано т.к. у объекта нет update()
+    ////////////////////////////////////////////////////       
 
     ////////////////////////////////////////////////////
     // Отрисовывает уровень на который указывает итератор
     ////////////////////////////////////////////////////
     void draw(sf::RenderWindow& window);    
     ////////////////////////////////////////////////////
+    // Отрисовывает уровень на который указывает итератор
+    ////////////////////////////////////////////////////
+    void drawPlatforms(sf::RenderWindow& window);
+    void drawDecorations(sf::RenderWindow& window);
+    void drawBackgrounds(sf::RenderWindow& window);
+    void drawGrounds(sf::RenderWindow& window);
+    ////////////////////////////////////////////////////
 
     //Getters
     sf::Vector2f getCurrentLevelSize() const;
+    std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
+    sf::RectangleShape& getGroundRect();
 };

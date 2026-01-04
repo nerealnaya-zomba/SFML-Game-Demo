@@ -1,6 +1,9 @@
 #include <sfml-headers.h>
 #include <Defines.h>
 #include<nlohmann/json.hpp>
+
+const std::string levelFolder = "data/levelData";
+
 int main()
 {
     srand(time(NULL));
@@ -18,8 +21,6 @@ int main()
         return 0;
     }
     
-    
-    
     GameData gameData(&window,&font);
 
     sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
@@ -32,134 +33,13 @@ int main()
     
     
     //Main menu
-    Menu menu(font,window,mouseRect);                                               // Menu
-
-    GameLevelManager levelManager;                                                  // Level manager
-    
-    
+    Menu menu(font,window,mouseRect);                                                   // Menu
     
     //Game
     Player player(gameData);                                                            // Player
-    GameCamera camera(view,player,levelManager);                                        // Camera
-    Ground ground(gameData,levelManager,"TileSetGreen_02.png",0u,WINDOW_WIDTH+100);     // Ground
-    Background gameBackground(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_35.png",{0.0f,0.f},Type::SingleBackground);
-    Background gameBackground1(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_36.png",{0.96f,0.98f},Type::SingleBackground);
-    Background gameBackground2(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_37.png",{0.88f,0.96f},Type::SingleBackground);
-    Background gameBackground3(gameData,camera,{WINDOW_WIDTH/2,WINDOW_HEIGHT/2},"Background_38.png",{0.72f,0.94f},Type::SingleBackground);
-
-    Decoration decoration(gameData,camera);                                                 // Decoration
-    EnemyManager<Skeleton> enemyManager;                                                    // Skeleton manager
-    
-    
-    sf::Color grassColor{255,255,255,255};
-    float offset = 350.f;
-    sf::Vector2f parrallaxF = {0.70f,0.70f};
-    sf::Vector2f parrallaxF1 = {1.f,1.f};
-    float grassSizeReduction = 40.f;
-    float randomParallax = random(1.2f,1.8);
-    int z_order = -(roundf(randomParallax*100));
-    sf::Vector2f scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant1",{100,1040+offset},scale,parrallaxF/randomParallax,z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant2",{200,1055+offset},scale, parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant3",{300,1035+offset},scale, parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant1",{400,1040+offset},scale,parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant2",{500,1055+offset},scale, parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant3",{600,1035+offset},scale,parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant1",{700,1058+offset},scale, parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant2",{800,1045+offset},scale,parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant3",{1000,1048+offset},scale, parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant2",{1100,1055+offset},scale, parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant3",{1200,1035+offset},scale,parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant1",{1300,1058+offset},scale,parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant2",{1400,1045+offset},scale,parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant3",{1500,1048+offset},scale, parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant3",{1600,1035+offset},scale,parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant1",{1700,1058+offset},scale, parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant2",{1800,1045+offset},scale,parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("plant3",{1900,1048+offset},scale, parrallaxF/randomParallax, z_order, grassColor);
-    randomParallax = random(1.2f,1.8);
-    z_order = -(roundf(randomParallax*100));
-    scale = {(randomParallax/0.1f)/grassSizeReduction, (randomParallax/0.1f)/grassSizeReduction};
-    decoration.addDecoration("cat",{WINDOW_WIDTH-900-500,WINDOW_HEIGHT-52},{1.f,1.f},{1.f,1.f});
-    
-    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-100,WINDOW_HEIGHT-100},{0.4f,0.4f},parrallaxF1);
-    decoration.addDecoration("plant4",{WINDOW_WIDTH-200-60,WINDOW_HEIGHT-100},{-0.4f,0.4f},parrallaxF1);
-
-    decoration.addDecoration("plant5",{WINDOW_WIDTH-750+200,WINDOW_HEIGHT-420},{0.4f,0.4f},parrallaxF1);
-    decoration.addDecoration("plant6",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f},parrallaxF1);
-
-    // decoration.addDecoration("MossyBackgroundDecoration_03.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.4f,0.4f},parrallaxF);
-    // decoration.addDecoration("MossyDecorationHazard_06.png",{WINDOW_WIDTH-870+200,WINDOW_HEIGHT-420},{-0.2f,0.2f},parrallaxF);
-
-    decoration.addDecoration("portalGreen",{WINDOW_WIDTH-1400+200,WINDOW_HEIGHT-420},{-0.2f,0.2f},parrallaxF/2.f,-1);
-    decoration.addDecoration("portalGreen",{WINDOW_WIDTH-1400+500,WINDOW_HEIGHT-620},{-0.55f,0.55f},parrallaxF);
-    decoration.addDecoration("portalGreen",{WINDOW_WIDTH-600,WINDOW_HEIGHT-720},{-0.4f,0.4f},parrallaxF/1.5f);
-
-    Platform platforms;
-    platforms.addPlatform({WINDOW_WIDTH-300,WINDOW_HEIGHT-100},"Single-angled");
-    platforms.addPlatform({WINDOW_WIDTH-400,WINDOW_HEIGHT-200},"Single-square");
-    platforms.addPlatform({WINDOW_WIDTH-500,WINDOW_HEIGHT-280},"Single-flat");
-    platforms.addPlatform({WINDOW_WIDTH-700,WINDOW_HEIGHT-380},"Double-horizontal-1");
-    platforms.addPlatform({WINDOW_WIDTH-900,WINDOW_HEIGHT-480},"Double-horizontal-2");
-    platforms.addPlatform({WINDOW_WIDTH-1300,WINDOW_HEIGHT-680},"Triple");
-    platforms.addPlatform({WINDOW_WIDTH-1400,WINDOW_HEIGHT-800},"Quadruple");
-
-    platforms.addPlatform({0.f+300.f,WINDOW_HEIGHT-100},"Single-angled");
-    platforms.addPlatform({0.f+400.f,WINDOW_HEIGHT-200},"Single-square");
-    platforms.addPlatform({0.f+500.f,WINDOW_HEIGHT-280},"Single-flat");
-    platforms.addPlatform({0.f+700.f,WINDOW_HEIGHT-380},"Double-horizontal-1");
-    platforms.addPlatform({0.f+900.f,WINDOW_HEIGHT-480},"Double-horizontal-2");
+    GameCamera camera(view,player);                                                     // Camera
+    GameLevelManager levelManager(gameData,player,camera,levelFolder);                  // Level manager
+    camera.attachGameLevelManager(levelManager);
 
     std::vector<Particle> particles;
 
@@ -227,83 +107,13 @@ int main()
            //↑↑-----MAIN MENU-----↑↑ 
 
            //↓↓-----GAME-----↓↓
-            // //    Jump on up arrow
-            // bool isEnabledStoppingAutoRepeat_z = false;
-            // bool isEnabledStoppingAutoRepeat_x = false;
-            // bool isEnabledStoppingAutoRepeat_c = false;
-
-            // static bool isPressed_x = false;
-            // static bool isPressed_z = false;
-            // static bool isPressed_c = false;
 
             if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
-                // if(keyPressed->scancode == sf::Keyboard::Scancode::Z)
-                // {
-                //     if(!isPressed_z || !isEnabledStoppingAutoRepeat_z)
-                //     {
-                //         if(!player.isFalling)
-                //         {
-                //             player.jump();
-                //         }
-                //         isPressed_z = true;
-                //     }
-                // }
-                
-                // if(keyPressed->scancode == sf::Keyboard::Scancode::X)
-                // {
-                //     if(!isPressed_x || !isEnabledStoppingAutoRepeat_x)
-                //     {
-                //         std::cout << "Shoot" << std::endl;
-                //         player.shoot(player.getSpriteScale().x > 0);
-                //         isPressed_x = true;
-                //     }
-                // }
-                
-                // if(keyPressed->scancode == sf::Keyboard::Scancode::C)
-                // {
-                //     if(!isPressed_c || !isEnabledStoppingAutoRepeat_c)
-                //     {
-                //         std::cout << "Dash" << std::endl;
-                //         player.dash();
-                //         isPressed_c = true;
-                //     }
-                // }
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-                if(keyPressed->scancode == sf::Keyboard::Scancode::Num1)
-                {
-                    enemyManager.add(new Skeleton(gameData, window, ground, platforms, player, "white", 
-                        sf::Vector2f(
-                            camera.getScreenViewPos().x + (sf::Mouse::getPosition(window).x-30)*ZOOM_SCALE,
-                            camera.getScreenViewPos().y + (sf::Mouse::getPosition(window).y-50)*ZOOM_SCALE
-                        )));
-                }
-                
-                if(keyPressed->scancode == sf::Keyboard::Scancode::Num2)
-                {
-                    enemyManager.add(new Skeleton(gameData, window, ground, platforms, player, "yellow", 
-                        sf::Vector2f(sf::Mouse::getPosition(window).x, 
-                                    sf::Mouse::getPosition(window).y)));
-                }
+
             }
 
-            // if(const auto* keyReleased = event->getIf<sf::Event::KeyReleased>())
-            // {
-            //     if(keyReleased->scancode == sf::Keyboard::Scancode::X)
-            //     {
-            //         isPressed_x = false;
-            //     }
-                
-            //     if(keyReleased->scancode == sf::Keyboard::Scancode::Z)
-            //     {
-            //         isPressed_z = false;
-            //     }
-                
-            //     if(keyReleased->scancode == sf::Keyboard::Scancode::C)
-            //     {
-            //         isPressed_c = false;
-            //     }
-            // }
             //↑↑-----GAME-----↑↑
         }
         //Main menu drawing
@@ -315,49 +125,31 @@ int main()
                 sizeUpRectangleOnHover(*menu.playButton,*menu.playButtonText,mouseRect,window, 0.03f , 0.02f);
                 sizeUpRectangleOnHover(*menu.exitButton,*menu.exitButtonText,mouseRect,window, 0.03f , 0.02f);
             }
-            
-            
-            
 
             menu.rainbowWindowClear(window, menuBackGroundColor);
 
-            
             menu.menuDraw(window);
-            
             
             continue;
         }
         
-        //Enemy logic
-            //Skeleton AI
-        enemyManager.updateAI_all();
-            //Skeleton physics
-        enemyManager.updatePhysics_all();
-        
         //Contol logic
             //Player contol
         player.updateControls();
-            //Enemy contol
-        enemyManager.updateControls_all();
 
         //Logic
             //Player logic
                 //Physical logic
         player.updatePhysics();
-        player.checkGroundCollision(ground.getRect());
-        player.checkRectCollision(platforms.getRects());
+        player.checkGroundCollision(levelManager.getGroundRect());
+        player.checkPlatformRectCollision(levelManager.getPlatformRects());
         player.moveBullets();
-            //Background logic
-                //Parallax
-            gameBackground.update();
-            gameBackground1.update();
-            gameBackground2.update();
-            gameBackground3.update();
+
+        // Level objects updating
+        levelManager.update();
 
         //Texture update
-        enemyManager.updateTextures_all();
         player.updateTextures();
-        decoration.updateTextures();
         
         //Temporary control for exit
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Grave))
@@ -379,42 +171,22 @@ int main()
                     );
                 }
         }
-        
-        for (auto& particle : particles) { //REMOVELATER particles
-            particle.update();
-        }
-        particles.erase(
-            std::remove_if(particles.begin(), particles.end(),
-                [](const Particle& p) { return !p.getIsAlive(); }),
-            particles.end()
-        );
-    
+
         //Drawing
-
-            //Background drawing
         window.clear(gameBackGroundColor);
-        gameBackground.draw(window);
-        gameBackground1.draw(window);
-        gameBackground2.draw(window);
-        gameBackground3.draw(window);
 
-            //Decorations drawing
-        decoration.draw(window);
-        
-            //Ground drawing
-        ground.draw(window);
-
-            //Enemy drawing
-        enemyManager.draw_all();
+            //Back level drawing
+        levelManager.drawBackgrounds(window);
+        levelManager.drawDecorations(window);
         
             //Player drawing
         player.draw(window);
         player.drawBullets(window);
-            //Game objects drawing
-        platforms.draw(window);
-        for (auto& particle : particles) {  //REMOVELATER particle
-            particle.draw(window);
-        }
+
+            //Front level drawing
+        levelManager.drawGrounds(window);
+        levelManager.drawPlatforms(window);
+
         //////////////////
         // Camera updating
         //////////////////

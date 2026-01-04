@@ -3,7 +3,7 @@
     "isConstant": true,
     "Size": [1920, 1080]
   },
-  "Platorms": [
+  "Platforms": [
     {
       "Type": "Single-angled",
       "Position": [1620, 980]
@@ -186,6 +186,7 @@
       "Name": "cat",
       "Position": [520, 280],
       "Scale": [1.0, 1.0],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.6125, 0.6125],
       "Z": 168
     },
@@ -193,6 +194,7 @@
       "Name": "plant4",
       "Position": [1620, 980],
       "Scale": [0.4, 0.4],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -200,6 +202,7 @@
       "Name": "plant4",
       "Position": [1660, 980],
       "Scale": [-0.4, 0.4],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -207,6 +210,7 @@
       "Name": "plant5",
       "Position": [1370, 660],
       "Scale": [0.4, 0.4],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -214,6 +218,7 @@
       "Name": "plant6",
       "Position": [1250, 660],
       "Scale": [-0.4, 0.4],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -221,6 +226,7 @@
       "Name": "portalGreen",
       "Position": [720, 660],
       "Scale": [-0.4, 0.4],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 158
     },
@@ -228,6 +234,7 @@
       "Name": "portalGreen",
       "Position": [1020, 460],
       "Scale": [-0.4, 0.4],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 158
     },
@@ -235,6 +242,7 @@
       "Name": "portalGreen",
       "Position": [1320, 360],
       "Scale": [-0.2, 0.2],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.3, 0.3],
       "Z": 200
     }
@@ -242,29 +250,34 @@
   "Background": [
     {
       "BgName": "Background_35.png",
+      "Position": [960,540],
       "ParallaxFactor": [0.0, 0.0],
-      "Type": "SingleBackground"
+      "Type": 1
     },
     {
       "BgName": "Background_36.png",
+      "Position": [960,540],
       "ParallaxFactor": [0.96, 0.98],
-      "Type": "SingleBackground"
+      "Type": 1
     },
     {
       "BgName": "Background_37.png",
+      "Position": [960,540],
       "ParallaxFactor": [0.88, 0.96],
-      "Type": "SingleBackground"
+      "Type": 1
     },
     {
       "BgName": "Background_38.png",
+      "Position": [960,540],
       "ParallaxFactor": [0.72, 0.94],
-      "Type": "SingleBackground"
+      "Type": 1
     }
   ],
   "Ground": [
     {
       "GroundName": "TileSetGreen_02.png",
-      "Position": [0, 2020]
+      "Points": [0, 2020],
+      "YPos": 1048
     }
   ]
 }

@@ -112,7 +112,7 @@ public:
     
         // Physics methods
     void updatePhysics();                                                             // Update player physics
-    void checkRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects); // Platform collision
+    void checkPlatformRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects); // Platform collision
     void checkGroundCollision(sf::RectangleShape& groundRect);                        // Ground collision
     void moveBullets();                                                               // Update all active bullets
     void updateParticles();                                                           // Update particle effects
