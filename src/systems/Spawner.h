@@ -26,17 +26,12 @@ private:
     sf::Clock spawnCooldownTimer;
     unsigned int enemyAmount;
     unsigned int spawnCooldown;
-    
-    /////////////////////////////////////////////////////////////////////
-    // Скелет
-    /////////////////////////////////////////////////////////////////////
-    std::string type;   // Золотой/обычный
 
     /////////////////////////////////////////////////////////////////////
     // Utils
     /////////////////////////////////////////////////////////////////////
     void runSpawnCooldownClockIfNotRunning();
-    void spawnCountOfSkeletons();
+    void spawnCountOfEnemies();
 public:
     /////////////////////////////////////////////////////////////////////
     // &m  - Ссылка на менеджер противников
@@ -45,8 +40,10 @@ public:
     // eps - Сколько появляется противников за раз
     // minX1, maxX2, minY1, maxY2  - Координаты площади где будут спавниться скелеты
     /////////////////////////////////////////////////////////////////////
-    Spawner(EnemyManager &m, std::string n, unsigned int ea, unsigned int sc, float minX1, float maxX2, float minY1, float maxY2);
-    Spawner(EnemyManager &m, std::string n, unsigned int ea, unsigned int sc, sf::Vector2f sa[2]);
+    Spawner(EnemyManager &m, std::string n, unsigned int ea, unsigned int sc, float minX1, float maxX2, float minY1, float maxY2,
+    GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
+    Spawner(EnemyManager &m, std::string n, unsigned int ea, unsigned int sc, sf::Vector2f sa[2],
+    GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
     
     ~Spawner();
 

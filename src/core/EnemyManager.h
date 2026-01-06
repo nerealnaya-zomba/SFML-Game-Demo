@@ -12,9 +12,7 @@
 
 
 class Spawner;
-
-// Говорим компилятору что объявление происходит в другом модуле - EnemyManager.cpp
-extern std::filesystem::path PATH_TO_LEVELS_FOLDER;
+class Skeleton;
 
 //NOTE Класс для управления противниками. Должен отвечать за спавн, обновление и удаление убитых.
 //NOTE Если хочешь добавить еще один класс противника - в конце .cpp файла добавь template class EnemyManager<Твой противник>. Также и со Spawner.
@@ -32,7 +30,12 @@ Booleans:
 class EnemyManager{
 private:
 
-    std::filesystem::path levelName;
+    const nlohmann::json* data;
+    GameData* gameData;
+    Platform* platform;
+    Ground* ground;
+    Player* player;
+    sf::RenderWindow* window;
 
     ////////////////////////
     // Arrays
@@ -91,6 +94,6 @@ public:
     ////////////////////////
     // ln - Название файла уровня
     ////////////////////////
-    EnemyManager(std::string ln);
+    EnemyManager(const nlohmann::json& d, GameData& gd, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
     virtual ~EnemyManager();
 };

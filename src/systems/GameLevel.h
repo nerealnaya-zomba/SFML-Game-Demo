@@ -9,9 +9,11 @@
 #include<memory.h>
 #include<map>
 #include<fstream>
+#include<EnemyManager.h>
 
 class Background;
 class Decoration;
+class EnemyManager;
 
 //////////////////////////////////////////////////
 // Определяет экземпляр уровня с объектами, врагами, спавнерами
@@ -22,13 +24,16 @@ private:
     sf::Vector2f size;                                          // Длинна и ширина уровня
     std::shared_ptr< Platform   > platforms;                    // Платформы
     std::shared_ptr< Decoration > decorations;                  // Декорации
+    std::shared_ptr< Ground     > ground;                       // Пол
     std::vector<std::shared_ptr< Background >> background;      // Фон
-    std::vector<std::shared_ptr< Ground     >> ground;          // Пол
+    
 
     Player* player;
     GameData* data;
     GameCamera* camera;
-    GameLevelManager* manager;
+    GameLevelManager* levelManager;
+    EnemyManager*  enemyManager;
+    sf::RenderWindow* window;
 
     //////////////////////////////////////////////////
     // Определяет, нужно ли сбрасывать состояние объектов на уровне.
@@ -49,10 +54,11 @@ private:
     void initializeDecorations(const nlohmann::json& data);
     void initializeBackground(const nlohmann::json& data);
     void initializeGround(const nlohmann::json& data);
+    void initializeEnemyManager(const nlohmann::json& data);
     ////////////////////////////////////////////////////
 public:
 
-    GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, const std::string& fileNamePath);
+    GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath);
     ~GameLevel();                       
 
     //////////////////Variables///////////////////////
@@ -70,19 +76,21 @@ public:
     void updateDecorations();   
     void updateBackgrounds();   
     void updateGrounds();       // NOTE Не реализовано т.к. у объекта нет update()
+    void updateEnemyManager();
     ////////////////////////////////////////////////////                
 
     ////////////////////////////////////////////////////
     // Рисует уровень на который указывает итератор
     ////////////////////////////////////////////////////
-    void draw(sf::RenderWindow& window);
+    void draw();
     ////////////////////////////////////////////////////
     // Рисует уровень на который указывает итератор
     ////////////////////////////////////////////////////
-    void drawPlatforms(sf::RenderWindow& window);
-    void drawDecorations(sf::RenderWindow& window);
-    void drawBackgrounds(sf::RenderWindow& window);
-    void drawGrounds(sf::RenderWindow& window);
+    void drawPlatforms();
+    void drawDecorations();
+    void drawBackgrounds();
+    void drawGrounds();
+    void drawEnemyManager();
     ////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////
@@ -120,6 +128,7 @@ private:
     Player* player;
     GameData* data;
     GameCamera* camera;
+    sf::RenderWindow* window;
 
     //////////////////////////////////////////////////
     // string - Название уровня, подгружается из GameLevel
@@ -132,7 +141,7 @@ private:
     void initializeLevels(const std::string levelsFolder);   
 
 public:
-    GameLevelManager(GameData &d, Player &p, GameCamera& c, const std::string& levelsFolder);
+    GameLevelManager(GameData &d, Player &p, GameCamera& c,sf::RenderWindow& w, const std::string& levelsFolder);
     ~GameLevelManager();
 
     ////////////////////////////////////////////////////
@@ -151,19 +160,21 @@ public:
     void updateDecorations();   
     void updateBackgrounds();   
     void updateGrounds();       // NOTE Не реализовано т.к. у объекта нет update()
+    void updateEnemyManager();
     ////////////////////////////////////////////////////       
 
     ////////////////////////////////////////////////////
     // Отрисовывает уровень на который указывает итератор
     ////////////////////////////////////////////////////
-    void draw(sf::RenderWindow& window);    
+    void draw();    
     ////////////////////////////////////////////////////
     // Отрисовывает уровень на который указывает итератор
     ////////////////////////////////////////////////////
-    void drawPlatforms(sf::RenderWindow& window);
-    void drawDecorations(sf::RenderWindow& window);
-    void drawBackgrounds(sf::RenderWindow& window);
-    void drawGrounds(sf::RenderWindow& window);
+    void drawPlatforms();
+    void drawDecorations();
+    void drawBackgrounds();
+    void drawGrounds();
+    void drawEnemyManager();
     ////////////////////////////////////////////////////
 
     //Getters

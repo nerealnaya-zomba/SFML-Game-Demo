@@ -3,8 +3,6 @@
 #include<Skeleton.h>
 #include<enemyPortal.h>
 
-std::filesystem::path PATH_TO_LEVELS_FOLDER = "data/levelData";
-
 void EnemyManager::updateSpawner()
 {
     for (Spawner &spawner : spawners)
@@ -27,18 +25,8 @@ void EnemyManager::removeIfNotAlive()
 
 void EnemyManager::loadSpawnerData()
 {
-    // Добавляем название уровня к пути
-    PATH_TO_LEVELS_FOLDER /= levelName;
-    //Открываем файл
-    std::ifstream f(PATH_TO_LEVELS_FOLDER);
-    //Проверка открылся ли
-    if(!f.good()){
-        std::cerr << "Error opening " << PATH_TO_LEVELS_FOLDER << " file does not exist. : EnemyManager\n";
-        exit(1);
-    }
-    // Парсинг json-a
-    nlohmann::json d = nlohmann::json::parse(f);
-    for (auto &&spawner : d["Spawners"])
+
+    for (const auto &spawner : (*data)["Spawners"])
     {   
         // Координаты спавна
         sf::Vector2f spawnArea[2] = {
@@ -51,7 +39,12 @@ void EnemyManager::loadSpawnerData()
             spawner["EnemyName"],
             spawner["EnemyAmount"],
             spawner["SpawnCooldown"],
-            spawnArea);
+            spawnArea,
+            *this->gameData,
+            *this->platform,
+            *this->ground,
+            *this->player,
+            *this->window);
     }
 }
 
@@ -62,28 +55,28 @@ void EnemyManager::addSkeleton(GameData& data,sf::RenderWindow& window,Ground& g
 
 void EnemyManager::updateAI_all()
 {
-    for (auto enemy : skeletons) {
+    for (auto &&enemy : skeletons) {
         enemy->updateAI();
     }
 }
 
 void EnemyManager::updateControls_all()
 {
-    for (auto enemy : skeletons) {
+    for (auto &&enemy : skeletons) {
         enemy->updateControl();
     }
 }
 
 void EnemyManager::updatePhysics_all()
 {
-    for (auto enemy : skeletons) {
+    for (auto &&enemy : skeletons) {
         enemy->updatePhysics();
     }
 }
 
 void EnemyManager::updateTextures_all()
 {
-    for (auto enemy : skeletons) {
+    for (auto &&enemy : skeletons) {
         enemy->updateTextures();
     }
     this->removeIfNotAlive();
@@ -100,7 +93,7 @@ void EnemyManager::updateSpawners_all()
 
 void EnemyManager::draw_all()
 {
-    for (auto enemy : skeletons) {
+    for (auto &&enemy : skeletons) {
         enemy->draw();
     }
 }
@@ -109,8 +102,8 @@ void EnemyManager::addSpawner(std::string enemyName)
 {
 }
 
-EnemyManager::EnemyManager(std::string ln)
-    : levelName(ln)
+EnemyManager::EnemyManager(const nlohmann::json& d, GameData& gd, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w)
+    : data(&d), gameData(&gd), platform(&p), ground(&g), player(&pl), window(&w)
 {
     loadSpawnerData();
 }

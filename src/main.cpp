@@ -38,7 +38,7 @@ int main()
     //Game
     Player player(gameData);                                                            // Player
     GameCamera camera(view,player);                                                     // Camera
-    GameLevelManager levelManager(gameData,player,camera,levelFolder);                  // Level manager
+    GameLevelManager levelManager(gameData,player,camera,window,levelFolder);                  // Level manager
     camera.attachGameLevelManager(levelManager);
 
     std::vector<Particle> particles;
@@ -147,6 +147,7 @@ int main()
 
         // Level objects updating
         levelManager.update();
+        levelManager.updateEnemyManager();
 
         //Texture update
         player.updateTextures();
@@ -176,16 +177,17 @@ int main()
         window.clear(gameBackGroundColor);
 
             //Back level drawing
-        levelManager.drawBackgrounds(window);
-        levelManager.drawDecorations(window);
+        levelManager.drawBackgrounds();
+        levelManager.drawDecorations();
+        levelManager.drawEnemyManager();
         
             //Player drawing
         player.draw(window);
         player.drawBullets(window);
 
             //Front level drawing
-        levelManager.drawGrounds(window);
-        levelManager.drawPlatforms(window);
+        levelManager.drawGrounds();
+        levelManager.drawPlatforms();
 
         //////////////////
         // Camera updating
@@ -197,7 +199,4 @@ int main()
         
         
     }
-
-
-
 }
