@@ -237,13 +237,22 @@ void Decoration::applyParalaxes(
     sf::Vector2f baseObjectPos = vectorPair.second;
     sf::Vector2f parallaxFactor = vectorPair.first;
     
-    sf::Vector2f difference = baseObjectPos - camera->getCameraCenter();
+    // Добавляем статическую переменную для хранения начальной позиции камеры
+    static sf::Vector2f initialCameraPos = camera->getCameraCenterPos();
+    sf::Vector2f currentCameraPos = camera->getCameraCenterPos();
+    
+    // Вычисляем смещение камеры от её начальной позиции
+    sf::Vector2f cameraOffset = currentCameraPos - initialCameraPos;
+
+    sf::Vector2f difference = baseObjectPos - camera->getCameraCenterPos();
+    
     if (sprite.get()) {
         sprite.get()->setPosition({
-            camera->getCameraCenter().x + (difference.x * parallaxFactor.x),
-            camera->getCameraCenter().y + (difference.y * parallaxFactor.y)
+            baseObjectPos.x + cameraOffset.x * parallaxFactor.x,
+            baseObjectPos.y + cameraOffset.y * parallaxFactor.y
         });
     }
+    
 }
 
 void Decoration::initDecoration(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color,
