@@ -1,7 +1,6 @@
 #include "EnemyManager.h"
 
-template <typename T>
-void EnemyManager<T>::updateSpawner()
+void EnemyManager::updateSpawner()
 {
     for (Spawner &spawner : spawners)
     {
@@ -10,73 +9,62 @@ void EnemyManager<T>::updateSpawner()
     
 }
 
-template <typename T>
-void EnemyManager<T>::removeIfNotAlive()
+void EnemyManager::removeIfNotAlive()
 {
-    enemies.erase(
-        std::remove_if(enemies.begin(), enemies.end(), 
+    skeletons.erase(
+        std::remove_if(skeletons.begin(), skeletons.end(), 
             [](auto& enemy) {
                 return !enemy->isAlive;
             }),
-        enemies.end()
+        skeletons.end()
     );
 }
 
-template <typename T>
-void EnemyManager<T>::add(T *enemy)
+void EnemyManager::addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos)
 {
-    enemies.push_back(enemy);
+    skeletons.push_back(new Skeleton(data,window,ground,platform,player,type,pos)); 
 }   
 
-template<typename T>
-void EnemyManager<T>::updateAI_all()
+void EnemyManager::updateAI_all()
 {
-    for (auto enemy : enemies) {
+    for (auto enemy : skeletons) {
         enemy->updateAI();
     }
 }
 
-template <typename T>
-void EnemyManager<T>::updateControls_all()
+void EnemyManager::updateControls_all()
 {
-    for (auto enemy : enemies) {
+    for (auto enemy : skeletons) {
         enemy->updateControl();
     }
 }
 
-template<typename T>
-void EnemyManager<T>::updatePhysics_all()
+void EnemyManager::updatePhysics_all()
 {
-    for (auto enemy : enemies) {
+    for (auto enemy : skeletons) {
         enemy->updatePhysics();
     }
 }
 
-template<typename T>
-void EnemyManager<T>::updateTextures_all()
+void EnemyManager::updateTextures_all()
 {
-    for (auto enemy : enemies) {
+    for (auto enemy : skeletons) {
         enemy->updateTextures();
     }
     this->removeIfNotAlive();
 }
 
-template<typename T>
-void EnemyManager<T>::draw_all()
+void EnemyManager::draw_all()
 {
-    for (auto enemy : enemies) {
+    for (auto enemy : skeletons) {
         enemy->draw();
     }
 }
 
-template<typename T>
-EnemyManager<T>::EnemyManager()
+EnemyManager::EnemyManager()
 {
 }
 
-template<typename T>
-EnemyManager<T>::~EnemyManager()
+EnemyManager::~EnemyManager()
 {
 }
-
-template class EnemyManager<Skeleton>;

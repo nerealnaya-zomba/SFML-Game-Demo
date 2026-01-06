@@ -3,10 +3,11 @@
 #include <SFML/Graphics.hpp>
 #include <Mounting.h>
 
-template<typename T>
+class EnemyManager;
+
 class Spawner {
 private:
-    EnemyManager<T>* manager;  
+    EnemyManager* manager;  
     sf::Vector2f spawnArea;
     sf::Clock spawnCooldownTimer;
     float spawnCooldown;
@@ -20,7 +21,7 @@ public:
     // eps - Сколько появляется противников за раз
     // sa  - Площадь в которой будут спавниться
     /////////////////////////////////////////////////////////////////////
-    Spawner(EnemyManager<T> &m, unsigned int ea, unsigned int eps, sf::Vector2f sa);
+    Spawner(EnemyManager &m, unsigned int ea, unsigned int eps, sf::Vector2f sa);
     
     ~Spawner();
 
