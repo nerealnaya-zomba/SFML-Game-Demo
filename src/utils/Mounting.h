@@ -295,6 +295,8 @@ static int random(int min, int max) {
 static float random(float min, float max) {
     return min + static_cast<float>(rand()) / RAND_MAX * (max - min);
 }
+    // Проверяет прошло ли intervalMs времени, и возвращает true на успех и false иначе.
+    // Перезапускает таймер если вернуло true
 static bool checkInterval(sf::Clock& clock, float intervalMs) {
     if (clock.getElapsedTime().asMilliseconds() >= intervalMs) {
         clock.restart();
