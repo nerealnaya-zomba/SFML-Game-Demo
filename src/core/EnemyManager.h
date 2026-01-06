@@ -6,9 +6,11 @@
 #include<enemyPortal.h>
 #include<deque>
 #include<map>
+#include<Spawner.h>
 
 template<typename T>
-//TODO Класс для управления противниками. Должен отвечать за спавн, обновление и удаление убитых.
+//NOTE Класс для управления противниками. Должен отвечать за спавн, обновление и удаление убитых.
+//NOTE Если хочешь добавить еще один класс противника - в конце .cpp файла добавь template class EnemyManager<Твой противник>. Также и со Spawner.
 /////////////////////////////////////////////////////
 // Перед появлением скелета, появляется портал на 2 с. Который будет увеличиваться первую секунду, а после увеличения спавнить скелета и уменьшаться обратно.
 /////////////////////////////////////////////////////
@@ -25,14 +27,26 @@ private:
     T* enemy_;
 
     std::vector<T*> enemies;
-
+    std::vector<Spawner> spawners;
+    ////////////////////////
+    //Spawners updating
+    ////////////////////////
+    void updateSpawner();
+    ////////////////////////
+    // Removing/adding enemy
+    ////////////////////////
+    /*
+        Remove enemy
+    */
     void removeIfNotAlive();
 
-public:
     /*
         Add enemy
     */
     void add(T* enemy);
+
+public:
+    
 
     /*
         Update
@@ -47,6 +61,9 @@ public:
 
     void draw_all();
 
+    ////////////////////////
+    // Constructor & destructor
+    ////////////////////////
     EnemyManager();
     virtual ~EnemyManager();
 };

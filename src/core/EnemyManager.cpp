@@ -1,6 +1,16 @@
 #include "EnemyManager.h"
 
 template <typename T>
+void EnemyManager<T>::updateSpawner()
+{
+    for (Spawner &spawner : spawners)
+    {
+        spawner.update();
+    }
+    
+}
+
+template <typename T>
 void EnemyManager<T>::removeIfNotAlive()
 {
     enemies.erase(
