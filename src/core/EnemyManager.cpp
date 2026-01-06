@@ -1,4 +1,9 @@
 #include "EnemyManager.h"
+#include<Spawner.h>
+#include<Skeleton.h>
+#include<enemyPortal.h>
+
+std::filesystem::path PATH_TO_LEVELS_FOLDER = "data/levelData";
 
 void EnemyManager::updateSpawner()
 {
@@ -18,6 +23,36 @@ void EnemyManager::removeIfNotAlive()
             }),
         skeletons.end()
     );
+}
+
+void EnemyManager::loadSpawnerData()
+{
+    // Добавляем название уровня к пути
+    PATH_TO_LEVELS_FOLDER /= levelName;
+    //Открываем файл
+    std::ifstream f(PATH_TO_LEVELS_FOLDER);
+    //Проверка открылся ли
+    if(!f.good()){
+        std::cerr << "Error opening " << PATH_TO_LEVELS_FOLDER << " file does not exist. : EnemyManager\n";
+        exit(1);
+    }
+    // Парсинг json-a
+    nlohmann::json d = nlohmann::json::parse(f);
+    for (auto &&spawner : d["Spawners"])
+    {   
+        // Координаты спавна
+        sf::Vector2f spawnArea[2] = {
+            {spawner["SpawnArea"][0][0],spawner["SpawnArea"][0][1]},
+            {spawner["SpawnArea"][1][0],spawner["SpawnArea"][1][1]}
+        };
+        // Вставляем спавнер
+        spawners.emplace_back(
+            *this,
+            spawner["EnemyName"],
+            spawner["EnemyAmount"],
+            spawner["SpawnCooldown"],
+            spawnArea);
+    }
 }
 
 void EnemyManager::addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos)
@@ -54,6 +89,15 @@ void EnemyManager::updateTextures_all()
     this->removeIfNotAlive();
 }
 
+void EnemyManager::updateSpawners_all()
+{
+    for (auto &&i : spawners)
+    {
+        i.update();
+    }
+    
+}
+
 void EnemyManager::draw_all()
 {
     for (auto enemy : skeletons) {
@@ -65,8 +109,10 @@ void EnemyManager::addSpawner(std::string enemyName)
 {
 }
 
-EnemyManager::EnemyManager()
+EnemyManager::EnemyManager(std::string ln)
+    : levelName(ln)
 {
+    loadSpawnerData();
 }
 
 EnemyManager::~EnemyManager()

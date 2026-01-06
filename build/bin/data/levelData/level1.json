@@ -79,5 +79,13 @@
       "Points": [0, 2020],
       "YPos": 1048
     }
+  ],
+  "Spawners":[
+    {
+      "EnemyName": "Skeleton",
+      "EnemyAmount": 100,
+      "SpawnCooldown": 500,
+      "SpawnArea": [[500,600],[700,800]]
+    }
   ]
 }

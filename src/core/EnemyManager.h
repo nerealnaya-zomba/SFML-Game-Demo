@@ -2,13 +2,19 @@
 #include<SFML/Graphics.hpp>
 #include<vector>
 #include<algorithm>
-#include<Skeleton.h>
-#include<enemyPortal.h>
+#include<fstream>
 #include<deque>
 #include<map>
-#include<Spawner.h>
+#include <GameData.h>
+#include <Platform.h>
+#include <Ground.h>
+#include <Player.h>
+
 
 class Spawner;
+
+// Говорим компилятору что объявление происходит в другом модуле - EnemyManager.cpp
+extern std::filesystem::path PATH_TO_LEVELS_FOLDER;
 
 //NOTE Класс для управления противниками. Должен отвечать за спавн, обновление и удаление убитых.
 //NOTE Если хочешь добавить еще один класс противника - в конце .cpp файла добавь template class EnemyManager<Твой противник>. Также и со Spawner.
@@ -26,14 +32,21 @@ Booleans:
 class EnemyManager{
 private:
 
+    std::filesystem::path levelName;
+
+    ////////////////////////
+    // Arrays
+    ////////////////////////
     std::vector<std::shared_ptr<Skeleton>> skeletons;
     std::vector<Spawner> spawners;
+
     ////////////////////////
     //Spawners updating
     ////////////////////////
     void updateSpawner();
+
     ////////////////////////
-    // Removing/adding enemy
+    // Removing enemy
     ////////////////////////
     /*
         Remove enemy
@@ -41,8 +54,10 @@ private:
     void removeIfNotAlive();
 
     
-
-    void addFlyingEnemy();   // IMPLEMENTME Добавь че нить
+    ////////////////////////
+    // Загружает спавнеры levelData
+    ////////////////////////
+    void loadSpawnerData();
 
 public:
     
@@ -58,12 +73,15 @@ public:
 
     void updateTextures_all();
 
+    void updateSpawners_all();
+
     void draw_all();
 
     /*
         Add enemy
     */
     void addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos);
+    void addFlyingEnemy();   // IMPLEMENTME Добавь че нить
 
     ////////////////////////
     // Добавить спавнер противника
@@ -71,8 +89,8 @@ public:
     void addSpawner(std::string enemyName);
 
     ////////////////////////
-    // Constructor & destructor
+    // ln - Название файла уровня
     ////////////////////////
-    EnemyManager();
+    EnemyManager(std::string ln);
     virtual ~EnemyManager();
 };

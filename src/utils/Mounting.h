@@ -304,3 +304,10 @@ static bool checkInterval(sf::Clock& clock, float intervalMs) {
     }
     return false;
 }
+static bool checkInterval(sf::Clock& clock, unsigned int intervalMs) {
+    if (clock.getElapsedTime().asMilliseconds() >= intervalMs) {
+        clock.restart();
+        return true;
+    }
+    return false;
+}
