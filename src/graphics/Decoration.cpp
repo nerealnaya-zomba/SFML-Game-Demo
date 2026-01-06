@@ -31,175 +31,48 @@ void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vecto
 {
     if(name == "plant1")
     {
-        //Error handling
-        if(plant1Textures == nullptr || plant1Textures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(plant1Textures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        plant1Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
-        
+        initDecoration(position,scale,parallaxFactor,z,color,plant1Sprites,plant1Textures);
     }
     else if(name == "plant2")
     {
-        //Error handling
-        if(plant2Textures == nullptr || plant2Textures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(plant2Textures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        plant2Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        initDecoration(position,scale,parallaxFactor,z,color,plant2Sprites,plant2Textures);
     }
     else if(name == "plant3")
     {
-        //Error handling
-        if(plant3Textures == nullptr || plant3Textures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(plant3Textures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        plant3Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        initDecoration(position,scale,parallaxFactor,z,color,plant3Sprites,plant3Textures);
     }
     else if(name == "plant4")
     {
-        //Error handling
-        if(plant4Textures == nullptr || plant4Textures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(plant4Textures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        plant4Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        initDecoration(position,scale,parallaxFactor,z,color,plant4Sprites,plant4Textures);
     }
     else if(name == "plant5")
     {
-        //Error handling
-        if(plant5Textures == nullptr || plant5Textures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(plant5Textures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        plant5Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        initDecoration(position,scale,parallaxFactor,z,color,plant5Sprites,plant5Textures);
     }
     else if(name == "plant6")
     {
-        //Error handling
-        if(plant6Textures == nullptr || plant6Textures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(plant6Textures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        plant6Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        initDecoration(position,scale,parallaxFactor,z,color,plant6Sprites,plant6Textures);
     }
     else if(name == "plant7")
     {
-        //Error handling
-        if(plant7Textures == nullptr || plant7Textures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(plant7Textures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        plant7Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        initDecoration(position,scale,parallaxFactor,z,color,plant7Sprites,plant7Textures);
     }
     else if(name == "cat")
     {
-        //Error handling
-        if(cat1Textures == nullptr || cat1Textures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(cat1Textures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        cat1Sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        initDecoration(position,scale,parallaxFactor,z,color,cat1Sprites,cat1Textures);
     }
     else if(name == "jumpPlant")
     {
-        //Error handling
-        if(jumpPlantTextures == nullptr || jumpPlantTextures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(jumpPlantTextures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        jumpPlantSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        initDecoration(position,scale,parallaxFactor,z,color,jumpPlantSprites,jumpPlantTextures);
     }
     else if(name == "portalGreen")
     {
-        //Error handling
-        if(portalGreenTextures == nullptr || portalGreenTextures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
-        auto sprite = std::make_unique<sf::Sprite>(portalGreenTextures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        portalGreenSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+        initDecoration(position,scale,parallaxFactor,z,color,portalGreenSprites,portalGreenTextures);
     }
     //Static-textures assertion
     else{
         try{
-            auto sprite = std::make_unique<sf::Sprite>(staticTextures->at(name));
-            sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-            sprite->setPosition(position);
-            sprite->setScale(scale);
-            sprite->setColor(color);
-            all_Z.insert(z);
-            staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+            initDecoration(name,position,scale,parallaxFactor,z,color,staticSprites,staticTextures);
         }
         catch(std::out_of_range& ex){
             std::cout << ex.what() << std::endl;
@@ -373,6 +246,41 @@ void Decoration::applyParalaxes(
     }
 }
 
+void Decoration::initDecoration(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color,
+    std::unordered_multimap<Vector2fPairWithZ, std::unique_ptr<sf::Sprite>, Vector2fPairWithZHash, Vector2fPairWithZEqual>& sprites,
+    std::vector<sf::Texture>* textures)
+{
+        if(textures == nullptr || textures->empty())
+        {
+            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
+            exit(EXIT_FAILURE);
+        } 
+        auto sprite = std::make_unique<sf::Sprite>(textures->at(0));
+        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
+        sprite->setPosition(position);
+        sprite->setScale(scale);
+        sprite->setColor(color);
+
+        sf::Vector2f difference = position - camera->getCameraCenter();
+        sf::Vector2f calculatedWithParallaxPos =    // NOTE Работает несовсем правильно. Наверное стоит дописать формулу.
+            {
+                position.x - parallaxFactor.x,
+                position.y - parallaxFactor.y
+            };
+        all_Z.insert(z);
+        sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,calculatedWithParallaxPos),z),std::move(sprite));
+}
+
+void Decoration::initDecoration(std::string& name, sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color, std::unordered_multimap<Vector2fPairWithZ, std::unique_ptr<sf::Sprite>, Vector2fPairWithZHash, Vector2fPairWithZEqual> &sprites, std::map<std::string, sf::Texture> *textures)
+{
+            auto sprite = std::make_unique<sf::Sprite>(staticTextures->at(name));
+            sprite->setOrigin(sprite->getGlobalBounds().getCenter());
+            sprite->setPosition(position);
+            sprite->setScale(scale);
+            sprite->setColor(color);
+            all_Z.insert(z);
+            staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
+}
 
 void Decoration::generateMipmapTextures(std::vector<sf::Texture> &texturesArray)
 {

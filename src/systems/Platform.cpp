@@ -10,7 +10,6 @@ void Platform::draw(sf::RenderWindow &window)
     {
         window.draw(*i);
     }
-    
 }
 
 void Platform::addPlatform(sf::Vector2f position, std::string name)

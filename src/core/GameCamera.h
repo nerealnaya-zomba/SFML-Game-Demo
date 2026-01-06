@@ -84,5 +84,6 @@ public:
     sf::Vector2f getScreenViewSize()    const;
     sf::Vector2f getScreenViewPos()     const;
     sf::Vector2f getSpeed()             const;
-    sf::Vector2f getCameraCenter()      const;
+    sf::Vector2f getCameraCenter()      const; // Size-based
+    sf::Vector2f getCameraCenterPos()   const;
 };

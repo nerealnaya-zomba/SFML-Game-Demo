@@ -237,7 +237,13 @@ public:
         const std::unique_ptr<sf::Sprite>& sprite 
     );
 
-    //Optional
+    //Utils
+    void initDecoration(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color,
+    std::unordered_multimap<Vector2fPairWithZ, std::unique_ptr<sf::Sprite>, Vector2fPairWithZHash, Vector2fPairWithZEqual>& sprites,
+    std::vector<sf::Texture>* textures);
+    void initDecoration(std::string& name, sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color,
+    std::unordered_multimap<Vector2fPairWithZ, std::unique_ptr<sf::Sprite>, Vector2fPairWithZHash, Vector2fPairWithZEqual>& sprites,
+    std::map<std::string,sf::Texture>* textures);
     void generateMipmapTextures(std::vector<sf::Texture>& texturesArray);
     void smoothTextures(std::vector<sf::Texture>& texturesArray);
 

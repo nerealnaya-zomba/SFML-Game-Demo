@@ -42,7 +42,7 @@
       "Name": "plant1",
       "Position": [100, 990],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -50,7 +50,7 @@
       "Name": "plant2",
       "Position": [200, 1005],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -58,7 +58,7 @@
       "Name": "plant3",
       "Position": [300, 985],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -66,7 +66,7 @@
       "Name": "plant1",
       "Position": [400, 990],
       "Scale": [-0.6, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.51875, 0.51875],
       "Z": 48
     },
@@ -74,7 +74,7 @@
       "Name": "plant2",
       "Position": [500, 1005],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -82,7 +82,7 @@
       "Name": "plant3",
       "Position": [600, 985],
       "Scale": [-0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -90,7 +90,7 @@
       "Name": "plant1",
       "Position": [700, 1008],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -98,7 +98,7 @@
       "Name": "plant2",
       "Position": [800, 995],
       "Scale": [-0.6, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.51875, 0.51875],
       "Z": 48
     },
@@ -106,7 +106,7 @@
       "Name": "plant3",
       "Position": [1000, 998],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -114,7 +114,7 @@
       "Name": "plant2",
       "Position": [1100, 1005],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -122,7 +122,7 @@
       "Name": "plant3",
       "Position": [1200, 985],
       "Scale": [-0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -130,7 +130,7 @@
       "Name": "plant1",
       "Position": [1300, 1008],
       "Scale": [0.6, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.51875, 0.51875],
       "Z": 48
     },
@@ -138,7 +138,7 @@
       "Name": "plant2",
       "Position": [1400, 995],
       "Scale": [-0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -146,7 +146,7 @@
       "Name": "plant3",
       "Position": [1500, 998],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -154,7 +154,7 @@
       "Name": "plant3",
       "Position": [1600, 985],
       "Scale": [-0.6, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.51875, 0.51875],
       "Z": 48
     },
@@ -162,7 +162,7 @@
       "Name": "plant1",
       "Position": [1700, 1008],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -170,7 +170,7 @@
       "Name": "plant2",
       "Position": [1800, 995],
       "Scale": [-0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -178,7 +178,7 @@
       "Name": "plant3",
       "Position": [1900, 998],
       "Scale": [0.4, 0.3],
-      "Color": [0, 80, 0, 255],
+      "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
       "Z": 58
     },
@@ -187,7 +187,7 @@
       "Position": [520, 280],
       "Scale": [1.0, 1.0],
       "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.6125, 0.6125],
+      "ParallaxFactor": [1.0, 1.0],
       "Z": 168
     },
     {
@@ -195,7 +195,7 @@
       "Position": [1620, 980],
       "Scale": [0.4, 0.4],
       "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.4625, 0.4625],
+      "ParallaxFactor": [1.0, 1.0],
       "Z": 58
     },
     {
@@ -203,7 +203,7 @@
       "Position": [1660, 980],
       "Scale": [-0.4, 0.4],
       "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.4625, 0.4625],
+      "ParallaxFactor": [1.0, 1.0],
       "Z": 58
     },
     {
@@ -211,7 +211,7 @@
       "Position": [1370, 660],
       "Scale": [0.4, 0.4],
       "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.4625, 0.4625],
+      "ParallaxFactor": [1.0, 1.0],
       "Z": 58
     },
     {
@@ -219,12 +219,12 @@
       "Position": [1250, 660],
       "Scale": [-0.4, 0.4],
       "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.4625, 0.4625],
+      "ParallaxFactor": [1.0, 1.0],
       "Z": 58
     },
     {
       "Name": "portalGreen",
-      "Position": [720, 660],
+      "Position": [520, 660],
       "Scale": [-0.4, 0.4],
       "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
@@ -232,7 +232,7 @@
     },
     {
       "Name": "portalGreen",
-      "Position": [1020, 460],
+      "Position": [960, 540],
       "Scale": [-0.4, 0.4],
       "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.4625, 0.4625],
@@ -245,6 +245,22 @@
       "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.3, 0.3],
       "Z": 200
+    },
+    {
+      "Name": "MossyBackgroundDecoration_04.png",
+      "Position": [960, 1300],
+      "Scale": [-0.4, 0.4],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.40, 0.40],
+      "Z": 158
+    },
+    {
+      "Name": "MossyBackgroundDecoration_05.png",
+      "Position": [960, 1300],
+      "Scale": [-0.4, 0.4],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.30, 0.30],
+      "Z": 157
     }
   ],
   "Background": [

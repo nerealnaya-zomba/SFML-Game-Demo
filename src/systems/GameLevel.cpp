@@ -160,7 +160,7 @@ void GameLevel::drawPlatforms(sf::RenderWindow& window)
 
 void GameLevel::drawDecorations(sf::RenderWindow& window)
 {
-    platforms->draw(window);
+    decorations->draw(window);
 }
 
 void GameLevel::drawBackgrounds(sf::RenderWindow& window)

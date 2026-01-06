@@ -166,3 +166,8 @@ sf::Vector2f GameCamera::getCameraCenter() const
 {
     return view->getCenter();
 }
+
+sf::Vector2f GameCamera::getCameraCenterPos() const
+{
+    return this->cameraPos;
+}
