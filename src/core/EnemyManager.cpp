@@ -22,7 +22,7 @@ void EnemyManager::removeIfNotAlive()
 
 void EnemyManager::addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos)
 {
-    skeletons.push_back(new Skeleton(data,window,ground,platform,player,type,pos)); 
+    skeletons.push_back(std::make_shared<Skeleton>(data,window,ground,platform,player,type,pos)); 
 }   
 
 void EnemyManager::updateAI_all()
@@ -59,6 +59,10 @@ void EnemyManager::draw_all()
     for (auto enemy : skeletons) {
         enemy->draw();
     }
+}
+
+void EnemyManager::addSpawner(std::string enemyName)
+{
 }
 
 EnemyManager::EnemyManager()
