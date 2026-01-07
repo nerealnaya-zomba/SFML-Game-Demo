@@ -54,14 +54,8 @@ private:
     //////////////////////////////////////////////////
     void movementUpdate(float deltatime, unsigned int levelWidth, unsigned int levelHeight);
 
-    //////////////////////////////////////////////////
-    // Останавливает камеру, когда она касается краев карты.
-    // 
-    // Нужно чтобы камера не выходила за края, и не показывала то, что не должен видеть игрок.
-    //////////////////////////////////////////////////
-    void mapBorderCollision(); // NOTE Не работал корректно, так что я его сейчас не использую. Вместо этого я в movementUpdate() использовал другой вариант.
 public:
-    GameCamera(sf::View& view, Player& player);
+    GameCamera(sf::View& view);
     ~GameCamera();
 
     //////////////////////////////////////////////////
@@ -80,6 +74,7 @@ public:
     // Setters
     void setMoveSpeed(sf::Vector2f pos);                                    // IMPLEMENTME
     void attachGameLevelManager(GameLevelManager& m);
+    void attachPlayer(Player& player);
 
     // Getters
     float getZoom()                     const;

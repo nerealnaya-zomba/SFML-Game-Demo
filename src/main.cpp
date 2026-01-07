@@ -36,10 +36,13 @@ int main()
     Menu menu(font,window,mouseRect);                                                   // Menu
     
     //Game
+    GameCamera camera(view);                                                            // Camera
     Player player(gameData);                                                            // Player
-    GameCamera camera(view,player);                                                     // Camera
-    GameLevelManager levelManager(gameData,player,camera,window,levelFolder);                  // Level manager
+    GameLevelManager levelManager(gameData,player,camera,window,levelFolder);           // Level manager
+    player.attachGameLevelManager(levelManager);
     camera.attachGameLevelManager(levelManager);
+    camera.attachPlayer(player);
+    
 
     std::vector<Particle> particles;
 

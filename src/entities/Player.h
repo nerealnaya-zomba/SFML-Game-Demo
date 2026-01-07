@@ -14,12 +14,15 @@
 #include <fstream>
 #include <Particle.h>
 
+class GameLevelManager;
+
 class Player {
 public:
     Player(GameData& gameTextures);
     virtual ~Player();
 
     GameData* gameTextures;
+    GameLevelManager* levelManager;
 
     // Public variables
     // Player state
@@ -93,6 +96,9 @@ public:
         // Getters
     sf::Vector2f getSpriteScale();
     sf::Vector2f getCenterPosition();
+
+        // Setters
+    void attachGameLevelManager(GameLevelManager& m);
 
         // Control methods
     void updateControls();                  // Process player input

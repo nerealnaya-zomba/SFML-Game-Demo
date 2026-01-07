@@ -54,60 +54,9 @@ void GameCamera::movementUpdate(float deltatime, unsigned int levelWidth, unsign
 
 }
 
-void GameCamera::mapBorderCollision()
-{   
-    // Края уровня
-    sf::Vector2i levelSize = levelManager->getCurrentLevelSize();
-    float rightBorder = levelSize.x;
-    float bottomBorder = levelSize.y;
-
-    // Область, которую видит игрок
-    sf::RectangleShape viewArea;
-    // Учитываем приближение
-    float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
-    float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
-    // Настраиваем
-    viewArea.setSize({viewAreaWidth,viewAreaHeight});
-    viewArea.setOrigin(viewArea.getGlobalBounds().getCenter());
-    viewArea.setPosition(cameraPos);
-
-    // Позиции области зрения
-    float viewAreaLeftSide = viewArea.getGlobalBounds().position.x;
-    float viewAreaRightSide = viewArea.getGlobalBounds().position.x + viewAreaWidth;
-    float viewAreaTopSide = viewArea.getGlobalBounds().position.y;
-    float viewAreaBottomSide = viewArea.getGlobalBounds().position.y + viewAreaHeight;
-    
-    //Коллизия области зрения
-    // REMINDER СУПЕР ВАЖНО! После того как закончишь с менеджером уровней, поставь вместо WINDOW_WIDTH - levelSize.x и Вместо WINDOW_HEIGHT - levelSize.y
-        //Горизонталь
-    if(viewAreaLeftSide < 0.f){
-        float fixPos = 0.f + (viewAreaWidth/2);
-        cameraPos.x = fixPos;
-    } else if (viewAreaRightSide > WINDOW_WIDTH){
-        float fixPos = WINDOW_WIDTH - (viewAreaWidth/2);
-        cameraPos.x = fixPos;
-    }
-        //Вертикаль
-    if(viewAreaTopSide < 0.f){
-        float fixPos = 0.f + (viewAreaHeight/2);
-        cameraPos.y = fixPos;
-    } else if (viewAreaBottomSide > WINDOW_HEIGHT){
-        float fixPos = WINDOW_HEIGHT - (viewAreaHeight/2);
-        cameraPos.y = fixPos;
-    }
-
-    //Коллизия цели targetPos
-    if(targetPos.x>viewAreaWidth){
-        targetPos.x = viewAreaWidth;
-    } else if(targetPos.x<(WINDOW_WIDTH-viewAreaWidth)){
-        targetPos.x = (WINDOW_WIDTH-viewAreaWidth);
-    }
-}
-
-GameCamera::GameCamera(sf::View& view, Player& player)
+GameCamera::GameCamera(sf::View& view)
 {
-    // Привязываю ссылки к указателям
-    this->player = &player;
+    // Привязываем ссылки к указателям
     this->view = &view;
 
     this->view->zoom( ZOOM_SCALE ); // Приближаем камеру
@@ -138,6 +87,11 @@ void GameCamera::update()
 void GameCamera::attachGameLevelManager(GameLevelManager &m)
 {
     this->levelManager = &m;
+}
+
+void GameCamera::attachPlayer(Player &player)
+{
+    this->player = &player;
 }
 
 float GameCamera::getZoom() const

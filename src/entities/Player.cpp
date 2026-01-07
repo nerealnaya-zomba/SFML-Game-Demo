@@ -57,6 +57,11 @@ sf::Vector2f Player::getCenterPosition()
     return playerRectangle_->getGlobalBounds().getCenter();
 }
 
+void Player::attachGameLevelManager(GameLevelManager& m)
+{
+    this->levelManager = &m;
+}
+
 void Player::updateTextures()
 {
     if(!isAlive)
@@ -586,10 +591,12 @@ void Player::updatePhysics()
     }
     //std::cout << playerRectangle->getPosition().x << std::endl;
 
-    //Window border collision (left and right)
-    if(playerRectangle_->getPosition().x+playerRectangle_->getSize().x>=WINDOW_WIDTH)
+    //Level border collision (left and right)
+    float levelWidth = static_cast<float>(levelManager->getCurrentLevelSize().x);
+    float levelHeight = static_cast<float>(levelManager->getCurrentLevelSize().y);
+    if(playerRectangle_->getPosition().x+playerRectangle_->getSize().x>=levelWidth)
     {
-        playerRectangle_->setPosition({WINDOW_WIDTH-playerRectangle_->getSize().x,playerRectangle_->getPosition().y});
+        playerRectangle_->setPosition({levelWidth-playerRectangle_->getSize().x,playerRectangle_->getPosition().y});
     }
     else if(playerRectangle_->getPosition().x<=0)
     {
