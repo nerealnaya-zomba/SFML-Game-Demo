@@ -46,6 +46,16 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     loadingScreen_m->draw();
     generateMipmapTextures(satiro_slideTextures);
 
+    if(loadTexture(satiro_jumpTextures, satiro_jumpPath_, satiro_jump_helper, 9)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(satiro_jumpTextures);
+
+    if(loadTexture(satiro_landingTextures, satiro_landingPath_, satiro_landing_helper, 9)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(satiro_landingTextures);
+
     // White skeleton textures
     if(loadTexture(skeletonWhite_idleTextures_, skeletonWhite_idlePath_, skeletonWhite_idle_helper, 9)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
@@ -253,6 +263,7 @@ bool GameData::loadTexture(std::vector<sf::Texture> &textures, std::string path,
     
     if (seq.count == 0) {
         std::cerr << "ERROR: No textures found for path: " << path << std::endl;
+        exit(1);
         return false;
     }
     

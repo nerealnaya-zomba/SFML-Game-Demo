@@ -36,14 +36,18 @@ public:
     std::vector<sf::Texture> fallingTextures{};         // Falling animation frames
     std::vector<sf::Texture> bulletTextures{};          // Bullet animation frames
     texturesIterHelper satiro_bullet_helper;
-    std::vector<sf::Texture> satiro_dieTextures{};      // Bullet animation frames
+    std::vector<sf::Texture> satiro_dieTextures{};      // Die animation frames
     texturesIterHelper satiro_die_helper;
-    std::vector<sf::Texture> satiro_dashTextures{};     // Bullet animation frames
+    std::vector<sf::Texture> satiro_dashTextures{};     // Dash animation frames
     texturesIterHelper satiro_dash_helper;
-    std::vector<sf::Texture> satiro_hurtTextures{};     // Bullet animation frames
+    std::vector<sf::Texture> satiro_hurtTextures{};     // Hurt animation frames
     texturesIterHelper satiro_hurt_helper;
-    std::vector<sf::Texture> satiro_slideTextures{};    // Bullet animation frames
+    std::vector<sf::Texture> satiro_slideTextures{};    // Slide animation frames
     texturesIterHelper satiro_slide_helper;
+    std::vector<sf::Texture> satiro_jumpTextures{};     // Jump animation frames
+    texturesIterHelper satiro_jump_helper;
+    std::vector<sf::Texture> satiro_landingTextures{};  // Landing animation frames
+    texturesIterHelper satiro_landing_helper;
 
     // White skeleton textures with animation helpers
     std::vector<sf::Texture> skeletonWhite_idleTextures_{};
@@ -161,6 +165,8 @@ private:
     std::string satiro_dashPath_{"images/satiro-dash_"};
     std::string satiro_hurtPath_{"images/satiro-hurt_"};
     std::string satiro_slidePath_{"images/satiro-slide_"};
+    std::string satiro_jumpPath_{"images/satiro-jump_"};
+    std::string satiro_landingPath_{"images/satiro-jump-landing_"};
 
     // White skeleton texture paths
     std::string skeletonWhite_idlePath_{"images/creatures/enemies/skeleton_white/idle/skeleton-idle_"};
