@@ -39,6 +39,7 @@ void EnemyManager::loadSpawnerData()
             spawner["EnemyName"],
             spawner["EnemyAmount"],
             spawner["SpawnCooldown"],
+            spawner["EnemyPerSpawn"],
             spawnArea,
             *this->gameData,
             *this->platform,

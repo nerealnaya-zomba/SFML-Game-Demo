@@ -83,8 +83,9 @@
   "Spawners":[
     {
       "EnemyName": "SkeletonWhite",
-      "EnemyAmount": 2,
+      "EnemyAmount": 1,
       "SpawnCooldown": 1500,
+      "EnemyPerSpawn": 1,
       "SpawnArea": [[500,600],[700,800]]
     }
   ]
