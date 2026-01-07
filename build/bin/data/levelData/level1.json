@@ -1,7 +1,7 @@
 {
   "Presets": {
     "isConstant": true,
-    "Size": [1920, 1080]
+    "Size": [3000, 1080]
   },
   "Platforms": [
     {

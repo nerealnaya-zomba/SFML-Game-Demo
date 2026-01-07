@@ -50,7 +50,7 @@ private:
     //////////////////////////////////////////////////
     // Обновление переменных передвижения
     //////////////////////////////////////////////////
-    void movementUpdate(float deltatime);
+    void movementUpdate(float deltatime, unsigned int levelWidth, unsigned int levelHeight);
 
     //////////////////////////////////////////////////
     // Останавливает камеру, когда она касается краев карты.

@@ -116,7 +116,7 @@ void GameLevelManager::drawEnemyManager()
     levelIt->second->drawEnemyManager();
 }
 
-sf::Vector2f GameLevelManager::getCurrentLevelSize() const
+sf::Vector2i GameLevelManager::getCurrentLevelSize() const
 {
     return levelIt->second->getLevelSize();
 }
@@ -308,6 +308,8 @@ void GameLevel::loadLevelData(const std::string& fileNamePath)
 
     nlohmann::json data = nlohmann::json::parse(dataFile);
 
+    this->size = sf::Vector2i(data["Presets"]["Size"][0],data["Presets"]["Size"][1]);
+
     initializePlatforms(data);
 
     initializeDecorations(data);
@@ -327,7 +329,7 @@ void GameLevel::resetTobase()
 {
 }
 
-sf::Vector2f GameLevel::getLevelSize() const
+sf::Vector2i GameLevel::getLevelSize() const
 {
     return this->size;
 }

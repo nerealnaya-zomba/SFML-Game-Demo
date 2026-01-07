@@ -1,17 +1,17 @@
 #include "GameCamera.h"
 
-void GameCamera::movementUpdate(float deltatime)
+void GameCamera::movementUpdate(float deltatime, unsigned int levelWidth, unsigned int levelHeight)
 {
     
-    // REMINDER СУПЕР ВАЖНО! После того как закончишь с менеджером уровней поменяй WINDOW_WIDTH WINDOW_HEIGHT на levelSize
+    // REMINDER 
     float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
     float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
 
     //Условия для коллизии цели с краями уровня
-    if((player->getCenterPosition().x<(WINDOW_WIDTH-(viewAreaHeight/2))) && (player->getCenterPosition().x>(0.f+(viewAreaHeight/2)))){
+    if((player->getCenterPosition().x<(levelWidth-(viewAreaHeight/2))) && (player->getCenterPosition().x>(0.f+(viewAreaHeight/2)))){
         this->targetPos.x = player->getCenterPosition().x;
     } 
-    if((player->getCenterPosition().y<(WINDOW_HEIGHT-(viewAreaHeight/2))) && (player->getCenterPosition().y>(0.f+(viewAreaHeight/2)))) {
+    if((player->getCenterPosition().y<(levelHeight-(viewAreaHeight/2))) && (player->getCenterPosition().y>(0.f+(viewAreaHeight/2)))) {
         this->targetPos.y = player->getCenterPosition().y;
     } 
 
@@ -39,10 +39,10 @@ void GameCamera::movementUpdate(float deltatime)
     speed.y = std::clamp(speed.y, -maxSpeed.y, maxSpeed.y);
 
     //Условия для коллизии камеры с краями уровня
-    if(((cameraPos.x + speed.x * deltatime)<(WINDOW_WIDTH-viewAreaWidth/2)) && ((cameraPos.x + speed.x * deltatime) > (viewAreaWidth/2))) {
+    if(((cameraPos.x + speed.x * deltatime)<(levelWidth-viewAreaWidth/2)) && ((cameraPos.x + speed.x * deltatime) > (viewAreaWidth/2))) {
         cameraPos.x += speed.x * deltatime;
     } 
-    if(((cameraPos.y + speed.y * deltatime)<(WINDOW_HEIGHT-viewAreaHeight/2)) && ((cameraPos.y + speed.y * deltatime) > (viewAreaHeight/2))) {
+    if(((cameraPos.y + speed.y * deltatime)<(levelHeight-viewAreaHeight/2)) && ((cameraPos.y + speed.y * deltatime) > (viewAreaHeight/2))) {
         cameraPos.y += speed.y * deltatime;
     } 
     
@@ -57,7 +57,7 @@ void GameCamera::movementUpdate(float deltatime)
 void GameCamera::mapBorderCollision()
 {   
     // Края уровня
-    sf::Vector2f levelSize = levelManager->getCurrentLevelSize();
+    sf::Vector2i levelSize = levelManager->getCurrentLevelSize();
     float rightBorder = levelSize.x;
     float bottomBorder = levelSize.y;
 
@@ -124,7 +124,11 @@ void GameCamera::update()
 
     if(this->isConditionSuccessed)
     {   
-        this->movementUpdate(dt);
+        this->movementUpdate(
+            dt,
+            levelManager->getCurrentLevelSize().x,
+            levelManager->getCurrentLevelSize().y
+        );
         
         this->view->setCenter(this->cameraPos);
         return;

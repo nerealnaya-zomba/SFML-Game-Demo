@@ -21,7 +21,7 @@ class EnemyManager;
 class GameLevel
 {
 private:
-    sf::Vector2f size;                                          // Длинна и ширина уровня
+    sf::Vector2i size;                                          // Длинна и ширина уровня
     std::shared_ptr< Platform   > platforms;                    // Платформы
     std::shared_ptr< Decoration > decorations;                  // Декорации
     std::shared_ptr< Ground     > ground;                       // Пол
@@ -113,7 +113,7 @@ public:
     void resetTobase();         // IMPLEMENTME
 
     //Getters
-    sf::Vector2f getLevelSize() const;
+    sf::Vector2i getLevelSize() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
 };
@@ -178,7 +178,7 @@ public:
     ////////////////////////////////////////////////////
 
     //Getters
-    sf::Vector2f getCurrentLevelSize() const;
+    sf::Vector2i getCurrentLevelSize() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
 };
