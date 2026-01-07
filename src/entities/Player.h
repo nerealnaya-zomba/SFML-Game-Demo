@@ -26,9 +26,11 @@ public:
 
     // Public variables
     // Player state
-    bool isIdle = true;
+    bool isIdle    = true;
     bool isFalling = true;
-    bool isAlive = true;
+    bool isAlive   = true;
+    bool isFliesUp = false;
+    bool isJumped  = false;
     float fallingSpeed = 0.f;
     float initialWalkSpeed = 0.f;
     float speed = 0.15f;                    // Movement acceleration

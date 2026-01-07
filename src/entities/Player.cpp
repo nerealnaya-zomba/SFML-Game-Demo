@@ -92,9 +92,22 @@ void Player::updateTextures()
         return;
     }
 
+    if(isFliesUp)
+    {
+        switchToNextSprite(this->playerSprite,*this->satiro_jumpTextures,satiro_jump_helper,switchSprite_SwitchOption::Loop);
+    } else {
+        if(isJumped && !isFalling)
+        {
+            if(!switchToNextSprite(this->playerSprite,*this->satiro_landingTextures,satiro_landing_helper,switchSprite_SwitchOption::Single))
+            {
+                isJumped = false;
+            }
+        }
+    }
+
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
-        if(!isFalling && !isPlayingDashAnimation)
+        if(!isFalling && !isPlayingDashAnimation && !isJumped)
         {
             switchToNextRunningSprite();
         }
@@ -105,7 +118,7 @@ void Player::updateTextures()
     }
     else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
     {
-        if(!isFalling && !isPlayingDashAnimation)
+        if(!isFalling && !isPlayingDashAnimation && !isJumped)
         {
             switchToNextRunningSprite();
         }
@@ -125,11 +138,11 @@ void Player::updateTextures()
         return;
     }
 
-    if(isFalling)
+    if(isFalling && !isFliesUp)
     {  
         switchToNextFallingSprite();
     }
-    if(isIdle && !isFalling)
+    if(isIdle && !isFalling && !isJumped && !isFliesUp)
     {
         switchToNextIdleSprite();
     }
@@ -561,6 +574,12 @@ void Player::updatePhysics()
     applyFriction(initialWalkSpeed,this->frictionForce);
     
     updateParticles();
+
+    if(fallingSpeed<0)
+    {
+            isFliesUp = true;
+            isJumped  = true;
+    } else  isFliesUp = false;
 
     if(this->HP_<=0) isPlayingDieAnimation = true;
     

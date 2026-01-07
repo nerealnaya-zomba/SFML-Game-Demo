@@ -257,33 +257,46 @@ enum switchSprite_SwitchOption
 };
 namespace gameUtils
 {
-static bool switchToNextSprite(sf::Sprite* Sprite,
+static bool switchToNextSprite(sf::Sprite* sprite,
     std::vector<sf::Texture>& texturesArray, 
     texturesIterHelper& iterHelper, 
     switchSprite_SwitchOption option)
 {
-    if(iterHelper.iterationCounter < iterHelper.iterationsTillSwitch)
-    {
-        iterHelper.iterationCounter++;
-        return true; // анимация еще идет
+    // Проверка безопасности
+    if (!sprite || texturesArray.empty()) {
+        return false;
     }
 
-    // Переключаем текстуру
-    Sprite->setTexture(texturesArray.at(iterHelper.ptrToTexture));
-    iterHelper.ptrToTexture++;
+    // Увеличиваем счетчик кадров
+    iterHelper.iterationCounter++;
+    
+    // Проверяем, не пора ли переключить текстуру
+    if (iterHelper.iterationCounter < iterHelper.iterationsTillSwitch) {
+        return true; // ждем следующий кадр
+    }
+    
+    // Сбрасываем счетчик кадров
     iterHelper.iterationCounter = 0;
-
-    // Достигли конца анимации
-    if(iterHelper.ptrToTexture >= iterHelper.countOfTextures)
-    {
+    
+    // Переключаем текстуру
+    if (iterHelper.ptrToTexture < texturesArray.size()) {
+        sprite->setTexture(texturesArray[iterHelper.ptrToTexture]);
+    }
+    
+    // Увеличиваем указатель на текстуру
+    iterHelper.ptrToTexture++;
+    
+    // Проверяем, достигли ли конца анимации
+    if (iterHelper.ptrToTexture >= texturesArray.size()) {
         iterHelper.ptrToTexture = 0;
         
-        if(option == switchSprite_SwitchOption::Single)
-            return false; // Single анимация ЗАВЕРШЕНА
-        // Loop продолжается автоматически
+        if (option == switchSprite_SwitchOption::Single) {
+            return false; // Single анимация завершена
+        }
+        // Для Loop продолжаем с начала
     }
-
-    return true; // анимация еще идет
+    
+    return true; // анимация продолжается
 }
 }
 
