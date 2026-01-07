@@ -6,7 +6,6 @@
 #include<GameData.h>
 #include<GameCamera.h>
 #include<Player.h>
-
 /////////////////////////////////////
 // BASE_PARALLAX_FACTOR == 1.f - Фон следует за игроком без малейших изменений в позиции
 // BASE_PARALLAX_FACTOR == 0.f - Фон остается на месте своего создания
@@ -16,6 +15,7 @@
 const float BASE_PARALLAX_FACTOR = 1.f;
 
 class GameCamera;
+class GameLevelManager;
 
 //////////////////////////////////////////
 // То, что Z=-100, на него паралакс не воздействует, и он абсолютно всегда находится в позиции камеры Z_FOREGROUND_POWER = 1.f
@@ -37,7 +37,7 @@ enum Type{RepeatedBackground, SingleBackground};
 class Background
 {  
     public:
-    Background(GameData& d, GameCamera& c, sf::Vector2f pos, std::string bgName, sf::Vector2f parallaxFact, Type t);
+    Background(GameData& d, GameCamera& c, GameLevel& l, sf::Vector2f pos, std::string bgName, sf::Vector2f parallaxFact, Type t);
     ~Background();
 
     //////////////////////////////////////////////////
@@ -55,11 +55,13 @@ class Background
     // Указатели на внешние данные
     const GameCamera* camera;
     const GameData* gamedata;
+    const GameLevel* level;
     const Player* player;
 
     const Type type;                        // Тип фона
     const sf::Vector2f position;            // Позиция при создании.
     const std::string name;                 // Название фона
+    sf::Vector2u bgTextureSize;
 
     // Parallax
     int zDepth;                             // Сила с которой растет offset

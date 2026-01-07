@@ -253,6 +253,7 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
             std::make_shared<Background>(
                 *this->data,
                 *this->camera,
+                *this,
                 position,name,
                 parallaxFactor,
                 type));

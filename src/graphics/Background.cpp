@@ -2,8 +2,8 @@
 
 class GameCamera;
 
-Background::Background(GameData& d, GameCamera& c, sf::Vector2f pos, std::string bgName, sf::Vector2f parallaxFact, Type t=Type::SingleBackground) 
-: position(pos), name(bgName), type(t), gamedata(&d), camera(&c), parallaxFactor(parallaxFact)
+Background::Background(GameData& d, GameCamera& c, GameLevel& l, sf::Vector2f pos, std::string bgName, sf::Vector2f parallaxFact, Type t=Type::SingleBackground) 
+: position(pos), name(bgName), type(t), gamedata(&d), camera(&c), level(&l), parallaxFactor(parallaxFact)
 {
     // Получаем ссылку на нужную текстуру
     sf::Texture& bgTexture = d.backgroundTextures.at(bgName);
@@ -11,10 +11,12 @@ Background::Background(GameData& d, GameCamera& c, sf::Vector2f pos, std::string
     
     // Уменьшаем размер фона, до размера окна
     sf::Vector2f windowSizes = {static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT)};
-    sf::Vector2f mansionSizes = {static_cast<float>(bgTexture.getSize().x),static_cast<float>(bgTexture.getSize().y)};
-    bgFront->setScale({windowSizes.x/mansionSizes.x , windowSizes.y/mansionSizes.y });
+    sf::Vector2f textureSizes = {static_cast<float>(bgTexture.getSize().x),static_cast<float>(bgTexture.getSize().y)};
+    bgFront->setScale({windowSizes.x/textureSizes.x , windowSizes.y/textureSizes.y });
     setSpriteOriginToMiddle(*bgFront);
     bgFront->setPosition(pos);
+
+    bgTextureSize = bgTexture.getSize();
 }
 
 Background::~Background()
@@ -33,12 +35,25 @@ void Background::draw(sf::RenderWindow &window)
     switch(type){
         case Type::SingleBackground:
             window.draw(*bgFront);
-        break;
+            break;
 
-        case Type::RepeatedBackground:                    // IMPLEMENTME
-        break;
+        case Type::RepeatedBackground:  // FIXME Не работает. Не отрисовывается/отрисовывается в другом месте.
+        {
+            window.draw(*bgFront);
+            //Повторение по координате X
+            int countOfRepeatsX = (level->getLevelSize().x) / (static_cast<int>(bgTextureSize.x));
+            for (int i = 0; i < countOfRepeatsX; i++)
+            {
+                float repeatedPosX = static_cast<float>(static_cast<int>(position.x)+static_cast<int>((bgTextureSize.x/2U) * static_cast<int>(i+1)));
+                bgFront->setPosition({repeatedPosX,position.y});
+                window.draw(*bgFront);
+            }
+            bgFront->setPosition(position);
+            break;
+        }
 
-        default:break;
+        default:
+            break;
     }
 }
 
@@ -67,3 +82,4 @@ void Background::setParallaxFactor(sf::Vector2f f)
 {
     this->parallaxFactor = f;
 }
+
