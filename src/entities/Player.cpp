@@ -15,6 +15,8 @@ Player::Player(GameData& gameTextures)
     attachTexture(gameTextures.satiro_hurtTextures,this->satiro_hurtTextures,gameTextures.satiro_hurt_helper,this->satiro_hurt_helper);
     attachTexture(gameTextures.satiro_dashTextures,this->satiro_dashTextures,gameTextures.satiro_dash_helper,this->satiro_dash_helper);
     attachTexture(gameTextures.satiro_slideTextures,this->satiro_slideTextures,gameTextures.satiro_slide_helper,this->satiro_slide_helper);
+    attachTexture(gameTextures.satiro_jumpTextures,this->satiro_jumpTextures,gameTextures.satiro_jump_helper,this->satiro_jump_helper);
+    attachTexture(gameTextures.satiro_landingTextures,this->satiro_landingTextures,gameTextures.satiro_landing_helper,this->satiro_landing_helper);
 
     //Rectangles initialization
     playerRectangle_ = new sf::RectangleShape();

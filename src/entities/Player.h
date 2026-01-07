@@ -90,6 +90,10 @@ public:
     texturesIterHelper satiro_hurt_helper;
     std::vector<sf::Texture>* satiro_slideTextures;
     texturesIterHelper satiro_slide_helper;
+    std::vector<sf::Texture>* satiro_jumpTextures;
+    texturesIterHelper satiro_jump_helper;
+    std::vector<sf::Texture>* satiro_landingTextures;
+    texturesIterHelper satiro_landing_helper;
 
     // Public methods
         // Getters
