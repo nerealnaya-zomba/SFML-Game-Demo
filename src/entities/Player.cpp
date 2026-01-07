@@ -698,12 +698,10 @@ void Player::drawPlayerTrail(sf::RenderWindow& window)
     trail->trailColor = sf::Color(0,0,0,80);
     // Трейл только когда игрок ДВИГАЕТСЯ
     if(std::abs(initialWalkSpeed) > 0.1f) {
-        if(std::abs(initialWalkSpeed) < maxWalkSpeed*1.5) {
-            trail->trailColor = sf::Color(0,0,0,80); // Обычная скорость
-        } else {
-            trail->trailColor = sf::Color(0,0,0,180); // Макс скорость
+        if(std::abs(initialWalkSpeed) > maxWalkSpeed*1.5) {
+            trail->trailColor = sf::Color(0,0,0,180); // Обычная скорость
+            trail->generateTrail(window);
         }
-        trail->generateTrail(window);
     }
     trail->makeTrailDisappear();
     trail->drawTrail(window);

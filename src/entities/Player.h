@@ -92,7 +92,6 @@ public:
     texturesIterHelper satiro_slide_helper;
 
     // Public methods
-    
         // Getters
     sf::Vector2f getSpriteScale();
     sf::Vector2f getCenterPosition();
