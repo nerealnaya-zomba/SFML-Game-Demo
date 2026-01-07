@@ -266,10 +266,10 @@ void GameLevel::initializeGround(const nlohmann::json& data)
         std::string groundName = ground["GroundName"];
         sf::Vector2u position = {ground["Points"][0],ground["Points"][1]};
         unsigned int yPos = ground["YPos"];
-
+        
         this->ground =std::make_shared<Ground>(
                 *this->data,
-                *this->levelManager,
+                *this,
                 groundName,
                 position.x,
                 position.y,

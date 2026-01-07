@@ -8,6 +8,8 @@
 #include<iostream>
 #include<functional>
 
+class GameLevelManager;
+
 constexpr sf::Vector2f BASE_CAMERAPOS = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
 constexpr sf::Vector2f BASE_SPEED = {0.2f,0.2f};
 constexpr sf::Vector2f BASE_MAX_SPEED = {600.f,600.f};

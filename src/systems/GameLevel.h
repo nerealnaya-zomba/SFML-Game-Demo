@@ -14,6 +14,7 @@
 class Background;
 class Decoration;
 class EnemyManager;
+class GameLevelManager;
 
 //////////////////////////////////////////////////
 // Определяет экземпляр уровня с объектами, врагами, спавнерами
