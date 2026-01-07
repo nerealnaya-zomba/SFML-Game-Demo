@@ -555,7 +555,7 @@ void Skeleton::updateTextures() {
                             skeleton_attack1_helper, switchSprite_SwitchOption::Single);
             
             // Нанесение урона в середине анимации
-            if (skeleton_attack1_helper.ptrToTexture == skeleton_attack1_helper.countOfTextures / 2) {
+            if (skeleton_attack1_helper.ptrToTexture == 5) {
                 tryAttackPlayer();
             }
         } else { 
@@ -563,7 +563,7 @@ void Skeleton::updateTextures() {
                             skeleton_attack2_helper, switchSprite_SwitchOption::Single);
             
             // Нанесение урона в середине анимации
-            if (skeleton_attack2_helper.ptrToTexture == skeleton_attack2_helper.countOfTextures / 2) {
+            if (skeleton_attack2_helper.ptrToTexture == 4) {
                 tryAttackPlayer();
             }
         }
@@ -576,6 +576,9 @@ void Skeleton::updateTextures() {
         sf::Vector2f rectCenter = skeletonRect->getGlobalBounds().getCenter();
         skeletonSprite->setPosition({rectCenter.x, rectCenter.y - 15.f});
         return;
+    } else{
+        skeleton_attack1_helper.ptrToTexture = 0;
+        skeleton_attack2_helper.ptrToTexture = 0;
     }
 
     // Обычные анимации

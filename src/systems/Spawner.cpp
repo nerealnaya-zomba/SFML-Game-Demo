@@ -82,6 +82,4 @@ void Spawner::spawnCountOfEnemies()
     else{
         isEmpty = true;
     }
-    
-    
 }

@@ -3,7 +3,7 @@
         "scaleX":2.0,
         "scaleY":2.0,
         "distanceToMakeAttack": 100.0,
-        "distanceToHit_byAttack": 75.0
+        "distanceToHit_byAttack": 100.0
     },
     "skeleton-white":{
         "HP": 100,
