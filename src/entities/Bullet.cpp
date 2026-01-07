@@ -12,6 +12,17 @@ void Bullet::setSpeed(sf::Vector2f offset)
 
 }
 
+void Bullet::colorReduction(sf::Color& c,int reduction)
+{
+    if(c.a > 0)
+    {
+        for (int i = 0; i < reduction; i++)
+        {
+        if(c.a > 0) c.a--;
+        }
+    }
+}
+
 Bullet::Bullet(sf::Vector2f pos, float maxDistance, GameData &gamedata)
 {
     maxDistance_=maxDistance;
@@ -51,15 +62,11 @@ sf::Vector2f Bullet::getPosition()
     return bulletRect_->getPosition();
 }
 
-void Bullet::destroyBullet()
-{
-}
-
 void Bullet::moveBullet()
 {
-    if(isSheduledToBeDestroyed) return;
+    if(isSheduledToBeDestroyed) speed_ *= SPEED_REDUCTION_VALUE;
 
-    if(distancePassed>=(maxDistance_/4)*2) speedReduction(); // Задействовать уменьшение скорости на 2/4 пройденных пути
+    if(distancePassed>=(maxDistance_/4)*2 && !isSheduledToBeDestroyed) speedReduction(); // Задействовать уменьшение скорости на 2/4 пройденных пути
 
     distancePassed+=std::abs(speed_.x);
     bulletRect_->move(speed_);
@@ -115,7 +122,7 @@ void Bullet::update()
 
 void Bullet::updateTextures()
 {
-    if(!isSheduledToBeDestroyed) switchToNextSprite(this->bulletSprite_,*this->bulletTextures_,satiro_bullet_helper,switchSprite_SwitchOption::Loop);
+    switchToNextSprite(this->bulletSprite_,*this->bulletTextures_,satiro_bullet_helper,switchSprite_SwitchOption::Loop);
 }
 
 void Bullet::makeAfterParticles()
@@ -193,11 +200,17 @@ void Bullet::updateParticles()
 
 void Bullet::draw(sf::RenderWindow &window)
 {
-    //window.draw(*bulletRect_);
-    if(!isSheduledToBeDestroyed) window.draw(*bulletSprite_);
+    // window.draw(*bulletRect_);
+    if(isSheduledToBeDestroyed){
+        sf::Color c = bulletSprite_->getColor();
+
+        colorReduction(c,ALFA_REDUCTION_VALUE);
+        
+        bulletSprite_->setColor(c);
+    } 
+    window.draw(*bulletSprite_);
     for (auto& particle : particles) {
         particle.draw(window);
     }
-    
 }
 

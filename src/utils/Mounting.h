@@ -331,3 +331,16 @@ static bool checkInterval(sf::Clock& clock, unsigned int intervalMs) {
     }
     return false;
 }
+static void substractUnsigned(unsigned int &first, unsigned int second)
+{
+    if (second>first) {
+        first = 0;
+    }else
+        first-second;
+}
+static void substractUnsigned(uint8_t &first, int second)
+{
+    if (second>first) {
+        first = 0;
+    }else first-second;
+}

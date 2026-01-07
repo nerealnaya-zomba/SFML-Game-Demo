@@ -9,6 +9,8 @@
 #include<Defines.h>
 
 const float SPEED_REDUCTION_RATIO = 0.01f; //1.5% от скорости пули
+const int   ALFA_REDUCTION_VALUE  = 5;     // Отнимается от альфы пули после разружшения
+const float SPEED_REDUCTION_VALUE = 0.95f; // Уменьшение скорости после разрушения
 
 class Bullet
 {
@@ -18,6 +20,9 @@ private:
     std::vector<sf::Texture>* bulletTextures_; // Animation texture frames
     texturesIterHelper satiro_bullet_helper;   // Animation control helper
     sf::Sprite* bulletSprite_;                 // Visual representation
+
+    // Utils
+    void colorReduction(sf::Color& c,int reduction);
     
 public:
     // Bullet properties 
@@ -66,9 +71,6 @@ public:
     void makeAfterParticles();                   // Create trail particles
     void makeDeathParticles();                   // Create explosion particles on death
     void updateParticles();                      // Update all particles
-
-    // Cleanup
-    void destroyBullet();                        // Prepare bullet for deletion //NOTE Useless method. Does nothing.
 
     // Rendering
     void draw(sf::RenderWindow& window);         // Draw bullet and particles
