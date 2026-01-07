@@ -39,37 +39,37 @@
   ],
   "Decorations": [
     {
-      "Name": "MossyBackgroundDecoration_01.png",
-      "Position": [960, 1500],
-      "Scale": [1.0, 1.0],
+      "Name": "MossyHills_06.png",
+      "Position": [760, 970],
+      "Scale": [0.5, 0.5],
       "Color": [150, 150, 170, 255],
-      "ParallaxFactor": [0.90, 0.90],
-      "Z": 5
+      "ParallaxFactor": [0.40, 0.40],
+      "Z": 1
     }
   ],
   "Background": [
     {
-      "BgName": "Background_35.png",
+      "BgName": "Background_39.png",
       "Position": [960,540],
-      "ParallaxFactor": [0.0, 0.0],
+      "ParallaxFactor": [1.0, 1.0],
       "Type": 1
     },
     {
-      "BgName": "Background_36.png",
+      "BgName": "Background_40.png",
       "Position": [960,540],
-      "ParallaxFactor": [0.96, 0.98],
+      "ParallaxFactor": [0.90, 0.98],
       "Type": 1
     },
     {
-      "BgName": "Background_37.png",
+      "BgName": "Background_41.png",
       "Position": [960,540],
-      "ParallaxFactor": [0.88, 0.96],
+      "ParallaxFactor": [0.80, 0.96],
       "Type": 1
     },
     {
-      "BgName": "Background_38.png",
+      "BgName": "Background_42.png",
       "Position": [960,540],
-      "ParallaxFactor": [0.72, 0.94],
+      "ParallaxFactor": [0.70, 0.94],
       "Type": 1
     }
   ],
@@ -84,7 +84,7 @@
     {
       "EnemyName": "SkeletonWhite",
       "EnemyAmount": 1,
-      "SpawnCooldown": 1500,
+      "SpawnCooldown": 322,
       "EnemyPerSpawn": 1,
       "SpawnArea": [[500,600],[700,800]]
     }

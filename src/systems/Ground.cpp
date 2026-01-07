@@ -51,6 +51,8 @@ void Ground::draw(sf::RenderWindow& window)
 
         nextPos += tilesetsize.x;
     }
+    // ground1Rect_m->setFillColor(sf::Color::Red);
+    // window.draw(*ground1Rect_m);
 }
 
 sf::RectangleShape &Ground::getRect()

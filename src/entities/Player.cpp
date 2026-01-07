@@ -673,7 +673,7 @@ void Player::draw(sf::RenderWindow& window)
 
     drawParticles(window);
     playerSprite->setPosition({(playerRectangle_->getPosition().x+playerRectangle_->getSize().x/2),(playerRectangle_->getPosition().y+playerRectangle_->getSize().y/2)-6.f});
-    //window.draw(*playerRectangle);
+    // window.draw(*playerRectangle_);
     window.draw(*playerSprite);
 }
 

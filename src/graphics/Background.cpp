@@ -44,12 +44,23 @@ void Background::draw(sf::RenderWindow &window)
 
 void Background::applyParallax()
 {
-    sf::Vector2f difference = camera->getCameraCenter()-position;
-    difference = {difference.x,difference.y};
-    bgFront->setPosition({
-        (position.x)+(parallaxFactor.x*difference.x),
-        (position.y)+(parallaxFactor.y*difference.y)
-    });
+    sf::Vector2f baseObjectPos = position;
+    
+    // Добавляем статическую переменную для хранения начальной позиции камеры
+    static sf::Vector2f initialCameraPos = camera->getCameraCenterPos();
+    sf::Vector2f currentCameraPos = camera->getCameraCenterPos();
+    
+    // Вычисляем смещение камеры от её начальной позиции
+    sf::Vector2f cameraOffset = currentCameraPos - initialCameraPos;
+
+    sf::Vector2f difference = baseObjectPos - camera->getCameraCenterPos();
+    
+    if (bgFront) {
+        bgFront->setPosition({
+            baseObjectPos.x + cameraOffset.x * parallaxFactor.x,
+            baseObjectPos.y + cameraOffset.y * parallaxFactor.y
+        });
+    }
 }
 
 void Background::setParallaxFactor(sf::Vector2f f)

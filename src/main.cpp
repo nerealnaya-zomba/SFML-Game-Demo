@@ -179,6 +179,7 @@ int main()
             //Back level drawing
         levelManager.drawBackgrounds();
         levelManager.drawDecorations();
+        levelManager.drawGrounds();
         levelManager.drawEnemyManager();
         
             //Player drawing
@@ -186,7 +187,6 @@ int main()
         player.drawBullets(window);
 
             //Front level drawing
-        levelManager.drawGrounds();
         levelManager.drawPlatforms();
 
         //////////////////
