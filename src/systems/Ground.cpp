@@ -19,7 +19,7 @@ Ground::Ground(GameData& gameTextures, GameLevel& level, std::string groundFileN
     ground1Rect_m = new sf::RectangleShape();
 
     ground1Rect_m->setSize({
-        level.getLevelSize().x,
+        static_cast<float>(level.getLevelSize().x),
         static_cast<float>(ground1Sprite_m->getTexture().getSize().y
     )});
 
