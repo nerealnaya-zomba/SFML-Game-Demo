@@ -30,7 +30,7 @@ Player::Player(GameData& gameTextures, GameLevelManager& m)
     //Trail initialization
     trail = new Trail(*playerSprite);
     //Portal initizalization
-    portal = new LevelPortal({0.0,0.0},portalAppearTime,portalDisappearTime,portalExistTime,gameTextures,m);
+    portal = new LevelPortal({0.0,0.0},BASE_PORTAL_SPEED_OF_OPENING,BASE_PORTAL_SPEED_OF_CLOSING,portalExistTime,gameTextures,m);
 }
 
 void Player::switchToNextFallingSprite()
@@ -573,26 +573,51 @@ void Player::updateControls()
     }
 
     //Open portal
-    if(sf::Keyboard::isKeyPressed(portalCallKey))
+        //Dont open if portal is on cooldown or closing/opening right now
+    if( !portal->getIsCalledForClose() && 
+        !portal->getIsCalledForOpen() && 
+        !isPortalOnCooldown && 
+        portal->getIsClosed()
+    )
     {
-        if(isPortalOnCooldown) return;
+        if(sf::Keyboard::isKeyPressed(portalCallKey))
+        {
+            //Setting portal position based on what side player watches now
+                //Right
+            if(playerSprite->getScale().x > 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x+BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
+                //Left
+            else if(playerSprite->getScale().x < 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x-BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
 
-        //Setting portal position based on what side player watches now
-            //Right
-        if(playerSprite->getScale().x > 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x+BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
-            //Left
-        else if(playerSprite->getScale().x < 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x-BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
-
-        portal->openPortal();
-        isPortalOnCooldown = true;
+            portal->openPortal();
+            isPortalOnCooldown = true;
+        }
     }
+
 }
 
 void Player::updatePhysics()
 {
-    if(isPortalOnCooldown && !portalCallCooldownClock.isRunning()) portalCallCooldownClock.start();
-    if(isPortalOnCooldown && (portalCallCooldownClock.getElapsedTime().asMilliseconds() >= portalCallCooldown)){
+    //Call cooldown
+    if(isPortalOnCooldown && !portalCallOpenCooldownClock.isRunning())
+    {
+        portalCallOpenCooldownClock.start();
+    }
+    if(isPortalOnCooldown && checkInterval(portalCallOpenCooldownClock,portalCallCooldown))
+    {
+        isPortalOnCooldown = false;
+        portalCallOpenCooldownClock.reset();
+    }
+
+    //Closing portal
+    if(portal->getIsOpened() && !portalCallCloseCooldownClock.isRunning())
+    {
+        portalCallCloseCooldownClock.start();
+    }
+    if(portal->getIsOpened() && !portal->getIsCalledForClose() && checkInterval(portalCallCloseCooldownClock,portalExistTime))
+    {
         portal->closePortal();
+        portalCallCloseCooldownClock.reset();
+        isPortalOnCooldown = false;
     }
 
     applyFriction(initialWalkSpeed,this->frictionForce);
@@ -628,7 +653,7 @@ void Player::updatePhysics()
         } else{
             fallingSpeed+=0.1f;
         }
-        
+
     }
     else
     {

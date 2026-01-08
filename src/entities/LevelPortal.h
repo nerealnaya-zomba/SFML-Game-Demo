@@ -7,8 +7,8 @@
 
 class GameLevelManager;
 
-const sf::Vector2f BASE_OPENED_SCALE = {0.f,0.f};
-const sf::Vector2f BASE_CLOSED_SCALE = {1.f,1.f};
+const sf::Vector2f BASE_CLOSED_SCALE = {0.f,0.f};
+const sf::Vector2f BASE_OPENED_SCALE = {1.f,1.f};
 
 class LevelPortal : public InteractiveObject
 {
@@ -41,8 +41,8 @@ private:
     sf::Clock disappearClock;
 
     const int existTime;
-    const int appearTime;
-    const int disappearTime;
+    const sf::Vector2f speedOfOpening;
+    const sf::Vector2f speedOfClosing;
     const sf::Vector2f openedScale;
     const sf::Vector2f closedScale;
 
@@ -58,7 +58,7 @@ private:
     
 
 public:
-    LevelPortal(const sf::Vector2f basePos, const int aT, const int dT, const int eT, GameData& gameData, GameLevelManager& m);
+    LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, GameData &gameData, GameLevelManager &m);
     ~LevelPortal() = default;
 
     void draw(sf::RenderWindow& window)      override;
@@ -70,4 +70,10 @@ public:
     void openPortal();
     void closePortal();
 
+
+    // Getters
+    bool getIsOpened();
+    bool getIsClosed();
+    bool getIsCalledForOpen();
+    bool getIsCalledForClose();
 };

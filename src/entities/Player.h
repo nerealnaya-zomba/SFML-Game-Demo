@@ -19,9 +19,10 @@ class GameLevelManager;
 class LevelPortal;
 
 const int portalExistTime = 2000;
-const int portalAppearTime = 500;
-const int portalDisappearTime = 500;
+const sf::Vector2f BASE_PORTAL_SPEED_OF_OPENING = {0.01f,0.01f};
+const sf::Vector2f BASE_PORTAL_SPEED_OF_CLOSING = {0.01f,0.01f};
 const int BASE_PORTAL_CALL_COOLDOWN = 1000;
+const int BASE_PORTAL_EXIST_TIME = 2000;
 const float BASE_OFFSET_TO_CREATE_PORTAL = 200.f;
 const sf::Keyboard::Key BASE_PORTAL_CALL_KEY = sf::Keyboard::Key::R;
 
@@ -162,8 +163,10 @@ private:
 
     // LevelPortal
     LevelPortal* portal;
-    sf::Clock portalCallCooldownClock;
+    sf::Clock portalCallOpenCooldownClock;
+    sf::Clock portalCallCloseCooldownClock;
     int portalCallCooldown = BASE_PORTAL_CALL_COOLDOWN;
+    int portalExistTime    = BASE_PORTAL_EXIST_TIME;
     sf::Keyboard::Key portalCallKey = BASE_PORTAL_CALL_KEY;
     bool isPortalOnCooldown = false;
 

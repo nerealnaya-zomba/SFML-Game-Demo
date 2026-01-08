@@ -7,21 +7,21 @@ void LevelPortal::portalOpeningAnimation()
     
     // Если ещё не полностью открыт (сравниваем с openedScale)
     if (currentScale.x < openedScale.x || currentScale.y < openedScale.y) {
-        float elapsed = appearClock.getElapsedTime().asMilliseconds();
-        float progress = std::min(elapsed / appearTime, 1.0f);
         
-        // Интерполяция от closedScale к openedScale
-        sf::Vector2f newScale;
-        newScale.x = closedScale.x + (openedScale.x - closedScale.x) * progress;
-        newScale.y = closedScale.y + (openedScale.y - closedScale.y) * progress;
-        
+        sf::Vector2f newScale = {
+            currentScale.x+speedOfOpening.x,
+            currentScale.y+speedOfOpening.y
+        };
         sprite->setScale(newScale);
-        
-        if (progress >= 1.0f) {
-            isOpened = true;
-            isClosed = false;
-            isCalledForOpen = false;
-        }
+    }
+    // Если открыт
+    else if((currentScale.x >= openedScale.x || currentScale.y >= openedScale.y))
+    {
+        sprite->setScale(openedScale);
+        isOpened = true;
+        isClosed = false;
+        isCalledForOpen = false;
+        isCalledForClose = false;
     }
 }
 
@@ -31,27 +31,27 @@ void LevelPortal::portalClosingAnimation()
     
     // Если ещё не полностью закрыт (сравниваем с closedScale)
     if (currentScale.x > closedScale.x || currentScale.y > closedScale.y) {
-        float elapsed = appearClock.getElapsedTime().asMilliseconds();
-        float progress = std::min(elapsed / disappearTime, 1.0f);
         
-        // Интерполяция от openedScale к closedScale
-        sf::Vector2f newScale;
-        newScale.x = openedScale.x + (closedScale.x - openedScale.x) * progress;
-        newScale.y = openedScale.y + (closedScale.y - openedScale.y) * progress;
-        
+        sf::Vector2f newScale = {
+            currentScale.x-speedOfClosing.x,
+            currentScale.y-speedOfClosing.y
+        };
         sprite->setScale(newScale);
-        
-        if (progress >= 1.0f) {
-            isOpened = false;
-            isClosed = true;
-            isCalledForClose = false;
-        }
+    }
+    // Если закрыт
+    else if(currentScale.x <= closedScale.x || currentScale.y <= closedScale.y)
+    {
+        sprite->setScale(closedScale);
+        isOpened = false;
+        isClosed = true;
+        isCalledForClose = false;
+        isCalledForOpen = false;
     }
 }
 
-LevelPortal::LevelPortal(const sf::Vector2f basePos, const int aT, const int dT, const int eT, GameData &gameData, GameLevelManager &m)
-    : InteractiveObject(basePos), manager(&m), isUsed(false), appearTime(aT), disappearTime(dT), existTime(eT), isOpened(false), isClosed(true),
-      openedScale(BASE_OPENED_SCALE), closedScale(BASE_CLOSED_SCALE)
+LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, GameData &gameData, GameLevelManager &m)
+    : InteractiveObject(basePos), manager(&m), isUsed(false), speedOfOpening(sOO), speedOfClosing(sOC), existTime(eT), isOpened(false), isClosed(true), 
+    isCalledForClose(false), isCalledForOpen(false), openedScale(BASE_OPENED_SCALE), closedScale(BASE_CLOSED_SCALE)
 {
     //portalBlue
     attachTexture(gameData.portalBlue1Textures, this->portalBlue1Textures,  gameData.portalBlue1Helper,   this->portalBlue1Helper   );
@@ -66,6 +66,8 @@ LevelPortal::LevelPortal(const sf::Vector2f basePos, const int aT, const int dT,
     
 
     setSpriteOriginToMiddle(*sprite);
+
+    sprite->setScale({0.f,0.f});
 
     sprite->setPosition(basePos);
 }
@@ -127,4 +129,24 @@ void LevelPortal::closePortal()
 {
     isCalledForOpen = false;
     isCalledForClose = true;
+}
+
+bool LevelPortal::getIsOpened()
+{
+    return this->isOpened;
+}
+
+bool LevelPortal::getIsClosed()
+{
+    return this->isClosed;
+}
+
+bool LevelPortal::getIsCalledForOpen()
+{
+    return this->isCalledForOpen;
+}
+
+bool LevelPortal::getIsCalledForClose()
+{
+    return this->isCalledForClose;
 }
