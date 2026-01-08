@@ -31,7 +31,7 @@ private:
     std::vector<std::shared_ptr< Background >> background;      // Фон
     
 
-    std::shared_ptr<Player> player;
+    Player* player;
     GameData* data;
     GameCamera* camera;
     GameLevelManager* levelManager;
@@ -61,7 +61,7 @@ private:
     ////////////////////////////////////////////////////
 public:
 
-    GameLevel(GameData& d, std::shared_ptr<Player> p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath);
+    GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath);
     ~GameLevel();
 
     //////////////////Variables///////////////////////
@@ -128,7 +128,7 @@ class GameLevelManager
 {
 private:
     // Указатели на внешние объекты
-    std::shared_ptr<Player> player;
+    Player* player;
     GameData* data;
     GameCamera* camera;
     sf::RenderWindow* window;
@@ -146,7 +146,7 @@ private:
     void initializeLevels(const std::string levelsFolder);   
 
 public:
-    GameLevelManager(GameData &d, GameCamera& c, std::shared_ptr<Player> p,sf::RenderWindow& w, const std::string& lF);
+    GameLevelManager(GameData &d, GameCamera& c,sf::RenderWindow& w, const std::string& lF);
     ~GameLevelManager();
 
     ////////////////////////////////////////////////////
@@ -188,5 +188,5 @@ public:
     sf::RectangleShape& getGroundRect();
 
     // Setters
-    void attachPlayer(std::shared_ptr<Player> p);
+    void attachPlayer(Player& p);
 };

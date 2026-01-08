@@ -17,7 +17,7 @@ void GameLevelManager::initializeLevels(const std::string levelsFolder)
             // Помещаем shared_ptr<GameLevel> в хранилище
         std::make_shared<GameLevel>(
             *this->data,
-            this->player,
+            *this->player,
             *this->camera,
             *this,
             *this->window, 
@@ -26,8 +26,8 @@ void GameLevelManager::initializeLevels(const std::string levelsFolder)
     }
 }
 
-GameLevelManager::GameLevelManager(GameData &d, GameCamera& c, std::shared_ptr<Player> p,sf::RenderWindow& w, const std::string& lF)
-    : data(&d), camera(&c), player(p), window(&w), levelsFolder(lF)
+GameLevelManager::GameLevelManager(GameData &d, GameCamera& c,sf::RenderWindow& w, const std::string& lF)
+    : data(&d), camera(&c), window(&w), levelsFolder(lF)
 {
     initializeLevels(levelsFolder);     // Инициализирует все уровни
     
@@ -143,13 +143,13 @@ sf::RectangleShape &GameLevelManager::getGroundRect()
     return levelIt->second->getGroundRect();
 }
 
-void GameLevelManager::attachPlayer(std::shared_ptr<Player> p)
+void GameLevelManager::attachPlayer(Player& p)
 {
-    this->player = p;
+    this->player = &p;
 }
 
-GameLevel::GameLevel(GameData& d, std::shared_ptr<Player> p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath)
-    : data(&d), player(p), camera(&c), levelManager(&m), window(&w)
+GameLevel::GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath)
+    : data(&d), player(&p), camera(&c), levelManager(&m), window(&w)
 {
     loadLevelData(fileNamePath);
 }
