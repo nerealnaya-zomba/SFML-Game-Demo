@@ -573,12 +573,8 @@ void Player::updateControls()
     }
 
     //Open portal
-        //Dont open if portal is on cooldown or closing/opening right now
-    if( !portal->getIsCalledForClose() && 
-        !portal->getIsCalledForOpen() && 
-        !isPortalOnCooldown && 
-        portal->getIsClosed()
-    )
+        //Open portal only when it closed and is not called for open
+    if( portal->getIsClosed() && !portal->getIsCalledForOpen() && !isPortalOnCooldown)
     {
         if(sf::Keyboard::isKeyPressed(portalCallKey))
         {
@@ -598,9 +594,9 @@ void Player::updateControls()
 void Player::updatePhysics()
 {
     //Call cooldown
-    if(isPortalOnCooldown && !portalCallOpenCooldownClock.isRunning())
+    if(isPortalOnCooldown && portal->getIsClosed() && !portal->getIsCalledForClose() && !portal->getIsCalledForOpen() && !portalCallOpenCooldownClock.isRunning())
     {
-        portalCallOpenCooldownClock.start();
+        portalCallOpenCooldownClock.restart();
     }
     if(isPortalOnCooldown && checkInterval(portalCallOpenCooldownClock,portalCallCooldown))
     {
@@ -608,16 +604,20 @@ void Player::updatePhysics()
         portalCallOpenCooldownClock.reset();
     }
 
-    //Closing portal
-    if(portal->getIsOpened() && !portalCallCloseCooldownClock.isRunning())
+    if(portalCallOpenCooldownClock.isRunning())
     {
-        portalCallCloseCooldownClock.start();
+        std::cout << "Current cooldown: " << portalCallOpenCooldownClock.getElapsedTime().asMilliseconds() <<"\n";
     }
-    if(portal->getIsOpened() && !portal->getIsCalledForClose() && checkInterval(portalCallCloseCooldownClock,portalExistTime))
+
+    //Closing portal
+    if(portal->getIsOpened() && !portal->getIsCalledForClose() && !portalCallCloseCooldownClock.isRunning())
+    {
+        portalCallCloseCooldownClock.restart();
+    }
+    if(checkInterval(portalCallCloseCooldownClock,portalExistTime))
     {
         portal->closePortal();
         portalCallCloseCooldownClock.reset();
-        isPortalOnCooldown = false;
     }
 
     applyFriction(initialWalkSpeed,this->frictionForce);

@@ -64,25 +64,51 @@ LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, co
     attachTexture(gameData.portalBlue8Textures, this->portalBlue8Textures,  gameData.portalBlue8Helper,   this->portalBlue8Helper   );
 
     
-
+    // Инициализация спрайтов
     setSpriteOriginToMiddle(*sprite);
 
     sprite->setScale({0.f,0.f});
 
     sprite->setPosition(basePos);
+
+    // Группируем массивы текстур
+    allPortalBlue.push_back(std::pair(&portalBlue1Helper,&portalBlue1Textures));
+    allPortalBlue.push_back(std::pair(&portalBlue2Helper,&portalBlue2Textures));
+    allPortalBlue.push_back(std::pair(&portalBlue3Helper,&portalBlue3Textures));
+    allPortalBlue.push_back(std::pair(&portalBlue4Helper,&portalBlue4Textures));
+    allPortalBlue.push_back(std::pair(&portalBlue5Helper,&portalBlue5Textures));
+    allPortalBlue.push_back(std::pair(&portalBlue6Helper,&portalBlue6Textures));
+    allPortalBlue.push_back(std::pair(&portalBlue7Helper,&portalBlue7Textures));
+    allPortalBlue.push_back(std::pair(&portalBlue8Helper,&portalBlue8Textures));
+
+    allTexturesIt = allPortalBlue.begin();
 }
 
 void LevelPortal::draw(sf::RenderWindow &window)
 {
-    gameUtils::switchToNextSprite(sprite.get(),*portalBlue1Textures,portalBlue1Helper,switchSprite_SwitchOption::Loop);
+    // Выйти если не выполняется ни одно из следующих условий
+    if(!(isOpened || isCalledForOpen || isCalledForClose)) return;
 
-    if(isOpened || isCalledForOpen || isCalledForClose) window.draw(*sprite);
+    
+    if(allTexturesIt == (allPortalBlue.end()-1))
+    {
+        gameUtils::switchToNextSprite(sprite.get(),**allTexturesIt->second,*allTexturesIt->first,switchSprite_SwitchOption::Loop);
+        window.draw(*sprite);
+        return;
+    }
+    else if(!gameUtils::switchToNextSprite(sprite.get(),**allTexturesIt->second,*allTexturesIt->first,switchSprite_SwitchOption::Single))
+    {
+        allTexturesIt++;
+    }
+    window.draw(*sprite);
+    
 }
 
 void LevelPortal::update()
 {
     if(isCalledForOpen) portalOpeningAnimation();
     if(isCalledForClose) portalClosingAnimation();
+    if(isClosed) setPortalIteratorToBegin();
 
     if(isOpened)
     {
@@ -149,4 +175,9 @@ bool LevelPortal::getIsCalledForOpen()
 bool LevelPortal::getIsCalledForClose()
 {
     return this->isCalledForClose;
+}
+
+void LevelPortal::setPortalIteratorToBegin()
+{
+    this->allTexturesIt = allPortalBlue.begin();
 }

@@ -34,6 +34,10 @@ private:
     std::vector<sf::Texture>* portalBlue8Textures;
     texturesIterHelper portalBlue8Helper;
 
+    // Все массивы и их хелперы сгруппированные вместе(указатели на них)
+    std::vector< std::pair< texturesIterHelper*, std::vector<sf::Texture>**> > allPortalBlue;
+    std::vector< std::pair< texturesIterHelper*, std::vector<sf::Texture>**> >::iterator allTexturesIt;
+
     std::optional<std::string> levelName;
 
     sf::Clock existClock;
@@ -56,7 +60,8 @@ private:
     void portalOpeningAnimation();
     void portalClosingAnimation();
     
-
+    // Поставить allTexturesIt в начало
+    void setPortalIteratorToBegin();
 public:
     LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, GameData &gameData, GameLevelManager &m);
     ~LevelPortal() = default;
@@ -76,4 +81,7 @@ public:
     bool getIsClosed();
     bool getIsCalledForOpen();
     bool getIsCalledForClose();
+
+    // Setters
+
 };
