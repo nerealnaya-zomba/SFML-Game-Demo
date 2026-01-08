@@ -8,7 +8,8 @@
 class GameLevelManager;
 
 const sf::Vector2f BASE_CLOSED_SCALE = {0.f,0.f};
-const sf::Vector2f BASE_OPENED_SCALE = {1.f,1.f};
+const sf::Vector2f BASE_OPENED_SCALE = {0.3f,0.3f};
+const float BASE_TARGET_PERCENT_TO_SQUISH = 1.f;
 
 class LevelPortal : public InteractiveObject
 {
@@ -49,6 +50,11 @@ private:
     const sf::Vector2f speedOfClosing;
     const sf::Vector2f openedScale;
     const sf::Vector2f closedScale;
+    
+    sf::Transformable* squishTarget;
+
+    sf::Vector2f baseTargetScale;
+    sf::Vector2f squishSpeed;
 
     bool isUsed;
 
@@ -56,12 +62,17 @@ private:
     bool isCalledForClose;
     bool isOpened;
     bool isClosed;
+    bool isTargetInAreaOfTeleportation;
 
     void portalOpeningAnimation();
     void portalClosingAnimation();
     
     // Поставить allTexturesIt в начало
     void setPortalIteratorToBegin();
+    
+    bool squishTargetToZero();
+    void initializeSquishVars(sf::Transformable& target);
+    void resetSquishVars();
 public:
     LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, GameData &gameData, GameLevelManager &m);
     ~LevelPortal() = default;
@@ -75,12 +86,14 @@ public:
     void openPortal();
     void closePortal();
 
+    void checkIsTargetInAreaOfTeleportation(sf::Transformable& target);
 
     // Getters
     bool getIsOpened();
     bool getIsClosed();
     bool getIsCalledForOpen();
     bool getIsCalledForClose();
+    
 
     // Setters
 

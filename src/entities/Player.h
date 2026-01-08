@@ -169,6 +169,8 @@ private:
     int portalExistTime    = BASE_PORTAL_EXIST_TIME;
     sf::Keyboard::Key portalCallKey = BASE_PORTAL_CALL_KEY;
     bool isPortalOnCooldown = false;
+    void portalUpdate();
+    void tryOpenPortal();
 
     // Physics
     void applyFriction(float& walkSpeed, float friction); // Apply friction to movement

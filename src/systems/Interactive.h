@@ -30,14 +30,14 @@ public:
     
     // Общие методы для всех интерактивных объектов
     bool isInAreaOfInteraction(const sf::Vector2f& executorObjectPos) const{
-        sf::Vector2f portalPos = sprite->getGlobalBounds().getCenter();
-        sf::Vector2u portalSize = sprite->getTexture().getSize();
+        sf::Vector2f objectPos = sprite->getGlobalBounds().getCenter();
+        sf::Vector2u objectSize = sprite->getTexture().getSize();
         
         // Проверяем в радиусе взаимодействия ли объект
-        if(executorObjectPos.x >= (portalPos.x - ((portalSize.x/2) + offsetToInteract)) &&
-            executorObjectPos.x <= (portalPos.x + ((portalSize.x/2) + offsetToInteract)) &&
-            executorObjectPos.y >= (portalPos.y - ((portalSize.y/2) + offsetToInteract)) && 
-            executorObjectPos.y <= (portalPos.y + ((portalSize.y/2) + offsetToInteract)))
+        if(executorObjectPos.x >= (objectPos.x - ((objectSize.x/2) + offsetToInteract)) &&
+            executorObjectPos.x <= (objectPos.x + ((objectSize.x/2) + offsetToInteract)) &&
+            executorObjectPos.y >= (objectPos.y - ((objectSize.y/2) + offsetToInteract)) && 
+            executorObjectPos.y <= (objectPos.y + ((objectSize.y/2) + offsetToInteract)))
             {
                 return true;
             }
@@ -50,7 +50,7 @@ public:
         onPositionChanged();
     }
     
-    sf::Vector2f getPosition() const { return basePosition; }
+    sf::Vector2f getCenterPosition() const { return this->sprite->getGlobalBounds().getCenter(); }
     
     // Виртуальные методы-обработчики событий
     virtual void onClick() {

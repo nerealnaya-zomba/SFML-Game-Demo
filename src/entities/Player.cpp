@@ -174,7 +174,62 @@ Player::~Player()
     
 }
 
-void Player::applyFriction(float& walkSpeed, float friction) 
+void Player::portalUpdate()
+{
+    //Call cooldown
+    if(isPortalOnCooldown && portal->getIsClosed() && !portal->getIsCalledForClose() && !portal->getIsCalledForOpen() && !portalCallOpenCooldownClock.isRunning())
+    {
+        portalCallOpenCooldownClock.restart();
+    }
+    if(isPortalOnCooldown && checkInterval(portalCallOpenCooldownClock,portalCallCooldown))
+    {
+        isPortalOnCooldown = false;
+        portalCallOpenCooldownClock.reset();
+    }
+
+    if(portalCallOpenCooldownClock.isRunning())
+    {
+        std::cout << "Current cooldown: " << portalCallOpenCooldownClock.getElapsedTime().asMilliseconds() <<"\n";
+    }
+
+    //Closing portal
+    if(portal->getIsOpened() && !portal->getIsCalledForClose() && !portalCallCloseCooldownClock.isRunning())
+    {
+        portalCallCloseCooldownClock.restart();
+    }
+    if(checkInterval(portalCallCloseCooldownClock,portalExistTime))
+    {
+        portal->closePortal();
+        portalCallCloseCooldownClock.reset();
+    }
+
+    //Is player in area of teleportation
+    if(portal->getIsOpened())
+    {
+        portal->checkIsTargetInAreaOfTeleportation(*this->playerSprite);
+    }
+}
+
+void Player::tryOpenPortal()
+{
+    //Open portal only when it closed and is not called for open
+    if( portal->getIsClosed() && !portal->getIsCalledForOpen() && !isPortalOnCooldown)
+    {
+        if(sf::Keyboard::isKeyPressed(portalCallKey))
+        {
+            //Setting portal position based on what side player watches now
+                //Right
+            if(playerSprite->getScale().x > 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x+BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
+                //Left
+            else if(playerSprite->getScale().x < 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x-BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
+
+            portal->openPortal();
+            isPortalOnCooldown = true;
+        }
+    }
+}
+
+void Player::applyFriction(float &walkSpeed, float friction)
 {
     if (walkSpeed > 0.f)
     {
@@ -575,52 +630,14 @@ void Player::updateControls()
     }
 
     //Open portal
-        //Open portal only when it closed and is not called for open
-    if( portal->getIsClosed() && !portal->getIsCalledForOpen() && !isPortalOnCooldown)
-    {
-        if(sf::Keyboard::isKeyPressed(portalCallKey))
-        {
-            //Setting portal position based on what side player watches now
-                //Right
-            if(playerSprite->getScale().x > 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x+BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
-                //Left
-            else if(playerSprite->getScale().x < 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x-BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
-
-            portal->openPortal();
-            isPortalOnCooldown = true;
-        }
-    }
+        
+    tryOpenPortal();
 
 }
 
 void Player::updatePhysics()
 {
-    //Call cooldown
-    if(isPortalOnCooldown && portal->getIsClosed() && !portal->getIsCalledForClose() && !portal->getIsCalledForOpen() && !portalCallOpenCooldownClock.isRunning())
-    {
-        portalCallOpenCooldownClock.restart();
-    }
-    if(isPortalOnCooldown && checkInterval(portalCallOpenCooldownClock,portalCallCooldown))
-    {
-        isPortalOnCooldown = false;
-        portalCallOpenCooldownClock.reset();
-    }
-
-    if(portalCallOpenCooldownClock.isRunning())
-    {
-        std::cout << "Current cooldown: " << portalCallOpenCooldownClock.getElapsedTime().asMilliseconds() <<"\n";
-    }
-
-    //Closing portal
-    if(portal->getIsOpened() && !portal->getIsCalledForClose() && !portalCallCloseCooldownClock.isRunning())
-    {
-        portalCallCloseCooldownClock.restart();
-    }
-    if(checkInterval(portalCallCloseCooldownClock,portalExistTime))
-    {
-        portal->closePortal();
-        portalCallCloseCooldownClock.reset();
-    }
+    portalUpdate();
 
     applyFriction(initialWalkSpeed,this->frictionForce);
     

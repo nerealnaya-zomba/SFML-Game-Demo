@@ -50,8 +50,8 @@ void LevelPortal::portalClosingAnimation()
 }
 
 LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, GameData &gameData, GameLevelManager &m)
-    : InteractiveObject(basePos), manager(&m), isUsed(false), speedOfOpening(sOO), speedOfClosing(sOC), existTime(eT), isOpened(false), isClosed(true), 
-    isCalledForClose(false), isCalledForOpen(false), openedScale(BASE_OPENED_SCALE), closedScale(BASE_CLOSED_SCALE)
+    : InteractiveObject(basePos), manager(&m), isUsed(false), speedOfOpening(sOO), speedOfClosing(sOC), existTime(eT), isOpened(false), isClosed(true),  
+    isCalledForClose(false), isCalledForOpen(false), isTargetInAreaOfTeleportation(false), openedScale(BASE_OPENED_SCALE), closedScale(BASE_CLOSED_SCALE)
 {
     //portalBlue
     attachTexture(gameData.portalBlue1Textures, this->portalBlue1Textures,  gameData.portalBlue1Helper,   this->portalBlue1Helper   );
@@ -112,13 +112,19 @@ void LevelPortal::update()
 
     if(isOpened)
     {
-        if(isUsed){
-            if(manager->goToLevel(levelName))
+        if(isTargetInAreaOfTeleportation){
+            if(squishTargetToZero())
             {
-                isUsed = false;
-            } else{ 
-                isUsed = false;
-                // TODO Добавить предупреждение для игрока что локации не существует/не выбрана
+                if(manager->goToLevel(levelName))
+                {
+                    isUsed = false;
+                } else{ 
+                    isUsed = false;
+                    // TODO Добавить предупреждение для игрока что локации не существует/не выбрана
+                }
+
+                squishTarget->setScale(baseTargetScale);
+                resetSquishVars();
             }
         }
     }
@@ -157,6 +163,15 @@ void LevelPortal::closePortal()
     isCalledForClose = true;
 }
 
+void LevelPortal::checkIsTargetInAreaOfTeleportation(sf::Transformable& target)
+{
+    if(isInAreaOfInteraction(target.getPosition()))
+    {
+        isTargetInAreaOfTeleportation = true;
+        initializeSquishVars(target);
+    }
+}
+
 bool LevelPortal::getIsOpened()
 {
     return this->isOpened;
@@ -180,4 +195,41 @@ bool LevelPortal::getIsCalledForClose()
 void LevelPortal::setPortalIteratorToBegin()
 {
     this->allTexturesIt = allPortalBlue.begin();
+}
+
+bool LevelPortal::squishTargetToZero()
+{
+    if(squishTarget->getScale().x >= -0.3f || squishTarget->getScale().x <= 0.3f )
+    {
+        squishTarget->setScale({0.f,0.f});
+        return true;
+    }
+
+    sf::Vector2f currentScale = squishTarget->getScale();
+    squishTarget->setScale({
+        currentScale.x-(squishSpeed.x),
+        currentScale.y
+    });
+
+    return false;
+}
+
+void LevelPortal::initializeSquishVars(sf::Transformable &target)
+{
+    this->squishTarget = &target;
+
+    baseTargetScale = target.getScale();
+    squishSpeed = {
+        (baseTargetScale.x / 100) * BASE_TARGET_PERCENT_TO_SQUISH,
+        baseTargetScale.y
+    };
+}
+
+void LevelPortal::resetSquishVars()
+{
+    this->squishTarget  = nullptr;
+    baseTargetScale     = {1.f,1.f};
+    squishSpeed         = {0.f,0.f};
+    
+    isTargetInAreaOfTeleportation = false;
 }
