@@ -31,6 +31,8 @@ Player::Player(GameData& gameTextures, GameLevelManager& m)
     trail = new Trail(*playerSprite);
     //Portal initizalization
     portal = new LevelPortal({0.0,0.0},BASE_PORTAL_SPEED_OF_OPENING,BASE_PORTAL_SPEED_OF_CLOSING,portalExistTime,gameTextures,m);
+    portalCallCloseCooldownClock.reset();
+    portalCallOpenCooldownClock.reset();
 }
 
 void Player::switchToNextFallingSprite()
