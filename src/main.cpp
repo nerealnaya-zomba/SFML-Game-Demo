@@ -37,11 +37,11 @@ int main()
     
     //Game
     GameCamera camera(view);                                                            // Camera
-    GameLevelManager levelManager(gameData,camera,window,levelFolder);                  // Level manager
-    Player player(gameData,levelManager);                                               // Player
-    levelManager.attachPlayer(player);
+    std::shared_ptr<Player> player;                                                     // Player   
+    GameLevelManager levelManager(gameData,camera,player,window,levelFolder);                  // Level manager
+    player = std::make_shared<Player>(gameData,levelManager);   
     camera.attachGameLevelManager(levelManager);
-    camera.attachPlayer(player);
+    camera.attachPlayer(*player);
     
 
     std::vector<Particle> particles;
@@ -140,22 +140,22 @@ int main()
         
         //Contol logic
             //Player contol
-        player.updateControls();
+        player->updateControls();
         
         //Logic 
             //Player logic
                 //Physical logic
-        player.updatePhysics();
-        player.checkGroundCollision(levelManager.getGroundRect());
-        player.checkPlatformRectCollision(levelManager.getPlatformRects());
-        player.moveBullets();
+        player->updatePhysics();
+        player->checkGroundCollision(levelManager.getGroundRect());
+        player->checkPlatformRectCollision(levelManager.getPlatformRects());
+        player->moveBullets();
 
         // Level objects updating
         levelManager.update();
         levelManager.updateEnemyManager();
 
         //Texture update
-        player.updateTextures();
+        player->updateTextures();
         
         //Temporary control for exit
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Grave))
@@ -188,8 +188,8 @@ int main()
         levelManager.drawEnemyManager();
         
             //Player drawing
-        player.draw(window);
-        player.drawBullets(window);
+        player->draw(window);
+        player->drawBullets(window);
 
             //Front level drawing
         levelManager.drawPlatforms();

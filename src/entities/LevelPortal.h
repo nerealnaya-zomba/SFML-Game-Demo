@@ -1,0 +1,73 @@
+#pragma once
+#include<SFML/Graphics.hpp>
+#include<Interactive.h>
+#include<Mounting.h>
+#include<GameData.h>
+#include<GameLevel.h>
+
+class GameLevelManager;
+
+const sf::Vector2f BASE_OPENED_SCALE = {0.f,0.f};
+const sf::Vector2f BASE_CLOSED_SCALE = {1.f,1.f};
+
+class LevelPortal : public InteractiveObject
+{
+private:
+    // Внешние объекты
+    GameLevelManager* manager;
+    
+        //PortalBlue
+    std::vector<sf::Texture>* portalBlue1Textures;
+    texturesIterHelper portalBlue1Helper;
+    std::vector<sf::Texture>* portalBlue2Textures;
+    texturesIterHelper portalBlue2Helper;
+    std::vector<sf::Texture>* portalBlue3Textures;
+    texturesIterHelper portalBlue3Helper;
+    std::vector<sf::Texture>* portalBlue4Textures;
+    texturesIterHelper portalBlue4Helper;
+    std::vector<sf::Texture>* portalBlue5Textures;
+    texturesIterHelper portalBlue5Helper;
+    std::vector<sf::Texture>* portalBlue6Textures;
+    texturesIterHelper portalBlue6Helper;
+    std::vector<sf::Texture>* portalBlue7Textures;
+    texturesIterHelper portalBlue7Helper;
+    std::vector<sf::Texture>* portalBlue8Textures;
+    texturesIterHelper portalBlue8Helper;
+
+    std::optional<std::string> levelName;
+
+    sf::Clock existClock;
+    sf::Clock appearClock;
+    sf::Clock disappearClock;
+
+    const int existTime;
+    const int appearTime;
+    const int disappearTime;
+    const sf::Vector2f openedScale;
+    const sf::Vector2f closedScale;
+
+    bool isUsed;
+
+    bool isCalledForOpen;
+    bool isCalledForClose;
+    bool isOpened;
+    bool isClosed;
+
+    void portalOpeningAnimation();
+    void portalClosingAnimation();
+    
+
+public:
+    LevelPortal(const sf::Vector2f basePos, const int aT, const int dT, const int eT, GameData& gameData, GameLevelManager& m);
+    ~LevelPortal() = default;
+
+    void draw(sf::RenderWindow& window)      override;
+    void update()                            override;
+    void handleEvent(const sf::Event& event) override;
+
+    void setPortalDestination(std::string levelN);
+
+    void openPortal();
+    void closePortal();
+
+};
