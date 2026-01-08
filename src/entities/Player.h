@@ -13,12 +13,21 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <Particle.h>
+#include<LevelPortal.h>
 
 class GameLevelManager;
+class LevelPortal;
+
+const int portalExistTime = 2000;
+const int portalAppearTime = 500;
+const int portalDisappearTime = 500;
+const int BASE_PORTAL_CALL_COOLDOWN = 1000;
+const float BASE_OFFSET_TO_CREATE_PORTAL = 200.f;
+const sf::Keyboard::Key BASE_PORTAL_CALL_KEY = sf::Keyboard::Key::R;
 
 class Player {
 public:
-    Player(GameData& gameTextures);
+    Player(GameData& gameTextures, GameLevelManager& m);
     virtual ~Player();
 
     GameData* gameTextures;
@@ -147,9 +156,16 @@ private:
     void switchToNextRunningSprite(); 
     void switchToNextFallingSprite();
 
-    // Graphics
+    // Used objects
     sf::Sprite* playerSprite;               // Main player sprite
     Trail* trail;                           // Movement trail effect
+
+    // LevelPortal
+    LevelPortal* portal;
+    sf::Clock portalCallCooldownClock;
+    int portalCallCooldown = BASE_PORTAL_CALL_COOLDOWN;
+    sf::Keyboard::Key portalCallKey = BASE_PORTAL_CALL_KEY;
+    bool isPortalOnCooldown = false;
 
     // Physics
     void applyFriction(float& walkSpeed, float friction); // Apply friction to movement

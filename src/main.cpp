@@ -37,9 +37,9 @@ int main()
     
     //Game
     GameCamera camera(view);                                                            // Camera
-    Player player(gameData);                                                            // Player
-    GameLevelManager levelManager(gameData,player,camera,window,levelFolder);           // Level manager
-    player.attachGameLevelManager(levelManager);
+    GameLevelManager levelManager(gameData,camera,window,levelFolder);                  // Level manager
+    Player player(gameData,levelManager);                                               // Player
+    levelManager.attachPlayer(player);
     camera.attachGameLevelManager(levelManager);
     camera.attachPlayer(player);
     
@@ -55,7 +55,7 @@ int main()
             if (event->is<sf::Event::Closed>())
             {
                 window.close();
-            }
+            } 
             //↓↓-----MAIN MENU-----↓↓
             if(menu.isMainMenuCalled)
             {
@@ -114,6 +114,8 @@ int main()
             if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+
+                
 
             }
 

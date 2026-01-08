@@ -121,6 +121,7 @@ public:
         //Portal
     std::vector<sf::Texture>* portalGreenTextures;
     texturesIterHelper portalGreen;
+
     
     //Static-textures
     std::map<std::string,sf::Texture>* staticTextures;
@@ -193,13 +194,69 @@ public:
     Vector2fPairWithZHash,
     Vector2fPairWithZEqual
     > cat1Sprites;
-        //Portal
+        //Portal green
     std::unordered_multimap<
     Vector2fPairWithZ,
     std::unique_ptr<sf::Sprite>,
     Vector2fPairWithZHash,
     Vector2fPairWithZEqual
     > portalGreenSprites;
+        //PortalBlue
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > portal1BlueSprites;
+    
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > portal2BlueSprites;
+
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > portal3BlueSprites;
+
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > portal4BlueSprites;
+
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > portal5BlueSprites;
+
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > portal6BlueSprites;
+
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > portal7BlueSprites;
+
+    std::unordered_multimap<
+    Vector2fPairWithZ,
+    std::unique_ptr<sf::Sprite>,
+    Vector2fPairWithZHash,
+    Vector2fPairWithZEqual
+    > portal8BlueSprites;
     
     //Static-sprites
     std::unordered_multimap<

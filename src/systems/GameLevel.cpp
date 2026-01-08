@@ -26,30 +26,38 @@ void GameLevelManager::initializeLevels(const std::string levelsFolder)
     }
 }
 
-GameLevelManager::GameLevelManager(GameData &d, Player &p, GameCamera& c,sf::RenderWindow& w, const std::string& levelsFolder)
-    : data(&d), player(&p), camera(&c), window(&w)
+GameLevelManager::GameLevelManager(GameData &d, GameCamera& c,sf::RenderWindow& w, const std::string& lF)
+    : data(&d), camera(&c), window(&w), levelsFolder(lF)
 {
-        
-
     initializeLevels(levelsFolder);     // Инициализирует все уровни
-
+    
     levelIt = levels.find("level1.json");  
-
 }
 
 GameLevelManager::~GameLevelManager()
 {
 }
 
-void GameLevelManager::goToLevel(std::string levelName)
+bool GameLevelManager::goToLevel(std::optional<std::string> levelName)
 {
-    if(levels.empty()) return;
-
-    levelIt->second->saveLevelData(); // Сохранить прошлый уровень перед переходом
-
-    levelIt = levels.find(levelName);      
+    if(levels.empty())
+    {
+        std::cerr << "Trying go to level, that doesn't exist.";
+        exit(1);
+    }
     
-    levelIt->second->loadLevelData(levelName); // Загрузить следующий уровень после перехода
+    if(levelName.has_value())
+    {
+        levelIt->second->saveLevelData(); // Сохранить прошлый уровень перед переходом
+
+        levelIt = levels.find(levelName.value());      
+    
+        levelIt->second->loadLevelData(levelName.value()); // Загрузить следующий уровень после перехода
+
+        return true;
+    }
+    
+    return false;
 }
 
 void GameLevelManager::update()
@@ -117,18 +125,27 @@ void GameLevelManager::drawEnemyManager()
 }
 
 sf::Vector2i GameLevelManager::getCurrentLevelSize() const
-{
+{   
     return levelIt->second->getLevelSize();
 }
 
 std::vector<std::shared_ptr<sf::RectangleShape>> &GameLevelManager::getPlatformRects()
 {
+    if(levelIt->second == nullptr){
+        std::cerr << "Level doesn't exist\n";
+        exit(1);
+    }
     return levelIt->second->getPlatformRects();
 }
 
 sf::RectangleShape &GameLevelManager::getGroundRect()
 {
     return levelIt->second->getGroundRect();
+}
+
+void GameLevelManager::attachPlayer(Player& p)
+{
+    this->player = &p;
 }
 
 GameLevel::GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath)

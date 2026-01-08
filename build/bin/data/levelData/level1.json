@@ -1,6 +1,7 @@
 {
   "Presets": {
     "isConstant": true,
+    "isAvaiable": true,
     "Size": [6000, 1080]
   },
   "Platforms": [

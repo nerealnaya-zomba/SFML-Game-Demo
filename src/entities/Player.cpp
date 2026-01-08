@@ -1,9 +1,10 @@
 #include<Player.h>
 
 using namespace gameUtils;
-Player::Player(GameData& gameTextures)
+Player::Player(GameData& gameTextures, GameLevelManager& m)
 {
     this->gameTextures = &gameTextures;
+    this->levelManager = &m;
     //Loading data from GameData.json
     loadData();
 
@@ -28,6 +29,8 @@ Player::Player(GameData& gameTextures)
     setSpriteOriginToMiddle(*playerSprite);
     //Trail initialization
     trail = new Trail(*playerSprite);
+    //Portal initizalization
+    portal = new LevelPortal({0.0,0.0},portalAppearTime,portalDisappearTime,portalExistTime,gameTextures,m);
 }
 
 void Player::switchToNextFallingSprite()
@@ -66,6 +69,7 @@ void Player::attachGameLevelManager(GameLevelManager& m)
 
 void Player::updateTextures()
 {
+    portal->update();   //NOTE Should be updating no matter what
     if(!isAlive)
     {
         sf::Texture &lastDieTexture = satiro_dieTextures->at(satiro_dieTextures->size()-1);
@@ -567,10 +571,30 @@ void Player::updateControls()
         isIdle = false;
         walkRight();
     }
+
+    //Open portal
+    if(sf::Keyboard::isKeyPressed(portalCallKey))
+    {
+        if(isPortalOnCooldown) return;
+
+        //Setting portal position based on what side player watches now
+            //Right
+        if(playerSprite->getScale().x > 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x+BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
+            //Left
+        else if(playerSprite->getScale().x < 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x-BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
+
+        portal->openPortal();
+        isPortalOnCooldown = true;
+    }
 }
 
 void Player::updatePhysics()
 {
+    if(isPortalOnCooldown && !portalCallCooldownClock.isRunning()) portalCallCooldownClock.start();
+    if(isPortalOnCooldown && (portalCallCooldownClock.getElapsedTime().asMilliseconds() >= portalCallCooldown)){
+        portal->closePortal();
+    }
+
     applyFriction(initialWalkSpeed,this->frictionForce);
     
     updateParticles();
@@ -697,6 +721,8 @@ void Player::switchToNextRunningSprite()
 
 void Player::draw(sf::RenderWindow& window)
 {
+    portal->draw(window);
+
     drawPlayerTrail(window);
 
     drawParticles(window);

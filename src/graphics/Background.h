@@ -16,6 +16,8 @@ const float BASE_PARALLAX_FACTOR = 1.f;
 
 class GameCamera;
 class GameLevelManager;
+class GameLevel;
+class Player;
 
 //////////////////////////////////////////
 // То, что Z=-100, на него паралакс не воздействует, и он абсолютно всегда находится в позиции камеры Z_FOREGROUND_POWER = 1.f

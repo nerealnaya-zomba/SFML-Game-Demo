@@ -94,6 +94,25 @@ public:
     texturesIterHelper plant7;
     std::vector<sf::Texture> jumpPlantTextures;
     texturesIterHelper jumpPlant;
+
+    // Decoration textures - PortalBlue
+    std::vector<sf::Texture> portalBlue1Textures;
+    texturesIterHelper portalBlue1Helper;
+    std::vector<sf::Texture> portalBlue2Textures;
+    texturesIterHelper portalBlue2Helper;
+    std::vector<sf::Texture> portalBlue3Textures;
+    texturesIterHelper portalBlue3Helper;
+    std::vector<sf::Texture> portalBlue4Textures;
+    texturesIterHelper portalBlue4Helper;
+    std::vector<sf::Texture> portalBlue5Textures;
+    texturesIterHelper portalBlue5Helper;
+    std::vector<sf::Texture> portalBlue6Textures;
+    texturesIterHelper portalBlue6Helper;
+    std::vector<sf::Texture> portalBlue7Textures;
+    texturesIterHelper portalBlue7Helper;
+    std::vector<sf::Texture> portalBlue8Textures;
+    texturesIterHelper portalBlue8Helper;
+
     //Static-textures
         // Decoration textures - Mossy
     std::map<std::string,sf::Texture> allStaticTextures;                     //NOTE Все текстуры, которые статичны. Вызываются по их названию: mossy_1.png
@@ -201,6 +220,16 @@ private:
     std::string MossyHangingPlantsPath{"images/decoration/MossyHangingPlants/MossyHangingPlants_"};
     std::string MossyHillsPath{"images/decoration/MossyHills/MossyHills_"};
     std::string MossyTileSetPath{"images/decoration/MossyTileSet/MossyTileSet_"};
+        // PortalBlue
+    std::string PortalBlue1Path{"images/decoration/PortalBlue/PortalBlue1/PortalBlue1_"};
+    std::string PortalBlue2Path{"images/decoration/PortalBlue/PortalBlue2/PortalBlue2_"};
+    std::string PortalBlue3Path{"images/decoration/PortalBlue/PortalBlue3/PortalBlue3_"};
+    std::string PortalBlue4Path{"images/decoration/PortalBlue/PortalBlue4/PortalBlue4_"};
+    std::string PortalBlue5Path{"images/decoration/PortalBlue/PortalBlue5/PortalBlue5_"};
+    std::string PortalBlue6Path{"images/decoration/PortalBlue/PortalBlue6/PortalBlue6_"};
+    std::string PortalBlue7Path{"images/decoration/PortalBlue/PortalBlue7/PortalBlue7_"};
+    std::string PortalBlue8Path{"images/decoration/PortalBlue/PortalBlue8/PortalBlue8_"};
+    
     
     //Background texture path
     std::string backgroundPath{"images/Background/Background_"};

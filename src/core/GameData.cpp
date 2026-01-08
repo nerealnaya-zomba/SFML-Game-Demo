@@ -181,27 +181,72 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     generateMipmapTextures(portalGreenTextures);
     smoothTextures(portalGreenTextures);
 
+    //PortalBlue
+    if(loadTexture(portalBlue1Textures, PortalBlue1Path, portalBlue1Helper, 5)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(portalBlue1Textures);
+    smoothTextures(portalBlue1Textures);
+
+    if(loadTexture(portalBlue2Textures, PortalBlue2Path, portalBlue2Helper, 5)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(portalBlue2Textures);
+    smoothTextures(portalBlue2Textures);
+
+    if(loadTexture(portalBlue3Textures, PortalBlue3Path, portalBlue3Helper, 5)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(portalBlue3Textures);
+    smoothTextures(portalBlue3Textures);
+
+    if(loadTexture(portalBlue4Textures, PortalBlue4Path, portalBlue4Helper, 5)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(portalBlue4Textures);
+    smoothTextures(portalBlue4Textures);
+
+    if(loadTexture(portalBlue5Textures, PortalBlue5Path, portalBlue5Helper, 5)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(portalBlue5Textures);
+    smoothTextures(portalBlue5Textures);
+
+    if(loadTexture(portalBlue6Textures, PortalBlue6Path, portalBlue6Helper, 5)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(portalBlue6Textures);
+    smoothTextures(portalBlue6Textures);
+
+    if(loadTexture(portalBlue7Textures, PortalBlue7Path, portalBlue7Helper, 5)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(portalBlue7Textures);
+    smoothTextures(portalBlue7Textures);
+
+    if(loadTexture(portalBlue8Textures, PortalBlue8Path, portalBlue8Helper, 5)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(portalBlue8Textures);
+    smoothTextures(portalBlue8Textures);
+
     //Static-textures
         //Mossy
     if(loadTexture(allStaticTextures,MossyBackgroundDecorationsPath, false)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
 
-    
     if(loadTexture(allStaticTextures,MossyDecorationsHazardsPath, false)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-
 
     if(loadTexture(allStaticTextures,MossyHangingPlantsPath, false)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
 
-
     if(loadTexture(allStaticTextures,MossyHillsPath, false)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
-
 
     if(loadTexture(allStaticTextures,MossyTileSetPath, false)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);

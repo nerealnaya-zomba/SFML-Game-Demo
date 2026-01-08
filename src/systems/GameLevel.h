@@ -10,11 +10,13 @@
 #include<map>
 #include<fstream>
 #include<EnemyManager.h>
+#include<Player.h>
 
 class Background;
 class Decoration;
 class EnemyManager;
 class GameLevelManager;
+class Player;
 
 //////////////////////////////////////////////////
 // Определяет экземпляр уровня с объектами, врагами, спавнерами
@@ -60,7 +62,7 @@ private:
 public:
 
     GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath);
-    ~GameLevel();                       
+    ~GameLevel();
 
     //////////////////Variables///////////////////////
     std::string levelName;
@@ -131,6 +133,8 @@ private:
     GameCamera* camera;
     sf::RenderWindow* window;
 
+    const std::string levelsFolder;
+
     //////////////////////////////////////////////////
     // string - Название уровня, подгружается из GameLevel
     // GameLevel - Экземляр уровня
@@ -142,13 +146,13 @@ private:
     void initializeLevels(const std::string levelsFolder);   
 
 public:
-    GameLevelManager(GameData &d, Player &p, GameCamera& c,sf::RenderWindow& w, const std::string& levelsFolder);
+    GameLevelManager(GameData &d, GameCamera& c,sf::RenderWindow& w, const std::string& lF);
     ~GameLevelManager();
 
     ////////////////////////////////////////////////////
     // Перемещает итератор на уровень с ключем <name> в std::map levels
     ////////////////////////////////////////////////////
-    void goToLevel(std::string levelName);
+    bool goToLevel(std::optional<std::string> levelName);
 
     ////////////////////////////////////////////////////
     // Обновляет уровень на который указывает итератор
@@ -182,4 +186,7 @@ public:
     sf::Vector2i getCurrentLevelSize() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
+
+    // Setters
+    void attachPlayer(Player& p);
 };
