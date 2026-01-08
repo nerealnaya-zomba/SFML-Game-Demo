@@ -95,5 +95,8 @@ public:
     // ln - Название файла уровня
     ////////////////////////
     EnemyManager(const nlohmann::json& d, GameData& gd, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
-    virtual ~EnemyManager();
+    ~EnemyManager();
+
+    //Setters
+    void attachPlayer(Player& p);
 };

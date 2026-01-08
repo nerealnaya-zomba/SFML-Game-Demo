@@ -627,3 +627,8 @@ sf::Vector2f Skeleton::getPosition()
 {
     return this->skeletonRect->getPosition();
 }
+
+void Skeleton::attachPlayer(Player &p)
+{
+    this->player_ = &p;
+}

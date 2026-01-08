@@ -171,4 +171,7 @@ public:
     sf::RectangleShape& getRect();
     int getHP();
     sf::Vector2f getPosition();
+
+    //Setters
+    void attachPlayer(Player& p);
 };

@@ -146,6 +146,10 @@ sf::RectangleShape &GameLevelManager::getGroundRect()
 void GameLevelManager::attachPlayer(Player& p)
 {
     this->player = &p;
+    for (auto &&level : levels)
+    {
+        level.second->attachPlayer(p);
+    }
 }
 
 GameLevel::GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath)
@@ -360,4 +364,10 @@ std::vector<std::shared_ptr<sf::RectangleShape>> &GameLevel::getPlatformRects()
 sf::RectangleShape &GameLevel::getGroundRect()
 {
     return ground->getRect();
+}
+
+void GameLevel::attachPlayer(Player &p)
+{
+    this->player = &p;
+    enemyManager->attachPlayer(p);
 }

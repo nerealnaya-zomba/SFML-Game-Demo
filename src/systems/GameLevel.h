@@ -119,6 +119,9 @@ public:
     sf::Vector2i getLevelSize() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
+
+    // Setters
+    void attachPlayer(Player& p);
 };
 
 //////////////////////////////////////////////////////

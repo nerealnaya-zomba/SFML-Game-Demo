@@ -112,3 +112,20 @@ EnemyManager::EnemyManager(const nlohmann::json& d, GameData& gd, Platform& p, G
 EnemyManager::~EnemyManager()
 {
 }
+
+void EnemyManager::attachPlayer(Player &p)
+{
+    this->player = &p;
+
+    for (auto &&spawner : spawners)
+    {
+        spawner.attachPlayer(p);
+    }
+    
+
+    for (auto &&skeleton : skeletons)
+    {
+        skeleton->attachPlayer(p);
+    }
+    
+}

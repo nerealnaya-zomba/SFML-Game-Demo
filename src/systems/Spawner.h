@@ -53,5 +53,6 @@ public:
 
     void update();
     
-    
+    // Setters
+    void attachPlayer(Player& p);
 };
