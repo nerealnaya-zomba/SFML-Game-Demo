@@ -124,6 +124,7 @@ void LevelPortal::update()
                     // TODO Добавить предупреждение для игрока что локации не существует/не выбрана
                 }
             }
+            teleportTargetToCenterOfPortal();
         }
     }
     
@@ -161,9 +162,9 @@ void LevelPortal::closePortal()
     isCalledForClose = true;
 }
 
-void LevelPortal::checkIsTargetInAreaOfTeleportation(sf::Transformable& target)
+void LevelPortal::checkIsTargetInAreaOfTeleportation(sf::Transformable& targetCheckSprite, sf::Transformable& targetRect)
 {
-    if(isInAreaOfInteraction(target.getPosition()))
+    if(isInAreaOfInteraction(targetCheckSprite.getPosition()))
     {
         isTargetInAreaOfTeleportation = true;
     }   else 
@@ -171,12 +172,12 @@ void LevelPortal::checkIsTargetInAreaOfTeleportation(sf::Transformable& target)
 
     if(isTargetInAreaOfTeleportation &&  !isTargetBeingSquished)
     {
-        initializeSquishVars(target);
+        initializeSquishVars(targetCheckSprite,targetRect);
     }
 
     if (!isTargetInAreaOfTeleportation)
     {
-        resetTargetVars(target);
+        resetTargetVars(targetCheckSprite);
         resetSquishVars();
     }
 }
@@ -208,16 +209,16 @@ void LevelPortal::setPortalIteratorToBegin()
 
 bool LevelPortal::squishTargetToZero()
 {
-    sf::Vector2f currentScale = squishTarget->getScale();
+    sf::Vector2f currentScale = squishTargetSprite->getScale();
 
     if(currentScale.x >= -0.3f && currentScale.x <= 0.3f )
     {
-        squishTarget->setScale({0.f,0.f});
+        squishTargetSprite->setScale({0.f,0.f});
         isTargetBeingSquished = false;
         return true;
     }
 
-    squishTarget->setScale({
+    squishTargetSprite->setScale({
         currentScale.x-(squishSpeed.x),
         currentScale.y
     });
@@ -226,11 +227,12 @@ bool LevelPortal::squishTargetToZero()
     return false;
 }
 
-void LevelPortal::initializeSquishVars(sf::Transformable &target)
+void LevelPortal::initializeSquishVars(sf::Transformable &targetSprite, sf::Transformable &targetRect)
 {
-    this->squishTarget = &target;
+    this->squishTargetSprite = &targetSprite;
+    this->squishTargetRect   = &targetRect;
 
-    baseTargetScale = target.getScale();
+    baseTargetScale = targetSprite.getScale();
     squishSpeed = {
         (baseTargetScale.x / 100) * BASE_TARGET_PERCENT_TO_SQUISH,
         baseTargetScale.y
@@ -249,6 +251,13 @@ void LevelPortal::resetTargetVars(sf::Transformable& target)
 {
     target.setScale(baseTargetScale);
 
-    this->squishTarget  = nullptr;
+    this->squishTargetSprite  = nullptr;
+    this->squishTargetRect    = nullptr;
     baseTargetScale     = {BASE_TARGET_SCALE};
+}
+
+void LevelPortal::teleportTargetToCenterOfPortal()
+{
+    this->squishTargetSprite->setPosition(getCenterPosition());
+    this->squishTargetRect->setPosition({getCenterPosition().x-20.f,getCenterPosition().y-20.f}); // FIXME 20.f Это оффсет для положения при телепортации ТОЛЬКО основного персонажа
 }

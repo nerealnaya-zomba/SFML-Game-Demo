@@ -52,7 +52,8 @@ private:
     const sf::Vector2f openedScale;
     const sf::Vector2f closedScale;
     
-    sf::Transformable* squishTarget;
+    sf::Transformable* squishTargetSprite;
+    sf::Transformable* squishTargetRect;
 
     sf::Vector2f baseTargetScale;
     sf::Vector2f squishSpeed;
@@ -73,9 +74,11 @@ private:
     void setPortalIteratorToBegin();
     
     bool squishTargetToZero();
-    void initializeSquishVars(sf::Transformable& target);
+    void initializeSquishVars(sf::Transformable &targetSprite, sf::Transformable &targetRect);
     void resetSquishVars();
     void resetTargetVars(sf::Transformable& target);
+
+    void teleportTargetToCenterOfPortal();
 public:
     LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, GameData &gameData, GameLevelManager &m);
     ~LevelPortal() = default;
@@ -89,7 +92,7 @@ public:
     void openPortal();
     void closePortal();
 
-    void checkIsTargetInAreaOfTeleportation(sf::Transformable& target);
+    void checkIsTargetInAreaOfTeleportation(sf::Transformable& targetCheckSprite, sf::Transformable& targetRect);
 
     // Getters
     bool getIsOpened();

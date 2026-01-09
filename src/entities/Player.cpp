@@ -206,7 +206,7 @@ void Player::portalUpdate()
     //Is player in area of teleportation
     if(portal->getIsOpened())
     {
-        portal->checkIsTargetInAreaOfTeleportation(*this->playerSprite);
+        portal->checkIsTargetInAreaOfTeleportation(*this->playerSprite, *this->playerRectangle_);
     }
 }
 
