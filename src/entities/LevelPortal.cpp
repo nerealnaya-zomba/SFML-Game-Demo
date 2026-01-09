@@ -52,7 +52,7 @@ void LevelPortal::portalClosingAnimation()
 LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, sf::Transformable& tS, sf::Transformable& tR, GameData &gameData, GameLevelManager &m)
     : InteractiveObject(basePos), manager(&m), isUsed(false), speedOfOpening(sOO), speedOfClosing(sOC), existTime(eT), isOpened(false), isClosed(true),  
     isCalledForClose(false), isCalledForOpen(false), isTargetInAreaOfTeleportation(false), isTargetBeingSquished(false), openedScale(BASE_OPENED_SCALE), closedScale(BASE_CLOSED_SCALE),
-    baseTargetScale(BASE_TARGET_SCALE), squishTargetSprite(&tS), squishTargetRect(&tR)
+    baseTargetScale(BASE_TARGET_SCALE), squishTargetSprite(&tS), squishTargetRect(&tR), side(PortalCalledSide::LEFT)
 {
     //portalBlue
     attachTexture(gameData.portalBlue1Textures, this->portalBlue1Textures,  gameData.portalBlue1Helper,   this->portalBlue1Helper   );
@@ -84,6 +84,8 @@ LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, co
     allPortalBlue.push_back(std::pair(&portalBlue8Helper,&portalBlue8Textures));
 
     allTexturesIt = allPortalBlue.begin();
+
+    initializeSquishVars();
 }
 
 void LevelPortal::draw(sf::RenderWindow &window)
@@ -108,6 +110,8 @@ void LevelPortal::draw(sf::RenderWindow &window)
 
 void LevelPortal::update()
 {
+    checkIsTargetInAreaOfTeleportation();
+
     if(isCalledForOpen) portalOpeningAnimation();
     if(isCalledForClose) portalClosingAnimation();
     if(isClosed) setPortalIteratorToBegin();
@@ -129,8 +133,8 @@ void LevelPortal::update()
         }
     }
     else{
-        resetTargetVars(*this->squishTargetSprite);
-        resetSquishVars();
+        resetTargetScaleToBase();
+        resetSquishBools();
     }
     
 }
@@ -167,23 +171,18 @@ void LevelPortal::closePortal()
     isCalledForClose = true;
 }
 
-void LevelPortal::checkIsTargetInAreaOfTeleportation(sf::Transformable& targetCheckSprite, sf::Transformable& targetRect)
+void LevelPortal::checkIsTargetInAreaOfTeleportation()
 {
-    if(isInAreaOfInteraction(targetCheckSprite.getPosition()))
+    if(isInAreaOfInteraction(squishTargetSprite->getPosition()))
     {
         isTargetInAreaOfTeleportation = true;
     }   else 
         isTargetInAreaOfTeleportation = false;
 
-    if(isTargetInAreaOfTeleportation &&  !isTargetBeingSquished)
-    {
-        initializeSquishVars(targetCheckSprite,targetRect);
-    }
-
     if (!isTargetInAreaOfTeleportation)
     {
-        resetTargetVars(targetCheckSprite);
-        resetSquishVars();
+        resetTargetScaleToBase();
+        resetSquishBools();
     }
 }
 
@@ -212,6 +211,43 @@ bool LevelPortal::getIsInAreaOfTeleportation()
     return this->isTargetInAreaOfTeleportation;
 }
 
+sf::Vector2f LevelPortal::getScale()
+{
+    return this->sprite->getScale();
+}
+
+void LevelPortal::setScale(const sf::Vector2f& scale)
+{
+    this->sprite->setScale(scale);
+}
+
+void LevelPortal::setSide(const PortalCalledSide &s)
+{
+    this->side = s;
+    if(side==PortalCalledSide::LEFT)
+    {
+        if(openedScale.x>=0.f)
+        {
+            openedScale = {-(openedScale.x),openedScale.y};
+        }
+        if(closedScale.x >= 0.f)
+        {
+            closedScale = {-(closedScale.x),closedScale.y};
+        }
+    }
+    else if(side == PortalCalledSide::RIGHT)
+    {
+        if(openedScale.x<=0.f)
+        {
+            openedScale = {-(openedScale.x),openedScale.y};
+        }
+        if(closedScale.x<=0.f)
+        {
+            closedScale = {-(closedScale.x),closedScale.y};
+        }
+    }
+}
+
 void LevelPortal::setPortalIteratorToBegin()
 {
     this->allTexturesIt = allPortalBlue.begin();
@@ -221,47 +257,55 @@ bool LevelPortal::squishTargetToZero()
 {
     sf::Vector2f currentScale = squishTargetSprite->getScale();
 
-    if(currentScale.x >= -0.3f && currentScale.x <= 0.3f )
+    if(currentScale.x >= -squishSpeed.x && currentScale.x <= squishSpeed.x )
     {
         squishTargetSprite->setScale({0.f,0.f});
         isTargetBeingSquished = false;
         return true;
     }
 
-    squishTargetSprite->setScale({
+    if(currentScale.x>0)
+    {
+        squishTargetSprite->setScale({
         currentScale.x-(squishSpeed.x),
         currentScale.y
-    });
-
+        });
+    }
+    else if (currentScale.x<0)
+    {
+        squishTargetSprite->setScale({
+        currentScale.x+(squishSpeed.x),
+        currentScale.y
+        });
+    }
+    
     isTargetBeingSquished = true;
     return false;
 }
 
-void LevelPortal::initializeSquishVars(sf::Transformable &targetSprite, sf::Transformable &targetRect)
+void LevelPortal::initializeSquishVars()
 {
-    this->squishTargetSprite = &targetSprite;
-    this->squishTargetRect   = &targetRect;
+    baseTargetScale = squishTargetSprite->getScale();
 
-    baseTargetScale = targetSprite.getScale();
     squishSpeed = {
         (baseTargetScale.x / 100) * BASE_TARGET_PERCENT_TO_SQUISH,
         baseTargetScale.y
     };
 }
 
-void LevelPortal::resetSquishVars()
-{
-    squishSpeed         = {0.f,0.f};
-    
+void LevelPortal::resetSquishBools()
+{   
     isTargetBeingSquished         = false;
     isTargetInAreaOfTeleportation = false;
 }
 
-void LevelPortal::resetTargetVars(sf::Transformable& target)
+void LevelPortal::resetTargetScaleToBase()
 {
-    target.setScale(baseTargetScale);
+    sf::Vector2f targetScale = squishTargetSprite->getScale();
 
-    baseTargetScale     = {BASE_TARGET_SCALE};
+    if(targetScale.x >= 0) squishTargetSprite->setScale({baseTargetScale.x,baseTargetScale.y});
+
+    else if(targetScale.x < 0) squishTargetSprite->setScale({-(baseTargetScale.x),baseTargetScale.y});
 }
 
 void LevelPortal::teleportTargetToCenterOfPortal()

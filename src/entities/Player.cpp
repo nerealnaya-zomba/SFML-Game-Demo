@@ -208,7 +208,7 @@ void Player::portalUpdate()
     //Is player in area of teleportation
     if(portal->getIsOpened())
     {
-        portal->checkIsTargetInAreaOfTeleportation(*this->playerSprite, *this->playerRectangle_);
+        portal->checkIsTargetInAreaOfTeleportation();
     }
 }
 
@@ -221,9 +221,17 @@ void Player::tryOpenPortal()
         {
             //Setting portal position based on what side player watches now
                 //Right
-            if(playerSprite->getScale().x > 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x+BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
+            if(playerSprite->getScale().x > 0.f)
+            {
+                portal->setSide(PortalCalledSide::RIGHT);
+                portal->setPosition({playerSprite->getGlobalBounds().getCenter().x+BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
+            }
                 //Left
-            else if(playerSprite->getScale().x < 0.f) portal->setPosition({playerSprite->getGlobalBounds().getCenter().x-BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
+            else if(playerSprite->getScale().x < 0.f)
+            {
+                portal->setSide(PortalCalledSide::LEFT);
+                portal->setPosition({playerSprite->getGlobalBounds().getCenter().x-BASE_OFFSET_TO_CREATE_PORTAL,playerSprite->getGlobalBounds().getCenter().y});
+            }
 
             portal->openPortal();
             isPortalOnCooldown = true;
@@ -631,10 +639,8 @@ void Player::updateControls()
         walkRight();
     }
 
-    //Open portal
-        
+    //Open portal  
     tryOpenPortal();
-
 }
 
 void Player::updatePhysics()

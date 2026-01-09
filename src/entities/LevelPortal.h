@@ -6,6 +6,7 @@
 #include<GameLevel.h>
 
 class GameLevelManager;
+enum PortalCalledSide{LEFT,RIGHT};
 
 const sf::Vector2f BASE_CLOSED_SCALE = {0.f,0.f};
 const sf::Vector2f BASE_OPENED_SCALE = {0.3f,0.3f};
@@ -50,14 +51,16 @@ private:
     const int existTime;
     const sf::Vector2f speedOfOpening;
     const sf::Vector2f speedOfClosing;
-    const sf::Vector2f openedScale;
-    const sf::Vector2f closedScale;
+    sf::Vector2f openedScale;
+    sf::Vector2f closedScale;
     
     sf::Transformable* squishTargetSprite;
     sf::Transformable* squishTargetRect;
 
     sf::Vector2f baseTargetScale;
     sf::Vector2f squishSpeed;
+
+    PortalCalledSide side;
 
     bool isUsed;
 
@@ -75,9 +78,9 @@ private:
     void setPortalIteratorToBegin();
     
     bool squishTargetToZero();
-    void initializeSquishVars(sf::Transformable &targetSprite, sf::Transformable &targetRect);
-    void resetSquishVars();
-    void resetTargetVars(sf::Transformable& target);
+    void initializeSquishVars();
+    void resetSquishBools();
+    void resetTargetScaleToBase();
 
     void teleportTargetToCenterOfPortal();
 public:
@@ -93,7 +96,7 @@ public:
     void openPortal();
     void closePortal();
 
-    void checkIsTargetInAreaOfTeleportation(sf::Transformable& targetCheckSprite, sf::Transformable& targetRect);
+    void checkIsTargetInAreaOfTeleportation();
 
     // Getters
     bool getIsOpened();
@@ -101,8 +104,10 @@ public:
     bool getIsCalledForOpen();
     bool getIsCalledForClose();
     bool getIsInAreaOfTeleportation();
+    sf::Vector2f getScale();
     
 
     // Setters
-
+    void setScale(const sf::Vector2f& scale);
+    void setSide(const PortalCalledSide& s);
 };
