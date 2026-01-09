@@ -30,7 +30,7 @@ Player::Player(GameData& gameTextures, GameLevelManager& m)
     //Trail initialization
     trail = new Trail(*playerSprite);
     //Portal initizalization
-    portal = new LevelPortal({0.0,0.0},BASE_PORTAL_SPEED_OF_OPENING,BASE_PORTAL_SPEED_OF_CLOSING,portalExistTime,gameTextures,m);
+    portal = new LevelPortal({0.0,0.0},BASE_PORTAL_SPEED_OF_OPENING,BASE_PORTAL_SPEED_OF_CLOSING,portalExistTime,*playerSprite,*playerRectangle_,gameTextures,m);
     portalCallCloseCooldownClock.reset();
     portalCallOpenCooldownClock.reset();
 }
@@ -72,6 +72,8 @@ void Player::attachGameLevelManager(GameLevelManager& m)
 void Player::updateTextures()
 {
     portal->update();   //NOTE Should be updating no matter what
+    if(portal->getIsInAreaOfTeleportation()) fallingSpeed = 0.f;
+
     if(!isAlive)
     {
         sf::Texture &lastDieTexture = satiro_dieTextures->at(satiro_dieTextures->size()-1);

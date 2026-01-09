@@ -10,6 +10,7 @@ class GameLevelManager;
 const sf::Vector2f BASE_CLOSED_SCALE = {0.f,0.f};
 const sf::Vector2f BASE_OPENED_SCALE = {0.3f,0.3f};
 const sf::Vector2f BASE_TARGET_SCALE = {1.f,1.f};
+const sf::Vector2f BASE_ENTER_AREA_CALCULATION_SCALE = {0.1f,0.29f};
 const float BASE_TARGET_PERCENT_TO_SQUISH = 1.f;
 
 class LevelPortal : public InteractiveObject
@@ -80,7 +81,7 @@ private:
 
     void teleportTargetToCenterOfPortal();
 public:
-    LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, GameData &gameData, GameLevelManager &m);
+    LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, sf::Transformable& tS, sf::Transformable& tR, GameData &gameData, GameLevelManager &m);
     ~LevelPortal() = default;
 
     void draw(sf::RenderWindow& window)      override;
@@ -99,6 +100,7 @@ public:
     bool getIsClosed();
     bool getIsCalledForOpen();
     bool getIsCalledForClose();
+    bool getIsInAreaOfTeleportation();
     
 
     // Setters

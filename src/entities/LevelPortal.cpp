@@ -49,10 +49,10 @@ void LevelPortal::portalClosingAnimation()
     }
 }
 
-LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, GameData &gameData, GameLevelManager &m)
+LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, sf::Transformable& tS, sf::Transformable& tR, GameData &gameData, GameLevelManager &m)
     : InteractiveObject(basePos), manager(&m), isUsed(false), speedOfOpening(sOO), speedOfClosing(sOC), existTime(eT), isOpened(false), isClosed(true),  
     isCalledForClose(false), isCalledForOpen(false), isTargetInAreaOfTeleportation(false), isTargetBeingSquished(false), openedScale(BASE_OPENED_SCALE), closedScale(BASE_CLOSED_SCALE),
-    baseTargetScale(BASE_TARGET_SCALE)
+    baseTargetScale(BASE_TARGET_SCALE), squishTargetSprite(&tS), squishTargetRect(&tR)
 {
     //portalBlue
     attachTexture(gameData.portalBlue1Textures, this->portalBlue1Textures,  gameData.portalBlue1Helper,   this->portalBlue1Helper   );
@@ -68,6 +68,7 @@ LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, co
     // Инициализация спрайтов
     setSpriteOriginToMiddle(*sprite);
 
+    setCalculationsScale({BASE_ENTER_AREA_CALCULATION_SCALE});
     sprite->setScale({0.f,0.f});
 
     sprite->setPosition(basePos);
@@ -126,6 +127,10 @@ void LevelPortal::update()
             }
             teleportTargetToCenterOfPortal();
         }
+    }
+    else{
+        resetTargetVars(*this->squishTargetSprite);
+        resetSquishVars();
     }
     
 }
@@ -202,6 +207,11 @@ bool LevelPortal::getIsCalledForClose()
     return this->isCalledForClose;
 }
 
+bool LevelPortal::getIsInAreaOfTeleportation()
+{
+    return this->isTargetInAreaOfTeleportation;
+}
+
 void LevelPortal::setPortalIteratorToBegin()
 {
     this->allTexturesIt = allPortalBlue.begin();
@@ -251,8 +261,6 @@ void LevelPortal::resetTargetVars(sf::Transformable& target)
 {
     target.setScale(baseTargetScale);
 
-    this->squishTargetSprite  = nullptr;
-    this->squishTargetRect    = nullptr;
     baseTargetScale     = {BASE_TARGET_SCALE};
 }
 

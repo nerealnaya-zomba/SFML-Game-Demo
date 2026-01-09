@@ -4,20 +4,25 @@
 #include<Mounting.h>
 
 const float BASE_OFFSET_TO_INTERACT = 0.f;
+const sf::Vector2f BASE_INTERACTIVE_OBJECT_SCALE = {1.f,1.f};
 const sf::Texture errorTexture("images/error.png");
 
 // Базовый абстрактный класс для всех интерактивных объектов
 class InteractiveObject {
+private:
+    sf::Vector2f spriteScale;
+    
+
 protected:
     sf::Vector2f basePosition;
     float offsetToInteract;
     bool isCanInteract;
-    
+
     std::shared_ptr<sf::Sprite> sprite;
 
 public:
     InteractiveObject(const sf::Vector2f& pos)
-        : basePosition(pos),offsetToInteract(BASE_OFFSET_TO_INTERACT), isCanInteract(false) { sprite = std::make_shared<sf::Sprite>(errorTexture); }
+        : basePosition(pos),offsetToInteract(BASE_OFFSET_TO_INTERACT), spriteScale(BASE_INTERACTIVE_OBJECT_SCALE), isCanInteract(false) { sprite = std::make_shared<sf::Sprite>(errorTexture); }
     
     virtual ~InteractiveObject() = default;
     
@@ -31,7 +36,10 @@ public:
     // Общие методы для всех интерактивных объектов
     bool isInAreaOfInteraction(const sf::Vector2f& executorObjectPos) const{
         sf::Vector2f objectPos = sprite->getGlobalBounds().getCenter();
-        sf::Vector2u objectSize = sprite->getTexture().getSize();
+        sf::Vector2u objectSize = {
+            sprite->getTexture().getSize().x * spriteScale.x,
+            sprite->getTexture().getSize().y * spriteScale.y
+        };
         
         // Проверяем в радиусе взаимодействия ли объект
         if(executorObjectPos.x >= (objectPos.x - ((objectSize.x/2) + offsetToInteract)) &&
@@ -48,6 +56,10 @@ public:
         setSpriteOriginToMiddle(*sprite);
         sprite->setPosition(newPos);
         onPositionChanged();
+    }
+
+    void setCalculationsScale(const sf::Vector2f& newScale){
+        spriteScale = newScale;;
     }
     
     sf::Vector2f getCenterPosition() const { return this->sprite->getGlobalBounds().getCenter(); }
