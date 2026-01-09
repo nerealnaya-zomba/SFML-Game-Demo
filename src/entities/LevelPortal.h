@@ -9,6 +9,7 @@ class GameLevelManager;
 
 const sf::Vector2f BASE_CLOSED_SCALE = {0.f,0.f};
 const sf::Vector2f BASE_OPENED_SCALE = {0.3f,0.3f};
+const sf::Vector2f BASE_TARGET_SCALE = {1.f,1.f};
 const float BASE_TARGET_PERCENT_TO_SQUISH = 1.f;
 
 class LevelPortal : public InteractiveObject
@@ -63,6 +64,7 @@ private:
     bool isOpened;
     bool isClosed;
     bool isTargetInAreaOfTeleportation;
+    bool isTargetBeingSquished;
 
     void portalOpeningAnimation();
     void portalClosingAnimation();
@@ -73,6 +75,7 @@ private:
     bool squishTargetToZero();
     void initializeSquishVars(sf::Transformable& target);
     void resetSquishVars();
+    void resetTargetVars(sf::Transformable& target);
 public:
     LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, GameData &gameData, GameLevelManager &m);
     ~LevelPortal() = default;
