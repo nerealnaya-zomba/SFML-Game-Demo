@@ -118,6 +118,12 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     loadingScreen_m->draw();
     generateMipmapTextures(skeletonYellow_attack2Textures);
     
+    // Trader textures
+    if(loadTexture(trader_idleTextures, traderPath, trader_idle_helper, 4)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(trader_idleTextures);
+
     // Plants textures
     if(loadTexture(plant1Textures, plant1Path, plant1, 8)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);

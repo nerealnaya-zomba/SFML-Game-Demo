@@ -77,6 +77,10 @@ public:
     std::vector<sf::Texture> skeletonYellow_attack2Textures{};
     texturesIterHelper skeletonYellow_attack2_helper;
 
+    // Trader textures
+    std::vector<sf::Texture> trader_idleTextures{};
+    texturesIterHelper trader_idle_helper;
+
     // Decoration textures - plants
     std::vector<sf::Texture> plant1Textures;
     texturesIterHelper plant1;
@@ -203,6 +207,9 @@ private:
     std::string skeletonYellow_attack1Path_{"images/creatures/enemies/skeleton_yellow/attack1/Skeleton_Yellow_Attack1_"};
     std::string skeletonYellow_attack2Path_{"images/creatures/enemies/skeleton_yellow/attack2/Skeleton_Yellow_Attack2_"};
 
+    // Trader texture path
+    std::string backgroundPath{"images/creatures/neutral/trader_"};
+
     // Decoration texture paths
     std::string plant1Path{"images/decoration/Plant_1/Plant1_"};
     std::string plant2Path{"images/decoration/Plant_2/Plant2_"};
@@ -232,5 +239,5 @@ private:
     
     
     //Background texture path
-    std::string backgroundPath{"images/Background/Background_"};
+    std::string traderPath{"images/Background/Background_"};
 };
