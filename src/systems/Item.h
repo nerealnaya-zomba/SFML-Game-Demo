@@ -16,13 +16,25 @@ private:
     std::unique_ptr<sf::Sprite> sprite; // Иконка
 
 public:
+    struct Stats {
+        int bulletSpeed = 0;
+        int bulletDistance = 0;
+        int shootSpeedCooldownReduction = 0;
+        int initialSpeed = 0;
+        int maxSpeed = 0;
+        float health = 0;
+        float damage = 0;
+    };
+    
+    const Stats stats;
+
     enum Quality {COMMON, RARE, MYTH, LEGENDARY};
     const Quality quality;
 
     const int price;
     const std::string displayName;  // Отображаемое название
 
-    Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, const std::string& name, const std::string& displayName, const Quality& q, const int p);
+    Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, const std::string& name, const std::string& displayItemName, const Quality& q, const int p, const Stats& itemStats);
     ~Item() = default;
 
     void draw(sf::RenderWindow& window);

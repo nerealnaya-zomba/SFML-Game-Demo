@@ -1,7 +1,7 @@
 #include<Item.h>
 
-Item::Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, const std::string& name, const std::string& displayName, const Quality& q, const int p)
-    : quality(q), price(p), displayName(displayName)
+Item::Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, const std::string& name, const std::string& displayItemName, const Quality& q, const int p, const Stats& itemStats)
+    : quality(q), price(p), displayName(displayItemName), stats(itemStats)
 {
     // Получаем текстуру по названию
     auto itemIt = data.itemsTextures.find(name);
