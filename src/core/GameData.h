@@ -211,7 +211,7 @@ private:
     std::string skeletonYellow_attack2Path_{"images/creatures/enemies/skeleton_yellow/attack2/Skeleton_Yellow_Attack2_"};
 
     // Trader texture path
-    std::string backgroundPath{"images/creatures/neutral/trader_"};
+    std::string traderPath{"images/creatures/neutral/trader/trader_"};
 
     // Decoration texture paths
     std::string plant1Path{"images/decoration/Plant_1/Plant1_"};
@@ -241,8 +241,8 @@ private:
     std::string PortalBlue8Path{"images/decoration/PortalBlue/PortalBlue8/PortalBlue8_"};
     
     
-    // Trader texture path
-    std::string traderPath{"images/Background/Background_"};
+    // Background texture path
+    std::string backgroundPath{"images/Background/Background_"};
 
     // Items texture path
     std::string itemsPath{"images/items/item_"};
