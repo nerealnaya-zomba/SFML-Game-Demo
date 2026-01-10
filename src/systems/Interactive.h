@@ -42,9 +42,9 @@ public:
         };
         
         // Проверяем в радиусе взаимодействия ли объект
-        if(executorObjectPos.x >= (objectPos.x - ((objectSize.x/2) + offsetToInteract)) &&
+        if(executorObjectPos.x >= (objectPos.x - ((objectSize.x/2) - offsetToInteract)) &&
             executorObjectPos.x <= (objectPos.x + ((objectSize.x/2) + offsetToInteract)) &&
-            executorObjectPos.y >= (objectPos.y - ((objectSize.y/2) + offsetToInteract)) && 
+            executorObjectPos.y >= (objectPos.y - ((objectSize.y/2) - offsetToInteract)) && 
             executorObjectPos.y <= (objectPos.y + ((objectSize.y/2) + offsetToInteract)))
             {
                 return true;

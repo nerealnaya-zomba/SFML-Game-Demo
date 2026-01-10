@@ -40,7 +40,10 @@ add_executable(main
     src/systems/GameLevel.cpp
     src/entities/enemyPortal.cpp
     src/systems/Spawner.cpp
-    src/entities/LevelPortal.cpp)
+    src/entities/LevelPortal.cpp
+    src/entities/Trader.cpp
+    src/systems/Item.cpp
+    src/ui/Shop.cpp)
 
 target_include_directories(main PRIVATE 
     ${CMAKE_SOURCE_DIR}/src 
