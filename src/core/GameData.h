@@ -132,8 +132,11 @@ public:
     // Ground texture
     std::map<std::string,sf::Texture> TileSetGreenTextures;
     
-    //Background textures
+    // Background textures
     std::map<std::string,sf::Texture> backgroundTextures;
+
+    // Items textures
+    std::map<std::string,sf::Texture> itemsTextures;
 
 private:
     // Texture loading and processing
@@ -238,6 +241,9 @@ private:
     std::string PortalBlue8Path{"images/decoration/PortalBlue/PortalBlue8/PortalBlue8_"};
     
     
-    //Background texture path
+    // Trader texture path
     std::string traderPath{"images/Background/Background_"};
+
+    // Items texture path
+    std::string itemsPath{"images/items/item_"};
 };
