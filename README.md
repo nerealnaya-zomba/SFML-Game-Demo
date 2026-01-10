@@ -1,7 +1,5 @@
 # SFML Game Demo
 
-This is demo version, so i don't take responsibility if something not working.
-
 ## Example
 
 ![Game](https://github.com/nerealnaya-zomba/SFML-Game-Demo/blob/main/screenshot.png)
@@ -23,3 +21,5 @@ Executable located at ./build/bin
 - Left/Right/Up/Down Arrows - Moving
 - Z - Jump
 - X - Shot
+- C - Dash
+- R - Open portal
