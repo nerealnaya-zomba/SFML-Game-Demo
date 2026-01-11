@@ -253,7 +253,8 @@ static void attachTexture(sf::Texture& fromTexture, sf::Texture*& toTexture)
 enum switchSprite_SwitchOption
 {
     Single,
-    Loop
+    Loop,
+    PingPong
 };
 namespace gameUtils
 {
@@ -263,7 +264,18 @@ static bool switchToNextSprite(sf::Sprite* sprite,
     switchSprite_SwitchOption option)
 {
     // Проверка безопасности
-    if (!sprite || texturesArray.empty()) {
+    if (!sprite || texturesArray.empty() || iterHelper.countOfTextures <= 0) {
+        return false;
+    }
+
+    // Проверяем валидность текущего индекса
+    if (iterHelper.ptrToTexture >= texturesArray.size()) {
+        iterHelper.ptrToTexture = 0;
+    }
+    
+    // Проверяем, что текстура по текущему индексу существует
+    if (iterHelper.ptrToTexture < 0 || 
+        iterHelper.ptrToTexture >= static_cast<int>(texturesArray.size())) {
         return false;
     }
 
@@ -272,31 +284,65 @@ static bool switchToNextSprite(sf::Sprite* sprite,
     
     // Проверяем, не пора ли переключить текстуру
     if (iterHelper.iterationCounter < iterHelper.iterationsTillSwitch) {
-        return true; // ждем следующий кадр
+        return true;
     }
     
     // Сбрасываем счетчик кадров
     iterHelper.iterationCounter = 0;
     
-    // Переключаем текстуру
-    if (iterHelper.ptrToTexture < texturesArray.size()) {
-        sprite->setTexture(texturesArray[iterHelper.ptrToTexture]);
+    // Устанавливаем текущую текстуру
+    sprite->setTexture(texturesArray[iterHelper.ptrToTexture]);
+    
+    // Обрабатываем в зависимости от опции
+    switch (option) {
+        case switchSprite_SwitchOption::Single:
+            // Single: проходим один раз и останавливаемся
+            iterHelper.ptrToTexture++;
+            if (iterHelper.ptrToTexture >= iterHelper.countOfTextures) {
+                return false;
+            }
+            break;
+            
+        case switchSprite_SwitchOption::Loop:
+            // Loop: зацикленно вперед
+            iterHelper.ptrToTexture = (iterHelper.ptrToTexture + 1) % iterHelper.countOfTextures;
+            break;
+            
+        case switchSprite_SwitchOption::PingPong:
+            // PingPong: вперед-назад
+            if (iterHelper.countOfTextures <= 1) {
+                break; // Одна текстура - ничего не делаем
+            }
+            
+            if (iterHelper.goForward) {
+                if (iterHelper.ptrToTexture >= iterHelper.countOfTextures - 1) {
+                    iterHelper.goForward = false;
+                    // Не выходим за границы
+                    iterHelper.ptrToTexture = std::max(0, iterHelper.countOfTextures - 2);
+                } else {
+                    iterHelper.ptrToTexture++;
+                }
+            } else {
+                if (iterHelper.ptrToTexture <= 0) {
+                    iterHelper.goForward = true;
+                    // Не выходим за границы
+                    iterHelper.ptrToTexture = std::min(1, iterHelper.countOfTextures - 1);
+                } else {
+                    iterHelper.ptrToTexture--;
+                }
+            }
+            break;
     }
     
-    // Увеличиваем указатель на текстуру
-    iterHelper.ptrToTexture++;
-    
-    // Проверяем, достигли ли конца анимации
-    if (iterHelper.ptrToTexture >= texturesArray.size()) {
+    // Гарантируем, что индекс в пределах массива текстур
+    if (iterHelper.ptrToTexture < 0) {
         iterHelper.ptrToTexture = 0;
-        
-        if (option == switchSprite_SwitchOption::Single) {
-            return false; // Single анимация завершена
-        }
-        // Для Loop продолжаем с начала
+    }
+    if (iterHelper.ptrToTexture >= static_cast<int>(texturesArray.size())) {
+        iterHelper.ptrToTexture = texturesArray.size() - 1;
     }
     
-    return true; // анимация продолжается
+    return true;
 }
 }
 
