@@ -5,7 +5,6 @@
 
 const float BASE_OFFSET_TO_INTERACT = 0.f;
 const sf::Vector2f BASE_INTERACTIVE_OBJECT_SCALE = {1.f,1.f};
-const sf::Texture errorTexture("images/error.png");
 
 // Базовый абстрактный класс для всех интерактивных объектов
 class InteractiveObject {
@@ -19,10 +18,10 @@ protected:
     bool isCanInteract;
 
     std::shared_ptr<sf::Sprite> sprite;
-
+    sf::Texture* texture;
 public:
-    InteractiveObject(const sf::Vector2f& pos)
-        : basePosition(pos),offsetToInteract(BASE_OFFSET_TO_INTERACT), spriteScale(BASE_INTERACTIVE_OBJECT_SCALE), isCanInteract(false) { sprite = std::make_shared<sf::Sprite>(errorTexture); }
+    InteractiveObject(const sf::Vector2f& pos, sf::Texture& tex)
+        : basePosition(pos),offsetToInteract(BASE_OFFSET_TO_INTERACT), spriteScale(BASE_INTERACTIVE_OBJECT_SCALE), isCanInteract(false), texture(&tex) { sprite = std::make_shared<sf::Sprite>(*texture); }
     
     virtual ~InteractiveObject() = default;
     

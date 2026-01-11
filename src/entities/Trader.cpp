@@ -25,7 +25,7 @@ void Trader::lookAtPlayerSide()
     }
 }
 
-Trader::Trader(GameData& data, Player& p,sf::Vector2f& pos) : InteractiveObject(pos), player(&p)
+Trader::Trader(GameData& data, Player& p,sf::Vector2f& pos) : InteractiveObject(pos,data.trader_idleTextures[0]), player(&p)
 {
     attachTexture(data.trader_idleTextures,traderTextures,data.trader_idle_helper,trader_helper);
 

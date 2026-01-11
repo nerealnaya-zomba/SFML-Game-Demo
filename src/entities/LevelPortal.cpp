@@ -50,7 +50,7 @@ void LevelPortal::portalClosingAnimation()
 }
 
 LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, sf::Transformable& tS, sf::Transformable& tR, GameData &gameData, GameLevelManager &m)
-    : InteractiveObject(basePos), manager(&m), isUsed(false), speedOfOpening(sOO), speedOfClosing(sOC), existTime(eT), isOpened(false), isClosed(true),  
+    : InteractiveObject(basePos, gameData.portalBlue1Textures[0]), manager(&m), isUsed(false), speedOfOpening(sOO), speedOfClosing(sOC), existTime(eT), isOpened(false), isClosed(true),  
     isCalledForClose(false), isCalledForOpen(false), isTargetInAreaOfTeleportation(false), isTargetBeingSquished(false), openedScale(BASE_OPENED_SCALE), closedScale(BASE_CLOSED_SCALE),
     baseTargetScale(BASE_TARGET_SCALE), squishTargetSprite(&tS), squishTargetRect(&tR), side(PortalCalledSide::LEFT)
 {

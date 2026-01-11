@@ -130,7 +130,7 @@ void Shop::alignItemsOnGrid()
 }
 
 Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
-    : InteractiveObject(pos), isOpened(false), data(&d), player(&p), columns(BASE_SHOP_COLUMNS),
+    : InteractiveObject(pos, d.bulletTextures[0]), isOpened(false), data(&d), player(&p), columns(BASE_SHOP_COLUMNS),
       rows(BASE_SHOP_ROWS), cellSize(BASE_SHOP_CELL_SIZE)
 {
     shopBackground.setSize(BASE_SHOP_BACKGROUND_SIZE);
