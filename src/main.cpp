@@ -43,7 +43,7 @@ int main()
     camera.attachGameLevelManager(levelManager);
     camera.attachPlayer(player);
     
-    sf::Vector2f posss = {1000.f,1000.f};
+    sf::Vector2f posss = {1000.f,800.f};
     Trader trader(gameData, player, posss);
 
     std::vector<Particle> particles;

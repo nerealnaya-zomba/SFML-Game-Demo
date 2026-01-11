@@ -25,6 +25,15 @@ void Trader::lookAtPlayerSide()
     }
 }
 
+void Trader::ySmoothFloating()
+{
+    float floatTime = (time.getElapsedTime().asMilliseconds()*0.001);
+    sprite->setPosition(
+        { sprite->getGlobalBounds().getCenter().x,
+        sprite->getGlobalBounds().getCenter().y+(sin(floatTime*10))/2}
+    );
+}
+
 Trader::Trader(GameData& data, Player& p,sf::Vector2f& pos) : InteractiveObject(pos,data.trader_idleTextures[0]), player(&p)
 {
     attachTexture(data.trader_idleTextures,traderTextures,data.trader_idle_helper,trader_helper);
@@ -37,6 +46,8 @@ Trader::Trader(GameData& data, Player& p,sf::Vector2f& pos) : InteractiveObject(
     setSpriteOriginToMiddle(*sprite);
 
     setPosition(pos);
+
+    time.start();
 }
 
 void Trader::draw(sf::RenderWindow &window)
@@ -53,6 +64,8 @@ void Trader::update()
     checkIsInInteractionArea();
 
     lookAtPlayerSide();
+
+    ySmoothFloating();
 
     shop->update();
 

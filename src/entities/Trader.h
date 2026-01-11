@@ -5,6 +5,7 @@
 #include<Mounting.h>
 #include<Interactive.h>
 #include<Shop.h>
+#include<math.h>
 
 class Shop;
 
@@ -23,11 +24,16 @@ private:
 
     const sf::Event::KeyPressed* keyPressed;
 
+    sf::Clock time;
+
     void updateTextures();
 
     void checkIsInInteractionArea();
 
     void lookAtPlayerSide();
+
+    void ySmoothFloating();
+
 public:
     Trader(GameData& data, Player& p, sf::Vector2f& pos);
     ~Trader() = default;
