@@ -26,6 +26,9 @@
 #include<Particle.h>
 #include<GameCamera.h>
 #include<enemyPortal.h>
+#include<Shop.h>
+#include<Trader.h>
+#include<Item.h>
 
 //C libraries
 #include <iostream>

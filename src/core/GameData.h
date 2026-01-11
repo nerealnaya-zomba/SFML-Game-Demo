@@ -28,6 +28,9 @@ public:
     GameData(sf::RenderWindow* window, sf::Font* font);
     ~GameData();
 
+    // General font
+    sf::Font* gameFont;
+
     // Public texture collections
 
     // Player (Satiro) textures

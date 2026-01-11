@@ -58,8 +58,12 @@ public:
         onPositionChanged();
     }
 
+    void setScale(sf::Vector2f scale){
+        sprite->setScale(scale);
+    }
+
     void setCalculationsScale(const sf::Vector2f& newScale){
-        spriteScale = newScale;;
+        spriteScale = newScale;
     }
     
     sf::Vector2f getCenterPosition() const { return this->sprite->getGlobalBounds().getCenter(); }
@@ -76,7 +80,7 @@ public:
     virtual void onInteractionExit() {
         isCanInteract = false;
     }
-    
+
 protected:
     // Методы, которые могут быть переопределены в производных классах
     virtual void onPositionChanged() {}

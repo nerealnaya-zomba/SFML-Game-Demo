@@ -8,6 +8,8 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     //LoadingScreen initialization
     loadingScreen_m = new LoadingScreen(window,font,allOperations_count_m);
 
+    this->gameFont = font;
+
     //Textures
         //Satiro initialization
     if(initSatiroTextures(idleTextures,idleTexturesPaths)) succesedOperationsCount_m++;
@@ -119,7 +121,7 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     generateMipmapTextures(skeletonYellow_attack2Textures);
     
     // Trader textures
-    if(loadTexture(trader_idleTextures, traderPath, trader_idle_helper, 4)) succesedOperationsCount_m++;
+    if(loadTexture(trader_idleTextures, traderPath, trader_idle_helper, 15)) succesedOperationsCount_m++;
     loadingScreen_m->update(succesedOperationsCount_m);
     loadingScreen_m->draw();
     generateMipmapTextures(trader_idleTextures);

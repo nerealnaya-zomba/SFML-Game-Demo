@@ -1,6 +1,6 @@
 #include<Item.h>
 
-Item::Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, const std::string& name, const std::string& displayItemName, const Quality& q, const int p, const Stats& itemStats)
+Item::Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, std::string name, std::string displayItemName, Quality q, int p, Stats itemStats)
     : quality(q), price(p), displayName(displayItemName), stats(itemStats)
 {
     // Получаем текстуру по названию
@@ -40,5 +40,6 @@ void Item::draw(sf::RenderWindow& window)
 
 void Item::setPosition(sf::Vector2i& pos)
 {
-    rect.position = pos;
+    rect.position = {pos.x-rect.size.x,pos.y-rect.size.y};
+    sprite->setPosition(static_cast<sf::Vector2f>(pos));
 }

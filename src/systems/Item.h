@@ -34,7 +34,7 @@ public:
     const int price;
     const std::string displayName;  // Отображаемое название
 
-    Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, const std::string& name, const std::string& displayItemName, const Quality& q, const int p, const Stats& itemStats);
+    Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, std::string name, std::string displayItemName, Quality q, int p, Stats itemStats);
     ~Item() = default;
 
     void draw(sf::RenderWindow& window);

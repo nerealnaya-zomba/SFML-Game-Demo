@@ -43,6 +43,8 @@ int main()
     camera.attachGameLevelManager(levelManager);
     camera.attachPlayer(player);
     
+    sf::Vector2f posss = {1000.f,1000.f};
+    Trader trader(gameData, player, posss);
 
     std::vector<Particle> particles;
 
@@ -110,13 +112,12 @@ int main()
            //↑↑-----MAIN MENU-----↑↑ 
 
            //↓↓-----GAME-----↓↓
+            trader.handleEvent(*event);
 
             if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-
                 
-
             }
 
             //↑↑-----GAME-----↑↑
@@ -187,6 +188,8 @@ int main()
         levelManager.drawGrounds();
         levelManager.drawEnemyManager();
         
+        trader.update();
+        trader.draw(window);
             //Player drawing
         player.draw(window);
         player.drawBullets(window);
