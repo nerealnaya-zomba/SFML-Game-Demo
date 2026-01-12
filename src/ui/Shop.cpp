@@ -119,6 +119,8 @@ void Shop::alignItemsOnGrid()
             backgroundStart.x+(BASE_SHOP_CELL_SIZE.x/2)+(BASE_SHOP_CELL_SIZE.x*iterationCount),
             backgroundStart.y+(BASE_SHOP_CELL_SIZE.y/2)+(BASE_SHOP_CELL_SIZE.y*countingForNextRow)
         };
+        nextPos.x+=BASE_SHOP_PADDING.x;
+        nextPos.y+=BASE_SHOP_PADDING.y;
 
         sf::Vector2i convertedNextPos = static_cast<sf::Vector2i>(nextPos);
 

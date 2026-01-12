@@ -8,8 +8,9 @@
 
 const unsigned int BASE_SHOP_COLUMNS          = 5;
 const unsigned int BASE_SHOP_ROWS             = 4;
-const sf::Vector2f BASE_SHOP_CELL_SIZE        = {30,30};
+const sf::Vector2f BASE_SHOP_CELL_SIZE        = {40,40};
 const sf::Vector2f BASE_SHOP_BACKGROUND_SIZE  = {200,200};
+const sf::Vector2f BASE_SHOP_PADDING          = {20,20};
 
 class Shop : InteractiveObject
 {
