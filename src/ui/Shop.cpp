@@ -11,6 +11,11 @@ void Shop::handleEvent(const sf::Event &event)
     if(!isOpened) return;
 }
 
+bool Shop::getIsOpened()
+{
+    return this->isOpened;
+}
+
 void Shop::draw(sf::RenderWindow& window)
 {
     if(!isOpened) return;

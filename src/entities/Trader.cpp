@@ -38,14 +38,17 @@ Trader::Trader(GameData& data, Player& p,sf::Vector2f& pos) : InteractiveObject(
 {
     attachTexture(data.trader_idleTextures,traderTextures,data.trader_idle_helper,trader_helper);
 
-    sf::Vector2f shopPos = {sprite->getGlobalBounds().getCenter().x,sprite->getGlobalBounds().getCenter().y + BASE_SHOP_OFFSET.y}; 
-    shop = std::make_unique<Shop>(data,p, shopPos);
-
     setScale({3.f,3.f});
 
     setSpriteOriginToMiddle(*sprite);
 
     setPosition(pos);
+
+    offsetToInteract = 300.f;
+
+    // Shop init
+    sf::Vector2f shopPos = {sprite->getGlobalBounds().getCenter().x,sprite->getGlobalBounds().getCenter().y + BASE_SHOP_OFFSET.y}; 
+    shop = std::make_unique<Shop>(data,p, shopPos);
 
     time.start();
 }
@@ -68,23 +71,99 @@ void Trader::update()
     ySmoothFloating();
 
     shop->update();
+    
+}
 
+void Trader::handleEvent(const sf::Event &event)
+{
     // Открыть магазин только если игрок подошел к торговцу и нажал на keyToOpenShop
     if(isCanInteract)
     {
-        if(keyPressed != nullptr && keyPressed->scancode == keyToOpenShop)
+        if(const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
         {
-            shop->open();
+            if(keyPressed != nullptr && keyPressed->scancode == keyToOpenShop)
+            {
+                if(!shop->getIsOpened())
+                {
+                    shop->open();
+                }
+                else
+                {
+                    shop->close();
+                }
+            }
         }
     }
     else
     {
         shop->close();
     }
-    
 }
 
-void Trader::handleEvent(const sf::Event &event)
+bool switchToNextSpritePingPong(sf::Sprite* sprite,
+    std::vector<sf::Texture>& texturesArray, 
+    texturesIterHelper& iterHelper)
 {
-    this->keyPressed = event.getIf<sf::Event::KeyPressed>();
+    // Проверка безопасности
+    if (!sprite || texturesArray.empty() || iterHelper.countOfTextures <= 0) {
+        return false;
+    }
+
+    // Проверяем валидность текущего индекса
+    if (iterHelper.ptrToTexture >= static_cast<int>(texturesArray.size())) {
+        iterHelper.ptrToTexture = 0;
+    }
+    
+    // Проверяем, что текстура по текущему индексу существует
+    if (iterHelper.ptrToTexture < 0 || 
+        iterHelper.ptrToTexture >= static_cast<int>(texturesArray.size())) {
+        return false;
+    }
+
+    // Увеличиваем счетчик кадров
+    iterHelper.iterationCounter++;
+    
+    // Проверяем, не пора ли переключить текстуру
+    if (iterHelper.iterationCounter < iterHelper.iterationsTillSwitch) {
+        return true;
+    }
+    
+    // Сбрасываем счетчик кадров
+    iterHelper.iterationCounter = 0;
+    
+    // Устанавливаем текущую текстуру
+    sprite->setTexture(texturesArray[iterHelper.ptrToTexture]);
+    
+    // PingPong логика
+    if (iterHelper.countOfTextures <= 1) {
+        return true; // Одна текстура - ничего не делаем
+    }
+    
+    if (iterHelper.goForward) {
+        if (iterHelper.ptrToTexture >= iterHelper.countOfTextures - 1) {
+            iterHelper.goForward = false;
+            // Не выходим за границы
+            iterHelper.ptrToTexture = std::max(0, iterHelper.countOfTextures - 2);
+        } else {
+            iterHelper.ptrToTexture++;
+        }
+    } else {
+        if (iterHelper.ptrToTexture <= 0) {
+            iterHelper.goForward = true;
+            // Не выходим за границы
+            iterHelper.ptrToTexture = std::min(1, iterHelper.countOfTextures - 1);
+        } else {
+            iterHelper.ptrToTexture--;
+        }
+    }
+    
+    // Гарантируем, что индекс в пределах массива текстур
+    if (iterHelper.ptrToTexture < 0) {
+        iterHelper.ptrToTexture = 0;
+    }
+    if (iterHelper.ptrToTexture >= static_cast<int>(texturesArray.size())) {
+        iterHelper.ptrToTexture = texturesArray.size() - 1;
+    }
+    
+    return true;
 }
