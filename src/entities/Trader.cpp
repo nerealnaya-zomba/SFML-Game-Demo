@@ -2,7 +2,7 @@
 
 void Trader::updateTextures()
 {
-    gameUtils::switchToNextSprite(sprite.get(),*traderTextures,trader_helper,switchSprite_SwitchOption::PingPong);
+    gameUtils::switchToNextSprite(sprite.get(),*traderTextures,trader_helper,switchSprite_SwitchOption::Loop);
 }
 
 void Trader::checkIsInInteractionArea()
