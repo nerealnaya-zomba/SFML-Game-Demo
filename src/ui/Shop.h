@@ -52,6 +52,10 @@ private:
     // Двинуть выделение
     void moveSelectionRight();
     void moveSelectionLeft();
+
+    // Заблокировать/разблокировать управление игроком
+    void blockPlayerControl();
+    void unblockPlayerControl();
 public:
     Shop(GameData& d, Player& p, sf::Vector2f pos);
     ~Shop() = default;

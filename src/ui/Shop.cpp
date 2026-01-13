@@ -184,6 +184,16 @@ void Shop::moveSelectionLeft()
     }
 }
 
+void Shop::blockPlayerControl()
+{
+    this->player->blockControls();
+}
+
+void Shop::unblockPlayerControl()
+{
+    this->player->unblockControls();
+}
+
 Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
     : InteractiveObject(pos, d.bulletTextures[0]), isOpened(false), data(&d), player(&p), columns(BASE_SHOP_COLUMNS),
       rows(BASE_SHOP_ROWS), cellSize(BASE_SHOP_CELL_SIZE)
@@ -201,12 +211,15 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
 void Shop::open()
 {
     isOpened = true;
+    itemsIt = items.begin();
+    blockPlayerControl();
 }
 
 void Shop::close()
 {
     isOpened = false;
     itemsIt = items.begin();
+    unblockPlayerControl();
 }
 
 void Shop::addItem(std::unique_ptr<Item> item)

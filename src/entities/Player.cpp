@@ -115,22 +115,22 @@ void Player::updateTextures()
 
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
-        if(!isFalling && !isPlayingDashAnimation && !isJumped)
+        if(!isFalling && !isPlayingDashAnimation && !isJumped && !isControlsBlocked)
         {
             switchToNextRunningSprite();
         }
-        if(playerSprite->getScale().x>0)
+        if(playerSprite->getScale().x>0 && !isControlsBlocked)
         {
             playerSprite->setScale({-(playerSprite->getScale().x),1.f});
         }
     }
     else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
     {
-        if(!isFalling && !isPlayingDashAnimation && !isJumped)
+        if(!isFalling && !isPlayingDashAnimation && !isJumped && !isControlsBlocked)
         {
             switchToNextRunningSprite();
         }
-        if(playerSprite->getScale().x<0)
+        if(playerSprite->getScale().x<0 && !isControlsBlocked)
         {
             playerSprite->setScale({-(playerSprite->getScale().x),1.f});
         }
@@ -579,7 +579,7 @@ void Player::bloodExplode()
 
 void Player::updateControls()
 {
-    if(!this->isAlive || isPlayingDieAnimation) return;
+    if(!this->isAlive || isPlayingDieAnimation || isControlsBlocked) return;
     
     // Обновляем готовность действий по таймерам
     if (!canShoot && shootTimer.getElapsedTime().asMilliseconds() >= ButtonRepeat_shootCooldown) {
@@ -804,4 +804,14 @@ void Player::drawPlayerTrail(sf::RenderWindow& window)
     }
     trail->makeTrailDisappear();
     trail->drawTrail(window);
+}
+
+void Player::blockControls()
+{
+    this->isControlsBlocked = true;
+}
+
+void Player::unblockControls()
+{
+    this->isControlsBlocked = false;
 }

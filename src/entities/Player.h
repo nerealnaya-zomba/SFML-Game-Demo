@@ -41,6 +41,7 @@ public:
     bool isAlive   = true;
     bool isFliesUp = false;
     bool isJumped  = false;
+    bool isControlsBlocked = false;
     float fallingSpeed = 0.f;
     float initialWalkSpeed = 0.f;
     float speed = 0.15f;                    // Movement acceleration
@@ -146,6 +147,9 @@ public:
     void drawParticles(sf::RenderWindow& window);   // Draw particles
     void drawPlayerTrail(sf::RenderWindow& window); // Draw movement trail
 
+    // Block/Unblock controls
+    void blockControls();
+    void unblockControls();
 private:
     // Texture arrays
     std::vector<sf::Texture>* idleTextures;     // Idle animation frames
