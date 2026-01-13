@@ -199,6 +199,7 @@ void Shop::open()
 void Shop::close()
 {
     isOpened = false;
+    itemsIt = items.begin();
 }
 
 void Shop::addItem(std::unique_ptr<Item> item)
