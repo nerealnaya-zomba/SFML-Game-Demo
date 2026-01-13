@@ -151,7 +151,10 @@ void Shop::alignItemsOnGrid()
 
 void Shop::onItemSelected()
 {
-    itemsIt->second->setScale(BASE_SHOP_ITEM_SCALEUP_ON_HOVER);
+    itemsIt->second->setScale({
+        itemsIt->second->getBaseScale().x*BASE_SHOP_ITEM_SCALEUP_MULTIPLY_ON_HOVER.x,
+        itemsIt->second->getBaseScale().y*BASE_SHOP_ITEM_SCALEUP_MULTIPLY_ON_HOVER.y
+    });
 }
 
 void Shop::onSelectedChanged()
@@ -161,6 +164,8 @@ void Shop::onSelectedChanged()
 
 void Shop::moveSelectionRight()
 {
+    onSelectedChanged();
+
     itemsIt++;
     if(itemsIt == items.end())
     {
@@ -170,6 +175,8 @@ void Shop::moveSelectionRight()
 
 void Shop::moveSelectionLeft()
 {
+    onSelectedChanged();
+
     if (itemsIt == items.begin()) {
         itemsIt = std::prev(items.end());
     } else {
