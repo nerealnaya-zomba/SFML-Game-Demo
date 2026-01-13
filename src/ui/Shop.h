@@ -11,6 +11,10 @@ const unsigned int BASE_SHOP_ROWS             = 4;
 const sf::Vector2f BASE_SHOP_CELL_SIZE        = {40,40};
 const sf::Vector2f BASE_SHOP_BACKGROUND_SIZE  = {200,200};
 const sf::Vector2f BASE_SHOP_PADDING          = {20,20};
+const sf::Vector2f BASE_SHOP_ITEM_SCALEUP_ON_HOVER = {0.2,0.2};
+
+const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_RIGHT = sf::Keyboard::Scancode::Right;
+const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_LEFT = sf::Keyboard::Scancode::Left;
 
 class Shop : InteractiveObject
 {
@@ -28,6 +32,9 @@ private:
     // Items storage
     std::map<std::unique_ptr<sf::Text> ,std::unique_ptr<Item>> items;
 
+    // Items selection iterator
+    std::map<std::unique_ptr<sf::Text> ,std::unique_ptr<Item>>::iterator itemsIt;
+
     // Shop bools
     bool isOpened;
     
@@ -36,6 +43,15 @@ private:
     
     // Items aligning
     void alignItemsOnGrid();
+
+    // Событие происходящее при выделении предмета
+    void onItemSelected();
+    // Событие происходящее перед перемещением выделения
+    void onSelectedChanged();
+
+    // Двинуть выделение
+    void moveSelectionRight();
+    void moveSelectionLeft();
 public:
     Shop(GameData& d, Player& p, sf::Vector2f pos);
     ~Shop() = default;

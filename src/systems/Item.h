@@ -15,6 +15,7 @@ private:
     sf::IntRect rect;
     std::unique_ptr<sf::Sprite> sprite; // Иконка
 
+    sf::Vector2f baseScale;
 public:
     struct Stats {
         int bulletSpeed = 0;
@@ -25,7 +26,7 @@ public:
         float health = 0;
         float damage = 0;
     };
-    
+
     const Stats stats;
 
     enum Quality {COMMON, RARE, MYTH, LEGENDARY};
@@ -39,6 +40,12 @@ public:
 
     void draw(sf::RenderWindow& window);
 
+    // Getters
+        // For mouse
+    bool isIntersects(sf::Vector2i pos);
+    sf::Vector2f getBaseScale();
+
     // Setters
     void setPosition(sf::Vector2i& pos);
+    void setScale(sf::Vector2f scale);
 };

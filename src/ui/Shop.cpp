@@ -4,11 +4,24 @@ void Shop::update()
 {
     if(!isOpened) return;
     alignItemsOnGrid();
+    onItemSelected();
 }
 
 void Shop::handleEvent(const sf::Event &event)
 {
     if(!isOpened) return;
+
+    if(const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
+    {
+        if(keyPressed->scancode == SHOP_KEY_TO_MOVE_RIGHT)
+        {
+            moveSelectionRight();
+        }
+        else if(keyPressed->scancode == SHOP_KEY_TO_MOVE_LEFT)
+        {
+            moveSelectionLeft();
+        }
+    }
 }
 
 bool Shop::getIsOpened()
@@ -136,6 +149,34 @@ void Shop::alignItemsOnGrid()
     }
 }
 
+void Shop::onItemSelected()
+{
+    itemsIt->second->setScale(BASE_SHOP_ITEM_SCALEUP_ON_HOVER);
+}
+
+void Shop::onSelectedChanged()
+{
+    itemsIt->second->setScale(itemsIt->second->getBaseScale());
+}
+
+void Shop::moveSelectionRight()
+{
+    itemsIt++;
+    if(itemsIt == items.end())
+    {
+        itemsIt = items.begin();
+    }
+}
+
+void Shop::moveSelectionLeft()
+{
+    if (itemsIt == items.begin()) {
+        itemsIt = std::prev(items.end());
+    } else {
+        itemsIt--;
+    }
+}
+
 Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
     : InteractiveObject(pos, d.bulletTextures[0]), isOpened(false), data(&d), player(&p), columns(BASE_SHOP_COLUMNS),
       rows(BASE_SHOP_ROWS), cellSize(BASE_SHOP_CELL_SIZE)
@@ -145,7 +186,9 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
     shopBackground.setPosition(pos);
     shopBackground.setFillColor(sf::Color::Red);
 
+    // Инициализация предметов
     initializeItems();
+    itemsIt = items.begin();
 }
 
 void Shop::open()

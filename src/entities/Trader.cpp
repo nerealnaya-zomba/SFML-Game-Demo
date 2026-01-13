@@ -76,9 +76,16 @@ void Trader::update()
 
 void Trader::handleEvent(const sf::Event &event)
 {
-    // Открыть магазин только если игрок подошел к торговцу и нажал на keyToOpenShop
+    // Если подошел к торговцу
     if(isCanInteract)
     {
+        // Event handling by shop if opened
+        if(shop->getIsOpened())
+        {
+            shop->handleEvent(event);
+        }
+
+        // Открыть магазин если нажал на keyToOpenShop
         if(const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
         {
             if(keyPressed != nullptr && keyPressed->scancode == keyToOpenShop)

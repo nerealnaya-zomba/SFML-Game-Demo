@@ -25,6 +25,9 @@ Item::Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, std::st
 
         sprite->setScale({spriteScaleX,spriteScaleY});
     }
+
+    // Инициализируем базовый, константный, скейл
+    baseScale = sprite->getScale();
 }
 
 void Item::draw(sf::RenderWindow& window)
@@ -38,8 +41,32 @@ void Item::draw(sf::RenderWindow& window)
     window.draw(*sprite);
 }
 
-void Item::setPosition(sf::Vector2i& pos)
+bool Item::isIntersects(sf::Vector2i pos)
+{
+    sf::IntRect mouseRect;
+    mouseRect.size = {1,1};
+    mouseRect.position = pos;
+
+    if(mouseRect.findIntersection(rect))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+sf::Vector2f Item::getBaseScale()
+{
+    return baseScale;
+}
+
+void Item::setPosition(sf::Vector2i &pos)
 {
     rect.position = {pos.x-rect.size.x,pos.y-rect.size.y};
     sprite->setPosition(static_cast<sf::Vector2f>(pos));
+}
+
+void Item::setScale(sf::Vector2f scale)
+{
+    this->sprite->setScale(scale);
 }
