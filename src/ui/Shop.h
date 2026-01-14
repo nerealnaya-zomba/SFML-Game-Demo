@@ -15,8 +15,10 @@ const sf::Vector2f BASE_SHOP_ITEM_SCALEUP_MULTIPLY_ON_HOVER = {1.2,1.2};
 
 const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_RIGHT         = sf::Keyboard::Scancode::Right;
 const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_LEFT          = sf::Keyboard::Scancode::Left;
+const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_DOWN          = sf::Keyboard::Scancode::Down;
+const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_UP            = sf::Keyboard::Scancode::Up;
 const sf::Keyboard::Scancode SHOP_KEY_TO_OPEN_ITEM_WIDGET   = sf::Keyboard::Scancode::Z;
-const sf::Keyboard::Scancode SHOP_KEY_TO_CLOSE_ITEM_WIDGET   = sf::Keyboard::Scancode::X;
+const sf::Keyboard::Scancode SHOP_KEY_TO_CLOSE_ITEM_WIDGET  = sf::Keyboard::Scancode::X;
 
 class Shop : InteractiveObject
 {
@@ -95,6 +97,8 @@ private:
     // Двинуть выделение
     void moveSelectionRight();
     void moveSelectionLeft();
+    void moveSelectionDown();
+    void moveSelectionUp();
 
     // Заблокировать/разблокировать управление игроком
     void blockPlayerControl();

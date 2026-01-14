@@ -29,6 +29,14 @@ void Shop::handleEvent(const sf::Event &event)
         {
             moveSelectionLeft();
         }
+        else if(keyPressed->scancode == SHOP_KEY_TO_MOVE_DOWN)
+        {
+            moveSelectionDown();
+        }
+        else if(keyPressed->scancode == SHOP_KEY_TO_MOVE_UP)
+        {
+            moveSelectionUp();
+        }
         else if(keyPressed->scancode == SHOP_KEY_TO_OPEN_ITEM_WIDGET)
         {
             openSelectedItemWidget();
@@ -131,6 +139,149 @@ void Shop::initializeItems()
         100,
         statsBlood
     ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_01.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_02.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_03.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_04.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_05.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_06.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_07.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_08.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_09.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_10.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_18.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_19.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
+
+    addItem(std::make_unique<Item>(
+        *this->data,
+        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+        static_cast<sf::Vector2i>(getCenterPosition()),
+        "item_20.png",
+        "Dungeon book",
+        Item::COMMON,
+        100,
+        statsBlood
+    ));
 }
 
 void Shop::alignItemsOnGrid()
@@ -195,6 +346,68 @@ void Shop::moveSelectionLeft()
         itemsIt = std::prev(items.end());
     } else {
         itemsIt--;
+    }
+}
+
+void Shop::moveSelectionDown()
+{
+    onSelectedChanged();
+    
+    size_t currentIndex = itemsIt - items.begin();
+    size_t newIndex = currentIndex + columns;
+    
+    // Если выходим за пределы вектора
+    if (newIndex >= items.size())
+    {
+        // Циклически перемещаемся наверх: находим элемент в том же столбце в верхнем ряду
+        // Вычисляем столбец текущего элемента
+        size_t column = currentIndex % columns;
+        
+        // Перемещаемся в первый ряд, в тот же столбец
+        newIndex = column;
+        
+        // Если в первом ряду в этом столбце нет элемента, ищем ближайший слева
+        while (newIndex >= items.size())
+        {
+            newIndex--;
+        }
+    }
+    
+    itemsIt = items.begin() + newIndex;
+}
+void Shop::moveSelectionUp()
+{
+    onSelectedChanged();
+    
+    size_t currentIndex = itemsIt - items.begin();
+    
+    // Если мы уже в первом ряду или выше
+    if (currentIndex < columns)
+    {
+        // Циклически перемещаемся вниз: находим элемент в том же столбце в последнем ряду
+        size_t column = currentIndex % columns;
+        
+        // Начинаем с нижнего элемента в этом столбце
+        size_t newIndex = ((items.size() - 1) / columns) * columns + column;
+        
+        // Если newIndex выходит за пределы вектора, уменьшаем его
+        if (newIndex >= items.size())
+        {
+            newIndex = items.size() - 1;
+            
+            // Если последний элемент не в нужном столбце, ищем ближайший в том же столбце
+            while (newIndex % columns > column)
+            {
+                newIndex--;
+            }
+        }
+        
+        itemsIt = items.begin() + newIndex;
+    }
+    else
+    {
+        // Просто перемещаемся на ряд вверх
+        itemsIt -= columns;
     }
 }
 

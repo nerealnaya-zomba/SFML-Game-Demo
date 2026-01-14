@@ -99,6 +99,13 @@ void Trader::handleEvent(const sf::Event &event)
                     shop->close();
                 }
             }
+            else if(keyPressed != nullptr && keyPressed->scancode == keyToOpenShop_second)
+            {
+                if(shop->getIsOpened())
+                {
+                    shop->close();
+                }
+            }
         }
     }
     else
