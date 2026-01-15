@@ -140,6 +140,9 @@ public:
 
     // Items textures
     std::map<std::string,sf::Texture> itemsTextures;
+    
+    // GUI textures
+    std::map<std::string,sf::Texture> guiTextures;
 
 private:
     // Texture loading and processing
@@ -249,4 +252,7 @@ private:
 
     // Items texture path
     std::string itemsPath{"images/items/item_"};
+
+    // GUI texture path
+    std::string guiPath{"images/GUI/GUI_"};
 };

@@ -285,6 +285,13 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
     generateMipmapTextures(itemsTextures);
     smoothTextures(itemsTextures);
 
+    // GUI initialization
+    if(loadTexture(guiTextures,guiPath, true)) succesedOperationsCount_m++;
+    loadingScreen_m->update(succesedOperationsCount_m);
+    loadingScreen_m->draw();
+    generateMipmapTextures(guiTextures);
+    smoothTextures(guiTextures);
+
     //Save load info
     if(succesedOperationsCount_m!=allOperations_count_m)
     {

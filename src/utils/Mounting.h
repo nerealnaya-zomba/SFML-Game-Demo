@@ -65,6 +65,7 @@ static bool initTextures(std::map<std::string,sf::Texture> &textures, std::strin
         sf::Texture texture;
         if (!texture.loadFromFile(filename.str())) {
             std::cerr << "Failed to load image: " << filename.str() << std::endl;
+            exit(1);
             return false;
         }
         std::string only_filename = filename.str().substr(filename.str().find_last_of("/\\") + 1);
