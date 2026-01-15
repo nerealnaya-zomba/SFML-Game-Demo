@@ -9,6 +9,8 @@
 #include <sstream>
 #include <iomanip>
 #include <map>
+#include<limits>
+#include<cmath>
 
 static void setRectangleOriginToMiddle(sf::RectangleShape& rect)
 {
