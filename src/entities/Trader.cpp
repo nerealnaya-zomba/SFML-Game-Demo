@@ -2,7 +2,7 @@
 
 void Trader::updateTextures()
 {
-    gameUtils::switchToNextSprite(sprite.get(),*traderTextures,trader_helper,switchSprite_SwitchOption::Loop);
+    switchToNextSpritePingPong(sprite.get(), *traderTextures, trader_helper);
 }
 
 void Trader::checkIsInInteractionArea()
@@ -88,6 +88,7 @@ void Trader::handleEvent(const sf::Event &event)
         // Открыть магазин если нажал на keyToOpenShop
         if(const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
         {
+            // Открыть/закрыть на Enter
             if(keyPressed != nullptr && keyPressed->scancode == keyToOpenShop)
             {
                 if(!shop->getIsOpened())
@@ -99,6 +100,7 @@ void Trader::handleEvent(const sf::Event &event)
                     shop->close();
                 }
             }
+            // Закрыть магазин на C
             else if(keyPressed != nullptr && keyPressed->scancode == keyToOpenShop_second)
             {
                 if(shop->getIsOpened())
