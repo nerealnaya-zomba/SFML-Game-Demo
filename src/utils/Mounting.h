@@ -345,3 +345,12 @@ static void substractUnsigned(uint8_t &first, int second)
         first = 0;
     }else first-second;
 }
+static bool isEqualFloat(float a, float b, float epsilon = 0.0001f)
+{
+    return std::fabs(a - b) < epsilon;
+}
+
+static bool isEqualDouble(double a, double b, double epsilon = 0.000001)
+{
+    return std::fabs(a - b) < epsilon;
+}
