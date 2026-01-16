@@ -44,6 +44,7 @@ public:
         // For mouse
     bool isIntersects(sf::Vector2i pos);
     sf::Vector2f getBaseScale();
+    sf::Vector2u getTextureSize();
 
     // Setters
     void setPosition(sf::Vector2i& pos);

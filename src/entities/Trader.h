@@ -14,7 +14,6 @@ bool switchToNextSpritePingPong(sf::Sprite* sprite,
 class Shop;
 
 const sf::Keyboard::Scancode keyToOpenShop          = sf::Keyboard::Scancode::Enter;
-const sf::Keyboard::Scancode keyToOpenShop_second   = sf::Keyboard::Scancode::C;
 const sf::Vector2f BASE_SHOP_OFFSET                 = {0.f,-200.f};
 
 class Trader : public InteractiveObject

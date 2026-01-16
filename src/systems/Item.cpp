@@ -60,6 +60,11 @@ sf::Vector2f Item::getBaseScale()
     return baseScale;
 }
 
+sf::Vector2u Item::getTextureSize()
+{
+    return this->sprite->getTexture().getSize();
+}
+
 void Item::setPosition(sf::Vector2i &pos)
 {
     rect.position = {pos.x-rect.size.x,pos.y-rect.size.y};

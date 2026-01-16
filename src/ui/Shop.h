@@ -10,8 +10,11 @@ const unsigned int BASE_SHOP_COLUMNS                        = 5;
 const unsigned int BASE_SHOP_ROWS                           = 4;
 const sf::Vector2f BASE_SHOP_CELL_SIZE                      = {40,40};
 const sf::Vector2f BASE_SHOP_BACKGROUND_SIZE                = {200,200};
+const sf::Vector2f BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE    = {0.3f,0.3f};
 const sf::Vector2f BASE_SHOP_PADDING                        = {20,20};
 const sf::Vector2f BASE_SHOP_ITEM_SCALEUP_MULTIPLY_ON_HOVER = {1.2,1.2};
+
+const sf::Vector2i BASE_SHOP_ITEMS_MARGIN                   = {20,20};
 
 const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_RIGHT         = sf::Keyboard::Scancode::Right;
 const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_LEFT          = sf::Keyboard::Scancode::Left;
@@ -65,12 +68,12 @@ private:
     Player* player;
     GameData* data;
 
-    sf::RectangleShape shopBackground;
     ItemWidget widget;
 
     //Grid settings
-    unsigned int columns;
-    unsigned int rows;
+    int columns;
+    int rows;
+    sf::Vector2i itemsMargin;
     sf::Vector2f cellSize;
 
     // Items storage
@@ -93,6 +96,10 @@ private:
     void onItemSelected();
     // Событие происходящее перед перемещением выделения
     void onSelectedChanged();
+    // Событие при закрытии магазина
+    void onShopClosed();
+    // Событие при открытии магазина
+    void onShopOpened();
 
     // Двинуть выделение
     void moveSelectionRight();

@@ -56,7 +56,7 @@ void Shop::draw(sf::RenderWindow& window)
     if(!isOpened) return;
 
     // window.draw(*sprite);
-    window.draw(shopBackground);
+    window.draw(*sprite);
 
     for (auto &&item : items)
     {
@@ -286,27 +286,39 @@ void Shop::initializeItems()
 
 void Shop::alignItemsOnGrid()
 {
-    sf::Vector2f backgroundStart = {shopBackground.getPosition().x-(shopBackground.getSize().x/2),shopBackground.getPosition().y-(shopBackground.getSize().y/2)};
+    sf::Vector2f backgroundStart = {
+        sprite.get()->getPosition().x,
+        sprite.get()->getPosition().y};
     
     int iterationCount = 0;
     int countingForNextRow = 0;
 
     for (auto &&item : items)
     {
+        // Рассчитываем позицию с учетом отступов
+        // BASE_SHOP_CELL_SIZE - размер ячейки (включая предмет)
+        // horizontalMargin * iterationCount - сумма всех горизонтальных отступов слева
+        // BASE_SHOP_CELL_SIZE.x * iterationCount - суммарная ширина всех предыдущих предметов
         sf::Vector2f nextPos = {
-            backgroundStart.x+(BASE_SHOP_CELL_SIZE.x/2)+(BASE_SHOP_CELL_SIZE.x*iterationCount),
-            backgroundStart.y+(BASE_SHOP_CELL_SIZE.y/2)+(BASE_SHOP_CELL_SIZE.y*countingForNextRow)
+            backgroundStart.x + (BASE_SHOP_CELL_SIZE.x / 2) + 
+            (BASE_SHOP_CELL_SIZE.x * iterationCount) + 
+            (itemsMargin.x * iterationCount),
+            
+            backgroundStart.y + (BASE_SHOP_CELL_SIZE.y / 2) + 
+            (BASE_SHOP_CELL_SIZE.y * countingForNextRow) + 
+            (itemsMargin.y * countingForNextRow)
         };
-        nextPos.x+=BASE_SHOP_PADDING.x;
-        nextPos.y+=BASE_SHOP_PADDING.y;
+        
+        // Добавляем базовый padding
+        nextPos.x += BASE_SHOP_PADDING.x;
+        nextPos.y += BASE_SHOP_PADDING.y;
 
         sf::Vector2i convertedNextPos = static_cast<sf::Vector2i>(nextPos);
-
         item->setPosition(convertedNextPos);
 
         iterationCount++;
 
-        if(iterationCount==columns)
+        if(iterationCount == columns)
         {
             countingForNextRow++;
             iterationCount = 0;
@@ -325,6 +337,18 @@ void Shop::onItemSelected()
 void Shop::onSelectedChanged()
 {
     itemsIt->get()->setScale(itemsIt->get()->getBaseScale());
+}
+
+void Shop::onShopClosed()
+{
+    for (auto &&i : items)
+    {
+        i.get()->setScale(i.get()->getBaseScale());
+    }
+}
+
+void Shop::onShopOpened()
+{
 }
 
 void Shop::moveSelectionRight()
@@ -435,26 +459,96 @@ void Shop::closeSelectedItemWidget()
 }
 
 Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
-    : InteractiveObject(pos, d.bulletTextures[0]), isOpened(false), data(&d), player(&p), columns(BASE_SHOP_COLUMNS),
+    : InteractiveObject(pos, d.guiTextures.at("GUI_10.png")), isOpened(false), data(&d), player(&p), columns(BASE_SHOP_COLUMNS),
       rows(BASE_SHOP_ROWS), 
       cellSize(BASE_SHOP_CELL_SIZE), 
       isItemWidgetOpened(false), 
-      widget({BASE_SHOP_BACKGROUND_SIZE.x, BASE_SHOP_BACKGROUND_SIZE.y},pos,{0,0},{0.f,BASE_SHOP_BACKGROUND_SIZE.y}, *d.gameFont, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/20, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/16)
-{
-    shopBackground.setSize(BASE_SHOP_BACKGROUND_SIZE);
-    setRectangleOriginToMiddle(shopBackground);
-    shopBackground.setPosition(pos);
-    shopBackground.setFillColor(sf::Color::Red);
+      widget({BASE_SHOP_BACKGROUND_SIZE.x, BASE_SHOP_BACKGROUND_SIZE.y},pos,{0,0},{0.f,BASE_SHOP_BACKGROUND_SIZE.y}, *d.gameFont, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/20, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/16),
+      itemsMargin(BASE_SHOP_ITEMS_MARGIN)
+{   
+
+
+    
+    
+    // shopBackground.setSize(BASE_SHOP_BACKGROUND_SIZE);
+    // setRectangleOriginToMiddle(shopBackground);
+    // shopBackground.setPosition(pos);
+    // shopBackground.setFillColor(sf::Color::Red);
 
     // Инициализация предметов
     initializeItems();
     itemsIt = items.begin();
+
+    // Корректируем размеры фона
+    sf::Vector2f baseBackgroundScale = {1.f, 1.f};
+    if (!items.empty())
+    {
+        // Получаем размер текстуры одного предмета (в пикселях)
+        sf::Vector2u itemTextureSize = items[0]->getTextureSize(); // или itemsIt->get()->getTextureSize()
+        sf::Vector2f itemScale = items[0]->getBaseScale();
+        
+        // Реальный размер предмета на экране (с учетом его текущего масштаба)
+        sf::Vector2f itemDisplaySize = {
+            itemTextureSize.x * itemScale.x,
+            itemTextureSize.y * itemScale.y
+        };
+        
+        // Вычисляем требуемый размер фона для размещения всех предметов
+        // Учитываем отступы между предметами
+        float requiredWidth = itemDisplaySize.x * columns + 
+                            itemsMargin.x * (columns - 1); // Отступы между столбцами
+        float requiredHeight;
+        
+        // Вычисляем количество строк
+        unsigned int rows = (items.size() + columns - 1) / columns; // Округление вверх
+        requiredHeight = itemDisplaySize.y * rows + 
+                        itemsMargin.y * (rows - 1); // Отступы между строками
+        
+        // Получаем текущие параметры фона
+        sf::Vector2u backTextureSize = sprite->getTexture().getSize();
+        sf::Vector2f currentBackScale = sprite->getScale();
+        
+        // Вычисляем нужный масштаб для фона
+        sf::Vector2f newBackScale;
+        newBackScale.x = requiredWidth / static_cast<float>(backTextureSize.x);
+        newBackScale.y = requiredHeight / static_cast<float>(backTextureSize.y);
+        
+        // Применяем масштаб с небольшой погрешностью
+        const float epsilon = 0.001f;
+        if (!isEqualFloat(currentBackScale.x, newBackScale.x, epsilon) ||
+            !isEqualFloat(currentBackScale.y, newBackScale.y, epsilon))
+        {
+            sprite->setScale(newBackScale);
+        }
+        sprite.get()->setPosition({
+            pos.x-((backTextureSize.x*newBackScale.x)/2),
+            pos.y-(backTextureSize.x*newBackScale.x/2)
+        });
+        // Добавляем дополнительный scale
+        setScale({
+            sprite.get()->getScale().x+BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.x, 
+            sprite.get()->getScale().y+BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.y
+        });
+    }
+    else
+    {
+        // Добавляем дополнительный scale
+        setScale({
+            sprite.get()->getScale().x+BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.x, 
+            sprite.get()->getScale().y+BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.y
+        });
+
+        sprite.get()->setPosition(pos);;
+    }
+
+    
 }
 
 void Shop::open()
 {
     isOpened = true;
     itemsIt = items.begin();
+    onShopOpened();
     blockPlayerControl();
 }
 
@@ -462,6 +556,7 @@ void Shop::close()
 {
     isOpened = false;
     itemsIt = items.begin();
+    onShopClosed();
     unblockPlayerControl();
 }
 
