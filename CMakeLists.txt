@@ -43,7 +43,8 @@ add_executable(main
     src/entities/LevelPortal.cpp
     src/entities/Trader.cpp
     src/systems/Item.cpp
-    src/ui/Shop.cpp)
+    src/ui/Shop.cpp
+    src/ui/PlayerInventory.cpp)
 
 target_include_directories(main PRIVATE 
     ${CMAKE_SOURCE_DIR}/src 
