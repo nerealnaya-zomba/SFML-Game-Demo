@@ -355,6 +355,7 @@ void Shop::onShopClosed()
     {
         i.second.get()->setScale(i.second.get()->getBaseScale());
     }
+    widget.close();
 }
 
 void Shop::onShopOpened()
@@ -473,7 +474,7 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
       rows(BASE_SHOP_ROWS), 
       cellSize(BASE_SHOP_CELL_SIZE), 
       isItemWidgetOpened(false), 
-      widget({BASE_SHOP_BACKGROUND_SIZE.x, BASE_SHOP_BACKGROUND_SIZE.y},pos,{0,0},{0.f,BASE_SHOP_BACKGROUND_SIZE.y}, *d.gameFont, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/20, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/16),
+      widget(d,BASE_SHOP_WIDGET_SPRITE_SCALE,pos,{0,0},{0.f,BASE_SHOP_BACKGROUND_SIZE.y}, *d.gameFont, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/20, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/25),
       itemsMargin(BASE_SHOP_ITEMS_MARGIN)
 {   
     // shopBackground.setSize(BASE_SHOP_BACKGROUND_SIZE);
@@ -570,19 +571,19 @@ void Shop::addItem(std::unique_ptr<Item> item)
     items.push_back(std::pair(sf::Sprite(data->guiTextures.at("GUI_04.png")),std::move(item)));
 }
 
-Shop::ItemWidget::ItemWidget(sf::Vector2f widgetSize, sf::Vector2f widgetPos,sf::Vector2f displayNamePosLocal, sf::Vector2f statsTextPosLocal, sf::Font& font, uint8_t displayNameSize, uint8_t statsTextSize)
-    : displayNameText(font,"",displayNameSize), statsText(font,"",statsTextSize), isOpened(false)
+Shop::ItemWidget::ItemWidget(GameData& data,sf::Vector2f widgetScale, sf::Vector2f widgetPos,sf::Vector2f displayNamePosLocal, sf::Vector2f statsTextPosLocal, sf::Font& font, uint8_t displayNameSize, uint8_t statsTextSize)
+    : displayNameText(font,"",displayNameSize), statsText(font,"",statsTextSize), isOpened(false), background(data.guiTextures.at("GUI_17.png"))
 {
     // Background init
-    rect.setFillColor(sf::Color::Blue);
-    rect.setSize(widgetSize);
-    setRectangleOriginToMiddle(rect);
-    
+    background.setScale(widgetScale);
+    setSpriteOriginToMiddle(background);
 
     this->displayNameText.setCharacterSize(displayNameSize);
     this->statsText.setCharacterSize(statsTextSize);
     setDisplayNamePosition(displayNamePosLocal);
     setStatsTextPosition(statsTextPosLocal);
+    setDisplayNameColor(sf::Color::Black);
+    setStatsTextColor(sf::Color::Black);
 
     setWidgetCenterPosition(widgetPos);
 }
@@ -591,7 +592,7 @@ void Shop::ItemWidget::draw(sf::RenderWindow &window)
 {
     if(!isOpened) return;
     
-    window.draw(this->rect);
+    window.draw(this->background);
     window.draw(this->displayNameText);
     window.draw(this->statsText);
 }
@@ -652,19 +653,19 @@ void Shop::ItemWidget::attachItemStats(Item& item)
     displayNameText.setString(item.displayName);
     statsText.setString(
         "BulletDistance: +"     + std::to_string(item.stats.bulletDistance)                 + "\n"+
-        "BulletSpeed: +"        + std::to_string(item.stats.bulletSpeed)                    + "\n"+
-        "BulletDamage: +"       + std::to_string(item.stats.damage)                         + "\n"+
-        "Health: +"             + std::to_string(item.stats.health)                         + "\n"+
-        "InitialSpeed: +"       + std::to_string(item.stats.initialSpeed)                   + "\n"+
-        "MaxSpeed: +"           + std::to_string(item.stats.maxSpeed)                       + "\n"+
+        "BulletSpeed:    +"        + std::to_string(item.stats.bulletSpeed)                 + "\n"+
+        "BulletDamage:   +"       + std::to_string(item.stats.damage)                       + "\n"+
+        "Health:         +"             + std::to_string(item.stats.health)                 + "\n"+
+        "InitialSpeed:   +"       + std::to_string(item.stats.initialSpeed)                 + "\n"+
+        "MaxSpeed:       +"           + std::to_string(item.stats.maxSpeed)                 + "\n"+
         "Shoot cooldown: -"     + std::to_string(item.stats.shootSpeedCooldownReduction)    + "\n"
     );
 }
 
-void Shop::ItemWidget::setWidgetSize(sf::Vector2f size)
+void Shop::ItemWidget::setWidgetScale(sf::Vector2f size)
 {
-    rect.setSize(size);
-    setRectangleOriginToMiddle(rect);
+    background.setScale(size);
+    setSpriteOriginToMiddle(background);
 }
 
 void Shop::ItemWidget::setDisplayNameText(std::string str)
@@ -677,11 +678,21 @@ void Shop::ItemWidget::setStatsText(std::string str)
     this->statsText.setString(str);
 }
 
+void Shop::ItemWidget::setDisplayNameColor(sf::Color c)
+{
+    this->displayNameText.setFillColor(c);
+}
+
+void Shop::ItemWidget::setStatsTextColor(sf::Color c)
+{
+    this->statsText.setFillColor(c);
+}
+
 void Shop::ItemWidget::setDisplayNamePosition(sf::Vector2f position)
 {
     sf::Vector2f rectLeftTopPos = {
-        rect.getPosition().x-(rect.getSize().x/2),
-        rect.getPosition().y-(rect.getSize().y/2)
+        (background.getPosition().x-((background.getTexture().getSize().x/2))*background.getScale().x) + BASE_SHOP_WIDGET_DISPLAY_NAME_PADDING.x,
+        (background.getPosition().y-((background.getTexture().getSize().y/2))*background.getScale().y) + BASE_SHOP_WIDGET_DISPLAY_NAME_PADDING.y
     };
     
     this->displayNameText.setPosition({
@@ -693,8 +704,8 @@ void Shop::ItemWidget::setDisplayNamePosition(sf::Vector2f position)
 void Shop::ItemWidget::setStatsTextPosition(sf::Vector2f position)
 {
     sf::Vector2f rectLeftTopPos = {
-        rect.getPosition().x-(rect.getSize().x/2),
-        rect.getPosition().y-(rect.getSize().y/2)
+        (background.getPosition().x-((background.getTexture().getSize().x/2))*background.getScale().x) + BASE_SHOP_WIDGET_STATS_TEXT_PADDING.x,
+        (background.getPosition().y-((background.getTexture().getSize().y/2))*background.getScale().y) + BASE_SHOP_WIDGET_STATS_TEXT_PADDING.y
     };
     
     this->statsText.setPosition({
@@ -707,12 +718,12 @@ void Shop::ItemWidget::setWidgetCenterPosition(sf::Vector2f position)
 {
     // Getting difference
     sf::Vector2f positionDiff = {
-        -(rect.getPosition().x-position.x),
-        -(rect.getPosition().y-position.y)
+        -(background.getPosition().x-position.x),
+        -(background.getPosition().y-position.y)
     };
 
     // Rect positioning
-    rect.setPosition(position);
+    background.setPosition(position);
 
     // DisplayName positioning
     sf::Vector2f displayNamePos = displayNameText.getPosition();

@@ -14,6 +14,9 @@ const sf::Vector2f BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE    = {1.0f,1.0f};
 const sf::Vector2f BASE_SHOP_PADDING                        = {52,60};
 const sf::Vector2f BASE_SHOP_CELL_SPRITE_SCALE              = {2.0,2.0};
 const sf::Vector2f BASE_SHOP_CELL_SPRITE_SELECTED_SCALE     = {2.3,2.3};
+const sf::Vector2f BASE_SHOP_WIDGET_SPRITE_SCALE            = {5.f,5.f};
+const sf::Vector2f BASE_SHOP_WIDGET_DISPLAY_NAME_PADDING    = {30.f,40};
+const sf::Vector2f BASE_SHOP_WIDGET_STATS_TEXT_PADDING      = {30.f,-100};
 
 const sf::Vector2i BASE_SHOP_ITEMS_MARGIN                   = {20,20};
 
@@ -32,13 +35,13 @@ private:
     private:
         sf::Text displayNameText;
         sf::Text statsText;
-        sf::RectangleShape rect;
+        sf::Sprite background;
         Item::Stats stat;
 
         bool isOpened;
 
     public:
-        ItemWidget(sf::Vector2f widgetSize, sf::Vector2f widgetPos, sf::Vector2f displayNamePosLocal, sf::Vector2f statsTextPosLocal, sf::Font& font, uint8_t displayNameSize, uint8_t statsTextSize);
+        ItemWidget(GameData& data, sf::Vector2f widgetSize, sf::Vector2f widgetPos, sf::Vector2f displayNamePosLocal, sf::Vector2f statsTextPosLocal, sf::Font& font, uint8_t displayNameSize, uint8_t statsTextSize);
         ~ItemWidget() = default;
 
         void draw(sf::RenderWindow& window);
@@ -56,9 +59,11 @@ private:
 
         // Setters
         void attachItemStats(Item& item);
-        void setWidgetSize(sf::Vector2f size);
+        void setWidgetScale(sf::Vector2f size);
         void setDisplayNameText(std::string str);
         void setStatsText(std::string str);
+        void setDisplayNameColor(sf::Color c);
+        void setStatsTextColor(sf::Color c);
             // Перемещается ТОЛЬКО внутри области виджета. Позиционирование от левого-верхнего угла
         void setDisplayNamePosition(sf::Vector2f position);
         void setStatsTextPosition(sf::Vector2f position);

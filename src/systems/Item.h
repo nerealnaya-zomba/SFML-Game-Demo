@@ -23,8 +23,8 @@ public:
         int shootSpeedCooldownReduction = 0;
         int initialSpeed = 0;
         int maxSpeed = 0;
-        float health = 0;
-        float damage = 0;
+        int health = 0;
+        int damage = 0;
     };
 
     const Stats stats;
