@@ -60,7 +60,8 @@ void Shop::draw(sf::RenderWindow& window)
 
     for (auto &&item : items)
     {
-        item->draw(window);
+        window.draw(item.first);
+        item.second->draw(window);
     }
     
     widget.draw(window);
@@ -282,6 +283,14 @@ void Shop::initializeItems()
         100,
         statsBlood
     ));
+
+    // Меняем ориджин всех спрайтов к центру, а скейл на базовый.
+    for (auto &&i : items)
+    {
+        setSpriteOriginToMiddle(i.first);
+        i.first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
+    }
+    
 }
 
 void Shop::alignItemsOnGrid()
@@ -314,7 +323,7 @@ void Shop::alignItemsOnGrid()
         nextPos.y += BASE_SHOP_PADDING.y;
 
         sf::Vector2i convertedNextPos = static_cast<sf::Vector2i>(nextPos);
-        item->setPosition(convertedNextPos);
+        item.second->setPosition(convertedNextPos);
 
         iterationCount++;
 
@@ -323,27 +332,28 @@ void Shop::alignItemsOnGrid()
             countingForNextRow++;
             iterationCount = 0;
         }
+
+        // Позиционирование спрайта выделения
+        item.first.setPosition(item.second.get()->getCenterPosition());
+        
     }
 }
 
 void Shop::onItemSelected()
 {
-    itemsIt->get()->setScale({
-        itemsIt->get()->getBaseScale().x*BASE_SHOP_ITEM_SCALEUP_MULTIPLY_ON_HOVER.x,
-        itemsIt->get()->getBaseScale().y*BASE_SHOP_ITEM_SCALEUP_MULTIPLY_ON_HOVER.y
-    });
+    itemsIt->first.setScale(BASE_SHOP_CELL_SPRITE_SELECTED_SCALE);
 }
 
 void Shop::onSelectedChanged()
 {
-    itemsIt->get()->setScale(itemsIt->get()->getBaseScale());
+    itemsIt->first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
 }
 
 void Shop::onShopClosed()
 {
     for (auto &&i : items)
     {
-        i.get()->setScale(i.get()->getBaseScale());
+        i.second.get()->setScale(i.second.get()->getBaseScale());
     }
 }
 
@@ -448,7 +458,7 @@ void Shop::unblockPlayerControl()
 void Shop::openSelectedItemWidget()
 {
     isItemWidgetOpened = true;
-    widget.attachItemStats(*itemsIt->get());
+    widget.attachItemStats(*itemsIt->second.get());
     widget.open();
 }
 
@@ -466,10 +476,6 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
       widget({BASE_SHOP_BACKGROUND_SIZE.x, BASE_SHOP_BACKGROUND_SIZE.y},pos,{0,0},{0.f,BASE_SHOP_BACKGROUND_SIZE.y}, *d.gameFont, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/20, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/16),
       itemsMargin(BASE_SHOP_ITEMS_MARGIN)
 {   
-
-
-    
-    
     // shopBackground.setSize(BASE_SHOP_BACKGROUND_SIZE);
     // setRectangleOriginToMiddle(shopBackground);
     // shopBackground.setPosition(pos);
@@ -484,8 +490,8 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
     if (!items.empty())
     {
         // Получаем размер текстуры одного предмета (в пикселях)
-        sf::Vector2u itemTextureSize = items[0]->getTextureSize(); // или itemsIt->get()->getTextureSize()
-        sf::Vector2f itemScale = items[0]->getBaseScale();
+        sf::Vector2u itemTextureSize = items[0].second->getTextureSize(); // или itemsIt->get()->getTextureSize()
+        sf::Vector2f itemScale = items[0].second->getBaseScale();
         
         // Реальный размер предмета на экране (с учетом его текущего масштаба)
         sf::Vector2f itemDisplaySize = {
@@ -541,7 +547,6 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
         sprite.get()->setPosition(pos);;
     }
 
-    
 }
 
 void Shop::open()
@@ -562,7 +567,7 @@ void Shop::close()
 
 void Shop::addItem(std::unique_ptr<Item> item)
 {
-    items.push_back(std::move(item));
+    items.push_back(std::pair(sf::Sprite(data->guiTextures.at("GUI_04.png")),std::move(item)));
 }
 
 Shop::ItemWidget::ItemWidget(sf::Vector2f widgetSize, sf::Vector2f widgetPos,sf::Vector2f displayNamePosLocal, sf::Vector2f statsTextPosLocal, sf::Font& font, uint8_t displayNameSize, uint8_t statsTextSize)

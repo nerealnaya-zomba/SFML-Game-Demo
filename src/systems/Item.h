@@ -45,6 +45,7 @@ public:
     bool isIntersects(sf::Vector2i pos);
     sf::Vector2f getBaseScale();
     sf::Vector2u getTextureSize();
+    sf::Vector2f getCenterPosition();
 
     // Setters
     void setPosition(sf::Vector2i& pos);

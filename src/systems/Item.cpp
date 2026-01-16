@@ -65,6 +65,11 @@ sf::Vector2u Item::getTextureSize()
     return this->sprite->getTexture().getSize();
 }
 
+sf::Vector2f Item::getCenterPosition()
+{
+    return static_cast<sf::Vector2f>(this->rect.getCenter());
+}
+
 void Item::setPosition(sf::Vector2i &pos)
 {
     rect.position = {pos.x-rect.size.x,pos.y-rect.size.y};

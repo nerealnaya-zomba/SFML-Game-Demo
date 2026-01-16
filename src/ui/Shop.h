@@ -10,9 +10,10 @@ const unsigned int BASE_SHOP_COLUMNS                        = 5;
 const unsigned int BASE_SHOP_ROWS                           = 4;
 const sf::Vector2f BASE_SHOP_CELL_SIZE                      = {40,40};
 const sf::Vector2f BASE_SHOP_BACKGROUND_SIZE                = {200,200};
-const sf::Vector2f BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE    = {0.3f,0.3f};
-const sf::Vector2f BASE_SHOP_PADDING                        = {20,20};
-const sf::Vector2f BASE_SHOP_ITEM_SCALEUP_MULTIPLY_ON_HOVER = {1.2,1.2};
+const sf::Vector2f BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE    = {1.0f,1.0f};
+const sf::Vector2f BASE_SHOP_PADDING                        = {52,60};
+const sf::Vector2f BASE_SHOP_CELL_SPRITE_SCALE              = {2.0,2.0};
+const sf::Vector2f BASE_SHOP_CELL_SPRITE_SELECTED_SCALE     = {2.3,2.3};
 
 const sf::Vector2i BASE_SHOP_ITEMS_MARGIN                   = {20,20};
 
@@ -77,10 +78,10 @@ private:
     sf::Vector2f cellSize;
 
     // Items storage
-    std::vector<std::unique_ptr<Item>> items;
+    std::vector<std::pair<sf::Sprite,std::unique_ptr<Item>>> items;
 
     // Items selection iterator
-    std::vector<std::unique_ptr<Item>>::iterator itemsIt;
+    std::vector<std::pair<sf::Sprite,std::unique_ptr<Item>>>::iterator itemsIt;
 
     // Shop bools
     bool isOpened;
@@ -129,4 +130,3 @@ public:
 
     bool getIsOpened();
 };
-
