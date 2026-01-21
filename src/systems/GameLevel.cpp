@@ -57,7 +57,7 @@ bool GameLevelManager::goToLevel(std::optional<std::string> levelName)
         levelIt->second->loadLevelData(levelName.value()); // Загрузить следующий уровень после перехода
 
         player->setPosition(levelIt->second->getPlayerSpawnPos());
-        // camera->setCenterPosition(levelIt->second->getPlayerSpawnPos());
+        camera->setCenterPosition(levelIt->second->getPlayerSpawnPos());
 
         return true;
     }
