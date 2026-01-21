@@ -56,6 +56,9 @@ bool GameLevelManager::goToLevel(std::optional<std::string> levelName)
     
         levelIt->second->loadLevelData(levelName.value()); // Загрузить следующий уровень после перехода
 
+        player->setPosition(levelIt->second->getPlayerSpawnPos());
+        // camera->setCenterPosition(levelIt->second->getPlayerSpawnPos());
+
         return true;
     }
     
@@ -343,6 +346,8 @@ void GameLevel::loadLevelData(const std::string& fileNamePath)
     initializeGround(data);
 
     initializeEnemyManager(data);
+
+    playerSpawnPos = {data["Presets"]["PlayerSpawn"][0],data["Presets"]["PlayerSpawn"][1]};
 }
 
 void GameLevel::clearLevel()
@@ -373,6 +378,11 @@ std::vector<std::shared_ptr<sf::RectangleShape>> &GameLevel::getPlatformRects()
 sf::RectangleShape &GameLevel::getGroundRect()
 {
     return ground->getRect();
+}
+
+sf::Vector2f GameLevel::getPlayerSpawnPos()
+{
+    return playerSpawnPos;
 }
 
 void GameLevel::attachPlayer(Player &p)

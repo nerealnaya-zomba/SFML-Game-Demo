@@ -115,6 +115,7 @@ public:
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);
+    void setPosition(sf::Vector2f pos);
 
         // Control methods
     void updateControls();                  // Process player input

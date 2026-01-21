@@ -94,6 +94,32 @@ void GameCamera::attachPlayer(Player &player)
     this->player = &player;
 }
 
+void GameCamera::setCenterPosition(sf::Vector2f pos)
+{
+    float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
+    float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
+
+    // Проверка, не будет ли камера при перемещении выходить за границы
+    if(pos.x-(screenViewSize.x/2)<0)
+    {
+        pos.x = (screenViewSize.x/2);
+    } 
+    else if(pos.x+(screenViewSize.x/2)>mapBorders.x)
+    {
+        pos.x = mapBorders.x-screenViewSize.x;
+    }
+    if(pos.y-(screenViewSize.y/2)<0)
+    {
+        pos.y = (screenViewSize.y/2);
+    }
+    else if(pos.y+(screenViewSize.y/2)>mapBorders.y)
+    {
+        pos.y = mapBorders.y-screenViewSize.y;
+    }
+
+    this->cameraPos = pos;
+}
+
 float GameCamera::getZoom() const
 {
     return ZOOM_SCALE;

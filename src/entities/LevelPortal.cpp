@@ -135,7 +135,7 @@ void LevelPortal::update()
                 }
                 
             }
-            teleportTargetToCenterOfPortal();
+            if(!isCalledForClose) teleportTargetToCenterOfPortal();
         }
     }
     else{

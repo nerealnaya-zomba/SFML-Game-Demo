@@ -76,6 +76,7 @@ public:
     void setMoveSpeed(sf::Vector2f pos);                                    // IMPLEMENTME
     void attachGameLevelManager(GameLevelManager& m);
     void attachPlayer(Player& player);
+    void setCenterPosition(sf::Vector2f pos);
 
     // Getters
     float getZoom()                     const;

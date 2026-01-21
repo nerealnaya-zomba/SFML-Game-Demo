@@ -69,6 +69,12 @@ void Player::attachGameLevelManager(GameLevelManager& m)
     this->levelManager = &m;
 }
 
+void Player::setPosition(sf::Vector2f pos)
+{
+    this->playerRectangle_->setPosition(pos);
+    this->playerSprite->setPosition(playerRectangle_->getGlobalBounds().getCenter());
+}
+
 void Player::updateTextures()
 {
     portal->update();   //NOTE Should be updating no matter what

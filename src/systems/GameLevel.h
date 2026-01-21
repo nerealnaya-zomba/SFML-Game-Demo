@@ -40,6 +40,8 @@ private:
     EnemyManager*  enemyManager;
     sf::RenderWindow* window;
 
+    sf::Vector2f playerSpawnPos;
+
     //////////////////////////////////////////////////
     // Определяет, нужно ли сбрасывать состояние объектов на уровне.
     // После первой загрузки уровня, становится false.
@@ -126,6 +128,7 @@ public:
     sf::Vector2i getLevelSize() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
+    sf::Vector2f getPlayerSpawnPos();
 
     // Setters
     void attachPlayer(Player& p);
