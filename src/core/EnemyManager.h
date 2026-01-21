@@ -86,6 +86,11 @@ public:
     void addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos);
     void addFlyingEnemy();   // IMPLEMENTME Добавь че нить
 
+    /*
+        Erase all enemies
+    */
+   void clearEnemies();
+
     ////////////////////////
     // Добавить спавнер противника
     ////////////////////////

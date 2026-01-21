@@ -99,6 +99,12 @@ void EnemyManager::draw_all()
     }
 }
 
+void EnemyManager::clearEnemies()
+{
+    skeletons.clear();
+    spawners.clear();
+}
+
 void EnemyManager::addSpawner(std::string enemyName)
 {
 }
