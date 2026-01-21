@@ -86,6 +86,8 @@ LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, co
     allTexturesIt = allPortalBlue.begin();
 
     initializeSquishVars();
+
+    setPortalDestination("level2.json");
 }
 
 void LevelPortal::draw(sf::RenderWindow &window)
@@ -121,13 +123,17 @@ void LevelPortal::update()
         if(isTargetInAreaOfTeleportation){
             if(squishTargetToZero())
             {
-                if(manager->goToLevel(levelName))
+                if(!isCalledForClose)
                 {
-                    isUsed = false;
-                } else{ 
-                    isUsed = false;
-                    // TODO Добавить предупреждение для игрока что локации не существует/не выбрана
+                    if(manager->goToLevel(levelName))
+                    {
+                        closePortal();
+                    } else{ 
+                        closePortal();
+                        // TODO Добавить предупреждение для игрока что локации не существует/не выбрана
+                    }
                 }
+                
             }
             teleportTargetToCenterOfPortal();
         }

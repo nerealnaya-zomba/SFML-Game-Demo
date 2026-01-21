@@ -18,6 +18,8 @@ class EnemyManager;
 class GameLevelManager;
 class Player;
 
+const std::string LEVELS_FOLDER = "data/levelData/";
+
 //////////////////////////////////////////////////
 // Определяет экземпляр уровня с объектами, врагами, спавнерами
 //////////////////////////////////////////////////

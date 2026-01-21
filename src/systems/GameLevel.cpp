@@ -21,7 +21,7 @@ void GameLevelManager::initializeLevels(const std::string levelsFolder)
             *this->camera,
             *this,
             *this->window, 
-            fileNamePath
+            onlyFileName
         ));
     }
 }
@@ -42,11 +42,11 @@ bool GameLevelManager::goToLevel(std::optional<std::string> levelName)
 {
     if(levels.empty())
     {
-        std::cerr << "Trying go to level, that doesn't exist.";
+        std::cerr << "LevelManager does not consist any level" << std::endl;
         exit(1);
     }
     
-    if(levelName.has_value())
+    if( levelName.has_value() && levels.find(levelName.value()) != levels.end() )
     {
         levelIt->second->saveLevelData(); // Сохранить прошлый уровень перед переходом
 
@@ -322,9 +322,9 @@ void GameLevel::draw()
 void GameLevel::loadLevelData(const std::string& fileNamePath)
 {   
     // Пробуем открыть файл
-    std::ifstream dataFile(fileNamePath);
+    std::ifstream dataFile(LEVELS_FOLDER+fileNamePath);
     if(!dataFile.good()){
-        std::cerr << "Error reading level's json data:\n\t" << fileNamePath << " not found!\n";
+        std::cerr << "Error reading level's json data:\n\t" << LEVELS_FOLDER+fileNamePath << " not found!\n";
         exit(EXIT_FAILURE);
     }
 
