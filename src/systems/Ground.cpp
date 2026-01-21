@@ -60,6 +60,11 @@ void Ground::draw(sf::RenderWindow& window)
     // window.draw(*ground1Rect_m);
 }
 
+void Ground::clearGround()
+{
+    
+}
+
 sf::RectangleShape &Ground::getRect()
 {
     if(this->ground1Rect_m==nullptr)

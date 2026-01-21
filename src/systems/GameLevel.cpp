@@ -49,6 +49,8 @@ bool GameLevelManager::goToLevel(std::optional<std::string> levelName)
     if( levelName.has_value() && levels.find(levelName.value()) != levels.end() )
     {
         levelIt->second->saveLevelData(); // Сохранить прошлый уровень перед переходом
+        
+        levelIt->second->clearLevel();
 
         levelIt = levels.find(levelName.value());      
     
@@ -341,6 +343,13 @@ void GameLevel::loadLevelData(const std::string& fileNamePath)
     initializeGround(data);
 
     initializeEnemyManager(data);
+}
+
+void GameLevel::clearLevel()
+{
+    platforms->clearPlatforms();
+    decorations->clearDecorations();
+    background.clear();
 }
 
 void GameLevel::saveLevelData()

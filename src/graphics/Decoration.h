@@ -90,6 +90,8 @@ public:
     void drawByZOrder(sf::RenderWindow& window);
     void draw(sf::RenderWindow& window);
 
+    void clearDecorations();
+
     //Textures and iters pointers
         //Plants
     std::vector<sf::Texture>* plant1Textures;

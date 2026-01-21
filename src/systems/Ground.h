@@ -40,9 +40,10 @@ public:
     Ground(GameData& gameTextures, GameLevel& level, std::string groundFileName, unsigned int point_begin, unsigned int point_end, unsigned int yPos = 0u, float offSet = BASE_GROUND_OFFSET);
     ~Ground();
 
-
     void draw(sf::RenderWindow& window);
     
+    void clearGround();
+
     // Getters 
     sf::RectangleShape& getRect();
 

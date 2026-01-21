@@ -365,3 +365,10 @@ void Decoration::draw(sf::RenderWindow &window)
     drawByZOrder(window);
 }
 
+void Decoration::clearDecorations()
+{
+    for (auto &&i : multimap_pointers)
+    {
+        i->clear();
+    }
+}

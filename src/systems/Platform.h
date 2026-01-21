@@ -22,6 +22,8 @@ class Platform
     //Returns array with raw pointers to rectangles-hitboxes (DO NOT DELETE MANUALLY)
     std::vector<std::shared_ptr<sf::RectangleShape>>& getRects();
 
+    void clearPlatforms();
+
     Platform();
     ~Platform();
 

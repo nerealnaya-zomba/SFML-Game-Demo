@@ -164,6 +164,12 @@ std::vector<std::shared_ptr<sf::RectangleShape>>& Platform::getRects()
     return rects;
 }
 
+void Platform::clearPlatforms()
+{
+    sprites.clear();
+    rects.clear();
+}
+
 Platform::Platform()
 {
     initTextures(textures,paths);
