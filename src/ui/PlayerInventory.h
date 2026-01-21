@@ -3,6 +3,7 @@
 #include<Shop.h>
 #include<Item.h>
 #include<Player.h>
+#include<SFML/Audio.hpp>
 
 
 class PlayerInventory{
