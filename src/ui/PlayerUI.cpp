@@ -14,20 +14,19 @@ void PlayerUI::updateCooldownRectsPos()
         camera->getCameraCenterPos().y
     };
 
+    float currentY = rightCameraSidePos.y;
     for (auto &&r : cooldownRects)
     {
-        unsigned int iterCount = 1;
-
         r.back.setPosition({
-            rightCameraSidePos.x-r.back.getSize().x,
-            rightCameraSidePos.y+(r.back.getSize().y*iterCount
-        )});
+        rightCameraSidePos.x - r.back.getSize().x,
+        currentY
+        });
         
         r.front.setPosition(r.back.getGlobalBounds().getCenter());
         
         r.icon->setPosition(r.back.getGlobalBounds().getCenter());
         
-        iterCount++;
+        currentY += r.back.getSize().y;
     }
 }
 
@@ -35,11 +34,12 @@ void PlayerUI::updateIterpolation()
 {
     for (auto &&r : cooldownRects)
     {
-        if((*r.currentCooldown)<=(*r.targetCooldown))
+        int currentCooldown = r.currentCooldown->getElapsedTime().asMilliseconds();
+        if((currentCooldown)<=(*r.targetCooldown))
         {
             r.front.setSize({
-                BASE_UI_COOLDOWN_RECTS_SIZE.x*((*r.currentCooldown)/(*r.targetCooldown)),
-                BASE_UI_COOLDOWN_RECTS_SIZE.y*((*r.currentCooldown)/(*r.targetCooldown))
+                BASE_UI_COOLDOWN_RECTS_SIZE.x*((currentCooldown)/(*r.targetCooldown)),
+                BASE_UI_COOLDOWN_RECTS_SIZE.y*((currentCooldown)/(*r.targetCooldown))
             });
         }
     }
@@ -50,7 +50,8 @@ void PlayerUI::updateCooldownRectsColor()
 {
     for (auto &&r : cooldownRects)
     {
-        if(*(r.currentCooldown)>=(*r.targetCooldown))
+        int currentCooldown = r.currentCooldown->getElapsedTime().asMilliseconds();
+        if((currentCooldown)>=(*r.targetCooldown))
         {
             r.back.setFillColor(BASE_UI_COOLDOWN_RECT_BACK_COLOR_ACTIVE);
 
@@ -70,7 +71,7 @@ void PlayerUI::updateCooldownRectsColor()
     
 }
 
-void PlayerUI::addCooldownRect(int& currentCD, int& targetCD, sf::Texture& iconTexture)
+void PlayerUI::addCooldownRect(sf::Clock& currentCD, int& targetCD, sf::Texture& iconTexture)
 {
     CooldownRect cr;
     cr.currentCooldown = &currentCD;
@@ -93,7 +94,7 @@ void PlayerUI::addCooldownRect(int& currentCD, int& targetCD, sf::Texture& iconT
     cr.icon->setScale(calculatedScale);
     setSpriteOriginToMiddle(*cr.icon);
 
-    cooldownRects.push_back(cr);
+    cooldownRects.push_back(std::move(cr));
 }
 
 PlayerUI::PlayerUI(Player &p, GameCamera &c)
@@ -110,4 +111,9 @@ void PlayerUI::draw(sf::RenderWindow &window)
         window.draw(r.front);
     }
     
+}
+
+void PlayerUI::update()
+{
+    updateCooldownRects();
 }

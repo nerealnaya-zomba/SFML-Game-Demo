@@ -30,7 +30,7 @@ private:
     // Представляет собой иконку отображающую перезарядку
     struct CooldownRect{
         int* targetCooldown;
-        int* currentCooldown;
+        sf::Clock* currentCooldown;
         sf::RectangleShape back;
         sf::RectangleShape front;
         std::unique_ptr<sf::Sprite> icon;
@@ -47,14 +47,16 @@ private:
     void updateIterpolation();
     void updateCooldownRectsColor();
 
-    ///////////////////////////////////
-    // Добавить отображение кулдауна
-    ///////////////////////////////////
-    void addCooldownRect(int& currentCD, int& targetCD, sf::Texture& iconTexture);
-
 public:
     PlayerUI(Player& p, GameCamera& c);
     ~PlayerUI() = default;
 
     void draw(sf::RenderWindow& window);
+    void update();
+
+    ///////////////////////////////////
+    // Добавить отображение кулдауна
+    ///////////////////////////////////
+    void addCooldownRect(sf::Clock& currentCD, int& targetCD, sf::Texture& iconTexture);
+
 };

@@ -1,7 +1,7 @@
 #include<Player.h>
 
 using namespace gameUtils;
-Player::Player(GameData& gameTextures, GameLevelManager& m)
+Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c)
 {
     this->gameTextures = &gameTextures;
     this->levelManager = &m;
@@ -62,6 +62,36 @@ sf::Vector2f Player::getSpriteScale()
 sf::Vector2f Player::getCenterPosition()
 {
     return playerRectangle_->getGlobalBounds().getCenter();
+}
+
+sf::Clock& Player::getShootClock()
+{
+    return shootTimer;
+}
+
+int &Player::getShootCooldown()
+{
+    return ButtonRepeat_shootCooldown;
+}
+
+sf::Clock &Player::getDashClock()
+{
+    return dash_Clock;
+}
+
+int &Player::getDashCooldown()
+{
+    return dashCooldown;
+}
+
+sf::Clock &Player::getPortalClock()
+{
+    return portalCallOpenCooldownClock;
+}
+
+int &Player::getPortalCooldown()
+{
+    return portalCallCooldown;
 }
 
 void Player::attachGameLevelManager(GameLevelManager& m)

@@ -29,7 +29,7 @@ const sf::Keyboard::Key BASE_PORTAL_CALL_KEY = sf::Keyboard::Key::R;
 
 class Player {
 public:
-    Player(GameData& gameTextures, GameLevelManager& m);
+    Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c);
     virtual ~Player();
 
     GameData* gameTextures;
@@ -59,9 +59,9 @@ public:
     sf::Clock dashTimer;
     
     // Задержки (в секундах)
-    float ButtonRepeat_shootCooldown{};
-    float ButtonRepeat_jumpCooldown{};
-    float ButtonRepeat_dashCooldown{};
+    int ButtonRepeat_shootCooldown{};
+    int ButtonRepeat_jumpCooldown{};
+    int ButtonRepeat_dashCooldown{};
     
     // Флаги готовности
     bool canShoot = true;
@@ -80,7 +80,7 @@ public:
     // Dash mechanics
     bool isDashOnCooldown = false;
     float dashForce{};                      // From PlayerConfig.json
-    float dashCooldown{};                   // From PlayerConfig.json
+    int dashCooldown{};                     // From PlayerConfig.json
     sf::Clock dash_Clock;                   // Dash cooldown timer
     
     // Damage system
@@ -113,6 +113,13 @@ public:
         // Getters
     sf::Vector2f getSpriteScale();
     sf::Vector2f getCenterPosition();
+    sf::Clock& getShootClock();
+    int& getShootCooldown();
+    sf::Clock& getDashClock();
+    int& getDashCooldown();
+    sf::Clock& getPortalClock();
+    int& getPortalCooldown();
+    
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);
@@ -166,8 +173,7 @@ private:
     // Used objects
     sf::Sprite* playerSprite;               // Main player sprite
     Trail* trail;                           // Movement trail effect
-
-    // LevelPortal
+        // LevelPortal
     LevelPortal* portal;
     sf::Clock portalCallOpenCooldownClock;
     sf::Clock portalCallCloseCooldownClock;
