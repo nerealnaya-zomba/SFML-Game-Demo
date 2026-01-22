@@ -175,6 +175,7 @@ private:
     Trail* trail;                           // Movement trail effect
         // LevelPortal
     LevelPortal* portal;
+    sf::Clock portalCooldownClock; // For checking cooldown time
     sf::Clock portalCallOpenCooldownClock;
     sf::Clock portalCallCloseCooldownClock;
     int portalCallCooldown = BASE_PORTAL_CALL_COOLDOWN;

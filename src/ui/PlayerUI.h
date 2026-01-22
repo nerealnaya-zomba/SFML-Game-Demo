@@ -3,10 +3,10 @@
 #include<Player.h>
 
 const sf::Vector2f BASE_UI_COOLDOWN_RECTS_SIZE              = {50.f,50.f};
-const sf::Color BASE_UI_COOLDOWN_RECT_BACK_COLOR_ACTIVE     = sf::Color::Green;
-const sf::Color BASE_UI_COOLDOWN_RECT_BACK_COLOR_INACTIVE   = sf::Color::Red;
+const sf::Color BASE_UI_COOLDOWN_RECT_BACK_COLOR_ACTIVE     = sf::Color(180,180,180,255);
+const sf::Color BASE_UI_COOLDOWN_RECT_BACK_COLOR_INACTIVE   = sf::Color::Black;
 const sf::Color BASE_UI_COOLDOWN_RECT_FRONT_COLOR           = sf::Color::White;
-const uint8_t BASE_UI_COOLDOWNT_RECT_FRONT_ALPHA_INACTIVE   = 100;
+const uint8_t BASE_UI_COOLDOWNT_RECT_FRONT_ALPHA_INACTIVE   = 180;
 const uint8_t BASE_UI_COOLDOWNT_RECT_FRONT_ALPHA_ACTIVE     = 0;
 
 ///////////////////////////////////

@@ -22,6 +22,7 @@ void PlayerUI::updateCooldownRectsPos()
         currentY
         });
         
+        setRectangleOriginToMiddle(r.front);
         r.front.setPosition(r.back.getGlobalBounds().getCenter());
         
         r.icon->setPosition(r.back.getGlobalBounds().getCenter());
@@ -32,18 +33,21 @@ void PlayerUI::updateCooldownRectsPos()
 
 void PlayerUI::updateIterpolation()
 {
-    for (auto &&r : cooldownRects)
+    for (auto&& r : cooldownRects)
     {
         int currentCooldown = r.currentCooldown->getElapsedTime().asMilliseconds();
-        if((currentCooldown)<=(*r.targetCooldown))
+        int targetCooldown = *r.targetCooldown;
+        
+        if (currentCooldown <= targetCooldown && targetCooldown > 0)
         {
+            float progress = static_cast<float>(currentCooldown) / static_cast<float>(targetCooldown);
+            
             r.front.setSize({
-                BASE_UI_COOLDOWN_RECTS_SIZE.x*((currentCooldown)/(*r.targetCooldown)),
-                BASE_UI_COOLDOWN_RECTS_SIZE.y*((currentCooldown)/(*r.targetCooldown))
+                BASE_UI_COOLDOWN_RECTS_SIZE.x * progress,
+                BASE_UI_COOLDOWN_RECTS_SIZE.y * progress
             });
         }
     }
-    
 }
 
 void PlayerUI::updateCooldownRectsColor()

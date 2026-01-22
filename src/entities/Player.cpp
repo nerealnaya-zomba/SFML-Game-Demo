@@ -86,7 +86,7 @@ int &Player::getDashCooldown()
 
 sf::Clock &Player::getPortalClock()
 {
-    return portalCallOpenCooldownClock;
+    return portalCooldownClock;
 }
 
 int &Player::getPortalCooldown()
@@ -218,11 +218,13 @@ void Player::portalUpdate()
     if(isPortalOnCooldown && portal->getIsClosed() && !portal->getIsCalledForClose() && !portal->getIsCalledForOpen() && !portalCallOpenCooldownClock.isRunning())
     {
         portalCallOpenCooldownClock.restart();
+        portalCooldownClock.restart();
     }
     if(isPortalOnCooldown && checkInterval(portalCallOpenCooldownClock,portalCallCooldown))
     {
         isPortalOnCooldown = false;
         portalCallOpenCooldownClock.reset();
+        portalCooldownClock.stop();
     }
 
     if(portalCallOpenCooldownClock.isRunning())
@@ -255,6 +257,7 @@ void Player::tryOpenPortal()
     {
         if(sf::Keyboard::isKeyPressed(portalCallKey))
         {
+            portalCooldownClock.reset();
             //Setting portal position based on what side player watches now
                 //Right
             if(playerSprite->getScale().x > 0.f)
