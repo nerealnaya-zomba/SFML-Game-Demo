@@ -27,11 +27,6 @@ private:
     GameCamera* camera;
     Player* player;
 
-    
-    // Переменные для линейной интерполяции перезарядок
-    const sf::Vector2f minSize;
-    const sf::Vector2f maxSize;
-
     // Представляет собой иконку отображающую перезарядку
     struct CooldownRect{
         int* targetCooldown;
@@ -43,17 +38,22 @@ private:
 
     std::vector<CooldownRect> cooldownRects;
     
+    ///////////////////////////////////
     // Обновляет все cooldownRects: текущий cooldown, back(красный если не готов, зеленый если готов), front(линейная интерполяция размера по Y в зависимости от кулдауна)
+    ///////////////////////////////////
     void updateCooldownRects();
         // Содержит:
     void updateCooldownRectsPos();
     void updateIterpolation();
     void updateCooldownRectsColor();
 
+    ///////////////////////////////////
+    // Добавить отображение кулдауна
+    ///////////////////////////////////
     void addCooldownRect(int& currentCD, int& targetCD, sf::Texture& iconTexture);
 
 public:
-    PlayerUI(Player& p, GameCamera& c, const sf::Vector2f mnS, const sf::Vector2f mxS);
+    PlayerUI(Player& p, GameCamera& c);
     ~PlayerUI() = default;
 
     void draw(sf::RenderWindow& window);

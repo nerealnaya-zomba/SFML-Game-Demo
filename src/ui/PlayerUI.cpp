@@ -96,11 +96,18 @@ void PlayerUI::addCooldownRect(int& currentCD, int& targetCD, sf::Texture& iconT
     cooldownRects.push_back(cr);
 }
 
-PlayerUI::PlayerUI(Player &p, GameCamera &c, const sf::Vector2f mnS, const sf::Vector2f mxS)
-    : minSize(mnS), maxSize(mxS)
+PlayerUI::PlayerUI(Player &p, GameCamera &c)
+    : camera(&c), player(&p)
 {
 }
 
 void PlayerUI::draw(sf::RenderWindow &window)
 {
+    for (auto &&r : cooldownRects)
+    {
+        window.draw(r.back);
+        window.draw(*r.icon);
+        window.draw(r.front);
+    }
+    
 }
