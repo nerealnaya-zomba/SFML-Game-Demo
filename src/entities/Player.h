@@ -14,6 +14,7 @@
 #include <fstream>
 #include <Particle.h>
 #include<LevelPortal.h>
+#include<PlayerUI.h>
 
 class GameLevelManager;
 class LevelPortal;

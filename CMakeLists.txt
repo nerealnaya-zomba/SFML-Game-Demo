@@ -44,7 +44,8 @@ add_executable(main
     src/entities/Trader.cpp
     src/systems/Item.cpp
     src/ui/Shop.cpp
-    src/ui/PlayerInventory.cpp)
+    src/ui/PlayerInventory.cpp
+    src/ui/PlayerUI.cpp)
 
 target_include_directories(main PRIVATE 
     ${CMAKE_SOURCE_DIR}/src 
