@@ -230,7 +230,7 @@ private:
     std::string jumpPlantPath{"images/decoration/PlantJump/JumpPlant_"};
     std::string cat1Path{"images/decoration/sleepingCat/cat/RetroCatsFree_"};
     std::string groundTileSetGreenPath{"images/Ground/TileSetGreen/TileSetGreen_"};
-    std::string portalGreenPath{"images/decoration/portalGreen/portal_green_"};
+    std::string portalGreenPath{"images/decoration/PortalGreen/portal_green_"};
     std::string MossyBackgroundDecorationsPath{"images/decoration/MossyBackgroundDecorations/MossyBackgroundDecoration_"};
     std::string MossyDecorationsHazardsPath{"images/decoration/MossyDecorationsHazards/MossyDecorationHazard_"};
     std::string MossyHangingPlantsPath{"images/decoration/MossyHangingPlants/MossyHangingPlants_"};

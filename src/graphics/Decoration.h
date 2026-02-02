@@ -6,7 +6,7 @@
 #include<Mounting.h>
 #include<GameData.h>
 #include<TexturesIterHelper.h>
-#include<windows.h>
+//#include<windows.h>
 #include<unordered_map>
 #include<bitset>
 #include<GameCamera.h>

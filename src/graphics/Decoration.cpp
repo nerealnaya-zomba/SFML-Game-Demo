@@ -259,11 +259,6 @@ void Decoration::initDecoration(sf::Vector2f position, sf::Vector2f scale, sf::V
     std::unordered_multimap<Vector2fPairWithZ, std::unique_ptr<sf::Sprite>, Vector2fPairWithZHash, Vector2fPairWithZEqual>& sprites,
     std::vector<sf::Texture>* textures)
 {
-        if(textures == nullptr || textures->empty())
-        {
-            MessageBox(NULL,"Texture not loaded or empty!", "Error", MB_ICONERROR);
-            exit(EXIT_FAILURE);
-        } 
         auto sprite = std::make_unique<sf::Sprite>(textures->at(0));
         sprite->setOrigin(sprite->getGlobalBounds().getCenter());
         sprite->setPosition(position);

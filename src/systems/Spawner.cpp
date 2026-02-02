@@ -1,4 +1,4 @@
-#include "spawner.h"
+#include "Spawner.h"
 #include<EnemyManager.h>
 
 Spawner::Spawner(EnemyManager &m, std::string n, int ea, int sc, int eps, float minX1, float maxX2, float minY1, float maxY2,
