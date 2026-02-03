@@ -4,7 +4,6 @@
 #include<Defines.h>
 #include<Mounting.h>
 #include<GameData.h>
-#include<windows.h>
 
 const float BASE_GROUND_OFFSET = 8.f;
 
