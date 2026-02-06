@@ -120,7 +120,7 @@ void Menu::fillUpWindowWithPlayButton(sf::RenderWindow &window, sf::Color gameBa
         playButton->setScale({playButton->getScale().x+0.05f, playButton->getScale().y+0.15f});
         if(playButtonText->getFillColor().a>0)
         {
-            playButtonText->setFillColor({playButton->getFillColor().r, playButton->getFillColor().g, playButton->getFillColor().b, playButton->getFillColor().a-1});
+            playButtonText->setFillColor({playButton->getFillColor().r, playButton->getFillColor().g, playButton->getFillColor().b, static_cast<uint8_t>(playButton->getFillColor().a-1)});
         }
         
         //Smoothly change button's color to game's background color

@@ -47,9 +47,8 @@ void GameCamera::movementUpdate(float deltatime, unsigned int levelWidth, unsign
     speed += totalForce * deltatime;
 
     // Зажим скорости в рамки максимальной
-    speed.x = std::clamp(speed.x, -maxSpeed.x, maxSpeed.x);
-    speed.y = std::clamp(speed.y, -maxSpeed.y, maxSpeed.y);
-
+speed.x = std::clamp(speed.x, -std::abs(maxSpeed.x - ( offset.x/4 )), std::abs(maxSpeed.x + ( offset.x/4 )));
+speed.y = std::clamp(speed.y, -std::abs(maxSpeed.y - ( offset.y/4 )), std::abs(maxSpeed.y + ( offset.y/4 )));
     //Условия для коллизии камеры с краями уровня
     // Проверка по X
     float newX = cameraPos.x + speed.x * deltatime;
