@@ -36,8 +36,8 @@ public:
     bool isInAreaOfInteraction(const sf::Vector2f& executorObjectPos) const{
         sf::Vector2f objectPos = sprite->getGlobalBounds().getCenter();
         sf::Vector2u objectSize = {
-            static_cast<float>(sprite->getTexture().getSize().x) * spriteScale.x,
-            static_cast<float>(sprite->getTexture().getSize().y) * spriteScale.y
+            static_cast<unsigned int>(static_cast<float>(sprite->getTexture().getSize().x) * spriteScale.x),
+            static_cast<unsigned int>(static_cast<float>(sprite->getTexture().getSize().y) * spriteScale.y)
         };
         
         // Проверяем в радиусе взаимодействия ли объект
