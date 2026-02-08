@@ -105,6 +105,7 @@ int main()
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Escape)
                 {
                     view.setCenter({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
+                    view.setSize({WINDOW_WIDTH, WINDOW_HEIGHT});
                     window.setView(view);
                     //Smoothly return previous variables on playButton and PlayButtonText
                     //menu.smoothlyReturnPreviousVariablesAndDraw(window);
@@ -137,7 +138,11 @@ int main()
             }
 
             menu.rainbowWindowClear(window, menuBackGroundColor);
-
+            // view.zoom(1.f);
+            // view.setCenter({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
+            // window.setView(view);
+            sf::View lView = window.getView();
+            std::cout << "X: " << lView.getSize().x << "Y: " << lView.getSize().y << std::endl;
             menu.menuDraw(window);
             
             continue;

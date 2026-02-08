@@ -118,7 +118,7 @@ void GameCamera::update()
             levelManager->getCurrentLevelSize().x,
             levelManager->getCurrentLevelSize().y
         );
-        
+        this->view->setSize({WINDOW_WIDTH * ZOOM_SCALE, WINDOW_HEIGHT * ZOOM_SCALE});
         this->view->setCenter(this->cameraPos);
         return;
     }
