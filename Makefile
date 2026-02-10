@@ -743,6 +743,30 @@ src/ui/AskDialogue.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/AskDialogue.cpp.s
 .PHONY : src/ui/AskDialogue.cpp.s
 
+src/ui/ChooseDestination.o: src/ui/ChooseDestination.cpp.o
+.PHONY : src/ui/ChooseDestination.o
+
+# target to build an object file
+src/ui/ChooseDestination.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ChooseDestination.cpp.o
+.PHONY : src/ui/ChooseDestination.cpp.o
+
+src/ui/ChooseDestination.i: src/ui/ChooseDestination.cpp.i
+.PHONY : src/ui/ChooseDestination.i
+
+# target to preprocess a source file
+src/ui/ChooseDestination.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ChooseDestination.cpp.i
+.PHONY : src/ui/ChooseDestination.cpp.i
+
+src/ui/ChooseDestination.s: src/ui/ChooseDestination.cpp.s
+.PHONY : src/ui/ChooseDestination.s
+
+# target to generate assembly for a file
+src/ui/ChooseDestination.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ChooseDestination.cpp.s
+.PHONY : src/ui/ChooseDestination.cpp.s
+
 src/ui/GameLoadingScreen.o: src/ui/GameLoadingScreen.cpp.o
 .PHONY : src/ui/GameLoadingScreen.o
 
@@ -968,6 +992,9 @@ help:
 	@echo "... src/ui/AskDialogue.o"
 	@echo "... src/ui/AskDialogue.i"
 	@echo "... src/ui/AskDialogue.s"
+	@echo "... src/ui/ChooseDestination.o"
+	@echo "... src/ui/ChooseDestination.i"
+	@echo "... src/ui/ChooseDestination.s"
 	@echo "... src/ui/GameLoadingScreen.o"
 	@echo "... src/ui/GameLoadingScreen.i"
 	@echo "... src/ui/GameLoadingScreen.s"

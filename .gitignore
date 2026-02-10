@@ -13,6 +13,7 @@ out
 libs/ffmpeg/bin
 compile_commands.json
 renameBashCommand.txt
-.psd
+*.psd
 Hub-Shop-Item structure.excalidraw
 .clangd
+*.sh
