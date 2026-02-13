@@ -19,63 +19,98 @@ const sf::Vector2f BASE_DESTINATION_ICON_SIZE                = {30,30};
 class ChooseDestination
 {
 private:
+	////////////////////////////
 	// Внешние ссылки на объекты
+	////////////////////////////
 	GameData*   data;
 	GameCamera* camera;
 	GameLevelManager* manager;
 	////////////////////////////
 	
-	struct LevelDestination{
-		bool isOpened = true;
-		bool isVisible = true;
-		bool isSelected = false;
-		bool isPlayerThere = false;	
+	//////////////////////////////////
+	// Menu box general representation
+	//////////////////////////////////
+		struct LevelDestination{
+			bool isOpened = true;
+			bool isVisible = true;
+			bool isSelected = false;
+			bool isPlayerThere = false;	
 
-		GameLevel* level;
-	};
+			GameLevel* level;
+		};
 
-	// Представляет собой отдельный элемент уровня в контейнере, содержащий: , иконку,
-	//
-	/////////////////////////////////////// 
-	struct LevelDestinationRect{
+		//////////////////////////////////////////////////////////////////////////////////
+		// Представляет собой отдельный элемент уровня в контейнере, содержащий: параметры отображения, иконку, квадрат выделения
+		//////////////////////////////////////////////////////////////////////////////////
+		struct LevelDestinationRect{
 
-		LevelDestination leveldestination;
+			LevelDestination leveldestination;
 
-		sf::Sprite icon;
+			sf::Sprite icon;
 
-		sf::RectangleShape selectionRect;
-		
-		void draw(sf::RenderWindow& w);
-	};
+			sf::RectangleShape selectionRect;
+			
+			void draw(sf::RenderWindow& w);
+		};
+		///////////
+		// Elements
+		///////////
+		sf::Sprite background;
+		std::vector<LevelDestinationRect> levels;
 
-	sf::Sprite background;
-	std::vector<LevelDestinationRect> levels;
-	std::vector<LevelDestinationRect>::iterator levelIt;
+		// Points to element
+		std::vector<LevelDestinationRect>::iterator levelIt;
+		// Utils to manipulate it
+		void moveLevelItLeft();
+		void moveLevelItRight();
 
-	void addLevelInMap(GameLevel& level, LevelDestinationRect l);
+		///////////
+		//////////////////////////////
+		// Element positioning methods
+		//////////////////////////////
+		void positioningLevelDestinations();
+			void positioningLevelDestinationsBackground();
+			void positioningLevelDestinationsLevels();
+		//////////////////////////////
 
-	//////////////////////////
-	/// Draw methods
-	void drawLevelDestinations(sf::RenderWindow& window);
+		//////////////////////////
+		/// Draw methods
+		//////////////////////////
+		void drawLevelDestinations(sf::RenderWindow& window);
+			void drawLevelDestinationsBackground(sf::RenderWindow& window);
+			void drawLevelDestinationsLevels(sf::RenderWindow& window);
+		//////////////////////////
 
-	void updateLevelDestinations();
-		void updateLevelDestinationsBackground();
-		void updateLevelDestinationsLevels();
+		//////////////////
+		/// Action methods
+		//////////////////
+		void addLevelInMap(GameLevel& level, LevelDestinationRect l);
+		//////////////////
+
+	//////////////////////////////////
+
+	// Events handling
+		// bools
+		bool isKeyPressed = false;
+
+		void handleEvents(sf::Event& ev);
 
 public:
-  ChooseDestination(const ChooseDestination &) = default;
-  ChooseDestination(ChooseDestination &&) = delete;
-  ChooseDestination &operator=(const ChooseDestination &) = default;
-  ChooseDestination &operator=(ChooseDestination &&) = delete;
-  ChooseDestination(GameData &d, GameCamera &c, GameLevelManager &lm);
-  ~ChooseDestination() = default;
+	ChooseDestination(const ChooseDestination &) = default;
+	ChooseDestination(ChooseDestination &&) = delete;
+	ChooseDestination &operator=(const ChooseDestination &) = default;
+	ChooseDestination &operator=(ChooseDestination &&) = delete;
+	ChooseDestination(GameData &d, GameCamera &c, GameLevelManager &lm);
+	~ChooseDestination() = default;
 
-  ////////////////////////
-  // Основые методы
-  ////////////////////////
-  void updateControls();
-  void update();
-  void draw(sf::RenderWindow& w);
-  ////////////////////////
+
+
+	////////////////////////
+	// Основые методы в mainLoop
+	////////////////////////
+	void updateControls();
+	void update();
+	void draw(sf::RenderWindow& w);
+	////////////////////////
 
 };

@@ -5,8 +5,23 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 
-ChooseDestination::ChooseDestination(GameData& d, GameCamera& c, GameLevelManager& lm)
-	: data(&d), camera(&c), background(d.guiTextures.at("GUI_10.png")), manager(&lm)
+void ChooseDestination::handleEvents(sf::Event &ev)
+{
+	if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
+	{
+		if(keyPressed->scancode == sf::Keyboard::Scan::Left)
+		{
+			moveLevelItLeft();
+		}
+		else if(keyPressed->scancode == sf::Keyboard::Scan::Right)
+		{
+			moveLevelItRight();
+		}
+	}
+}
+
+ChooseDestination::ChooseDestination(GameData &d, GameCamera &c, GameLevelManager &lm)
+    : data(&d), camera(&c), background(d.guiTextures.at("GUI_10.png")), manager(&lm)
 {
 	
 }
@@ -21,13 +36,31 @@ void ChooseDestination::addLevelInMap(GameLevel& level,LevelDestinationRect l){
 }
 
 void ChooseDestination::drawLevelDestinations(sf::RenderWindow& window){
+
+	drawLevelDestinationsBackground(window);
+	drawLevelDestinationsLevels(window);
+}
+
+void ChooseDestination::drawLevelDestinationsBackground(sf::RenderWindow &window)
+{
+	window.draw(background);
+}
+
+void ChooseDestination::drawLevelDestinationsLevels(sf::RenderWindow &window)
+{
 	for (auto& level : levels) {
 		level.draw(window);					
 	}
 }
 
 void ChooseDestination::update(){
+	//Menu back logic
+		//Positioning menu relative to player screen
+	this->positioningLevelDestinations();	
+		//Updating contols
 	this->updateControls();
+
+
 }
 
 void ChooseDestination::updateControls(){
@@ -54,13 +87,38 @@ void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
 	}
 }
 
-void ChooseDestination::updateLevelDestinations(){
-
-	updateLevelDestinationsBackground();
-	updateLevelDestinationsLevels();
+void ChooseDestination::moveLevelItLeft()
+{
+	if(levelIt==levels.begin())
+	{
+		levelIt == levels.end()-1;
+	}
+	else
+	{
+		levelIt--;
+	}
 }
 
-void ChooseDestination::updateLevelDestinationsBackground()
+void ChooseDestination::moveLevelItRight()
+{
+	if(levelIt == levels.end()-1)
+	{
+		levelIt = levels.begin();
+	}
+	else
+	{
+		levelIt++;
+	}
+}
+
+void ChooseDestination::positioningLevelDestinations()
+{
+
+    positioningLevelDestinationsBackground();
+	positioningLevelDestinationsLevels();
+}
+
+void ChooseDestination::positioningLevelDestinationsBackground()
 {
 	//Background scaling 
 		// Correcting background size based on count of levels 
@@ -96,7 +154,7 @@ void ChooseDestination::updateLevelDestinationsBackground()
 	this->background.setPosition(backgroundPos);
 }
 
-void ChooseDestination::updateLevelDestinationsLevels()
+void ChooseDestination::positioningLevelDestinationsLevels()
 {
 	//Icon scaling
 	sf::Vector2f iconScale;
