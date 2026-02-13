@@ -26,7 +26,28 @@ ChooseDestination::ChooseDestination(GameData &d, GameCamera &c, GameLevelManage
 	
 }
 
-void ChooseDestination::addLevelInMap(GameLevel& level,LevelDestinationRect l){
+void ChooseDestination::open()
+{
+	isOpened = true;
+	for (auto &&level : levels)
+	{
+		level.leveldestination.isSelected = false;
+	}
+	
+	levelIt = levels.begin();
+	levelIt->leveldestination.isSelected = true;
+}
+
+void ChooseDestination::close()
+{
+	isOpened = false;
+	for (auto &&level : levels)
+	{
+		level.leveldestination.isSelected = false;
+	}
+}
+
+void ChooseDestination::addLevelInVector(GameLevel& level,LevelDestinationRect l){
 	
 	l.leveldestination.level =     &level;
 	l.leveldestination.isOpened =  false;
@@ -54,6 +75,7 @@ void ChooseDestination::drawLevelDestinationsLevels(sf::RenderWindow &window)
 }
 
 void ChooseDestination::update(){
+	if(!isOpened) return;
 	//Menu back logic
 		//Positioning menu relative to player screen
 	this->positioningLevelDestinations();	
@@ -64,15 +86,22 @@ void ChooseDestination::update(){
 }
 
 void ChooseDestination::updateControls(){
+	if(!isOpened) return;
 	
 }
 
 void ChooseDestination::draw(sf::RenderWindow& w){
+	if(!isOpened) return;
 	//TODO
 	// draw box that consist elements
 	// ...
 
 	drawLevelDestinations(w);
+}
+
+bool ChooseDestination::getIsOpened()
+{
+    return this->isOpened;
 }
 
 void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
@@ -89,6 +118,7 @@ void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
 
 void ChooseDestination::moveLevelItLeft()
 {
+	levelIt->leveldestination.isSelected = false;
 	if(levelIt==levels.begin())
 	{
 		levelIt == levels.end()-1;
@@ -96,6 +126,7 @@ void ChooseDestination::moveLevelItLeft()
 	else
 	{
 		levelIt--;
+		levelIt->leveldestination.isSelected = true;
 	}
 }
 

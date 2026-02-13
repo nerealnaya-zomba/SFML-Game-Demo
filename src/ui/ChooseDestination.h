@@ -26,7 +26,13 @@ private:
 	GameCamera* camera;
 	GameLevelManager* manager;
 	////////////////////////////
-	
+
+	/////////////
+	// Main bools
+	/////////////
+	bool isOpened = false;
+
+
 	//////////////////////////////////
 	// Menu box general representation
 	//////////////////////////////////
@@ -84,7 +90,7 @@ private:
 		//////////////////
 		/// Action methods
 		//////////////////
-		void addLevelInMap(GameLevel& level, LevelDestinationRect l);
+		void addLevelInVector(GameLevel& level, LevelDestinationRect l);
 		//////////////////
 
 	//////////////////////////////////
@@ -92,8 +98,8 @@ private:
 	// Events handling
 		// bools
 		bool isKeyPressed = false;
-
 		void handleEvents(sf::Event& ev);
+
 
 public:
 	ChooseDestination(const ChooseDestination &) = default;
@@ -103,14 +109,22 @@ public:
 	ChooseDestination(GameData &d, GameCamera &c, GameLevelManager &lm);
 	~ChooseDestination() = default;
 
+	/////////////////////////////////
+	// Основные методы взаимодействия
+	/////////////////////////////////
+	void open();
+	void close();
+	/////////////////////////////////
 
-
-	////////////////////////
+	////////////////////////////
 	// Основые методы в mainLoop
-	////////////////////////
+	////////////////////////////
 	void updateControls();
 	void update();
 	void draw(sf::RenderWindow& w);
 	////////////////////////
+
+	//Getters
+	bool getIsOpened();
 
 };
