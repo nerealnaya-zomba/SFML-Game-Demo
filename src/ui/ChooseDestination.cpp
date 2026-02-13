@@ -11,19 +11,17 @@ ChooseDestination::ChooseDestination(GameData& d, GameCamera& c, GameLevelManage
 }
 
 void ChooseDestination::addLevelInMap(GameLevel& level,LevelDestinationRect l){
-	LevelDestinationRect lvldstrectLoc;
-
-	lvldstrectLoc.leveldestination.level =     &level;
-	lvldstrectLoc.leveldestination.isOpened =  false;
-	lvldstrectLoc.leveldestination.isVisible = true;
 	
-
-	this->levels.push_back(lvdstLoc);
+	l.leveldestination.level =     &level;
+	l.leveldestination.isOpened =  false;
+	l.leveldestination.isVisible = true;
+	
+	this->levels.push_back(l);
 }
 
 void ChooseDestination::drawLevelDestinations(sf::RenderWindow& window){
 	for (auto& level : levels) {
-		level.						
+		level.draw(window);					
 	}
 }
 
@@ -35,10 +33,22 @@ void ChooseDestination::updateControls(){
 	
 }
 
-void ChooseDestination::draw(){
-		
+void ChooseDestination::draw(sf::RenderWindow& w){
+	//TODO
+	// draw box that consist elements
+	// ...
+
+	drawLevelDestinations(w);
 }
 
 void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
-
+	
+	// Element's icon
+	w.draw(this->icon);
+	
+	// Selection rect
+	if(this->leveldestination.isSelected)
+	{
+		w.draw(this->selectionRect);
+	}
 }

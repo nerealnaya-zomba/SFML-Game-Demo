@@ -15,7 +15,7 @@
 class ChooseDestination
 {
 private:
-	// External objects pointers
+	// Внешние ссылки на объекты
 	GameData*   data;
 	GameCamera* camera;
 	GameLevelManager* manager;
@@ -30,11 +30,14 @@ private:
 		GameLevel* level;
 	};
 
+	// Представляет собой отдельный элемент уровня в контейнере, содержащий: , иконку,
+	//
+	/////////////////////////////////////// 
 	struct LevelDestinationRect{
 
 		LevelDestination leveldestination;
 
-		sf::Sprite background;
+		sf::Sprite icon;
 
 		sf::RectangleShape selectionRect;
 		
@@ -47,8 +50,6 @@ private:
 
 	void addLevelInMap(GameLevel& level, LevelDestinationRect l);
 
-
-
 	//////////////////////////
 	/// Draw methods
 	void drawLevelDestinations(sf::RenderWindow& window);
@@ -59,14 +60,14 @@ public:
   ChooseDestination &operator=(const ChooseDestination &) = default;
   ChooseDestination &operator=(ChooseDestination &&) = delete;
   ChooseDestination(GameData &d, GameCamera &c, GameLevelManager &lm);
-  ~ChooseDestination();
+  ~ChooseDestination() = default;
 
   ////////////////////////
   // Основые методы
   ////////////////////////
   void updateControls();
   void update();
-  void draw();
+  void draw(sf::RenderWindow& w);
   ////////////////////////
 
 };
