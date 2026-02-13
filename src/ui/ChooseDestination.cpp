@@ -20,6 +20,32 @@ void ChooseDestination::handleEvents(sf::Event &ev)
 	}
 }
 
+void ChooseDestination::handleMoveEvents(sf::Event& ev)
+{
+	if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
+	{
+		if(keyPressed->scancode == sf::Keyboard::Scan::Left)
+		{
+			moveLevelItLeft();
+		}
+		else if(keyPressed->scancode == sf::Keyboard::Scan::Right)
+		{
+			moveLevelItRight();
+		}
+	}
+}
+
+void ChooseDestination::handleActivateEvent(sf::Event &ev)
+{
+	if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
+	{
+		if(keyPressed->scancode == sf::Keyboard::Scan::Z)
+		{
+			moveLevelItLeft();
+		}
+	}
+}
+
 ChooseDestination::ChooseDestination(GameData &d, GameCamera &c, GameLevelManager &lm)
     : data(&d), camera(&c), background(d.guiTextures.at("GUI_10.png")), manager(&lm)
 {
@@ -114,6 +140,10 @@ void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
 	{
 		w.draw(this->selectionRect);
 	}
+}
+
+void ChooseDestination::currentSelectedElementToDesiredDestination()
+{
 }
 
 void ChooseDestination::moveLevelItLeft()

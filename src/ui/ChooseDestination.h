@@ -22,9 +22,9 @@ private:
 	////////////////////////////
 	// Внешние ссылки на объекты
 	////////////////////////////
-	GameData*   data;
-	GameCamera* camera;
-	GameLevelManager* manager;
+	GameData*   		data;
+	GameCamera* 		camera;
+	GameLevelManager* 	manager;
 	////////////////////////////
 
 	/////////////
@@ -32,15 +32,16 @@ private:
 	/////////////
 	bool isOpened = false;
 
+	void currentSelectedElementToDesiredDestination();
 
 	//////////////////////////////////
 	// Menu box general representation
 	//////////////////////////////////
 		struct LevelDestination{
-			bool isOpened = true;
-			bool isVisible = true;
-			bool isSelected = false;
-			bool isPlayerThere = false;	
+			bool isOpened 		=  true;
+			bool isVisible 		=  true;
+			bool isSelected 	= false;
+			bool isPlayerThere 	= false;	
 
 			GameLevel* level;
 		};
@@ -50,11 +51,11 @@ private:
 		//////////////////////////////////////////////////////////////////////////////////
 		struct LevelDestinationRect{
 
-			LevelDestination leveldestination;
+			LevelDestination 	leveldestination;
 
-			sf::Sprite icon;
+			sf::Sprite 			icon;
 
-			sf::RectangleShape selectionRect;
+			sf::RectangleShape 	selectionRect;
 			
 			void draw(sf::RenderWindow& w);
 		};
@@ -99,7 +100,8 @@ private:
 		// bools
 		bool isKeyPressed = false;
 		void handleEvents(sf::Event& ev);
-
+			void handleMoveEvents(sf::Event& ev);
+			void handleActivateEvent(sf::Event& ev);
 
 public:
 	ChooseDestination(const ChooseDestination &) = default;
