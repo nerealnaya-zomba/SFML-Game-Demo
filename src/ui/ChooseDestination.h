@@ -59,6 +59,8 @@ private:
 	void drawLevelDestinations(sf::RenderWindow& window);
 
 	void updateLevelDestinations();
+		void updateLevelDestinationsBackground();
+		void updateLevelDestinationsLevels();
 
 public:
   ChooseDestination(const ChooseDestination &) = default;

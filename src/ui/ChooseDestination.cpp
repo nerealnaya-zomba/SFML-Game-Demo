@@ -55,7 +55,15 @@ void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
 }
 
 void ChooseDestination::updateLevelDestinations(){
-	// Correcting background size based on count of levels 
+
+	updateLevelDestinationsBackground();
+	updateLevelDestinationsLevels();
+}
+
+void ChooseDestination::updateLevelDestinationsBackground()
+{
+	//Background scaling 
+		// Correcting background size based on count of levels 
 	sf::Vector2i sumOfLevelsRects = {0,0};
 	
 	for (auto& level: this->levels) {
@@ -65,7 +73,6 @@ void ChooseDestination::updateLevelDestinations(){
 	}
 	// For y we take single height of first element in arr.
 	sumOfLevelsRects.y = static_cast<int>(levels.begin()->icon.getTexture().getSize().y) + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y*2; // 2 - is for top and down sides
-
 
 	sf::Vector2f backGroundSize = static_cast<sf::Vector2f>( background.getTexture().getSize());
 	sf::Vector2f backgroundScale = 
@@ -77,15 +84,56 @@ void ChooseDestination::updateLevelDestinations(){
 
 
 
-	//TODO write logic for positioning background
-	// ...
-	// ...	
+	//Background positioning
+	sf::Vector2f viewTopCenter = {camera->getCameraCenterPos().x, camera->getCameraCenterPos().y - (camera->getScreenViewSize().y/2)}; 	// Верхняя точка камеры на данный момент
 
-	sf::Vector2f firstElementIconSize = static_cast<sf::Vector2f>( levels.begin()->icon.getTexture().getSize( ));
-	for (auto& level : this->levels) {
-		//TODO write logic for positioning icons		
-		// ...
-		// ...
-	}
+	sf::Vector2f backgroundPos = 
+	{
+		viewTopCenter.x - (background.getTexture().getSize().x * backgroundScale.x), 	// Отступ по X, основываясь на ширине фона меню
+		viewTopCenter.y + (background.getTexture().getSize().y * backgroundScale.y)		// Отступ по Y, основываясь на высоте фона меню
+	};
+
+	this->background.setPosition(backgroundPos);
 }
 
+void ChooseDestination::updateLevelDestinationsLevels()
+{
+	//Icon scaling
+	sf::Vector2f iconScale;
+	for (auto &&level : levels)
+	{
+		sf::Vector2f iconSize  = static_cast<sf::Vector2f>(level.icon.getTexture().getSize());
+		iconScale = 
+		{
+			BASE_DESTINATION_ICON_SIZE.x/iconSize.x, 
+			BASE_DESTINATION_ICON_SIZE.y/iconSize.y
+		};
+
+		level.icon.setScale(iconScale);
+	}
+	/////////////////////////////////////
+
+
+	// Positioning icons
+	sf::Vector2f firstElementIconSizeConsiderScale = static_cast<sf::Vector2f>( levels.begin()->icon.getTexture().getSize( ));
+	firstElementIconSizeConsiderScale = {firstElementIconSizeConsiderScale.x*iconScale.x,firstElementIconSizeConsiderScale.y*iconScale.y};
+
+	float fullCalculatedElementXIndent = firstElementIconSizeConsiderScale.x+BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x;
+
+	sf::Vector2f firstElementPos = 
+	{
+		background.getPosition().x+BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x,
+		background.getPosition().y-BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y
+	};
+	
+	for (auto& level : this->levels) {
+		level.icon.setPosition(firstElementPos);
+
+		//Indenting
+		firstElementPos = 
+		{
+			(firstElementPos.x + fullCalculatedElementXIndent),
+			firstElementPos.y
+		};
+	}
+}
