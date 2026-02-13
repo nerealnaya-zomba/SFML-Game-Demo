@@ -6,7 +6,11 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <vector>
+
+const sf::Vector2i BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN = {10,10};
+const sf::Vector2f BASE_DESTINATION_ICON_SIZE                = {30,30};
 
 ////////////////////////
 /// Представляет собой меню для выбора места назначения телепорта
@@ -53,6 +57,8 @@ private:
 	//////////////////////////
 	/// Draw methods
 	void drawLevelDestinations(sf::RenderWindow& window);
+
+	void updateLevelDestinations();
 
 public:
   ChooseDestination(const ChooseDestination &) = default;
