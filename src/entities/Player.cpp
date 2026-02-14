@@ -296,6 +296,22 @@ void Player::chooseDestinationMenuUpdate()
 void Player::chooseDestinationMenuHandleEvents(const sf::Event &ev)
 {
     CDMenu.handleEvents(ev);
+
+    // Open that menu
+    if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
+    {
+        if(keyPressed->scancode == BASE_CHOOSEDESTINATIONMENU_OPEN_CLOSE_KEY)
+        {
+            if(!CDMenu.getIsOpened())
+            {
+                CDMenu.open();
+            }
+            else if(CDMenu.getIsOpened())
+            {
+                CDMenu.close();
+            }
+        }
+    }
 }
 
 void Player::applyFriction(float &walkSpeed, float friction)
