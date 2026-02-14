@@ -2,6 +2,7 @@
 
 using namespace gameUtils;
 Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c)
+    : CDMenu(gameTextures,c,m)
 {
     this->gameTextures = &gameTextures;
     this->levelManager = &m;
@@ -276,6 +277,25 @@ void Player::tryOpenPortal()
             isPortalOnCooldown = true;
         }
     }
+}
+
+void Player::setDestination(std::optional<std::string> levelName)
+{
+}
+
+void Player::chooseDestinationMenuDraw(sf::RenderWindow &w)
+{
+    CDMenu.draw(w);
+}
+
+void Player::chooseDestinationMenuUpdate()
+{
+    CDMenu.update();
+}
+
+void Player::chooseDestinationMenuHandleEvents(const sf::Event &ev)
+{
+    CDMenu.handleEvents(ev);
 }
 
 void Player::applyFriction(float &walkSpeed, float friction)

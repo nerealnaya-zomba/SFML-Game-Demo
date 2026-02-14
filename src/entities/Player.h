@@ -15,17 +15,26 @@
 #include <Particle.h>
 #include<LevelPortal.h>
 #include<PlayerUI.h>
+#include<ChooseDestinationMenu.h>
 
 class GameLevelManager;
 class LevelPortal;
 
-const int portalExistTime = 2000;
 const sf::Vector2f BASE_PORTAL_SPEED_OF_OPENING = {0.01f,0.01f};
 const sf::Vector2f BASE_PORTAL_SPEED_OF_CLOSING = {0.01f,0.01f};
-const int BASE_PORTAL_CALL_COOLDOWN = 5000;
-const int BASE_PORTAL_EXIST_TIME = 10000;
-const float BASE_OFFSET_TO_CREATE_PORTAL = 200.f;
-const sf::Keyboard::Key BASE_PORTAL_CALL_KEY = sf::Keyboard::Key::R;
+
+const int BASE_PORTAL_CALL_COOLDOWN         = 5000;
+const int BASE_PORTAL_EXIST_TIME            = 10000;
+const float BASE_OFFSET_TO_CREATE_PORTAL    = 200.f;
+
+// Controls
+    // Portal
+    const sf::Keyboard::Key BASE_PORTAL_CALL_KEY                        = sf::Keyboard::Key::R;
+    // ChooseDestinationMenu
+    const sf::Keyboard::Key BASE_CHOOSEDESTINATIONMENU_OPEN_CLOSE_KEY   = sf::Keyboard::Key::E;
+    const sf::Keyboard::Key BASE_CHOOSEDESTINATIONMENU_SELECT_KEY       = sf::Keyboard::Key::Enter;
+    const sf::Keyboard::Key BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY     = sf::Keyboard::Key::Q;
+    const sf::Keyboard::Key BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY    = sf::Keyboard::Key::W;
 
 class Player {
 public:
@@ -117,9 +126,6 @@ public:
     int& getShootCooldown();
     sf::Clock& getDashClock();
     int& getDashCooldown();
-    sf::Clock& getPortalClock();
-    int& getPortalCooldown();
-    
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);
@@ -170,11 +176,19 @@ private:
     void switchToNextRunningSprite(); 
     void switchToNextFallingSprite();
 
+    ////////////////////////////////////////////////////////////////
     // Used objects
     sf::Sprite* playerSprite;               // Main player sprite
     Trail* trail;                           // Movement trail effect
         // LevelPortal
-    LevelPortal* portal;
+        LevelPortal* portal;
+            // ChooseDestinationMenu for LevelPortal
+            ChooseDestinationMenu CDMenu;
+    ////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////
+    // LevelPortal methods and fields  
+    ////////////////////////////////////////////////////////////
     sf::Clock portalCooldownClock; // For checking cooldown time
     sf::Clock portalCallOpenCooldownClock;
     sf::Clock portalCallCloseCooldownClock;
@@ -184,6 +198,22 @@ private:
     bool isPortalOnCooldown = false;
     void portalUpdate();
     void tryOpenPortal();
+    void setDestination(std::optional<std::string> levelName); // IMPLEMENTME
+public:
+    sf::Clock& getPortalClock();
+    int& getPortalCooldown();
+private:
+    ////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////
+    // ChooseDestinationMenu methods and fields
+    ////////////////////////////////////////////////////////////
+public:
+    void chooseDestinationMenuDraw(sf::RenderWindow& w);     
+    void chooseDestinationMenuUpdate();
+    void chooseDestinationMenuHandleEvents(const sf::Event& ev);
+private:
+    ////////////////////////////////////////////////////////////
 
     // Physics
     void applyFriction(float& walkSpeed, float friction); // Apply friction to movement
