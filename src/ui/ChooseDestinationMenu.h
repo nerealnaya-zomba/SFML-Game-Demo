@@ -27,11 +27,16 @@ private:
 	GameLevelManager* 	manager;
 	////////////////////////////
 
-	/////////////
-	// Main bools
-	/////////////
-	bool isOpened = false;
-	std::optional<std::string> desiredDestination;
+	///////
+	// Main 
+	///////
+		/// Bools ///
+		bool isOpened = false;
+		std::optional<std::string> desiredDestination;
+		/// Keys  ///
+		sf::Keyboard::Scan  moveLeftKey;
+		sf::Keyboard::Scan moveRightKey;
+		sf::Keyboard::Scan    selectKey;
 
 	//////////////////////////////////
 	// Menu box general representation
@@ -99,15 +104,15 @@ private:
 	// Events handling
 		// bools
 		bool isKeyPressed = false;
-			void handleMoveEvents(sf::Event& ev);
-			void handleActivateEvent(sf::Event& ev);
+			void handleMoveEvents(const sf::Event& ev);
+			void handleActivateEvent(const sf::Event& ev);
 
 public:
 	ChooseDestinationMenu(const ChooseDestinationMenu &) = default;
 	ChooseDestinationMenu(ChooseDestinationMenu &&) = delete;
 	ChooseDestinationMenu &operator=(const ChooseDestinationMenu &) = default;
 	ChooseDestinationMenu &operator=(ChooseDestinationMenu &&) = delete;
-	ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm);
+	ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, sf::Keyboard::Scan moveLeftKey, sf::Keyboard::Scan moveRightKey, sf::Keyboard::Scan selectKey);
 	~ChooseDestinationMenu() = default;
 
 	/////////////////////////////////
@@ -120,7 +125,7 @@ public:
 	////////////////////////////
 	// Основые методы в mainLoop
 	////////////////////////////
-	void handleEvents(sf::Event& ev);
+	void handleEvents(const sf::Event& ev);
 	void update();
 	void draw(sf::RenderWindow& w);
 	////////////////////////

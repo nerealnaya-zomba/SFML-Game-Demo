@@ -5,7 +5,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 
-void ChooseDestinationMenu::handleEvents(sf::Event &ev)
+void ChooseDestinationMenu::handleEvents(const sf::Event &ev)
 {
 	if(!isOpened) return;
 
@@ -22,33 +22,33 @@ void ChooseDestinationMenu::handleEvents(sf::Event &ev)
 	}
 }
 
-void ChooseDestinationMenu::handleMoveEvents(sf::Event& ev)
+void ChooseDestinationMenu::handleMoveEvents(const sf::Event& ev)
 {
 	if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
 	{
-		if(keyPressed->scancode == sf::Keyboard::Scan::Left)
+		if(keyPressed->scancode == this->moveLeftKey)
 		{
 			moveLevelItLeft();
 		}
-		else if(keyPressed->scancode == sf::Keyboard::Scan::Right)
+		else if(keyPressed->scancode == this->moveRightKey)
 		{
 			moveLevelItRight();
 		}
 	}
 }
 
-void ChooseDestinationMenu::handleActivateEvent(sf::Event &ev)
+void ChooseDestinationMenu::handleActivateEvent(const sf::Event &ev)
 {
 	if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
 	{
-		if(keyPressed->scancode == sf::Keyboard::Scan::Z)
+		if(keyPressed->scancode == selectKey)
 		{
 			moveLevelItLeft();
 		}
 	}
 }
 
-ChooseDestinationMenu::ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm)
+ChooseDestinationMenu::ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, sf::Keyboard::Scan moveLeftKey, sf::Keyboard::Scan moveRightKey, sf::Keyboard::Scan selectKey)
     : data(&d), camera(&c), background(d.guiTextures.at("GUI_10.png")), manager(&lm)
 {
 	
