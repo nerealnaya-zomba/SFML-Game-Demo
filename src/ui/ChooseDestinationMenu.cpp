@@ -1,7 +1,7 @@
 #include "GameCamera.h"
 #include "GameData.h"
 #include "GameLevel.h"
-#include<ChooseDestination.h>
+#include<ChooseDestinationMenu.h>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 
