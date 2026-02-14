@@ -2,7 +2,7 @@
 
 using namespace gameUtils;
 Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c)
-    : CDMenu(gameTextures,c,m)
+    : CDMenu(gameTextures,c,m,BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY,BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY,BASE_CHOOSEDESTINATIONMENU_SELECT_KEY)
 {
     this->gameTextures = &gameTextures;
     this->levelManager = &m;

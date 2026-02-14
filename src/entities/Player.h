@@ -31,10 +31,10 @@ const float BASE_OFFSET_TO_CREATE_PORTAL    = 200.f;
     // Portal
     const sf::Keyboard::Key BASE_PORTAL_CALL_KEY                        = sf::Keyboard::Key::R;
     // ChooseDestinationMenu
-    const sf::Keyboard::Key BASE_CHOOSEDESTINATIONMENU_OPEN_CLOSE_KEY   = sf::Keyboard::Key::E;
-    const sf::Keyboard::Key BASE_CHOOSEDESTINATIONMENU_SELECT_KEY       = sf::Keyboard::Key::Enter;
-    const sf::Keyboard::Key BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY     = sf::Keyboard::Key::Q;
-    const sf::Keyboard::Key BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY    = sf::Keyboard::Key::W;
+    const sf::Keyboard::Scan BASE_CHOOSEDESTINATIONMENU_OPEN_CLOSE_KEY   = sf::Keyboard::Scan::E;
+    const sf::Keyboard::Scan BASE_CHOOSEDESTINATIONMENU_SELECT_KEY       = sf::Keyboard::Scan::Enter;
+    const sf::Keyboard::Scan BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY     = sf::Keyboard::Scan::Q;
+    const sf::Keyboard::Scan BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY    = sf::Keyboard::Scan::W;
 
 class Player {
 public:
