@@ -118,6 +118,7 @@ int main()
 
            //↓↓-----GAME-----↓↓
             trader.handleEvent(*event);
+            player.chooseDestinationMenuHandleEvents(*event);
 
             if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
@@ -206,7 +207,10 @@ int main()
             //Front level drawing
         levelManager.drawPlatforms();
         PUI.update();
+        player.chooseDestinationMenuUpdate();
         PUI.draw(window);
+        player.chooseDestinationMenuDraw(window);
+        
 
         //////////////////
         // Camera updating
