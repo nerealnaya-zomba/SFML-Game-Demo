@@ -7,6 +7,8 @@
 
 void ChooseDestination::handleEvents(sf::Event &ev)
 {
+	if(!isOpened) return;
+
 	if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
 	{
 		if(keyPressed->scancode == sf::Keyboard::Scan::Left)
@@ -105,15 +107,7 @@ void ChooseDestination::update(){
 	//Menu back logic
 		//Positioning menu relative to player screen
 	this->positioningLevelDestinations();	
-		//Updating contols
-	this->updateControls();
 
-
-}
-
-void ChooseDestination::updateControls(){
-	if(!isOpened) return;
-	
 }
 
 void ChooseDestination::draw(sf::RenderWindow& w){
@@ -130,6 +124,11 @@ bool ChooseDestination::getIsOpened()
     return this->isOpened;
 }
 
+std::optional<std::string> ChooseDestination::getSelectedLevel()
+{
+    return this->desiredDestination;
+}
+
 void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
 	
 	// Element's icon
@@ -144,6 +143,7 @@ void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
 
 void ChooseDestination::currentSelectedElementToDesiredDestination()
 {
+	this->desiredDestination =std::make_optional<std::string>( levelIt->leveldestination.level->levelName);
 }
 
 void ChooseDestination::moveLevelItLeft()
@@ -174,7 +174,6 @@ void ChooseDestination::moveLevelItRight()
 
 void ChooseDestination::positioningLevelDestinations()
 {
-
     positioningLevelDestinationsBackground();
 	positioningLevelDestinationsLevels();
 }

@@ -31,8 +31,7 @@ private:
 	// Main bools
 	/////////////
 	bool isOpened = false;
-
-	void currentSelectedElementToDesiredDestination();
+	std::optional<std::string> desiredDestination;
 
 	//////////////////////////////////
 	// Menu box general representation
@@ -92,6 +91,7 @@ private:
 		/// Action methods
 		//////////////////
 		void addLevelInVector(GameLevel& level, LevelDestinationRect l);
+		void currentSelectedElementToDesiredDestination();
 		//////////////////
 
 	//////////////////////////////////
@@ -99,7 +99,6 @@ private:
 	// Events handling
 		// bools
 		bool isKeyPressed = false;
-		void handleEvents(sf::Event& ev);
 			void handleMoveEvents(sf::Event& ev);
 			void handleActivateEvent(sf::Event& ev);
 
@@ -121,12 +120,13 @@ public:
 	////////////////////////////
 	// Основые методы в mainLoop
 	////////////////////////////
-	void updateControls();
+	void handleEvents(sf::Event& ev);
 	void update();
 	void draw(sf::RenderWindow& w);
 	////////////////////////
 
 	//Getters
 	bool getIsOpened();
+	std::optional<std::string> getSelectedLevel();
 
 };
