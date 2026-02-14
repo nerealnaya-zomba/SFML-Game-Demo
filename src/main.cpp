@@ -120,10 +120,10 @@ int main()
             trader.handleEvent(*event);
             player.chooseDestinationMenuHandleEvents(*event);
 
-            if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+            if(const auto* keyPressed = event->getIf<sf::Event::MouseButtonPressed>())
             {
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-                
+                std::cout << "MouseX: " << mousePos.x << "  MouseY: " << mousePos.y << std::endl;
             }
 
             //↑↑-----GAME-----↑↑

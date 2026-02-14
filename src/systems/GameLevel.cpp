@@ -148,6 +148,11 @@ sf::RectangleShape &GameLevelManager::getGroundRect()
     return levelIt->second->getGroundRect();
 }
 
+const std::map<std::string, std::shared_ptr<GameLevel>> &GameLevelManager::getLevelsMap() const
+{
+    return this->levels;
+}
+
 void GameLevelManager::attachPlayer(Player& p)
 {
     this->player = &p;

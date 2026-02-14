@@ -199,6 +199,7 @@ public:
     sf::Vector2i getCurrentLevelSize() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
+    const std::map<std::string, std::shared_ptr< GameLevel >>& getLevelsMap() const;
 
     // Setters
     void attachPlayer(Player& p);

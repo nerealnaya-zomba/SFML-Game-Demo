@@ -151,10 +151,14 @@ void ChooseDestinationMenu::currentSelectedElementToDesiredDestination()
 
 void ChooseDestinationMenu::mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon)
 {
-	sf::Vector2f srsize = static_cast<sf::Vector2f>(icon.getTexture().getSize());
+	sf::Vector2f iconSize = static_cast<sf::Vector2f>(icon.getTexture().getSize());
+	sf::Vector2f iconScale = icon.getScale();
+	iconSize.x*= iconScale.x;
+	iconSize.y*= iconScale.y;
 
-	sr.setSize				(srsize);
-	sr.setFillColor			(BASE_SELECTION_COLOR);
+	sr.setSize				(iconSize);
+	sr.setFillColor			(sf::Color::Transparent);
+	sr.setOutlineColor		(BASE_SELECTION_COLOR);
 	sr.setOutlineThickness	(BASE_SELECTION_SIZE );
 	sr.setPosition			(icon.getPosition());
 }
@@ -205,9 +209,15 @@ void ChooseDestinationMenu::positioningLevelDestinationsBackground()
 
 	}
 	// For y we take single height of first element in arr.
-	float heightOfIcon = static_cast<float>(levels.begin()->icon.getTexture().getSize().y) * levels.begin()->icon.getScale().y;
-	std::cout << heightOfIcon << "\n";
-	sumOfLevelsRects.y = static_cast<int>(heightOfIcon) + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y*2; // 2 - is for top and down sides
+	float heightOfIcon_dump = static_cast<float>(levels.begin()->icon.getTexture().getSize().y);
+	float scaleOfIcon_dump  =levels.begin()->icon.getScale().y;
+	float heightOfIcon =  heightOfIcon_dump*scaleOfIcon_dump ;
+	
+	float topdownrightMarginY = static_cast<float>(BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y);
+	topdownrightMarginY *= 2;
+	float topdownrightMarginYInt_multiplied = static_cast<int>(topdownrightMarginY);
+	int heightOfIconInt = static_cast<int>(heightOfIcon);
+	sumOfLevelsRects.y = heightOfIconInt + topdownrightMarginYInt_multiplied; // 2 - is for top and down sides
 
 	sf::Vector2f backGroundSize = static_cast<sf::Vector2f>( background.getTexture().getSize());
 	sf::Vector2f backgroundScale = 
