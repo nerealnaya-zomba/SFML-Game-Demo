@@ -75,11 +75,14 @@ void ChooseDestinationMenu::close()
 	}
 }
 
-void ChooseDestinationMenu::addLevelInVector(GameLevel& level,LevelDestinationRect l){
+void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, sf::Texture& icon){
 	
-	l.leveldestination.level =     &level;
-	l.leveldestination.isOpened =  false;
-	l.leveldestination.isVisible = true;
+	LevelDestinationRect l(icon);
+	l.leveldestination.level     = &level;
+	l.leveldestination.isOpened  = false ;
+	l.leveldestination.isVisible = true  ;
+
+	mountSelectionRect(l.selectionRect,l.icon);
 	
 	this->levels.push_back(l);
 }
@@ -146,12 +149,22 @@ void ChooseDestinationMenu::currentSelectedElementToDesiredDestination()
 	this->desiredDestination =std::make_optional<std::string>( levelIt->leveldestination.level->levelName);
 }
 
+void ChooseDestinationMenu::mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon)
+{
+	sf::Vector2f srsize = static_cast<sf::Vector2f>(icon.getTexture().getSize());
+
+	sr.setSize				(srsize);
+	sr.setFillColor			(BASE_SELECTION_COLOR);
+	sr.setOutlineThickness	(BASE_SELECTION_SIZE );
+	sr.setPosition			(icon.getPosition());
+}
+
 void ChooseDestinationMenu::moveLevelItLeft()
 {
 	levelIt->leveldestination.isSelected = false;
 	if(levelIt==levels.begin())
 	{
-		levelIt == levels.end()-1;
+		levelIt = levels.end()-1;
 	}
 	else
 	{
@@ -162,6 +175,7 @@ void ChooseDestinationMenu::moveLevelItLeft()
 
 void ChooseDestinationMenu::moveLevelItRight()
 {
+	levelIt->leveldestination.isSelected = false;
 	if(levelIt == levels.end()-1)
 	{
 		levelIt = levels.begin();
@@ -169,6 +183,7 @@ void ChooseDestinationMenu::moveLevelItRight()
 	else
 	{
 		levelIt++;
+		levelIt->leveldestination.isSelected = true;
 	}
 }
 
@@ -190,13 +205,15 @@ void ChooseDestinationMenu::positioningLevelDestinationsBackground()
 
 	}
 	// For y we take single height of first element in arr.
-	sumOfLevelsRects.y = static_cast<int>(levels.begin()->icon.getTexture().getSize().y) + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y*2; // 2 - is for top and down sides
+	float heightOfIcon = static_cast<float>(levels.begin()->icon.getTexture().getSize().y) * levels.begin()->icon.getScale().y;
+	std::cout << heightOfIcon << "\n";
+	sumOfLevelsRects.y = static_cast<int>(heightOfIcon) + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y*2; // 2 - is for top and down sides
 
 	sf::Vector2f backGroundSize = static_cast<sf::Vector2f>( background.getTexture().getSize());
 	sf::Vector2f backgroundScale = 
 	{
-		sumOfLevelsRects.x/backGroundSize.x,	
-		sumOfLevelsRects.y/backGroundSize.y
+		static_cast<float>(sumOfLevelsRects.x)/backGroundSize.x,	
+		static_cast<float>(sumOfLevelsRects.y)/backGroundSize.y
 	};
 	this->background.setScale(backgroundScale);
 
@@ -246,12 +263,14 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 	
 	for (auto& level : this->levels) {
 		level.icon.setPosition(firstElementPos);
-
+		
 		//Indenting
 		firstElementPos = 
 		{
 			(firstElementPos.x + fullCalculatedElementXIndent),
 			firstElementPos.y
 		};
+
+		mountSelectionRect(level.selectionRect,level.icon);
 	}
 }

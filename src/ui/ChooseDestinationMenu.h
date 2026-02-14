@@ -9,8 +9,15 @@
 #include <SFML/System/Vector2.hpp>
 #include <vector>
 
+class GameLevelManager;
+
+//LevelRect
 const sf::Vector2i BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN = {10,10};
 const sf::Vector2f BASE_DESTINATION_ICON_SIZE                = {30,30};
+
+//SelectionRect
+const sf::Color BASE_SELECTION_COLOR = sf::Color::Blue;
+const float     BASE_SELECTION_SIZE  = 2.f;
 
 ////////////////////////
 /// Представляет собой меню для выбора места назначения телепорта
@@ -41,28 +48,32 @@ private:
 	//////////////////////////////////
 	// Menu box general representation
 	//////////////////////////////////
+public:
 		struct LevelDestination{
 			bool isOpened 		=  true;
 			bool isVisible 		=  true;
 			bool isSelected 	= false;
 			bool isPlayerThere 	= false;	
 
-			GameLevel* level;
+			const GameLevel* level;
 		};
 
 		//////////////////////////////////////////////////////////////////////////////////
 		// Представляет собой отдельный элемент уровня в контейнере, содержащий: параметры отображения, иконку, квадрат выделения
 		//////////////////////////////////////////////////////////////////////////////////
-		struct LevelDestinationRect{
+		struct LevelDestinationRect
+		{
+			LevelDestinationRect(sf::Texture& iconTexture) : icon(iconTexture){};
 
 			LevelDestination 	leveldestination;
 
-			sf::Sprite 			icon;
+			sf::Sprite  		icon;
 
 			sf::RectangleShape 	selectionRect;
 			
 			void draw(sf::RenderWindow& w);
 		};
+private:
 		///////////
 		// Elements
 		///////////
@@ -95,8 +106,8 @@ private:
 		//////////////////
 		/// Action methods
 		//////////////////
-		void addLevelInVector(GameLevel& level, LevelDestinationRect l);
 		void currentSelectedElementToDesiredDestination();
+		void mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon);	// Mount selection rect to its icon's parametrs
 		//////////////////
 
 	//////////////////////////////////
@@ -108,16 +119,17 @@ private:
 			void handleActivateEvent(const sf::Event& ev);
 
 public:
-	ChooseDestinationMenu(const ChooseDestinationMenu &) = default;
-	ChooseDestinationMenu(ChooseDestinationMenu &&) = delete;
+	ChooseDestinationMenu(const ChooseDestinationMenu &) 			= default;
+	ChooseDestinationMenu(ChooseDestinationMenu &&) 				= delete;
 	ChooseDestinationMenu &operator=(const ChooseDestinationMenu &) = default;
-	ChooseDestinationMenu &operator=(ChooseDestinationMenu &&) = delete;
+	ChooseDestinationMenu &operator=(ChooseDestinationMenu &&) 		= delete;
 	ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, sf::Keyboard::Scan moveLeftKey, sf::Keyboard::Scan moveRightKey, sf::Keyboard::Scan selectKey);
 	~ChooseDestinationMenu() = default;
 
 	/////////////////////////////////
 	// Основные методы взаимодействия
 	/////////////////////////////////
+	void addLevelInVector(const GameLevel& level, sf::Texture& icon);
 	void open();
 	void close();
 	/////////////////////////////////
