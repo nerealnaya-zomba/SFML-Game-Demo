@@ -9,17 +9,8 @@ void ChooseDestinationMenu::handleEvents(const sf::Event &ev)
 {
 	if(!isOpened) return;
 
-	if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
-	{
-		if(keyPressed->scancode == sf::Keyboard::Scan::Left)
-		{
-			moveLevelItLeft();
-		}
-		else if(keyPressed->scancode == sf::Keyboard::Scan::Right)
-		{
-			moveLevelItRight();
-		}
-	}
+	handleMoveEvents(ev);
+	handleActivateEvent(ev);
 }
 
 void ChooseDestinationMenu::handleMoveEvents(const sf::Event& ev)
@@ -43,13 +34,14 @@ void ChooseDestinationMenu::handleActivateEvent(const sf::Event &ev)
 	{
 		if(keyPressed->scancode == selectKey)
 		{
-			moveLevelItLeft();
+			currentSelectedElementToDesiredDestination();
 		}
 	}
 }
 
-ChooseDestinationMenu::ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, sf::Keyboard::Scan moveLeftKey, sf::Keyboard::Scan moveRightKey, sf::Keyboard::Scan selectKey)
-    : data(&d), camera(&c), background(d.guiTextures.at("GUI_10.png")), manager(&lm)
+ChooseDestinationMenu::ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, sf::Keyboard::Scan mvLeftKey, sf::Keyboard::Scan mvRightKey, sf::Keyboard::Scan slctKey)
+    : data(&d), camera(&c), background(d.guiTextures.at("GUI_10.png")), manager(&lm),
+	moveLeftKey(mvLeftKey),moveRightKey(mvRightKey),selectKey(slctKey), displayingLevelName(*d.gameFont)
 {
 	
 }
@@ -169,6 +161,7 @@ void ChooseDestinationMenu::moveLevelItLeft()
 	if(levelIt==levels.begin())
 	{
 		levelIt = levels.end()-1;
+		levelIt->leveldestination.isSelected = true;
 	}
 	else
 	{
@@ -183,6 +176,7 @@ void ChooseDestinationMenu::moveLevelItRight()
 	if(levelIt == levels.end()-1)
 	{
 		levelIt = levels.begin();
+		levelIt->leveldestination.isSelected = true;
 	}
 	else
 	{

@@ -78,6 +78,7 @@ private:
 		// Elements
 		///////////
 		sf::Sprite background;
+		sf::Text   displayingLevelName;
 		std::vector<LevelDestinationRect> levels;
 
 		// Points to element
