@@ -1,7 +1,14 @@
 cmake_minimum_required(VERSION 3.28)
 project(CMakeSFMLProject LANGUAGES CXX)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
+if(CMAKE_SYSTEM MATCHES Windows)
+   message(STATUS "Target system is Windows")
+   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+elseif(CMAKE_HOST_SYSTEM MATCHES Linux)
+    message(STATUS "Build host runs Linux")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
+endif()
+
 set(CMAKE_BUILD_TYPE Debug)
 
 include(FetchContent)
