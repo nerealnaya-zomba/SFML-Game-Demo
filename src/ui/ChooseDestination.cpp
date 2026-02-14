@@ -5,7 +5,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 
-void ChooseDestination::handleEvents(sf::Event &ev)
+void ChooseDestinationMenu::handleEvents(sf::Event &ev)
 {
 	if(!isOpened) return;
 
@@ -22,7 +22,7 @@ void ChooseDestination::handleEvents(sf::Event &ev)
 	}
 }
 
-void ChooseDestination::handleMoveEvents(sf::Event& ev)
+void ChooseDestinationMenu::handleMoveEvents(sf::Event& ev)
 {
 	if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
 	{
@@ -37,7 +37,7 @@ void ChooseDestination::handleMoveEvents(sf::Event& ev)
 	}
 }
 
-void ChooseDestination::handleActivateEvent(sf::Event &ev)
+void ChooseDestinationMenu::handleActivateEvent(sf::Event &ev)
 {
 	if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
 	{
@@ -48,13 +48,13 @@ void ChooseDestination::handleActivateEvent(sf::Event &ev)
 	}
 }
 
-ChooseDestination::ChooseDestination(GameData &d, GameCamera &c, GameLevelManager &lm)
+ChooseDestinationMenu::ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm)
     : data(&d), camera(&c), background(d.guiTextures.at("GUI_10.png")), manager(&lm)
 {
 	
 }
 
-void ChooseDestination::open()
+void ChooseDestinationMenu::open()
 {
 	isOpened = true;
 	for (auto &&level : levels)
@@ -66,7 +66,7 @@ void ChooseDestination::open()
 	levelIt->leveldestination.isSelected = true;
 }
 
-void ChooseDestination::close()
+void ChooseDestinationMenu::close()
 {
 	isOpened = false;
 	for (auto &&level : levels)
@@ -75,7 +75,7 @@ void ChooseDestination::close()
 	}
 }
 
-void ChooseDestination::addLevelInVector(GameLevel& level,LevelDestinationRect l){
+void ChooseDestinationMenu::addLevelInVector(GameLevel& level,LevelDestinationRect l){
 	
 	l.leveldestination.level =     &level;
 	l.leveldestination.isOpened =  false;
@@ -84,25 +84,25 @@ void ChooseDestination::addLevelInVector(GameLevel& level,LevelDestinationRect l
 	this->levels.push_back(l);
 }
 
-void ChooseDestination::drawLevelDestinations(sf::RenderWindow& window){
+void ChooseDestinationMenu::drawLevelDestinations(sf::RenderWindow& window){
 
 	drawLevelDestinationsBackground(window);
 	drawLevelDestinationsLevels(window);
 }
 
-void ChooseDestination::drawLevelDestinationsBackground(sf::RenderWindow &window)
+void ChooseDestinationMenu::drawLevelDestinationsBackground(sf::RenderWindow &window)
 {
 	window.draw(background);
 }
 
-void ChooseDestination::drawLevelDestinationsLevels(sf::RenderWindow &window)
+void ChooseDestinationMenu::drawLevelDestinationsLevels(sf::RenderWindow &window)
 {
 	for (auto& level : levels) {
 		level.draw(window);					
 	}
 }
 
-void ChooseDestination::update(){
+void ChooseDestinationMenu::update(){
 	if(!isOpened) return;
 	//Menu back logic
 		//Positioning menu relative to player screen
@@ -110,7 +110,7 @@ void ChooseDestination::update(){
 
 }
 
-void ChooseDestination::draw(sf::RenderWindow& w){
+void ChooseDestinationMenu::draw(sf::RenderWindow& w){
 	if(!isOpened) return;
 	//TODO
 	// draw box that consist elements
@@ -119,17 +119,17 @@ void ChooseDestination::draw(sf::RenderWindow& w){
 	drawLevelDestinations(w);
 }
 
-bool ChooseDestination::getIsOpened()
+bool ChooseDestinationMenu::getIsOpened()
 {
     return this->isOpened;
 }
 
-std::optional<std::string> ChooseDestination::getSelectedLevel()
+std::optional<std::string> ChooseDestinationMenu::getSelectedLevel()
 {
     return this->desiredDestination;
 }
 
-void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
+void ChooseDestinationMenu::LevelDestinationRect::draw(sf::RenderWindow& w){
 	
 	// Element's icon
 	w.draw(this->icon);
@@ -141,12 +141,12 @@ void ChooseDestination::LevelDestinationRect::draw(sf::RenderWindow& w){
 	}
 }
 
-void ChooseDestination::currentSelectedElementToDesiredDestination()
+void ChooseDestinationMenu::currentSelectedElementToDesiredDestination()
 {
 	this->desiredDestination =std::make_optional<std::string>( levelIt->leveldestination.level->levelName);
 }
 
-void ChooseDestination::moveLevelItLeft()
+void ChooseDestinationMenu::moveLevelItLeft()
 {
 	levelIt->leveldestination.isSelected = false;
 	if(levelIt==levels.begin())
@@ -160,7 +160,7 @@ void ChooseDestination::moveLevelItLeft()
 	}
 }
 
-void ChooseDestination::moveLevelItRight()
+void ChooseDestinationMenu::moveLevelItRight()
 {
 	if(levelIt == levels.end()-1)
 	{
@@ -172,13 +172,13 @@ void ChooseDestination::moveLevelItRight()
 	}
 }
 
-void ChooseDestination::positioningLevelDestinations()
+void ChooseDestinationMenu::positioningLevelDestinations()
 {
     positioningLevelDestinationsBackground();
 	positioningLevelDestinationsLevels();
 }
 
-void ChooseDestination::positioningLevelDestinationsBackground()
+void ChooseDestinationMenu::positioningLevelDestinationsBackground()
 {
 	//Background scaling 
 		// Correcting background size based on count of levels 
@@ -214,7 +214,7 @@ void ChooseDestination::positioningLevelDestinationsBackground()
 	this->background.setPosition(backgroundPos);
 }
 
-void ChooseDestination::positioningLevelDestinationsLevels()
+void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 {
 	//Icon scaling
 	sf::Vector2f iconScale;

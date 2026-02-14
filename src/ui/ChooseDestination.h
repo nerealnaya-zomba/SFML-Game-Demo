@@ -16,7 +16,7 @@ const sf::Vector2f BASE_DESTINATION_ICON_SIZE                = {30,30};
 /// Представляет собой меню для выбора места назначения телепорта
 ////////////////////////
 
-class ChooseDestination
+class ChooseDestinationMenu
 {
 private:
 	////////////////////////////
@@ -103,12 +103,12 @@ private:
 			void handleActivateEvent(sf::Event& ev);
 
 public:
-	ChooseDestination(const ChooseDestination &) = default;
-	ChooseDestination(ChooseDestination &&) = delete;
-	ChooseDestination &operator=(const ChooseDestination &) = default;
-	ChooseDestination &operator=(ChooseDestination &&) = delete;
-	ChooseDestination(GameData &d, GameCamera &c, GameLevelManager &lm);
-	~ChooseDestination() = default;
+	ChooseDestinationMenu(const ChooseDestinationMenu &) = default;
+	ChooseDestinationMenu(ChooseDestinationMenu &&) = delete;
+	ChooseDestinationMenu &operator=(const ChooseDestinationMenu &) = default;
+	ChooseDestinationMenu &operator=(ChooseDestinationMenu &&) = delete;
+	ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm);
+	~ChooseDestinationMenu() = default;
 
 	/////////////////////////////////
 	// Основные методы взаимодействия
