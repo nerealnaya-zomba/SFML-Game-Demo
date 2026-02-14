@@ -91,8 +91,8 @@ void Bullet::speedReduction()
 void Bullet::update()
 {
     moveBullet();
-    std::cout << "Speed: " << speed_.x << std::endl;
-    std::cout << "Reduction: " << speedReductionValue << std::endl;
+    // std::cout << "Speed: " << speed_.x << std::endl;
+    // std::cout << "Reduction: " << speedReductionValue << std::endl;
     //Остаточные частицы
     if(!makeParticles_isOnCooldown){   
         makeAfterParticles();
