@@ -262,7 +262,7 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 	sf::Vector2f firstElementPos = 
 	{
 		background.getPosition().x+BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x,
-		background.getPosition().y-BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y
+		background.getPosition().y+BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y
 	};
 	
 	for (auto& level : this->levels) {
