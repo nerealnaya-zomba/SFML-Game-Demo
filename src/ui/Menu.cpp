@@ -177,7 +177,7 @@ void Menu::fillUpWindowWithExitButton(sf::RenderWindow &window)
         exitButton->setScale({exitButton->getScale().x+0.05f, exitButton->getScale().y+0.15f});
         if(exitButtonText->getFillColor().a>0)
         {
-            exitButtonText->setFillColor({exitButton->getFillColor().r, exitButton->getFillColor().g, exitButton->getFillColor().b, exitButton->getFillColor().a-1});
+            exitButtonText->setFillColor({exitButton->getFillColor().r, exitButton->getFillColor().g, exitButton->getFillColor().b, static_cast<uint8_t>(exitButton->getFillColor().a-1)});
         }
 
         window.draw(*exitButton);
@@ -197,7 +197,7 @@ void Menu::smoothlyReturnPreviousVariablesAndDraw(sf::RenderWindow& window)
         }
         if(playButtonText->getFillColor().a<255)
         {
-            playButtonText->setFillColor({playButton->getFillColor().r, playButton->getFillColor().g, playButton->getFillColor().b, playButton->getFillColor().a+1});
+            playButtonText->setFillColor({playButton->getFillColor().r, playButton->getFillColor().g, playButton->getFillColor().b, static_cast<uint8_t>(playButton->getFillColor().a+1)});
         }
         
         //Smoothly change button's color to the black

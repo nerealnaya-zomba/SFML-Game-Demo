@@ -6,7 +6,9 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <utility>
 #include <vector>
 
 class GameLevelManager;
@@ -73,12 +75,17 @@ public:
 			
 			void draw(sf::RenderWindow& w);
 		};
+
+		struct LevelDestinationText
+		{
+			bool isVisible = false;
+		};
 private:
 		///////////
 		// Elements
 		///////////
 		sf::Sprite background;
-		sf::Text   displayingLevelName;
+		std::pair<LevelDestinationText, sf::Text> displayingLevelName;
 		std::vector<LevelDestinationRect> levels;
 
 		// Points to element
@@ -94,6 +101,7 @@ private:
 		void positioningLevelDestinations();
 			void positioningLevelDestinationsBackground();
 			void positioningLevelDestinationsLevels();
+			void positioningLevelDestinationsText();
 		//////////////////////////////
 
 		//////////////////////////
@@ -102,6 +110,7 @@ private:
 		void drawLevelDestinations(sf::RenderWindow& window);
 			void drawLevelDestinationsBackground(sf::RenderWindow& window);
 			void drawLevelDestinationsLevels(sf::RenderWindow& window);
+			void drawLevelDestinationsText(sf::RenderWindow& window);
 		//////////////////////////
 
 		//////////////////

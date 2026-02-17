@@ -3,7 +3,9 @@
 #include "GameLevel.h"
 #include<ChooseDestinationMenu.h>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <utility>
 
 void ChooseDestinationMenu::handleEvents(const sf::Event &ev)
 {
@@ -41,7 +43,7 @@ void ChooseDestinationMenu::handleActivateEvent(const sf::Event &ev)
 
 ChooseDestinationMenu::ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, sf::Keyboard::Scan mvLeftKey, sf::Keyboard::Scan mvRightKey, sf::Keyboard::Scan slctKey)
     : data(&d), camera(&c), background(d.guiTextures.at("GUI_10.png")), manager(&lm),
-	moveLeftKey(mvLeftKey),moveRightKey(mvRightKey),selectKey(slctKey), displayingLevelName(*d.gameFont)
+	moveLeftKey(mvLeftKey),moveRightKey(mvRightKey),selectKey(slctKey), displayingLevelName(std::pair(LevelDestinationText{false}, *d.gameFont))
 {
 	
 }
@@ -277,4 +279,35 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 
 		mountSelectionRect(level.selectionRect,level.icon);
 	}
+}
+
+void ChooseDestinationMenu::positioningLevelDestinationsText()
+{
+	sf::Vector2f displayingLevelNamePos;		
+	sf::Vector2f displayingLevelNameSize;		
+	
+	sf::Vector2f backgroundPos = this->background.getPosition();
+	sf::Vector2f backgroundScale = this->background.getScale();
+	sf::Vector2f backgroundSize = static_cast<sf::Vector2f>( this->background.getTexture().getSize() );
+	sf::Vector2f backgroundScaledSize = {( backgroundSize.x * backgroundScale.x ), ( backgroundSize.y * backgroundScale.y )};
+
+	displayingLevelNamePos = this->displayingLevelName.second.getPosition();
+	displayingLevelNameSize = this->displayingLevelName.second.getGlobalBounds().size;
+
+	if(displayingLevelNameSize.x>0 && displayingLevelNameSize.y>0)
+	{
+		this->displayingLevelName.first.isVisible = true;	
+	}
+	else
+	{
+		this->displayingLevelName.first.isVisible = false;
+	}
+
+	displayingLevelName.second.setPosition
+			(
+			{
+				
+			}
+			);
+
 }
