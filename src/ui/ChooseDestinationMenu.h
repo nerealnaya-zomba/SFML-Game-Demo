@@ -55,6 +55,7 @@ public:
 			bool isOpened 		=  true;
 			bool isVisible 		=  true;
 			bool isSelected 	= false;
+			bool isChoosed		= false;
 			bool isPlayerThere 	= false;	
 
 			const GameLevel* level;
@@ -110,7 +111,7 @@ private:
 		void drawLevelDestinations(sf::RenderWindow& window);
 			void drawLevelDestinationsBackground(sf::RenderWindow& window);
 			void drawLevelDestinationsLevels(sf::RenderWindow& window);
-			void drawLevelDestinationsText(sf::RenderWindow& window);
+			void drawLevelDestinationsText(sf::RenderWindow& window);		// IMPLEMENTME
 		//////////////////////////
 
 		//////////////////
