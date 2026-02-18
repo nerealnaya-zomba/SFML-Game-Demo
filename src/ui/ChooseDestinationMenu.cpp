@@ -141,6 +141,13 @@ void ChooseDestinationMenu::LevelDestinationRect::draw(sf::RenderWindow& w){
 void ChooseDestinationMenu::currentSelectedElementToDesiredDestination()
 {
 	this->desiredDestination =std::make_optional<std::string>( levelIt->leveldestination.level->levelName);
+	// Setting isChoosed=false to all levels
+	for (auto &&level : levels)
+	{
+		level.leveldestination.isChoosed = false;
+	}
+	// Setting isChoosed=true to selected level
+	levelIt->leveldestination.isChoosed  = true ;
 }
 
 void ChooseDestinationMenu::mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon)
