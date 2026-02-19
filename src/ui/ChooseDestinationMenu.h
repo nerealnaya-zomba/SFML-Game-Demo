@@ -56,7 +56,7 @@ public:
 			bool isVisible 		=  true;
 			bool isSelected 	= false;
 			bool isChoosed		= false;
-			bool isPlayerThere 	= false;	
+			bool isPlayerThere 	= false;
 
 			const GameLevel* level;
 		};
@@ -118,7 +118,10 @@ private:
 		/// Action methods
 		//////////////////
 		void currentSelectedElementToDesiredDestination();
-		void mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon);	// Mount selection rect to its icon's parametrs
+			/// Returns level name
+			std::string getCurrentLevelName();
+			// Mount selection rect to its icon's parametrs
+			void mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon);	
 		//////////////////
 
 	//////////////////////////////////

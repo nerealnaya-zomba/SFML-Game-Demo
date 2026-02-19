@@ -134,6 +134,11 @@ sf::Vector2i GameLevelManager::getCurrentLevelSize() const
     return levelIt->second->getLevelSize();
 }
 
+std::string GameLevelManager::getCurrentLevelName() const
+{
+    return levelIt->second->levelName;
+}
+
 std::vector<std::shared_ptr<sf::RectangleShape>> &GameLevelManager::getPlatformRects()
 {
     if(levelIt->second == nullptr){
@@ -151,6 +156,11 @@ sf::RectangleShape &GameLevelManager::getGroundRect()
 const std::map<std::string, std::shared_ptr<GameLevel>> &GameLevelManager::getLevelsMap() const
 {
     return this->levels;
+}
+
+std::map<std::string, std::shared_ptr<GameLevel>>::iterator &GameLevelManager::getIteratorReference()
+{
+    this->levelIt;
 }
 
 void GameLevelManager::attachPlayer(Player& p)

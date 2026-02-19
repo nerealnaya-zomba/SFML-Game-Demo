@@ -150,6 +150,11 @@ void ChooseDestinationMenu::currentSelectedElementToDesiredDestination()
 	levelIt->leveldestination.isChoosed  = true ;
 }
 
+std::string ChooseDestinationMenu::getCurrentLevelName()
+{
+	return manager->getIteratorReference()->second->levelName;
+}
+
 void ChooseDestinationMenu::mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon)
 {
 	sf::Vector2f iconSize = static_cast<sf::Vector2f>(icon.getTexture().getSize());
