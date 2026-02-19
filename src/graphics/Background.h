@@ -38,7 +38,7 @@ enum Type{RepeatedBackground, SingleBackground};
 //////////////////////////////////////////////////
 class Background
 {  
-    public:
+public:
     Background(GameData& d, GameCamera& c, GameLevel& l, sf::Vector2f pos, std::string bgName, sf::Vector2f parallaxFact, Type t);
     ~Background();
 
@@ -53,7 +53,14 @@ class Background
     //////////////////////////////////////////////////
     void draw(sf::RenderWindow& window);
     //////////////////////////////////////////////////
-    private:
+
+    // Setters
+    void setParallaxFactor(sf::Vector2f f);
+
+    // Getters
+    sf::Sprite &getSprite();
+
+private:
     // Указатели на внешние данные
     const GameCamera* camera;
     const GameData* gamedata;
@@ -73,7 +80,4 @@ class Background
 
     // Основной спрайт
     sf::Sprite* bgFront;
-
-    // Setters
-    void setParallaxFactor(sf::Vector2f f);
 };

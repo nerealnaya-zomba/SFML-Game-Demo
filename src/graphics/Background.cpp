@@ -83,3 +83,7 @@ void Background::setParallaxFactor(sf::Vector2f f)
     this->parallaxFactor = f;
 }
 
+sf::Sprite &Background::getSprite()
+{
+    return *this->bgFront;
+}
