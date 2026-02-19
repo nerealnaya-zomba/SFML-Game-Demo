@@ -129,6 +129,7 @@ public:
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
     sf::Vector2f getPlayerSpawnPos();
+    sf::Sprite &getLevelBackgroundSprite();
 
     // Setters
     void attachPlayer(Player& p);

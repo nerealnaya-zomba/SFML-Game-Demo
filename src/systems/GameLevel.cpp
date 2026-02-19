@@ -160,7 +160,7 @@ const std::map<std::string, std::shared_ptr<GameLevel>> &GameLevelManager::getLe
 
 std::map<std::string, std::shared_ptr<GameLevel>>::iterator &GameLevelManager::getIteratorReference()
 {
-    this->levelIt;
+    return this->levelIt;
 }
 
 void GameLevelManager::attachPlayer(Player& p)
@@ -351,6 +351,7 @@ void GameLevel::loadLevelData(const std::string& fileNamePath)
     nlohmann::json data = nlohmann::json::parse(dataFile);
 
     this->size = sf::Vector2i(data["Presets"]["Size"][0],data["Presets"]["Size"][1]);
+    this->levelName = fileNamePath;
 
     initializePlatforms(data);
 
@@ -363,6 +364,7 @@ void GameLevel::loadLevelData(const std::string& fileNamePath)
     initializeEnemyManager(data);
 
     playerSpawnPos = {data["Presets"]["PlayerSpawn"][0],data["Presets"]["PlayerSpawn"][1]};
+
 }
 
 void GameLevel::clearLevel()
@@ -398,6 +400,11 @@ sf::RectangleShape &GameLevel::getGroundRect()
 sf::Vector2f GameLevel::getPlayerSpawnPos()
 {
     return playerSpawnPos;
+}
+
+sf::Sprite &GameLevel::getLevelBackgroundSprite()
+{
+    return this->background.begin()->get()->getSprite();
 }
 
 void GameLevel::attachPlayer(Player &p)
