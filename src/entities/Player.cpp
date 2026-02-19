@@ -10,9 +10,10 @@ Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c)
     loadData();
 
     // Attaching levels to ChooseDestinationMenu
-    CDMenu.addLevelInVector(*m.getLevelsMap().begin()->second,gameTextures.backgroundTextures.at("Background_46.png"));
-    CDMenu.addLevelInVector(*m.getLevelsMap().begin()->second,gameTextures.backgroundTextures.at("Background_01.png"));
-    CDMenu.addLevelInVector(*m.getLevelsMap().begin()->second,gameTextures.backgroundTextures.at("Background_05.png"));
+    for (auto &&i : m.getLevelsMap())
+    {
+        CDMenu.addLevelInVector(*i.second,i.second->getLevelBackgroundSprite().getTexture());
+    }
 
     //Textures initialization
     attachTexture(gameTextures.idleTextures,this->idleTextures);
