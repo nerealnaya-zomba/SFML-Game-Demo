@@ -21,6 +21,10 @@ const sf::Vector2f BASE_DESTINATION_ICON_SIZE                = {30,30};
 const sf::Color BASE_SELECTION_COLOR = sf::Color::Blue;
 const float     BASE_SELECTION_SIZE  = 2.f;
 
+//CurrentLevelMarkRect
+const sf::Color BASE_LEVELMARK_COLOR = sf::Color::Red;
+const float     BASE_LEVELMARK_SIZE  = 2.f;
+
 ////////////////////////
 /// Представляет собой меню для выбора места назначения телепорта
 ////////////////////////
@@ -67,12 +71,15 @@ public:
 		struct LevelDestinationRect
 		{
 			LevelDestinationRect(sf::Texture& iconTexture) : icon(iconTexture){};
+			LevelDestinationRect(const sf::Texture& iconTexture) : icon(iconTexture){};
 
 			LevelDestination 	leveldestination;
 
 			sf::Sprite  		icon;
 
 			sf::RectangleShape 	selectionRect;
+
+			sf::RectangleShape 	currentLevelMarkRect;
 			
 			void draw(sf::RenderWindow& w);
 		};
@@ -105,6 +112,12 @@ private:
 			void positioningLevelDestinationsText();
 		//////////////////////////////
 
+		//////////////////////////////
+		// Update methods
+		//////////////////////////////
+		void checkWherePlayer();
+		//////////////////////////////
+
 		//////////////////////////
 		/// Draw methods
 		//////////////////////////
@@ -122,6 +135,7 @@ private:
 			std::string getCurrentLevelName();
 			// Mount selection rect to its icon's parametrs
 			void mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon);	
+			void mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf::Sprite& icon);	
 		//////////////////
 
 	//////////////////////////////////
@@ -144,6 +158,7 @@ public:
 	// Основные методы взаимодействия
 	/////////////////////////////////
 	void addLevelInVector(const GameLevel& level, sf::Texture& icon);
+	void addLevelInVector(const GameLevel& level, const sf::Texture& icon);
 	void open();
 	void close();
 	/////////////////////////////////

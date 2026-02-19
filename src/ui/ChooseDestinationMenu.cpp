@@ -51,6 +51,8 @@ ChooseDestinationMenu::ChooseDestinationMenu(GameData &d, GameCamera &c, GameLev
 void ChooseDestinationMenu::open()
 {
 	isOpened = true;
+	checkWherePlayer();	// Sets  isPlayerThere = true  at current player's level.
+
 	for (auto &&level : levels)
 	{
 		level.leveldestination.isSelected = false;
@@ -77,6 +79,20 @@ void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, sf::Texture
 	l.leveldestination.isVisible = true  ;
 
 	mountSelectionRect(l.selectionRect,l.icon);
+	mountCurrentLevelMarkRect(l.currentLevelMarkRect,l.icon);
+	
+	this->levels.push_back(l);
+}
+
+void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, const sf::Texture& icon)
+{
+	LevelDestinationRect l(icon);
+	l.leveldestination.level     = &level;
+	l.leveldestination.isOpened  = false ;
+	l.leveldestination.isVisible = true  ;
+
+	mountSelectionRect(l.selectionRect,l.icon);
+	mountCurrentLevelMarkRect(l.currentLevelMarkRect,l.icon);
 	
 	this->levels.push_back(l);
 }
@@ -104,7 +120,7 @@ void ChooseDestinationMenu::update(){
 	//Menu back logic
 		//Positioning menu relative to player screen
 	this->positioningLevelDestinations();	
-
+	void checkWherePlayer();
 }
 
 void ChooseDestinationMenu::draw(sf::RenderWindow& w){
@@ -136,11 +152,15 @@ void ChooseDestinationMenu::LevelDestinationRect::draw(sf::RenderWindow& w){
 	{
 		w.draw(this->selectionRect);
 	}
+	else if(this->leveldestination.isPlayerThere)
+	{
+		w.draw(this->currentLevelMarkRect);
+	}
 }
 
 void ChooseDestinationMenu::currentSelectedElementToDesiredDestination()
 {
-	this->desiredDestination =std::make_optional<std::string>( levelIt->leveldestination.level->levelName);
+	this->desiredDestination = std::make_optional<std::string>( levelIt->leveldestination.level->levelName);
 	// Setting isChoosed=false to all levels
 	for (auto &&level : levels)
 	{
@@ -166,6 +186,21 @@ void ChooseDestinationMenu::mountSelectionRect(sf::RectangleShape &sr, sf::Sprit
 	sr.setFillColor			(sf::Color::Transparent);
 	sr.setOutlineColor		(BASE_SELECTION_COLOR);
 	sr.setOutlineThickness	(BASE_SELECTION_SIZE );
+	
+	sr.setPosition			(icon.getPosition()    );
+}
+
+void ChooseDestinationMenu::mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf::Sprite &icon)
+{
+	sf::Vector2f iconSize = static_cast<sf::Vector2f>(icon.getTexture().getSize());
+	sf::Vector2f iconScale = icon.getScale();
+	iconSize.x*= iconScale.x;
+	iconSize.y*= iconScale.y;
+
+	sr.setSize				(iconSize);
+	sr.setFillColor			(sf::Color::Transparent);
+	sr.setOutlineColor		(BASE_LEVELMARK_COLOR  );
+	sr.setOutlineThickness	(BASE_LEVELMARK_SIZE   );
 	sr.setPosition			(icon.getPosition());
 }
 
@@ -290,6 +325,7 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 		};
 
 		mountSelectionRect(level.selectionRect,level.icon);
+		mountCurrentLevelMarkRect(level.currentLevelMarkRect,level.icon);
 	}
 }
 
@@ -321,5 +357,27 @@ void ChooseDestinationMenu::positioningLevelDestinationsText()
 				
 			}
 			);
+
+}
+
+void ChooseDestinationMenu::checkWherePlayer()
+{
+	std::string currentLevelName = getCurrentLevelName();
+
+	// Setting false for all levels
+	for (auto &&level : levels)
+	{
+		level.leveldestination.isPlayerThere = false;
+	}
+	
+	// Find first level that matches level name, and set its  isPlayerThere  to  true
+	for (auto &&level : levels)
+	{
+		if(level.leveldestination.level->levelName == currentLevelName)
+		{
+			level.leveldestination.isPlayerThere = true;
+			return;
+		}
+	}
 
 }
