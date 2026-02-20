@@ -160,9 +160,9 @@ void LevelPortal::handleEvent(const sf::Event &event)
     }
 }
 
-void LevelPortal::setPortalDestination(std::string levelN)
+void LevelPortal::setPortalDestination(std::optional<std::string> levelN)
 {
-    this->levelName = std::make_optional(levelN);
+    this->levelName = levelN;
 }
 
 void LevelPortal::openPortal()

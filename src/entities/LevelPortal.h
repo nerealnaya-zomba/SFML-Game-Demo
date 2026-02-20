@@ -91,7 +91,7 @@ public:
     void update()                            override;
     void handleEvent(const sf::Event& event) override;
 
-    void setPortalDestination(std::string levelN);
+    void setPortalDestination(std::optional<std::string> levelN);
 
     void openPortal();
     void closePortal();
