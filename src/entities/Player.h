@@ -198,7 +198,7 @@ private:
     bool isPortalOnCooldown = false;
     void portalUpdate();
     void tryOpenPortal();
-    void setDestination(std::optional<std::string> levelName); // IMPLEMENTME
+    void setDestination(std::optional<std::string> levelName);
 public:
     sf::Clock& getPortalClock();
     int& getPortalCooldown();
