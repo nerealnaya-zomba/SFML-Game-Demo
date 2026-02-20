@@ -120,7 +120,7 @@ void ChooseDestinationMenu::update(){
 	//Menu back logic
 		//Positioning menu relative to player screen
 	this->positioningLevelDestinations();	
-	void checkWherePlayer();
+	checkWherePlayer();
 }
 
 void ChooseDestinationMenu::draw(sf::RenderWindow& w){
