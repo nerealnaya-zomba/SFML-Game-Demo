@@ -1,0 +1,190 @@
+{
+  "Presets": {
+    "isConstant": true,
+    "isAvaiable": true,
+    "Size": [7000, 1080],
+    "PlayerSpawn": [100, 900]
+  },
+  "Platforms": [
+    {
+      "Type": "Single-flat",
+      "Position": [400, 950]
+    },
+    {
+      "Type": "Single-square",
+      "Position": [1200, 880]
+    },
+    {
+      "Type": "Single-angled",
+      "Position": [2000, 820]
+    },
+    {
+      "Type": "Double-horizontal-1",
+      "Position": [2800, 750]
+    },
+    {
+      "Type": "Double-vertical",
+      "Position": [3600, 680]
+    },
+    {
+      "Type": "Triple",
+      "Position": [4400, 600]
+    },
+    {
+      "Type": "Quadruple",
+      "Position": [5200, 500]
+    },
+    {
+      "Type": "Single-flat",
+      "Position": [6000, 700]
+    }
+  ],
+  "Decorations": [
+    {
+      "Name": "MossyHills_01.png",
+      "Position": [800, 700],
+      "Scale": [0.4, 0.4],
+      "Color": [220, 220, 240, 255],
+      "ParallaxFactor": [0.20, 0.20],
+      "Z": 3
+    },
+    {
+      "Name": "MossyHills_03.png",
+      "Position": [1500, 650],
+      "Scale": [0.5, 0.5],
+      "Color": [210, 210, 230, 255],
+      "ParallaxFactor": [0.25, 0.25],
+      "Z": 3
+    },
+    {
+      "Name": "MossyHills_05.png",
+      "Position": [2500, 600],
+      "Scale": [0.6, 0.6],
+      "Color": [200, 200, 220, 255],
+      "ParallaxFactor": [0.30, 0.30],
+      "Z": 2
+    },
+    {
+      "Name": "MossyHills_07.png",
+      "Position": [3500, 550],
+      "Scale": [0.7, 0.7],
+      "Color": [190, 190, 210, 255],
+      "ParallaxFactor": [0.35, 0.35],
+      "Z": 2
+    },
+    {
+      "Name": "plant6",
+      "Position": [2800, 980],
+      "Scale": [0.3, 0.3],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.60, 0.60],
+      "Z": 0
+    },
+    {
+      "Name": "plant3",
+      "Position": [3200, 970],
+      "Scale": [0.4, 0.4],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.65, 0.65],
+      "Z": 0
+    },
+    {
+      "Name": "MossyBackgroundDecoration_03.png",
+      "Position": [1800, 400],
+      "Scale": [0.5, 0.5],
+      "Color": [180, 200, 180, 200],
+      "ParallaxFactor": [0.15, 0.15],
+      "Z": 4
+    },
+    {
+      "Name": "MossyBackgroundDecoration_06.png",
+      "Position": [4200, 450],
+      "Scale": [0.6, 0.6],
+      "Color": [180, 200, 180, 200],
+      "ParallaxFactor": [0.18, 0.18],
+      "Z": 4
+    },
+    {
+      "Name": "MossyHangingPlants_03.png",
+      "Position": [500, 400],
+      "Scale": [0.5, 0.5],
+      "Color": [150, 180, 150, 255],
+      "ParallaxFactor": [0.40, 0.40],
+      "Z": 1
+    },
+    {
+      "Name": "MossyHangingPlants_07.png",
+      "Position": [5500, 350],
+      "Scale": [0.6, 0.6],
+      "Color": [150, 180, 150, 255],
+      "ParallaxFactor": [0.42, 0.42],
+      "Z": 1
+    }
+  ],
+  "Background": [
+    {
+      "BgName": "Background_17.png",
+      "Position": [960, 540],
+      "ParallaxFactor": [0.95, 0.98],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_17.png",
+      "Position": [2880, 540],
+      "ParallaxFactor": [0.95, 0.98],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_17.png",
+      "Position": [4800, 540],
+      "ParallaxFactor": [0.95, 0.98],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_18.png",
+      "Position": [960, 540],
+      "ParallaxFactor": [0.85, 0.94],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_18.png",
+      "Position": [2880, 540],
+      "ParallaxFactor": [0.85, 0.94],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_18.png",
+      "Position": [4800, 540],
+      "ParallaxFactor": [0.85, 0.94],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_19.png",
+      "Position": [960, 540],
+      "ParallaxFactor": [0.75, 0.90],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_19.png",
+      "Position": [2880, 540],
+      "ParallaxFactor": [0.75, 0.90],
+      "Type": 1
+    }
+  ],
+  "Ground": [
+    {
+      "GroundName": "TileSetGreen_02.png",
+      "Points": [0, 7000],
+      "YPos": 1048
+    }
+  ],
+  "Spawners":[
+    {
+      "EnemyName": "SkeletonWhite",
+      "EnemyAmount": 3,
+      "SpawnCooldown": 6000,
+      "EnemyPerSpawn": 1,
+      "SpawnArea": [[2000, 3000], [700, 850]]
+    }
+  ]
+}
