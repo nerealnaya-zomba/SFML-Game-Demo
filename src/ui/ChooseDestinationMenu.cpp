@@ -325,47 +325,45 @@ void ChooseDestinationMenu::positioningLevelDestinationsBackground()
 
 void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 {
-	//Icon scaling
-	sf::Vector2f iconScale;
-	for (auto &&level : levels)
-	{
-		sf::Vector2f iconSize  = static_cast<sf::Vector2f>(level.icon.getTexture().getSize());
-		iconScale = 
-		{
-			BASE_DESTINATION_ICON_SIZE.x/iconSize.x, 
-			BASE_DESTINATION_ICON_SIZE.y/iconSize.y
-		};
+	if (levels.empty()) return;  // защита от пустого вектора
+    
+    // Масштабируем все иконки
+    sf::Vector2f firstIconScale;  // запомним масштаб первого элемента
+    for (auto& level : levels) {
+        sf::Vector2f iconSize = static_cast<sf::Vector2f>(level.icon.getTexture().getSize());
+        sf::Vector2f scale = {
+            BASE_DESTINATION_ICON_SIZE.x / iconSize.x,
+            BASE_DESTINATION_ICON_SIZE.y / iconSize.y
+        };
+        level.icon.setScale(scale);
+        
+        if (&level == &levels.front()) {  // запоминаем масштаб первого
+            firstIconScale = scale;
+        }
+    }
 
-		level.icon.setScale(iconScale);
-	}
-	/////////////////////////////////////
+    // Позиционирование
+    auto& firstIcon = levels.front().icon;
+    sf::Vector2f firstIconSize = static_cast<sf::Vector2f>(firstIcon.getTexture().getSize());
+    sf::Vector2f firstIconScaledSize = {
+        firstIconSize.x * firstIconScale.x,
+        firstIconSize.y * firstIconScale.y
+    };
 
-
-	// Positioning icons
-	sf::Vector2f firstElementIconSizeConsiderScale = static_cast<sf::Vector2f>( levels.begin()->icon.getTexture().getSize( ));
-	firstElementIconSizeConsiderScale = {firstElementIconSizeConsiderScale.x*iconScale.x,firstElementIconSizeConsiderScale.y*iconScale.y};
-
-	float fullCalculatedElementXIndent = firstElementIconSizeConsiderScale.x+BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x;
-
-	sf::Vector2f firstElementPos = 
-	{
-		background.getPosition().x+BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x,
-		background.getPosition().y+BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y
-	};
-	
-	for (auto& level : this->levels) {
-		level.icon.setPosition(firstElementPos);
-		
-		//Indenting
-		firstElementPos = 
-		{
-			(firstElementPos.x + fullCalculatedElementXIndent),
-			firstElementPos.y
-		};
-
-		mountSelectionRect(level.selectionRect,level.icon);
-		mountCurrentLevelMarkRect(level.currentLevelMarkRect,level.icon);
-	}
+    float elementSpacing = firstIconScaledSize.x + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x;
+    sf::Vector2f currentPos = {
+        background.getPosition().x + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x,
+        background.getPosition().y + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y
+    };
+    
+    for (auto& level : levels) {
+        level.icon.setPosition(currentPos);
+        
+        mountSelectionRect(level.selectionRect, level.icon);
+        mountCurrentLevelMarkRect(level.currentLevelMarkRect, level.icon);
+        
+        currentPos.x += elementSpacing;  // только X меняется
+    }
 }
 
 void ChooseDestinationMenu::positioningLevelDestinationsText()
