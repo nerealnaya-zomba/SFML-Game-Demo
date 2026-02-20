@@ -72,7 +72,6 @@ void ChooseDestinationMenu::open()
 {
 	isOpened = true;
 	checkWherePlayer();	// Sets  isPlayerThere = true  at current player's level.
-	initializeIsChoosed();
 
 	// Clearing all selections and setting it to the begin
 	for (auto &&level : levels)
@@ -104,6 +103,8 @@ void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, sf::Texture
 	mountCurrentLevelMarkRect(l.currentLevelMarkRect,l.icon);
 	
 	this->levels.push_back(l);
+
+	initializeIsChoosed();
 }
 
 void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, const sf::Texture& icon)
@@ -117,6 +118,8 @@ void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, const sf::T
 	mountCurrentLevelMarkRect(l.currentLevelMarkRect,l.icon);
 	
 	this->levels.push_back(l);
+
+	initializeIsChoosed();
 }
 
 void ChooseDestinationMenu::drawLevelDestinations(sf::RenderWindow& window){
