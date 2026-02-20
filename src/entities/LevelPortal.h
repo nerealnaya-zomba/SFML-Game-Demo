@@ -70,6 +70,7 @@ private:
     bool isClosed;
     bool isTargetInAreaOfTeleportation;
     bool isTargetBeingSquished;
+    bool isTargetSelected;
 
     void portalOpeningAnimation();
     void portalClosingAnimation();
