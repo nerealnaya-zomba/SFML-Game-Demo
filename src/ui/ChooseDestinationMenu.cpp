@@ -37,6 +37,7 @@ void ChooseDestinationMenu::handleActivateEvent(const sf::Event &ev)
 		if(keyPressed->scancode == selectKey)
 		{
 			currentSelectedElementToDesiredDestination();
+			player->setPortalDestination(this->desiredDestination);
 		}
 	}
 }
@@ -44,13 +45,15 @@ void ChooseDestinationMenu::handleActivateEvent(const sf::Event &ev)
 ChooseDestinationMenu::ChooseDestinationMenu(
     GameData& d, 
     GameCamera& c, 
-    GameLevelManager& lm, 
+    GameLevelManager& lm,
+	Player& p,
     sf::Keyboard::Scan mvLeftKey, 
     sf::Keyboard::Scan mvRightKey, 
     sf::Keyboard::Scan slctKey)
     : data(&d)
     , camera(&c)
     , manager(&lm)
+	, player(&p)
     , background(d.guiTextures.at("GUI_10.png"))
     , moveLeftKey(mvLeftKey)
     , moveRightKey(mvRightKey)

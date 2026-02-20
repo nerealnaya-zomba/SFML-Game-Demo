@@ -38,6 +38,7 @@ private:
 		GameData*   		data;
 		GameCamera* 		camera;
 		GameLevelManager* 	manager;
+		Player*				player;
 	////////////////////////////
 
 	///////
@@ -161,7 +162,7 @@ public:
 	ChooseDestinationMenu(ChooseDestinationMenu &&) 				= delete;
 	ChooseDestinationMenu &operator=(const ChooseDestinationMenu &) = default;
 	ChooseDestinationMenu &operator=(ChooseDestinationMenu &&) 		= delete;
-	ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, sf::Keyboard::Scan moveLeftKey, sf::Keyboard::Scan moveRightKey, sf::Keyboard::Scan selectKey);
+	ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, Player& p, sf::Keyboard::Scan moveLeftKey, sf::Keyboard::Scan moveRightKey, sf::Keyboard::Scan selectKey);
 	~ChooseDestinationMenu() = default;
 
 	/////////////////////////////////
