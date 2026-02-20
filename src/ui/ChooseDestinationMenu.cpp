@@ -41,18 +41,37 @@ void ChooseDestinationMenu::handleActivateEvent(const sf::Event &ev)
 	}
 }
 
-ChooseDestinationMenu::ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, sf::Keyboard::Scan mvLeftKey, sf::Keyboard::Scan mvRightKey, sf::Keyboard::Scan slctKey)
-    : data(&d), camera(&c), background(d.guiTextures.at("GUI_10.png")), manager(&lm),
-	moveLeftKey(mvLeftKey),moveRightKey(mvRightKey),selectKey(slctKey), displayingLevelName(std::pair(LevelDestinationText{false}, *d.gameFont))
+ChooseDestinationMenu::ChooseDestinationMenu(
+    GameData& d, 
+    GameCamera& c, 
+    GameLevelManager& lm, 
+    sf::Keyboard::Scan mvLeftKey, 
+    sf::Keyboard::Scan mvRightKey, 
+    sf::Keyboard::Scan slctKey)
+    : data(&d)
+    , camera(&c)
+    , manager(&lm)
+    , background(d.guiTextures.at("GUI_10.png"))
+    , moveLeftKey(mvLeftKey)
+    , moveRightKey(mvRightKey)
+    , selectKey(slctKey)
+    , displayingLevelName(LevelDestinationText{false}, *d.gameFont)
+    , levelIt(levels.end()) 
+    , desiredDestination(std::nullopt)
 {
-	
+    if (!d.gameFont) {
+        throw std::runtime_error("Font not loaded");
+    }
+
 }
 
 void ChooseDestinationMenu::open()
 {
 	isOpened = true;
 	checkWherePlayer();	// Sets  isPlayerThere = true  at current player's level.
+	initializeIsChoosed();
 
+	// Clearing all selections and setting it to the begin
 	for (auto &&level : levels)
 	{
 		level.leveldestination.isSelected = false;
@@ -125,11 +144,9 @@ void ChooseDestinationMenu::update(){
 
 void ChooseDestinationMenu::draw(sf::RenderWindow& w){
 	if(!isOpened) return;
-	//TODO
-	// draw box that consist elements
-	// ...
 
 	drawLevelDestinations(w);
+
 }
 
 bool ChooseDestinationMenu::getIsOpened()
@@ -152,7 +169,7 @@ void ChooseDestinationMenu::LevelDestinationRect::draw(sf::RenderWindow& w){
 	{
 		w.draw(this->selectionRect);
 	}
-	else if(this->leveldestination.isPlayerThere)
+	else if(this->leveldestination.isChoosed)
 	{
 		w.draw(this->currentLevelMarkRect);
 	}
@@ -202,6 +219,22 @@ void ChooseDestinationMenu::mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf
 	sr.setOutlineColor		(BASE_LEVELMARK_COLOR  );
 	sr.setOutlineThickness	(BASE_LEVELMARK_SIZE   );
 	sr.setPosition			(icon.getPosition());
+}
+
+void ChooseDestinationMenu::initializeIsChoosed()
+{
+	checkWherePlayer();
+	for (auto &&level : levels)
+	{
+		if(level.leveldestination.isPlayerThere)
+		{
+			level.leveldestination.isChoosed = true;
+		}
+		else
+		{
+			level.leveldestination.isChoosed = false;
+		}
+	}
 }
 
 void ChooseDestinationMenu::moveLevelItLeft()

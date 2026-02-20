@@ -142,6 +142,12 @@ private:
 				void mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf::Sprite& icon);	
 		//////////////////
 
+		//////////////////////////
+		/// Initialization methods
+		//////////////////////////
+			void initializeIsChoosed();	//init isChoosed based on isPlayerThere
+		//////////////////////////
+
 	//////////////////////////////////
 
 	// Events handling
