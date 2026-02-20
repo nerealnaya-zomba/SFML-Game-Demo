@@ -287,6 +287,7 @@ void Player::tryOpenPortal()
 
 void Player::setDestination(std::optional<std::string> levelName)
 {
+    portal->setPortalDestination(levelName);
 }
 
 void Player::chooseDestinationMenuDraw(sf::RenderWindow &w)
