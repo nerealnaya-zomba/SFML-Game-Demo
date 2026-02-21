@@ -1,0 +1,52 @@
+{
+  "Presets": {
+    "isConstant": true,
+    "isAvaiable": true,
+    "Size": [1920, 1080],
+    "PlayerSpawn": [100,900]
+  },
+  "Platforms": [
+    {
+      "Type": "Single-angled",
+      "Position": [960, 540]
+    }
+  ],
+  "Decorations": [
+  ],
+  "Background": [
+    {
+      "BgName": "Background_46.png",
+      "Position": [960,540],
+      "ParallaxFactor": [0.95, 0.99],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_45.png",
+      "Position": [960,540],
+      "ParallaxFactor": [0.90, 0.94],
+      "Type": 1
+    },
+	{
+      "BgName": "Background_44.png",
+      "Position": [960,540],
+      "ParallaxFactor": [0.85, 0.89],
+      "Type": 1
+    }
+  ],
+  "Ground": [
+    {
+      "GroundName": "TileSetGreen_26.png",
+      "Points": [0, 6100],
+      "YPos": 1048
+    }
+  ],
+  "Spawners":[
+    {
+      "EnemyName": "SkeletonWhite",
+      "EnemyAmount": 0,
+      "SpawnCooldown": 7000,
+      "EnemyPerSpawn": 1,
+      "SpawnArea": [[200,700],[700,800]]
+    }
+  ]
+}
