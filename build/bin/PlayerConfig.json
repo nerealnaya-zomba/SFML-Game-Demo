@@ -10,7 +10,7 @@
     },
     "Bullet":{
         "bulletSpeed": 5.0,
-        "bulletMaxDistance": 500.0,
+        "bulletMaxDistance": 5000.0,
         "DMG": 10,
         "repeatCooldown": 100,
         "bulletSpeedReduction": 0.1

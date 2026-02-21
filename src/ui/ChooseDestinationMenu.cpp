@@ -281,54 +281,54 @@ void ChooseDestinationMenu::positioningLevelDestinations()
 
 void ChooseDestinationMenu::positioningLevelDestinationsBackground()
 {
-	//Background scaling 
-		// Correcting background size based on count of levels 
-	sf::Vector2i sumOfLevelsRects = {0,0};
-	
-	for (auto& level: this->levels) {
-		// For x we take width of every rect
-		sumOfLevelsRects.x += static_cast<int>( static_cast<float>(level.icon.getTexture().getSize().x) * level.icon.getScale().x ) + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x;	
-
-	}
-	// For y we take single height of first element in arr.
-	float heightOfIcon_dump = static_cast<float>(levels.begin()->icon.getTexture().getSize().y);
-	float scaleOfIcon_dump  =levels.begin()->icon.getScale().y;
-	float heightOfIcon =  heightOfIcon_dump*scaleOfIcon_dump ;
-	
-	float topdownrightMarginY = static_cast<float>(BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y);
-	topdownrightMarginY *= 2;
-	float topdownrightMarginYInt_multiplied = static_cast<int>(topdownrightMarginY);
-	int heightOfIconInt = static_cast<int>(heightOfIcon);
-	sumOfLevelsRects.y = heightOfIconInt + topdownrightMarginYInt_multiplied; // 2 - is for top and down sides
-
-	sf::Vector2f backGroundSize = static_cast<sf::Vector2f>( background.getTexture().getSize());
-	sf::Vector2f backgroundScale = 
-	{
-		static_cast<float>(sumOfLevelsRects.x)/backGroundSize.x,	
-		static_cast<float>(sumOfLevelsRects.y)/backGroundSize.y
-	};
-	this->background.setScale(backgroundScale);
-
-
-
-	//Background positioning
-	sf::Vector2f viewTopCenter = {camera->getCameraCenterPos().x, camera->getCameraCenterPos().y - (camera->getScreenViewSize().y/2)}; 	// Верхняя точка камеры на данный момент
-
-	sf::Vector2f backgroundPos = 
-	{
-		viewTopCenter.x - (background.getTexture().getSize().x * backgroundScale.x), 	// Отступ по X, основываясь на ширине фона меню
-		viewTopCenter.y + (background.getTexture().getSize().y * backgroundScale.y)		// Отступ по Y, основываясь на высоте фона меню
-	};
-
-	this->background.setPosition(backgroundPos);
+    if (levels.empty()) return;
+    
+    // Размеры иконок после масштабирования (уже известны)
+    float iconWidth = BASE_DESTINATION_ICON_SIZE.x;
+    float iconHeight = BASE_DESTINATION_ICON_SIZE.y;
+    float marginX = static_cast<float>(BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x);
+    float marginY = static_cast<float>(BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y);
+    
+    // Вычисляем нужный размер фона
+    int totalWidth = static_cast<int>(
+        levels.size() * iconWidth +          // суммарная ширина всех иконок
+        (levels.size() + 1) * marginX        // отступы слева, справа и между иконками
+    );
+    
+    int totalHeight = static_cast<int>(
+        iconHeight +                         // высота одной иконки
+        2 * marginY                          // отступы сверху и снизу
+    );
+    
+    // Масштабируем фон
+    sf::Vector2f bgTextureSize = static_cast<sf::Vector2f>(background.getTexture().getSize());
+    sf::Vector2f bgScale = {
+        static_cast<float>(totalWidth) / bgTextureSize.x,
+        static_cast<float>(totalHeight) / bgTextureSize.y
+    };
+    background.setScale(bgScale);
+    
+    // Позиционируем фон относительно камеры
+    sf::Vector2f viewTopCenter = {
+        camera->getCameraCenterPos().x,
+        camera->getCameraCenterPos().y - (camera->getScreenViewSize().y / 2)
+    };
+    
+    // Фон позиционируется так, чтобы его верхний левый угол был в точке viewTopCenter
+    // (или как тебе нужно - можешь скорректировать формулу)
+    sf::Vector2f bgPosition = {
+        viewTopCenter.x - (totalWidth/2),
+        viewTopCenter.y + BASE_DESTINATION_BACKGROUND_TOPMARGIN
+    };
+    
+    background.setPosition(bgPosition);
 }
 
 void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 {
-	if (levels.empty()) return;  // защита от пустого вектора
+    if (levels.empty()) return;
     
-    // Масштабируем все иконки
-    sf::Vector2f firstIconScale;  // запомним масштаб первого элемента
+    // 1. Сначала масштабируем все иконки под единый размер
     for (auto& level : levels) {
         sf::Vector2f iconSize = static_cast<sf::Vector2f>(level.icon.getTexture().getSize());
         sf::Vector2f scale = {
@@ -336,25 +336,21 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
             BASE_DESTINATION_ICON_SIZE.y / iconSize.y
         };
         level.icon.setScale(scale);
-        
-        if (&level == &levels.front()) {  // запоминаем масштаб первого
-            firstIconScale = scale;
-        }
     }
-
-    // Позиционирование
-    auto& firstIcon = levels.front().icon;
-    sf::Vector2f firstIconSize = static_cast<sf::Vector2f>(firstIcon.getTexture().getSize());
-    sf::Vector2f firstIconScaledSize = {
-        firstIconSize.x * firstIconScale.x,
-        firstIconSize.y * firstIconScale.y
+    
+    // 2. Теперь позиционируем иконки
+    float iconWidth = BASE_DESTINATION_ICON_SIZE.x;
+    float iconHeight = BASE_DESTINATION_ICON_SIZE.y;
+    float marginX = static_cast<float>(BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x);
+    float marginY = static_cast<float>(BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y);
+    
+    // Стартовая позиция: левый верхний угол первой иконки
+    sf::Vector2f startPos = {
+        background.getPosition().x + marginX,
+        background.getPosition().y + marginY
     };
-
-    float elementSpacing = firstIconScaledSize.x + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x;
-    sf::Vector2f currentPos = {
-        background.getPosition().x + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x,
-        background.getPosition().y + BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y
-    };
+    
+    sf::Vector2f currentPos = startPos;
     
     for (auto& level : levels) {
         level.icon.setPosition(currentPos);
@@ -362,7 +358,7 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
         mountSelectionRect(level.selectionRect, level.icon);
         mountCurrentLevelMarkRect(level.currentLevelMarkRect, level.icon);
         
-        currentPos.x += elementSpacing;  // только X меняется
+        currentPos.x += iconWidth + marginX;  // сдвиг вправо на ширину иконки + отступ
     }
 }
 

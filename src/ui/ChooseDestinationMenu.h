@@ -14,7 +14,7 @@
 class GameLevelManager;
 
 //LevelRect
-const sf::Vector2i BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN = {10,10};
+const sf::Vector2i BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN = {15,15};
 const sf::Vector2f BASE_DESTINATION_ICON_SIZE                = {30,30};
 
 //SelectionRect
@@ -24,6 +24,9 @@ const float     BASE_SELECTION_SIZE  = 2.f;
 //CurrentLevelMarkRect
 const sf::Color BASE_LEVELMARK_COLOR = sf::Color::Red;
 const float     BASE_LEVELMARK_SIZE  = 2.f;
+
+//Background
+const float BASE_DESTINATION_BACKGROUND_TOPMARGIN = 30.f;
 
 ////////////////////////
 /// Представляет собой меню для выбора места назначения телепорта
