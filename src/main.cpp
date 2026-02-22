@@ -96,6 +96,7 @@ int main()
                         }
                     }
                 }
+                menu.menuHandleEvents(*event);
                 continue;
             }
 

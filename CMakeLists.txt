@@ -23,7 +23,10 @@ FetchContent_MakeAvailable(SFML) #SFML connecting
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
 FetchContent_MakeAvailable(json) #JSON connecting
 
-
+FetchContent_Declare(tgui URL https://github.com/texus/TGUI/archive/refs/tags/v1.12.0.tar.gz)
+set(TGUI_BACKEND SFML_GRAPHICS)
+set(TGUI_STATIC_LIBS TRUE)
+FetchContent_MakeAvailable(tgui) #TGUI connecting
 
 add_executable(main 
     src/main.cpp 
@@ -76,6 +79,7 @@ target_link_libraries(main PRIVATE
     SFML::Graphics 
     nlohmann_json::nlohmann_json
     avcodec avformat swscale avutil
+    tgui
 )
 
 
