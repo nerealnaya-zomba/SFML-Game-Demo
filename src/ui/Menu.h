@@ -4,6 +4,7 @@
 #include<AskDialogue.h>
 #include<TGUI/TGUI.hpp>
 #include<TGUI/Backend/SFML-Graphics.hpp>
+#include<TGUI/Backend/Font/SFML-Graphics/BackendFontSFML.hpp>
 
 
 class Menu{
@@ -20,8 +21,10 @@ class Menu{
         //TGUI
             //Group
             tgui::Gui gui;
-            //Button
+            //Buttons
             tgui::Button::Ptr settingsButton;
+            tgui::Button::Ptr exitButton1;
+            tgui::Button::Ptr playButton1;
 
     //External references
     sf::RenderWindow* window_m;

@@ -35,8 +35,19 @@ Menu::Menu(sf::Font& font, sf::RenderWindow& window, sf::RectangleShape& mouseRe
     //Settings button init
     settingsButton = tgui::Button::create();
     settingsButton->setSize({200.f,75.f});
-    settingsButton->setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT-450+50});
+    settingsButton->setPosition({(WINDOW_WIDTH/2)-(settingsButton->getSize().x/2),WINDOW_HEIGHT*0.80});
+
+    exitButton1 = tgui::Button::create();
+    exitButton1->setSize({200.f,75.f});
+    exitButton1->setPosition({(WINDOW_WIDTH/2)-(settingsButton->getSize().x/2),WINDOW_HEIGHT*0.70});
+
+    playButton1 = tgui::Button::create();
+    playButton1->setSize({200.f,75.f});
+    playButton1->setPosition({(WINDOW_WIDTH/2)-(settingsButton->getSize().x/2),WINDOW_HEIGHT*0.60});
+
     gui.add(settingsButton);
+    gui.add(exitButton1);
+    gui.add(playButton1);
 }
 
 Menu::~Menu()
