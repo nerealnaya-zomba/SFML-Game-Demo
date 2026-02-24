@@ -8,21 +8,49 @@ MenuBackground::MenuBackground(int w, int h)
       height(h), 
       time(0), 
       backgroundTexture(), 
-      backgroundSprite(nullptr), // Инициализируем nullptr
-      color1(20, 30, 50),    // Темно-синий
-      color2(70, 40, 80),    // Фиолетовый
-      textureCreated(false) {
+      color1(20, 30, 50),    
+      color2(70, 40, 80),    
+      textureReady(false),
+      firstFrame(true) {
     
-    // Создаем текстуру для фона
-    textureCreated = backgroundTexture.resize(sf::Vector2u(width, height));
+    // Создаем текстуру
+    textureReady = backgroundTexture.resize(sf::Vector2u(width, height));
     
-    // Создаем спрайт с текстурой
-    if (textureCreated) {
-        backgroundSprite = std::make_unique<sf::Sprite>(backgroundTexture.getTexture());
+    if (textureReady) {
+        // Инициализируем текстуру чистым цветом
+        initializeTexture();
     }
     
-    // Создаем частицы
     createParticles(200);
+}
+
+void MenuBackground::initializeTexture() {
+    // Очищаем текстуру прозрачным цветом
+    backgroundTexture.clear(sf::Color::Transparent);
+    
+    // Рисуем начальный градиент
+    for (int y = 0; y < height; y += 2) {
+        float t = static_cast<float>(y) / height;
+        sf::Color color = interpolateColor(t);
+        
+        sf::RectangleShape line(sf::Vector2f(static_cast<float>(width), 2.0f));
+        line.setPosition({0, static_cast<float>(y)});
+        line.setFillColor(color);
+        backgroundTexture.draw(line);
+    }
+    
+    // Рисуем начальные частицы
+    for (const auto& p : particles) {
+        sf::CircleShape particle(p.radius);
+        particle.setPosition(p.position);
+        particle.setFillColor(sf::Color(255, 255, 255, static_cast<uint8_t>(p.alpha)));
+        backgroundTexture.draw(particle);
+    }
+    
+    backgroundTexture.display();
+    
+    // Создаем спрайт с готовой текстурой
+    this->backgroundSprite = std::make_unique<sf::Sprite>(backgroundTexture.getTexture());
 }
 
 void MenuBackground::createParticles(int count) {
@@ -60,24 +88,43 @@ void MenuBackground::update(float deltaTime) {
     for (auto& p : particles) {
         p.position += p.velocity * deltaTime * 50.0f;
         
-        // Пульсация альфа-канала
+        // Плавное появление частиц (избегаем резких скачков)
         p.alpha = 100 + 50 * std::sin(time * p.pulseSpeed);
         
-        // Телепортация частиц при выходе за границы
-        if (p.position.x < 0) p.position.x = static_cast<float>(width);
-        if (p.position.x > width) p.position.x = 0;
-        if (p.position.y < 0) p.position.y = static_cast<float>(height);
-        if (p.position.y > height) p.position.y = 0;
+        // Телепортация с плавным появлением
+        if (p.position.x < 0) {
+            p.position.x = static_cast<float>(width);
+            p.alpha = 50; // Начинаем с меньшей яркости
+        }
+        if (p.position.x > width) {
+            p.position.x = 0;
+            p.alpha = 50;
+        }
+        if (p.position.y < 0) {
+            p.position.y = static_cast<float>(height);
+            p.alpha = 50;
+        }
+        if (p.position.y > height) {
+            p.position.y = 0;
+            p.alpha = 50;
+        }
     }
     
-    // Периодически меняем цвета градиента
-    if (static_cast<int>(time * 2) % 300 == 0) {
+    // Плавная смена цветов
+    if (static_cast<int>(time * 2) % 300 == 0 && !firstFrame) {
         std::swap(color1, color2);
     }
 }
 
 void MenuBackground::draw(sf::RenderWindow& window) {
-    if (!textureCreated || !backgroundSprite) return;
+    if (!textureReady) return;
+    
+    // Для первого кадра используем предварительно инициализированную текстуру
+    if (firstFrame) {
+        window.draw(*backgroundSprite);
+        firstFrame = false;
+        return;
+    }
     
     // Очищаем текстуру
     backgroundTexture.clear(sf::Color::Transparent);
@@ -101,7 +148,7 @@ void MenuBackground::draw(sf::RenderWindow& window) {
         particle.setFillColor(sf::Color(255, 255, 255, static_cast<uint8_t>(p.alpha)));
         backgroundTexture.draw(particle);
         
-        // Эффект свечения (больший круг с прозрачностью)
+        // Эффект свечения
         sf::CircleShape glow(p.radius * 3);
         glow.setPosition(p.position - sf::Vector2f(p.radius * 3, p.radius * 3));
         glow.setFillColor(sf::Color(255, 255, 255, static_cast<uint8_t>(p.alpha * 0.3f)));
@@ -121,7 +168,7 @@ void MenuBackground::draw(sf::RenderWindow& window) {
     
     backgroundTexture.display();
     
-    // Обновляем спрайт с новой текстурой
+    // Обновляем спрайт
     backgroundSprite->setTexture(backgroundTexture.getTexture());
     
     // Рисуем финальный фон
