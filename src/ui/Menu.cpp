@@ -10,7 +10,9 @@ Menu::Menu(sf::Font& font, sf::RenderWindow& window, sf::RectangleShape& mouseRe
     gui.setWindow(window);
 
     //Exit dialogue init
-    exitDialogue = new AskDialogue(sf::Vector2f(WINDOW_WIDTH/2,WINDOW_HEIGHT/2),sf::Vector2f(350,150),"Quit the game?",font,sf::Color::Black,*mouseRect_m,*window_m);
+    exitDialogue = new AskDialogue(sf::Vector2f(WINDOW_WIDTH/2,WINDOW_HEIGHT/2),sf::Vector2f(350,150),"Quit the game?",*window_m);
+    exitDialogue->setOnYesClick([](){exit(0);});
+    exitDialogue->setOnNoClick([this](){exitDialogue->close();});
 
     //Settings button init
     settingsButton = tgui::Button::create();
@@ -68,6 +70,7 @@ Menu::~Menu()
 void Menu::connectTGUIFont(tgui::Font &font)
 {
     this->gui.setFont(font);
+    this->exitDialogue->connectTGUIFont(font);
 }
 
 void Menu::playButtonOnClick()
@@ -81,19 +84,20 @@ void Menu::settingsButtonOnClick()
 
 void Menu::exitButtonOnClick()
 {
-    this->exitDialogue->isCalled = true;
+    this->exitDialogue->open();
 }
 
 void Menu::menuDraw(sf::RenderWindow& window)
 {
     background.update(1.f/60.f);
     background.draw(window);
-    if(exitDialogue->isCalled) exitDialogue->draw(window);
     gui.draw();
+    exitDialogue->draw(window);
     window.display();
 }
 
 void Menu::menuHandleEvents(const sf::Event &ev)
 {
     gui.handleEvent(ev);
+    exitDialogue->handleEvent(ev);
 }

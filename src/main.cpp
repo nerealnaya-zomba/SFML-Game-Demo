@@ -67,26 +67,6 @@ int main()
             //↓↓-----MAIN MENU-----↓↓
             if(menu.isMainMenuCalled)
             {
-                if(const auto* mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>())
-                {
-                    
-                    if(mouseButtonPressed->button == sf::Mouse::Button::Left)
-                    {
-                        if(menu.exitDialogue->isCalled)
-                        {
-                            menu.exitDialogue->checkAnswer();
-                            if(menu.exitDialogue->answer_m == AskDialogue::Answer::Yes)
-                            {
-                                window.close();
-                            }
-                            else if(menu.exitDialogue->answer_m == AskDialogue::Answer::No)
-                            {
-                                menu.exitDialogue->isCalled = false;
-                                menu.exitDialogue->answer_m = AskDialogue::Answer::NoAnswer;
-                            }
-                        }
-                    }
-                }
                 menu.menuHandleEvents(*event);
                 continue;
             }

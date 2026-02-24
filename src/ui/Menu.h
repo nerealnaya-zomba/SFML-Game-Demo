@@ -38,6 +38,8 @@ class Menu{
     //TGUI
         //Group
         tgui::Gui gui;
+        //Font
+        tgui::Font* font;
         //Buttons
         tgui::Button::Ptr settingsButton;
         tgui::Button::Ptr exitButton;

@@ -9,37 +9,55 @@
 
 //Yes Button Color
 // IDLE
-sf::Color BASE_YES_IDLE_COLOR(60, 180, 140);      // Мятно-зеленый
+const sf::Color BASE_YES_IDLE_COLOR(60, 180, 140);      // Мятно-зеленый
 // HOVER
-sf::Color BASE_YES_HOVER_COLOR(80, 200, 160);      // Светло-мятный
+const sf::Color BASE_YES_HOVER_COLOR(80, 200, 160);      // Светло-мятный
 // CLICK
-sf::Color BASE_YES_CLICK_COLOR(40, 140, 110);      // Темно-мятный
+const sf::Color BASE_YES_CLICK_COLOR(40, 140, 110);      // Темно-мятный
 // IDLE
-sf::Color BASE_YES_TEXT_IDLE_COLOR(0, 0, 0);      // Мятно-зеленый
+const sf::Color BASE_YES_TEXT_IDLE_COLOR(0, 0, 0);      // Мятно-зеленый
 // HOVER
-sf::Color BASE_YES_TEXT_HOVER_COLOR(255, 255, 255);      // Светло-мятный
+const sf::Color BASE_YES_TEXT_HOVER_COLOR(255, 255, 255);      // Светло-мятный
 // CLICK
-sf::Color BASE_YES_TEXT_CLICK_COLOR(127, 127, 127);      // Темно-мятный
+const sf::Color BASE_YES_TEXT_CLICK_COLOR(127, 127, 127);      // Темно-мятный
 
 //No Button COlor
 // IDLE
-sf::Color BASE_NO_IDLE_COLOR(230, 150, 70);       // Янтарный
+const sf::Color BASE_NO_IDLE_COLOR(230, 150, 70);       // Янтарный
 // HOVER
-sf::Color BASE_NO_HOVER_COLOR(250, 180, 100);     // Светлый янтарь
+const sf::Color BASE_NO_HOVER_COLOR(250, 180, 100);     // Светлый янтарь
 // CLICK
-sf::Color BASE_NO_CLICK_COLOR(200, 120, 40);      // Темный янтарь
+const sf::Color BASE_NO_CLICK_COLOR(200, 120, 40);      // Темный янтарь
 // IDLE
-sf::Color BASE_NO_TEXT_IDLE_COLOR(0, 0, 0);      // Мятно-зеленый
+const sf::Color BASE_NO_TEXT_IDLE_COLOR(0, 0, 0);      // Мятно-зеленый
 // HOVER
-sf::Color BASE_NO_TEXT_HOVER_COLOR(255, 255, 255);      // Светло-мятный
+const sf::Color BASE_NO_TEXT_HOVER_COLOR(255, 255, 255);      // Светло-мятный
 // CLICK
-sf::Color BASE_NO_TEXT_CLICK_COLOR(127, 127, 127);      // Темно-мятный
+const sf::Color BASE_NO_TEXT_CLICK_COLOR(127, 127, 127);      // Темно-мятный
+
+//Background color
+const sf::Color BASE_ASKDIALOGUE_BACKGROUND_COLOR(70, 130, 180);  // Стальной синий
 
 class AskDialogue{
 public:
-    AskDialogue(sf::Vector2f pos,sf::Vector2f size, std::string text,tgui::Font& font, sf::Color color,sf::RectangleShape& mouseRect, sf::RenderWindow& window);
+    AskDialogue(sf::Vector2f pos,sf::Vector2f size, std::string text, sf::RenderWindow& window);
     virtual ~AskDialogue();
 
+    //Main methods
+        //Drawing
+        void draw(sf::RenderWindow& window);
+        //Handling event
+        void handleEvent(const sf::Event &ev);
+        //Open/close
+        void open();
+        void close();
+
+    //Settings
+    void setOnYesClick(std::function<void()> fnc);
+    void setOnNoClick(std::function<void()> fnc);
+    void connectTGUIFont(tgui::Font &font);
+
+private:
     //TGUI
         //Group
         tgui::Gui gui;
@@ -66,15 +84,7 @@ public:
         bool isCalled = false;
         //Settings
         int characterSize = 30;
-
-    //Drawing
-    void draw(sf::RenderWindow& window);
-
-    //Settings
-    void setOnYesClick(std::function<void()>& fnc);
-    void setOnNoClick(std::function<void()>& fnc);
-
-private:
-std::function<void()> onYesClick;
-std::function<void()> onNoClick;
+        //Actions
+        std::function<void()> onYesClick;
+        std::function<void()> onNoClick;
 };
