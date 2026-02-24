@@ -121,7 +121,6 @@ int main()
         //Main menu drawing
         if(menu.isMainMenuCalled)
         {
-            menu.windowClear(window, menuBackGroundColor);
             // view.zoom(1.f);
             // view.setCenter({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
             // window.setView(view);
