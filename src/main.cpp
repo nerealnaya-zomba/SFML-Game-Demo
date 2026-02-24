@@ -34,6 +34,8 @@ int main()
     
     //Main menu
     Menu menu(font,window,mouseRect);                                                   // Menu
+    tgui::Font tguiFont("fonts/Roboto_Condensed-Black.ttf");
+    menu.connectTGUIFont(tguiFont);
     
     //Game
     GameCamera camera(view);                                                            // Camera
@@ -70,18 +72,7 @@ int main()
                     
                     if(mouseButtonPressed->button == sf::Mouse::Button::Left)
                     {
-                        moveRectToMouse(mouseRect,window);
-                        //On playButton click fill-up all window with button's area, then start game
-                        if(mouseRect.getGlobalBounds().findIntersection(menu.playButton->getGlobalBounds()) && !menu.exitDialogue->isCalled)
-                        {
-                            menu.isMainMenuCalled = false;
-                        }
-                        //On exitButton fill-up all window with button's area, then close window
-                        else if(mouseRect.getGlobalBounds().findIntersection(menu.exitButton->getGlobalBounds()) && !menu.exitDialogue->isCalled)
-                        {
-                            menu.exitDialogue->isCalled = true;
-                        }
-                        else if(menu.exitDialogue->isCalled)
+                        if(menu.exitDialogue->isCalled)
                         {
                             menu.exitDialogue->checkAnswer();
                             if(menu.exitDialogue->answer_m == AskDialogue::Answer::Yes)
@@ -108,8 +99,6 @@ int main()
                     view.setCenter({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
                     view.setSize({WINDOW_WIDTH, WINDOW_HEIGHT});
                     window.setView(view);
-                    //Smoothly return previous variables on playButton and PlayButtonText
-                    //menu.smoothlyReturnPreviousVariablesAndDraw(window);
 
                     menu.isMainMenuCalled = true;
                 }
@@ -139,7 +128,7 @@ int main()
                 sizeUpRectangleOnHover(*menu.exitButton,*menu.exitButtonText,mouseRect,window, 0.03f , 0.02f);
             }
 
-            menu.rainbowWindowClear(window, menuBackGroundColor);
+            menu.windowClear(window, menuBackGroundColor);
             // view.zoom(1.f);
             // view.setCenter({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
             // window.setView(view);

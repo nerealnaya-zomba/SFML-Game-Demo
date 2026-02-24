@@ -36,14 +36,24 @@ Menu::Menu(sf::Font& font, sf::RenderWindow& window, sf::RectangleShape& mouseRe
     settingsButton = tgui::Button::create();
     settingsButton->setSize({200.f,75.f});
     settingsButton->setPosition({(WINDOW_WIDTH/2)-(settingsButton->getSize().x/2),WINDOW_HEIGHT*0.80});
+    settingsButton->setText(BASE_SETTINGS_BUTTON_TEXT);
+    settingsButton->setTextSize(BASE_MENU_BUTTONS_CHARACTER_SIZE);
+    settingsButton->onClick([this](){this->settingsButtonOnClick();});
 
     exitButton1 = tgui::Button::create();
     exitButton1->setSize({200.f,75.f});
     exitButton1->setPosition({(WINDOW_WIDTH/2)-(settingsButton->getSize().x/2),WINDOW_HEIGHT*0.70});
+    exitButton1->setText(BASE_EXIT_BUTTON_TEXT);
+    exitButton1->setTextSize(BASE_MENU_BUTTONS_CHARACTER_SIZE);
+    
+    exitButton1->onClick([this](){this->exitButtonOnClick();});
 
     playButton1 = tgui::Button::create();
     playButton1->setSize({200.f,75.f});
     playButton1->setPosition({(WINDOW_WIDTH/2)-(settingsButton->getSize().x/2),WINDOW_HEIGHT*0.60});
+    playButton1->setText(BASE_PLAY_BUTTON_TEXT);
+    playButton1->setTextSize(BASE_MENU_BUTTONS_CHARACTER_SIZE);
+    playButton1->onClick([this](){this->playButtonOnClick();});
 
     gui.add(settingsButton);
     gui.add(exitButton1);
@@ -56,6 +66,25 @@ Menu::~Menu()
     delete playButtonText;
     delete exitButton;
     delete exitButtonText;
+}
+
+void Menu::connectTGUIFont(tgui::Font &font)
+{
+    this->gui.setFont(font);
+}
+
+void Menu::playButtonOnClick()
+{
+    this->isMainMenuCalled = false;
+}
+
+void Menu::settingsButtonOnClick()
+{
+}
+
+void Menu::exitButtonOnClick()
+{
+    this->exitDialogue->isCalled = true;
 }
 
 void Menu::rainbowWindowClear(sf::RenderWindow& window, sf::Color& backgroundColor)
@@ -131,6 +160,11 @@ void Menu::rainbowWindowClear(sf::RenderWindow& window, sf::Color& backgroundCol
         }
     }
     //std::cout << (int)backgroundColor.r << " " << (int)backgroundColor.g << " " << (int)backgroundColor.b << " " << std::endl;
+    window.clear(backgroundColor);
+}
+
+void Menu::windowClear(sf::RenderWindow &window, sf::Color &backgroundColor)
+{
     window.clear(backgroundColor);
 }
 
@@ -258,10 +292,6 @@ void Menu::smoothlyReturnPreviousVariablesAndDraw(sf::RenderWindow& window)
 
 void Menu::menuDraw(sf::RenderWindow& window)
 {
-    window.draw(*playButton);
-    window.draw(*exitButton);
-    window.draw(*playButtonText);
-    window.draw(*exitButtonText);
     if(exitDialogue->isCalled) exitDialogue->draw(window);
     gui.draw();
     window.display();
