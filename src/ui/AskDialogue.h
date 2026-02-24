@@ -40,35 +40,32 @@ public:
     AskDialogue(sf::Vector2f pos,sf::Vector2f size, std::string text,tgui::Font& font, sf::Color color,sf::RectangleShape& mouseRect, sf::RenderWindow& window);
     virtual ~AskDialogue();
 
-    //Bools
-    bool isCalled = false;
-
-    //Settings
-    int characterSize = 30;
-
-    //Buttons
-    tgui::Button::Ptr yesButton;
-    tgui::Button::Ptr noButton;
-
-    //Window
-    sf::RenderWindow* window_m;
-
-    //Answer
-    enum Answer
-    {
-        Yes,
-        No,
-        NoAnswer
-    };
-    Answer answer_m = NoAnswer;
-
-    //Message
-        //Top
-    sf::Text* main_text_m;
-        //First answer
-    sf::Text* answer1_text_m;
-        //Second answer
-    sf::Text* answer2_text_m;
+    //TGUI
+        //Group
+        tgui::Gui gui;
+        //Buttons
+        tgui::Button::Ptr yesButton;
+        tgui::Button::Ptr noButton;
+    ///////////////////////////////////////
+    //SFML
+        //Background
+        sf::RectangleShape* main_rect_m;
+        //Window
+        sf::RenderWindow* window_m;
+    ///////////////////////////////////////
+    //System
+        //Answer
+        enum Answer
+        {
+            Yes,
+            No,
+            NoAnswer
+        };
+        Answer answer_m = NoAnswer;
+        //Bools
+        bool isCalled = false;
+        //Settings
+        int characterSize = 30;
 
     //Drawing
     void draw(sf::RenderWindow& window);
