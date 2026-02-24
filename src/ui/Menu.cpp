@@ -2,6 +2,7 @@
 
 
 Menu::Menu(sf::Font& font, sf::RenderWindow& window, sf::RectangleShape& mouseRect)
+    : background(WINDOW_WIDTH,WINDOW_WIDTH)
 {
     //External references
     mouseRect_m = &mouseRect;
@@ -292,6 +293,8 @@ void Menu::smoothlyReturnPreviousVariablesAndDraw(sf::RenderWindow& window)
 
 void Menu::menuDraw(sf::RenderWindow& window)
 {
+    background.update(1.f/60.f);
+    background.draw(window);
     if(exitDialogue->isCalled) exitDialogue->draw(window);
     gui.draw();
     window.display();

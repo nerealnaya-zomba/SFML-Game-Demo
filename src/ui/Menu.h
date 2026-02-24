@@ -2,6 +2,7 @@
 #include <MainMenu.h>
 #include<Defines.h>
 #include<AskDialogue.h>
+#include<MenuBackground.h>
 #include<TGUI/TGUI.hpp>
 #include<TGUI/Backend/SFML-Graphics.hpp>
 #include<TGUI/Backend/Font/SFML-Graphics/BackendFontSFML.hpp>
@@ -47,6 +48,8 @@ class Menu{
 
     void connectTGUIFont(tgui::Font& font);
 private:
+    MenuBackground background;
+
     void playButtonOnClick();
     void settingsButtonOnClick();
     void exitButtonOnClick();

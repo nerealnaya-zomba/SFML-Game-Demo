@@ -1,252 +1,138 @@
 #include "MenuBackground.h"
+#include <cmath>
 #include <random>
-#include <iostream>
+#include <algorithm>
 
-MenuBackground::MenuBackground()
-{
+MenuBackground::MenuBackground(int w, int h) 
+    : width(w), 
+      height(h), 
+      time(0), 
+      backgroundTexture(), 
+      backgroundSprite(nullptr), // Инициализируем nullptr
+      color1(20, 30, 50),    // Темно-синий
+      color2(70, 40, 80),    // Фиолетовый
+      textureCreated(false) {
+    
+    // Создаем текстуру для фона
+    textureCreated = backgroundTexture.resize(sf::Vector2u(width, height));
+    
+    // Создаем спрайт с текстурой
+    if (textureCreated) {
+        backgroundSprite = std::make_unique<sf::Sprite>(backgroundTexture.getTexture());
+    }
+    
+    // Создаем частицы
+    createParticles(200);
+}
+
+void MenuBackground::createParticles(int count) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> posDistX(100.f, SCREEN_WIDTH - 100.f);
-    std::uniform_real_distribution<float> posDistY(100.f, SCREEN_HEIGHT - 100.f);
-    std::uniform_real_distribution<float> velDist(-200.f, 200.f);
-    std::uniform_real_distribution<float> angVelDist(-2.f, 2.f); // Уменьшил диапазон
-    std::uniform_int_distribution<int> colorDist(100, 255);
+    std::uniform_real_distribution<float> posDist(0, 1);
+    std::uniform_real_distribution<float> radiusDist(1.0f, 3.0f);
+    std::uniform_real_distribution<float> speedDist(-0.5f, 0.5f);
+    std::uniform_real_distribution<float> pulseDist(0.5f, 2.0f);
     
-    objects.resize(BASE_MENUBACKGROUND_COUNT_OF_SHAPES);
-    
-    for (auto& obj : objects) {
-        sf::Vector2f pos(posDistX(gen), posDistY(gen));
-        sf::Color color(colorDist(gen), colorDist(gen), colorDist(gen), 200);
-        
-        initTriangle(obj, pos, TRIANGLE_SIZE, color);
-        
-        obj.velocity = sf::Vector2f(velDist(gen), velDist(gen));
-        obj.angularVelocity = angVelDist(gen);
-        obj.active = true;
-        
-        // Сразу применяем ограничение скорости
-        clampVelocity(obj);
+    particles.clear();
+    for (int i = 0; i < count; ++i) {
+        Particle p;
+        p.position = sf::Vector2f(posDist(gen) * width, posDist(gen) * height);
+        p.velocity = sf::Vector2f(speedDist(gen), speedDist(gen));
+        p.radius = radiusDist(gen);
+        p.alpha = posDist(gen) * 100 + 50;
+        p.pulseSpeed = pulseDist(gen);
+        particles.push_back(p);
     }
 }
 
-void MenuBackground::initTriangle(PhysicsObject& obj, const sf::Vector2f& pos, float size, const sf::Color& color)
-{
-    obj.position = pos;
-    obj.angle = 0.f;
-    obj.angularVelocity = 0.f;
-    obj.mass = size * size; // масса пропорциональна площади
-    
-    // Создаём равносторонний треугольник
-    float height = size * std::sqrt(3.f) / 2.f;
-    
-    // Вершины в локальных координатах (центр масс в центре треугольника)
-    obj.localVertices[0] = sf::Vector2f(0.f, -height * 2.f / 3.f);          // верх
-    obj.localVertices[1] = sf::Vector2f(-size / 2.f, height / 3.f);         // левый низ
-    obj.localVertices[2] = sf::Vector2f(size / 2.f, height / 3.f);          // правый низ
-    
-    // Момент инерции для равностороннего треугольника относительно центра масс
-    // I = (1/18) * m * (a^2 + b^2 + c^2) для треугольника, для равностороннего: I = (1/12) * m * side^2
-    obj.momentOfInertia = obj.mass * size * size / 12.f;
-    
-    obj.shape.setPointCount(3);
-    for (int i = 0; i < 3; ++i) {
-        obj.shape.setPoint(i, obj.localVertices[i]);
-    }
-    
-    obj.shape.setFillColor(color);
-    obj.shape.setOutlineColor(sf::Color::White);
-    obj.shape.setOutlineThickness(2.f);
-    
-    updateTransform(obj);
+sf::Color MenuBackground::interpolateColor(float t) {
+    return sf::Color(
+        static_cast<uint8_t>(color1.r + (color2.r - color1.r) * t),
+        static_cast<uint8_t>(color1.g + (color2.g - color1.g) * t),
+        static_cast<uint8_t>(color1.b + (color2.b - color1.b) * t)
+    );
 }
 
-void MenuBackground::updateTransform(PhysicsObject& obj)
-{
-    obj.shape.setPosition(obj.position);
-    obj.shape.setRotation(sf::degrees(obj.angle * 180.f / 3.14159f)); // Конвертируем радианы в градусы для SFML
-}
-
-void MenuBackground::update(float deltaTime)
-{
-    // Применяем физику
-    for (auto& obj : objects) {
-        if (!obj.active) continue;
+void MenuBackground::update(float deltaTime) {
+    time += deltaTime * 0.5f;
+    
+    // Обновляем позиции частиц
+    for (auto& p : particles) {
+        p.position += p.velocity * deltaTime * 50.0f;
         
-        // Обновляем позицию
-        obj.position += obj.velocity * deltaTime;
+        // Пульсация альфа-канала
+        p.alpha = 100 + 50 * std::sin(time * p.pulseSpeed);
         
-        // Обновляем вращение (угол в радианах)
-        obj.angle += obj.angularVelocity * deltaTime;
-        
-        // Применяем трение
-        obj.velocity *= FRICTION;
-        obj.angularVelocity *= ANGULAR_FRICTION;
-        
-        // Проверяем коллизии со стенами
-        applyBoundaryCollision(obj);
-        
-        // Ограничиваем скорость ПОСЛЕ всех изменений
-        clampVelocity(obj);
-        
-        // Если скорость падает ниже минимума - добавляем случайный импульс
-        float speed = std::sqrt(obj.velocity.x * obj.velocity.x + obj.velocity.y * obj.velocity.y);
-        if (speed < MIN_VELOCITY) {
-            static std::random_device rd;
-            static std::mt19937 gen(rd());
-            static std::uniform_real_distribution<float> dist(-100.f, 100.f);
-            
-            obj.velocity += sf::Vector2f(dist(gen), dist(gen));
-            
-            // Снова ограничиваем после добавления импульса
-            clampVelocity(obj);
-        }
-        
-        // Обновляем трансформацию фигуры
-        updateTransform(obj);
+        // Телепортация частиц при выходе за границы
+        if (p.position.x < 0) p.position.x = static_cast<float>(width);
+        if (p.position.x > width) p.position.x = 0;
+        if (p.position.y < 0) p.position.y = static_cast<float>(height);
+        if (p.position.y > height) p.position.y = 0;
     }
     
-    // Проверяем коллизии между треугольниками
-    checkCollisions();
-}
-
-void MenuBackground::applyBoundaryCollision(PhysicsObject& obj)
-{
-    sf::FloatRect bounds = obj.shape.getGlobalBounds();
-    
-    // Коллизия с левой стеной
-    if (bounds.position.x < 0.f) {
-        obj.position.x += -bounds.position.x;
-        obj.velocity.x = -obj.velocity.x * RESTITUTION;
-        obj.angularVelocity += obj.velocity.y * 0.0001f;
-    }
-    // Коллизия с правой стеной
-    else if (bounds.position.x + bounds.size.x > SCREEN_WIDTH) {
-        obj.position.x -= (bounds.position.x + bounds.size.x - SCREEN_WIDTH);
-        obj.velocity.x = -obj.velocity.x * RESTITUTION;
-        obj.angularVelocity -= obj.velocity.y * 0.0001f;
-    }
-    
-    // Коллизия с верхней стеной
-    if (bounds.position.y < 0.f) {
-        obj.position.y += -bounds.position.y;
-        obj.velocity.y = -obj.velocity.y * RESTITUTION;
-        obj.angularVelocity -= obj.velocity.x * 0.0001f;
-    }
-    // Коллизия с нижней стеной
-    else if (bounds.position.y + bounds.size.y > SCREEN_HEIGHT) {
-        obj.position.y -= (bounds.position.y + bounds.size.y - SCREEN_HEIGHT);
-        obj.velocity.y = -obj.velocity.y * RESTITUTION;
-        obj.angularVelocity += obj.velocity.x * 0.0001f;
-    }
-    
-    // Ограничиваем скорость после столкновения со стеной
-    clampVelocity(obj);
-}
-
-bool MenuBackground::checkTriangleCollision(const PhysicsObject& a, const PhysicsObject& b, 
-                                           sf::Vector2f& collisionNormal, float& penetration)
-{
-    // Упрощённая проверка коллизий через SAT (Separating Axis Theorem)
-    // Для более точной физики нужна полная реализация SAT
-    
-    // Для простоты используем bounding box для быстрой проверки
-    sf::FloatRect boundsA = a.shape.getGlobalBounds();
-    sf::FloatRect boundsB = b.shape.getGlobalBounds();
-    
-    if (!boundsA.findIntersection(boundsB))
-        return false;
-    
-    // В реальной SAT нужно проверять все оси (нормали граней)
-    // Здесь упрощённая версия - проверяем расстояние между центрами
-    sf::Vector2f delta = a.position - b.position;
-    float distance = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-    float minDistance = TRIANGLE_SIZE; // приблизительное минимальное расстояние
-    
-    if (distance < minDistance && distance > 0.1f) {
-        collisionNormal = delta / distance;
-        penetration = minDistance - distance;
-        return true;
-    }
-    
-    return false;
-}
-
-void MenuBackground::clampVelocity(PhysicsObject& obj)
-{
-    // Ограничиваем линейную скорость
-    float speed = std::sqrt(obj.velocity.x * obj.velocity.x + obj.velocity.y * obj.velocity.y);
-    if (speed > MAX_VELOCITY) {
-        obj.velocity = (obj.velocity / speed) * MAX_VELOCITY;
-    }
-    
-    // Ограничиваем угловую скорость
-    if (std::abs(obj.angularVelocity) > MAX_ANGULAR_VELOCITY) {
-        obj.angularVelocity = (obj.angularVelocity > 0 ? MAX_ANGULAR_VELOCITY : -MAX_ANGULAR_VELOCITY);
+    // Периодически меняем цвета градиента
+    if (static_cast<int>(time * 2) % 300 == 0) {
+        std::swap(color1, color2);
     }
 }
 
-void MenuBackground::resolveCollision(PhysicsObject& a, PhysicsObject& b, 
-                                     const sf::Vector2f& normal, float penetration)
-{
-    // Разделяем объекты
-    if (penetration > 0) {
-        sf::Vector2f correction = normal * (penetration * 0.5f);
-        a.position += correction;
-        b.position -= correction;
+void MenuBackground::draw(sf::RenderWindow& window) {
+    if (!textureCreated || !backgroundSprite) return;
+    
+    // Очищаем текстуру
+    backgroundTexture.clear(sf::Color::Transparent);
+    
+    // Рисуем градиентный фон
+    for (int y = 0; y < height; y += 2) {
+        float t = static_cast<float>(y) / height;
+        sf::Color color = interpolateColor(t);
+        
+        sf::RectangleShape line(sf::Vector2f(static_cast<float>(width), 2.0f));
+        line.setPosition({0, static_cast<float>(y)});
+        line.setFillColor(color);
+        backgroundTexture.draw(line);
     }
     
-    // Относительная скорость
-    sf::Vector2f relativeVelocity = a.velocity - b.velocity;
-    float velocityAlongNormal = relativeVelocity.x * normal.x + relativeVelocity.y * normal.y;
+    // Рисуем частицы с эффектом свечения
+    for (const auto& p : particles) {
+        // Основная частица
+        sf::CircleShape particle(p.radius);
+        particle.setPosition(p.position);
+        particle.setFillColor(sf::Color(255, 255, 255, static_cast<uint8_t>(p.alpha)));
+        backgroundTexture.draw(particle);
+        
+        // Эффект свечения (больший круг с прозрачностью)
+        sf::CircleShape glow(p.radius * 3);
+        glow.setPosition(p.position - sf::Vector2f(p.radius * 3, p.radius * 3));
+        glow.setFillColor(sf::Color(255, 255, 255, static_cast<uint8_t>(p.alpha * 0.3f)));
+        backgroundTexture.draw(glow);
+    }
     
-    // Если объекты удаляются друг от друга, не обрабатываем коллизию
-    if (velocityAlongNormal > 0)
-        return;
+    // Добавляем звездочки
+    for (int i = 0; i < 50; ++i) {
+        float x = std::fmod(time * 20 + i * 50, static_cast<float>(width));
+        float y = std::sin(time + static_cast<float>(i)) * 50 + height / 2;
+        
+        sf::CircleShape star(1.5f);
+        star.setPosition({x, y});
+        star.setFillColor(sf::Color(255, 255, 200, 150));
+        backgroundTexture.draw(star);
+    }
     
-    // Коэффициент восстановления
-    float e = RESTITUTION;
+    backgroundTexture.display();
     
-    // Импульс
-    float impulseMagnitude = -(1 + e) * velocityAlongNormal;
-    impulseMagnitude /= (1 / a.mass + 1 / b.mass);
+    // Обновляем спрайт с новой текстурой
+    backgroundSprite->setTexture(backgroundTexture.getTexture());
     
-    // Применяем импульс
-    sf::Vector2f impulse = normal * impulseMagnitude;
-    a.velocity += impulse / a.mass;
-    b.velocity -= impulse / b.mass;
-    
-    // Добавляем вращение от удара
-    sf::Vector2f contactPointA = (a.position + b.position) * 0.5f - a.position;
-    sf::Vector2f contactPointB = (a.position + b.position) * 0.5f - b.position;
-    
-    float torqueA = (contactPointA.x * impulse.y - contactPointA.y * impulse.x) * 0.1f;
-    float torqueB = (contactPointB.x * -impulse.y - contactPointB.y * -impulse.x) * 0.1f;
-    
-    a.angularVelocity += torqueA / a.momentOfInertia;
-    b.angularVelocity += torqueB / b.momentOfInertia;
-    
-    // Ограничиваем скорость после коллизии
-    clampVelocity(a);
-    clampVelocity(b);
+    // Рисуем финальный фон
+    window.draw(*backgroundSprite);
 }
 
-void MenuBackground::checkCollisions()
-{
-    for (size_t i = 0; i < objects.size(); ++i) {
-        for (size_t j = i + 1; j < objects.size(); ++j) {
-            sf::Vector2f normal;
-            float penetration;
-            
-            if (checkTriangleCollision(objects[i], objects[j], normal, penetration)) {
-                resolveCollision(objects[i], objects[j], normal, penetration);
-            }
-        }
-    }
+void MenuBackground::setColors(const sf::Color& c1, const sf::Color& c2) {
+    color1 = c1;
+    color2 = c2;
 }
 
-void MenuBackground::draw(sf::RenderWindow& window)
-{
-    for (auto& obj : objects) {
-        window.draw(obj.shape);
-    }
+void MenuBackground::setParticleCount(int count) {
+    createParticles(count);
 }

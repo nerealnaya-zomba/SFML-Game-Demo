@@ -56,7 +56,8 @@ add_executable(main
     src/ui/Shop.cpp
     src/ui/PlayerInventory.cpp
     src/ui/PlayerUI.cpp
-	src/ui/ChooseDestinationMenu.cpp)
+	src/ui/ChooseDestinationMenu.cpp
+    src/ui/MenuBackground.cpp)
 
 target_include_directories(main PRIVATE 
     ${CMAKE_SOURCE_DIR}/src 
