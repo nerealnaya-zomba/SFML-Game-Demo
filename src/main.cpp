@@ -121,13 +121,6 @@ int main()
         //Main menu drawing
         if(menu.isMainMenuCalled)
         {
-            //Dont size up play and exit buttons if exit dialogue window called
-            if(menu.exitDialogue->isCalled == false)
-            {
-                sizeUpRectangleOnHover(*menu.playButton,*menu.playButtonText,mouseRect,window, 0.03f , 0.02f);
-                sizeUpRectangleOnHover(*menu.exitButton,*menu.exitButtonText,mouseRect,window, 0.03f , 0.02f);
-            }
-
             menu.windowClear(window, menuBackGroundColor);
             // view.zoom(1.f);
             // view.setCenter({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
