@@ -84,11 +84,6 @@ void Menu::exitButtonOnClick()
     this->exitDialogue->isCalled = true;
 }
 
-void Menu::windowClear(sf::RenderWindow &window, sf::Color &backgroundColor)
-{
-    window.clear(backgroundColor);
-}
-
 void Menu::menuDraw(sf::RenderWindow& window)
 {
     background.update(1.f/60.f);
