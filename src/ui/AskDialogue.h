@@ -35,6 +35,9 @@ const sf::Color BASE_NO_TEXT_HOVER_COLOR(255, 255, 255);      // Светло-м
 // CLICK
 const sf::Color BASE_NO_TEXT_CLICK_COLOR(127, 127, 127);      // Темно-мятный
 
+//Label color
+const sf::Color BASE_LABEL_TEXT_COLOR(255,255,255);         // Белый
+
 //Background color
 const sf::Color BASE_ASKDIALOGUE_BACKGROUND_COLOR(70, 130, 180);  // Стальной синий
 
@@ -64,6 +67,8 @@ private:
         //Buttons
         tgui::Button::Ptr yesButton;
         tgui::Button::Ptr noButton;
+        //Text
+        tgui::Label::Ptr  label;
     ///////////////////////////////////////
     //SFML
         //Background

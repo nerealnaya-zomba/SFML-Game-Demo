@@ -44,9 +44,20 @@ AskDialogue::AskDialogue(sf::Vector2f pos,sf::Vector2f size, std::string text, s
             noButton->getRenderer()->setTextColor(BASE_NO_TEXT_IDLE_COLOR);
             noButton->getRenderer()->setTextColorDown(BASE_NO_TEXT_CLICK_COLOR);
             noButton->getRenderer()->setTextColorHover(BASE_NO_TEXT_HOVER_COLOR);
+        
+        //Label
+        this->label = tgui::Label::create();
+        label->setTextSize(characterSize);
+        label->setText(text);
+        label->setOrigin(0.5,0.5); //Middle
+        label->setPosition(pos.x,pos.y-characterSize);
+            //Renderer
+            label->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
+            label->getRenderer()->setTextColor(BASE_LABEL_TEXT_COLOR);
 
     gui.add(yesButton);
     gui.add(noButton);
+    gui.add(label);
 
 
     // Main dialogue rectangle
@@ -55,6 +66,13 @@ AskDialogue::AskDialogue(sf::Vector2f pos,sf::Vector2f size, std::string text, s
     setRectangleOriginToMiddle(*main_rect_m);
     main_rect_m->setPosition(pos);
     main_rect_m->setFillColor(BASE_ASKDIALOGUE_BACKGROUND_COLOR);
+    main_rect_m->setOutlineThickness(5.f);
+    main_rect_m->setOutlineColor(sf::Color(
+        BASE_ASKDIALOGUE_BACKGROUND_COLOR.r/3,
+        BASE_ASKDIALOGUE_BACKGROUND_COLOR.g/3,
+        BASE_ASKDIALOGUE_BACKGROUND_COLOR.b/3
+    )
+    );
 }
 AskDialogue::~AskDialogue()
 {
