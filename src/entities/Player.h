@@ -16,6 +16,7 @@
 #include<LevelPortal.h>
 #include<PlayerUI.h>
 #include<ChooseDestinationMenu.h>
+#include<ScreenTransition.h>
 
 class GameLevelManager;
 class LevelPortal;
@@ -38,7 +39,7 @@ const float BASE_OFFSET_TO_CREATE_PORTAL    = 200.f;
 
 class Player {
 public:
-    Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c);
+    Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w);
     virtual ~Player();
 
     GameData* gameTextures;
@@ -179,11 +180,14 @@ private:
     ////////////////////////////////////////////////////////////////
     // Used objects
     sf::Sprite* playerSprite;               // Main player sprite
-    Trail* trail;                           // Movement trail effect
+        // Movement trail effect
+        Trail* trail;                           
         // LevelPortal
         LevelPortal* portal;
             // ChooseDestinationMenu for LevelPortal
             ChooseDestinationMenu CDMenu;
+        // Screen transition effect on level change
+        ScreenTransition transition;
     ////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////
@@ -214,6 +218,13 @@ public:
     void chooseDestinationMenuHandleEvents(const sf::Event& ev);
 private:
     ////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////
+    // ScreenTransition methods and fields  
+    ////////////////////////////////////////////////////////////
+public:
+    void drawTransition();
+private:
 
     // Physics
     void applyFriction(float& walkSpeed, float friction); // Apply friction to movement

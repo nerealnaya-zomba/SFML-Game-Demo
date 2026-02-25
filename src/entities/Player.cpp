@@ -1,8 +1,10 @@
 #include<Player.h>
 
 using namespace gameUtils;
-Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c)
-    : CDMenu(gameTextures,c,m,*this,BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY,BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY,BASE_CHOOSEDESTINATIONMENU_SELECT_KEY)
+Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w)
+    : 
+    CDMenu(gameTextures,c,m,*this,BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY,BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY,BASE_CHOOSEDESTINATIONMENU_SELECT_KEY),
+    transition(w)
 {
     this->gameTextures = &gameTextures;
     this->levelManager = &m;
@@ -116,6 +118,7 @@ void Player::updateTextures()
 {
     portal->update();   //NOTE Should be updating no matter what
     if(portal->getIsInAreaOfTeleportation()) fallingSpeed = 0.f;
+    transition.update();
 
     if(!isAlive)
     {
@@ -319,6 +322,11 @@ void Player::chooseDestinationMenuHandleEvents(const sf::Event &ev)
             }
         }
     }
+}
+
+void Player::drawTransition()
+{
+    this->transition.draw();
 }
 
 void Player::applyFriction(float &walkSpeed, float friction)

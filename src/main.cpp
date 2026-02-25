@@ -40,7 +40,7 @@ int main()
     //Game
     GameCamera camera(view);                                                            // Camera
     GameLevelManager levelManager(gameData,camera,window,levelFolder);                  // Level manager
-    Player player(gameData,levelManager,camera);                                        // Player
+    Player player(gameData,levelManager,camera,window);                                        // Player
     PlayerUI PUI(player,camera);
     PUI.addCooldownRect(player.getDashClock(),player.getDashCooldown(),gameData.satiro_dashTextures[0]);
     PUI.addCooldownRect(player.getShootClock(),player.getShootCooldown(),gameData.bulletTextures[0]);
@@ -172,7 +172,7 @@ int main()
         player.chooseDestinationMenuUpdate();
         PUI.draw(window);
         player.chooseDestinationMenuDraw(window);
-        
+        player.drawTransition();
 
         //////////////////
         // Camera updating
