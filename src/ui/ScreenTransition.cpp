@@ -2,20 +2,22 @@
 #include <algorithm>
 #include<Defines.h>
 
-ScreenTransition::ScreenTransition(sf::RenderWindow& win, float transitionDuration) 
-    : window(win), duration(transitionDuration), isTransitioning(false), 
+ScreenTransition::ScreenTransition(sf::RenderWindow& win, GameCamera& c, float transitionDuration) 
+    : window(win),camera(&c), duration(transitionDuration), isTransitioning(false), 
       fadingOut(true), currentAlpha(0), useShader(false) {
     
     // Основной оверлей
-    overlay.setSize(sf::Vector2f(window.getSize()));
+    overlay.setSize({camera->getScreenViewSize().x*2,camera->getScreenViewSize().y*2});
+    overlay.setOrigin(overlay.getGlobalBounds().getCenter());
+    overlay.setPosition(camera->getCameraCenterPos());
     overlay.setFillColor(sf::Color(0, 0, 0, 0));
     
     // Виньетка для красивого эффекта
-    vignette.setRadius(WINDOW_WIDTH * 0.8f);
+    vignette.setRadius(camera->getScreenViewSize().x * 0.8f);
     vignette.setOrigin({vignette.getRadius(), vignette.getRadius()});
-    vignette.setPosition({WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2});
+    vignette.setPosition(camera->getCameraCenterPos());
     vignette.setFillColor(sf::Color::Transparent);
-    vignette.setOutlineThickness(window.getSize().x * 0.5f);
+    vignette.setOutlineThickness(camera->getScreenViewSize().x * 0.5f);
     vignette.setOutlineColor(sf::Color(0, 0, 0, 0));
     
     // Попытка загрузить шейдер (если есть)
@@ -47,6 +49,9 @@ void ScreenTransition::fadeIn() {
 void ScreenTransition::update() {
     if (!isTransitioning) return;
     
+    overlay.setPosition(camera->getCameraCenterPos());
+    vignette.setPosition(camera->getCameraCenterPos());
+
     float elapsed = clock.getElapsedTime().asSeconds();
     float progress = std::min(elapsed / duration, 1.0f);
     

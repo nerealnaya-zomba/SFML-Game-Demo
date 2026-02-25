@@ -1,5 +1,6 @@
 #include<LevelPortal.h>
 #include<math.h>
+#include<ScreenTransition.h>
 
 void LevelPortal::portalOpeningAnimation()
 {

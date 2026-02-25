@@ -1,12 +1,14 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include<GameCamera.h>
 
 class ScreenTransition {
 private:
     sf::RenderWindow& window;
     sf::RectangleShape overlay;
     sf::Clock clock;
+    GameCamera* camera;
     
     // Параметры анимации
     float duration;
@@ -20,7 +22,7 @@ private:
     bool useShader;
 
 public:
-    ScreenTransition(sf::RenderWindow& win, float transitionDuration = 1.0f);
+    ScreenTransition(sf::RenderWindow& win, GameCamera& c, float transitionDuration = 1.0f);
     ~ScreenTransition();
     
     void fadeOut();  // Начать затемнение

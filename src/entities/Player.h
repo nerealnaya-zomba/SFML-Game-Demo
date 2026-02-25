@@ -13,13 +13,13 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <Particle.h>
-#include<LevelPortal.h>
-#include<PlayerUI.h>
-#include<ChooseDestinationMenu.h>
-#include<ScreenTransition.h>
+#include <LevelPortal.h>
+#include <PlayerUI.h>
+#include <ChooseDestinationMenu.h>
 
 class GameLevelManager;
 class LevelPortal;
+class ScreenTransition;  
 
 const sf::Vector2f BASE_PORTAL_SPEED_OF_OPENING = {0.01f,0.01f};
 const sf::Vector2f BASE_PORTAL_SPEED_OF_CLOSING = {0.01f,0.01f};
@@ -187,7 +187,7 @@ private:
             // ChooseDestinationMenu for LevelPortal
             ChooseDestinationMenu CDMenu;
         // Screen transition effect on level change
-        ScreenTransition transition;
+        std::shared_ptr<ScreenTransition> transition;
     ////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////

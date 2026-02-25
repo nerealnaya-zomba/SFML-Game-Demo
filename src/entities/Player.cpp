@@ -1,10 +1,10 @@
 #include<Player.h>
+#include<ScreenTransition.h>
 
 using namespace gameUtils;
 Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w)
     : 
-    CDMenu(gameTextures,c,m,*this,BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY,BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY,BASE_CHOOSEDESTINATIONMENU_SELECT_KEY),
-    transition(w,0.5f)
+    CDMenu(gameTextures,c,m,*this,BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY,BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY,BASE_CHOOSEDESTINATIONMENU_SELECT_KEY)
 {
     this->gameTextures = &gameTextures;
     this->levelManager = &m;
@@ -38,8 +38,10 @@ Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::R
     setSpriteOriginToMiddle(*playerSprite);
     //Trail initialization
     trail = new Trail(*playerSprite);
+    //Transition initialization
+    this->transition = std::make_shared<ScreenTransition>(w,c,0.5f);
     //Portal initizalization
-    portal = new LevelPortal({0.0,0.0},BASE_PORTAL_SPEED_OF_OPENING,BASE_PORTAL_SPEED_OF_CLOSING,portalExistTime,*playerSprite,*playerRectangle_,gameTextures,m,transition);
+    portal = new LevelPortal({0.0,0.0},BASE_PORTAL_SPEED_OF_OPENING,BASE_PORTAL_SPEED_OF_CLOSING,portalExistTime,*playerSprite,*playerRectangle_,gameTextures,m,*transition);
     portalCallCloseCooldownClock.reset();
     portalCallOpenCooldownClock.reset();
 }
@@ -250,9 +252,9 @@ void Player::portalUpdate()
     if(checkInterval(portalCallCloseCooldownClock,portalExistTime))
     {
         portal->closePortal();
-        if(!transition.isFadeInComplete())
+        if(!transition->isFadeInComplete())
         {
-            transition.fadeIn();
+            transition->fadeIn();
         }
         portalCallCloseCooldownClock.reset();
     }
@@ -330,12 +332,12 @@ void Player::chooseDestinationMenuHandleEvents(const sf::Event &ev)
 
 void Player::drawTransition()
 {
-    this->transition.draw();
+    this->transition->draw();
 }
 
 void Player::updateTransition()
 {
-    transition.update();
+    transition->update();
 }
 
 void Player::applyFriction(float &walkSpeed, float friction)

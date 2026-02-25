@@ -4,9 +4,9 @@
 #include<Mounting.h>
 #include<GameData.h>
 #include<GameLevel.h>
-#include<ScreenTransition.h>
 
 class GameLevelManager;
+class ScreenTransition;
 enum PortalCalledSide{LEFT,RIGHT};
 
 const sf::Vector2f BASE_CLOSED_SCALE = {0.f,0.f};
