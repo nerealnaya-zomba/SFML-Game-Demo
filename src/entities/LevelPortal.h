@@ -4,6 +4,7 @@
 #include<Mounting.h>
 #include<GameData.h>
 #include<GameLevel.h>
+#include<ScreenTransition.h>
 
 class GameLevelManager;
 enum PortalCalledSide{LEFT,RIGHT};
@@ -19,6 +20,7 @@ class LevelPortal : public InteractiveObject
 private:
     // Внешние объекты
     GameLevelManager* manager;
+    ScreenTransition* transition;
     
         //PortalBlue
     std::vector<sf::Texture>* portalBlue1Textures;
@@ -78,19 +80,19 @@ private:
     // Поставить allTexturesIt в начало
     void setPortalIteratorToBegin();
     
-    bool squishTargetToZero();
+    bool squishTargetToZero(ScreenTransition& transition);
     void initializeSquishVars();
     void resetSquishBools();
     void resetTargetScaleToBase();
 
     void teleportTargetToCenterOfPortal();
 public:
-    LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, sf::Transformable& tS, sf::Transformable& tR, GameData &gameData, GameLevelManager &m);
+    LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, sf::Transformable& tS, sf::Transformable& tR, GameData &gameData, GameLevelManager &m, ScreenTransition& t);
     ~LevelPortal() = default;
 
-    void draw(sf::RenderWindow& window)      override;
-    void update()                            override;
-    void handleEvent(const sf::Event& event) override;
+    void draw(sf::RenderWindow& window)        override;
+    void update()                              override;
+    void handleEvent(const sf::Event& event)   override;
 
     void setPortalDestination(std::optional<std::string> levelN);
 

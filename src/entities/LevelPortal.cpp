@@ -49,10 +49,11 @@ void LevelPortal::portalClosingAnimation()
     }
 }
 
-LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, sf::Transformable& tS, sf::Transformable& tR, GameData &gameData, GameLevelManager &m)
+LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, const sf::Vector2f& sOC, const int eT, sf::Transformable& tS, sf::Transformable& tR, GameData &gameData, GameLevelManager &m, ScreenTransition& t)
     : InteractiveObject(basePos, gameData.portalBlue1Textures[0]), manager(&m), isUsed(false), speedOfOpening(sOO), speedOfClosing(sOC), existTime(eT), isOpened(false), isClosed(true),  
     isCalledForClose(false), isCalledForOpen(false), isTargetInAreaOfTeleportation(false), isTargetBeingSquished(false),isTargetSelected(false), openedScale(BASE_OPENED_SCALE), closedScale(BASE_CLOSED_SCALE),
-    baseTargetScale(BASE_TARGET_SCALE), squishTargetSprite(&tS), squishTargetRect(&tR), side(PortalCalledSide::LEFT)
+    baseTargetScale(BASE_TARGET_SCALE), squishTargetSprite(&tS), squishTargetRect(&tR), side(PortalCalledSide::LEFT),
+    transition(&t)
 {
     //portalBlue
     attachTexture(gameData.portalBlue1Textures, this->portalBlue1Textures,  gameData.portalBlue1Helper,   this->portalBlue1Helper   );
@@ -121,13 +122,17 @@ void LevelPortal::update()
     if(isOpened)
     {
         if(isTargetInAreaOfTeleportation){
-            if(squishTargetToZero())
+            if(squishTargetToZero(*transition))
             {
                 if(!isCalledForClose)
                 {
                     if(manager->goToLevel(levelName))
                     {
                         closePortal();
+                        if(!transition->isFadeInComplete())
+                        {
+                            transition->fadeIn();
+                        }
                     } else{ 
                         closePortal();
                         // TODO Добавить предупреждение для игрока что локации не существует/не выбрана
@@ -265,7 +270,7 @@ void LevelPortal::setPortalIteratorToBegin()
     this->allTexturesIt = allPortalBlue.begin();
 }
 
-bool LevelPortal::squishTargetToZero()
+bool LevelPortal::squishTargetToZero(ScreenTransition& transition)
 {
     sf::Vector2f currentScale = squishTargetSprite->getScale();
 
@@ -291,6 +296,10 @@ bool LevelPortal::squishTargetToZero()
         });
     }
     
+    if(!transition.isFadeOutComplete() && !transition.isActive())
+    {
+        transition.fadeOut();
+    }
     isTargetBeingSquished = true;
     return false;
 }

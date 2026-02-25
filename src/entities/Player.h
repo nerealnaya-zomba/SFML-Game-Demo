@@ -225,6 +225,8 @@ private:
 public:
     void drawTransition();
 private:
+    void updateTransition();
+////////////////////////////////////////////////////////////
 
     // Physics
     void applyFriction(float& walkSpeed, float friction); // Apply friction to movement

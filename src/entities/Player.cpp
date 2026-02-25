@@ -4,7 +4,7 @@ using namespace gameUtils;
 Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w)
     : 
     CDMenu(gameTextures,c,m,*this,BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY,BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY,BASE_CHOOSEDESTINATIONMENU_SELECT_KEY),
-    transition(w)
+    transition(w,0.5f)
 {
     this->gameTextures = &gameTextures;
     this->levelManager = &m;
@@ -39,7 +39,7 @@ Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::R
     //Trail initialization
     trail = new Trail(*playerSprite);
     //Portal initizalization
-    portal = new LevelPortal({0.0,0.0},BASE_PORTAL_SPEED_OF_OPENING,BASE_PORTAL_SPEED_OF_CLOSING,portalExistTime,*playerSprite,*playerRectangle_,gameTextures,m);
+    portal = new LevelPortal({0.0,0.0},BASE_PORTAL_SPEED_OF_OPENING,BASE_PORTAL_SPEED_OF_CLOSING,portalExistTime,*playerSprite,*playerRectangle_,gameTextures,m,transition);
     portalCallCloseCooldownClock.reset();
     portalCallOpenCooldownClock.reset();
 }
@@ -118,7 +118,7 @@ void Player::updateTextures()
 {
     portal->update();   //NOTE Should be updating no matter what
     if(portal->getIsInAreaOfTeleportation()) fallingSpeed = 0.f;
-    transition.update();
+    updateTransition();
 
     if(!isAlive)
     {
@@ -250,6 +250,10 @@ void Player::portalUpdate()
     if(checkInterval(portalCallCloseCooldownClock,portalExistTime))
     {
         portal->closePortal();
+        if(!transition.isFadeInComplete())
+        {
+            transition.fadeIn();
+        }
         portalCallCloseCooldownClock.reset();
     }
 
@@ -327,6 +331,11 @@ void Player::chooseDestinationMenuHandleEvents(const sf::Event &ev)
 void Player::drawTransition()
 {
     this->transition.draw();
+}
+
+void Player::updateTransition()
+{
+    transition.update();
 }
 
 void Player::applyFriction(float &walkSpeed, float friction)
