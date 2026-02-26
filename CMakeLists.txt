@@ -53,6 +53,7 @@ add_executable(main
     src/entities/LevelPortal.cpp
     src/entities/Trader.cpp
     src/systems/Item.cpp
+    src/systems/TaskManager.cpp
     src/ui/Shop.cpp
     src/ui/PlayerInventory.cpp
     src/ui/PlayerUI.cpp
