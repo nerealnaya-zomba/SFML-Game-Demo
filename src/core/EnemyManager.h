@@ -13,6 +13,7 @@
 
 class Spawner;
 class Skeleton;
+class GameLevel;
 
 //NOTE Класс для управления противниками. Должен отвечать за спавн, обновление и удаление убитых.
 //NOTE Если хочешь добавить еще один класс противника - в конце .cpp файла добавь template class EnemyManager<Твой противник>. Также и со Spawner.
@@ -32,6 +33,7 @@ private:
 
     const nlohmann::json* data;
     GameData* gameData;
+    GameLevel* gameLevel;
     Platform* platform;
     Ground* ground;
     Player* player;
@@ -99,7 +101,7 @@ public:
     ////////////////////////
     // ln - Название файла уровня
     ////////////////////////
-    EnemyManager(const nlohmann::json& d, GameData& gd, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
+    EnemyManager(const nlohmann::json& d, GameData& gd, GameLevel& gl, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
     ~EnemyManager();
 
     //Setters

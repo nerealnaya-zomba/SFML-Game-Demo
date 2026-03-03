@@ -322,8 +322,9 @@ void GameLevel::initializeGround(const nlohmann::json& data)
 
 void GameLevel::initializeEnemyManager(const nlohmann::json &data)
 {
-    enemyManager = new EnemyManager(data, 
-        *this->data, 
+    enemyManager = new EnemyManager(data,
+        *this->data,
+        *this, 
         *platforms,
         *ground,
         *player,

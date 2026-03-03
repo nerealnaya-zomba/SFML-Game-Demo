@@ -10,6 +10,8 @@
 #include <math.h>
 #include <enemyPortal.h>
 
+class GameLevel;
+
 // Анимационные состояния скелета
 enum skeletonAction {
     WALKLEFT,
@@ -28,6 +30,7 @@ private:
     Ground* ground_;
     Platform* platform_;  
     Player* player_;
+    GameLevel* gameLevel;
 
     // Портал
     enemyPortal* portal;
@@ -155,7 +158,7 @@ private:
     void loadData();
 
 public:
-    Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, 
+    Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, Ground& ground, 
              Platform& platform, Player& player, std::string type, sf::Vector2f pos);
     ~Skeleton();
 

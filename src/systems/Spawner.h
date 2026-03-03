@@ -8,6 +8,7 @@
 #include <Player.h>
 
 class EnemyManager;
+class GameLevel;
 
 class Spawner {
 private:
@@ -16,6 +17,7 @@ private:
     /////////////////////////////////////////////////////////////////////
     EnemyManager* manager;  
     GameData* data;
+    GameLevel* gameLevel;
     Platform* platform;
     Ground* ground;
     Player* player;
@@ -44,9 +46,9 @@ public:
     // eps - Сколько появляется противников за спавн
     // minX1, maxX2, minY1, maxY2  - Координаты площади где будут спавниться скелеты
     /////////////////////////////////////////////////////////////////////
-    Spawner(EnemyManager &m, std::string n, int ea, int sc, int eps, float minX1, float maxX2, float minY1, float maxY2,
+    Spawner(EnemyManager &m, GameLevel& gl, std::string n, int ea, int sc, int eps, float minX1, float maxX2, float minY1, float maxY2,
     GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
-    Spawner(EnemyManager &m, std::string n, int ea, int sc, int eps, sf::Vector2f sa[2],
+    Spawner(EnemyManager &m, GameLevel& gl, std::string n, int ea, int sc, int eps, sf::Vector2f sa[2],
     GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
     
     ~Spawner();

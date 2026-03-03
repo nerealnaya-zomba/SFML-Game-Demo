@@ -2,6 +2,7 @@
 #include "Ground.h"    
 #include "Platform.h"  
 #include "Player.h"
+#include<GameLevel.h>
 using namespace gameUtils;
 
 // ========== ДВИЖЕНИЕ ==========
@@ -275,8 +276,8 @@ void Skeleton::loadData() {
 }
 
 // ========== КОНСТРУКТОР ==========
-Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground, 
-                   Platform& platform, Player& player, std::string type, sf::Vector2f pos) 
+Skeleton::Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, Ground& ground, 
+             Platform& platform, Player& player, std::string type, sf::Vector2f pos) 
     : Enemy(gameData) {
     
     this->window = &window;
@@ -286,6 +287,7 @@ Skeleton::Skeleton(GameData &gameData, sf::RenderWindow &window, Ground& ground,
     this->type_ = type;
     this->enemyPos = pos;
     this->portal = new enemyPortal(gameData,pos);
+    this->gameLevel = &gl;
     
     loadData();
 
@@ -471,10 +473,13 @@ void Skeleton::updatePhysics() {
     skeletonRect->move({0.f, fallingSpeed});
     skeletonRect->move({initialWalkSpeed, 0.f});
     
+
+    sf::Vector2f levelBounds = static_cast<sf::Vector2f>(gameLevel->getLevelSize());
+    
     // Коллизии с границами окна
-    if (skeletonRect->getPosition().y + skeletonRect->getSize().y >= WINDOW_HEIGHT) {
+    if (skeletonRect->getPosition().y + skeletonRect->getSize().y >= levelBounds.y) {
         isFalling = false;
-        skeletonRect->setPosition({skeletonRect->getPosition().x, WINDOW_HEIGHT - skeletonRect->getSize().y});
+        skeletonRect->setPosition({skeletonRect->getPosition().x, levelBounds.y - skeletonRect->getSize().y});
     } else {
         isFalling = true;
     }
@@ -486,8 +491,8 @@ void Skeleton::updatePhysics() {
     }
     
     // Боковые границы
-    if (skeletonRect->getPosition().x + skeletonRect->getSize().x >= WINDOW_WIDTH) {
-        skeletonRect->setPosition({WINDOW_WIDTH - skeletonRect->getSize().x, skeletonRect->getPosition().y});
+    if (skeletonRect->getPosition().x + skeletonRect->getSize().x >= levelBounds.x) {
+        skeletonRect->setPosition({levelBounds.x - skeletonRect->getSize().x, skeletonRect->getPosition().y});
     } else if (skeletonRect->getPosition().x <= 0) {
         skeletonRect->setPosition({0.f, skeletonRect->getPosition().y});
     }

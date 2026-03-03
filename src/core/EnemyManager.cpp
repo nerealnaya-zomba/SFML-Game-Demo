@@ -2,6 +2,7 @@
 #include<Spawner.h>
 #include<Skeleton.h>
 #include<enemyPortal.h>
+#include<GameLevel.h>
 
 void EnemyManager::updateSpawner()
 {
@@ -36,6 +37,7 @@ void EnemyManager::loadSpawnerData()
         // Вставляем спавнер
         spawners.emplace_back(
             *this,
+            *this->gameLevel,
             spawner["EnemyName"],
             spawner["EnemyAmount"],
             spawner["SpawnCooldown"],
@@ -51,7 +53,7 @@ void EnemyManager::loadSpawnerData()
 
 void EnemyManager::addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos)
 {
-    skeletons.push_back(std::make_shared<Skeleton>(data,window,ground,platform,player,type,pos)); 
+    skeletons.push_back(std::make_shared<Skeleton>(data,*this->gameLevel,window,ground,platform,player,type,pos)); 
 }   
 
 void EnemyManager::updateAI_all()
@@ -109,9 +111,12 @@ void EnemyManager::addSpawner(std::string enemyName)
 {
 }
 
-EnemyManager::EnemyManager(const nlohmann::json& d, GameData& gd, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w)
+EnemyManager::EnemyManager(const nlohmann::json& d, GameData& gd, GameLevel& gl, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w)
     : data(&d), gameData(&gd), platform(&p), ground(&g), player(&pl), window(&w)
 {
+    // Линковка внешних ссылок к указателям
+    this->gameLevel = &gl;
+
     loadSpawnerData();
 }
 

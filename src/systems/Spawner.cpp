@@ -1,19 +1,26 @@
 #include "Spawner.h"
 #include<EnemyManager.h>
+#include<GameLevel.h>
 
-Spawner::Spawner(EnemyManager &m, std::string n, int ea, int sc, int eps, float minX1, float maxX2, float minY1, float maxY2,
+Spawner::Spawner(EnemyManager &m, GameLevel& gl, std::string n, int ea, int sc, int eps, float minX1, float maxX2, float minY1, float maxY2,
     GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w) 
     : manager(&m),enemyName(n), enemyAmount(ea), spawnCooldown(sc), enemyPerSpawn(eps), spawnArea{{minX1,maxX2},{minY1,maxY2}}, 
     data(&d), platform(&p), ground(&g), player(&pl),window(&w)
 {
+    // Линковка внешних ссылок к указателям
+    this->gameLevel = &gl;
+
     runSpawnCooldownClockIfNotRunning();
 }
 
-Spawner::Spawner(EnemyManager &m, std::string n, int ea, int sc, int eps, sf::Vector2f sa[2],
+Spawner::Spawner(EnemyManager &m, GameLevel& gl, std::string n, int ea, int sc, int eps, sf::Vector2f sa[2],
     GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w)
     : manager(&m),enemyName(n), enemyAmount(ea), spawnCooldown(sc), enemyPerSpawn(eps), spawnArea{sa[0],sa[1]}, 
     data(&d), platform(&p), ground(&g), player(&pl),window(&w)
 {
+    // Линковка внешних ссылок к указателям
+    this->gameLevel = &gl;
+    
     runSpawnCooldownClockIfNotRunning();
 }
 
