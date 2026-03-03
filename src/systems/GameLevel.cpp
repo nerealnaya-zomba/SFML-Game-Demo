@@ -38,6 +38,11 @@ GameLevelManager::~GameLevelManager()
 {
 }
 
+void GameLevelManager::setPlayerPositionToBase()
+{
+    player->setPosition(levelIt->second->getPlayerSpawnPos());
+}
+
 bool GameLevelManager::goToLevel(std::optional<std::string> levelName)
 {
     if(levels.empty())

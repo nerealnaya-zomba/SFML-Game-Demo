@@ -42,10 +42,14 @@ int main()
     GameLevelManager levelManager(gameData,camera,window,levelFolder);                  // Level manager
     Player player(gameData,levelManager,camera,window);                                        // Player
     PlayerUI PUI(player,camera);
+
     PUI.addCooldownRect(player.getDashClock(),player.getDashCooldown(),gameData.satiro_dashTextures[0]);
     PUI.addCooldownRect(player.getShootClock(),player.getShootCooldown(),gameData.bulletTextures[0]);
     PUI.addCooldownRect(player.getPortalClock(),player.getPortalCooldown(),gameData.portalBlue8Textures[0]);
+
     levelManager.attachPlayer(player);
+    levelManager.setPlayerPositionToBase();
+
     camera.attachGameLevelManager(levelManager);
     camera.attachPlayer(player);
     

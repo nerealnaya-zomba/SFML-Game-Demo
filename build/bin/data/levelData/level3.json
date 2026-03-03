@@ -89,22 +89,6 @@
       "Z": 0
     },
     {
-      "Name": "MossyBackgroundDecoration_03.png",
-      "Position": [1800, 400],
-      "Scale": [0.5, 0.5],
-      "Color": [180, 200, 180, 200],
-      "ParallaxFactor": [0.15, 0.15],
-      "Z": 4
-    },
-    {
-      "Name": "MossyBackgroundDecoration_06.png",
-      "Position": [4200, 450],
-      "Scale": [0.6, 0.6],
-      "Color": [180, 200, 180, 200],
-      "ParallaxFactor": [0.18, 0.18],
-      "Z": 4
-    },
-    {
       "Name": "MossyHangingPlants_03.png",
       "Position": [500, 400],
       "Scale": [0.5, 0.5],
@@ -123,49 +107,37 @@
   ],
   "Background": [
     {
-      "BgName": "Background_17.png",
+      "BgName": "Background_50.png",
       "Position": [960, 540],
       "ParallaxFactor": [0.95, 0.98],
       "Type": 1
     },
     {
-      "BgName": "Background_17.png",
-      "Position": [2880, 540],
-      "ParallaxFactor": [0.95, 0.98],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_17.png",
-      "Position": [4800, 540],
-      "ParallaxFactor": [0.95, 0.98],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_18.png",
+      "BgName": "Background_51.png",
       "Position": [960, 540],
       "ParallaxFactor": [0.85, 0.94],
       "Type": 1
     },
     {
-      "BgName": "Background_18.png",
-      "Position": [2880, 540],
-      "ParallaxFactor": [0.85, 0.94],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_18.png",
-      "Position": [4800, 540],
-      "ParallaxFactor": [0.85, 0.94],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_19.png",
+      "BgName": "Background_49.png",
       "Position": [960, 540],
       "ParallaxFactor": [0.75, 0.90],
       "Type": 1
     },
     {
-      "BgName": "Background_19.png",
+      "BgName": "Background_50.png",
+      "Position": [2880, 540],
+      "ParallaxFactor": [0.95, 0.98],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_51.png",
+      "Position": [2880, 540],
+      "ParallaxFactor": [0.85, 0.94],
+      "Type": 1
+    },
+    {
+      "BgName": "Background_49.png",
       "Position": [2880, 540],
       "ParallaxFactor": [0.75, 0.90],
       "Type": 1
@@ -174,7 +146,7 @@
   "Ground": [
     {
       "GroundName": "TileSetGreen_02.png",
-      "Points": [0, 6100],
+      "Points": [0, 7000],
       "YPos": 1048
     }
   ],
