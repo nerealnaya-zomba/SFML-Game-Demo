@@ -49,6 +49,8 @@ int main()
     camera.attachGameLevelManager(levelManager);
     camera.attachPlayer(player);
     
+    menu.connectPlayer(player);
+
     sf::Vector2f posss = {800.f,940.f};
     Trader trader(gameData, player, posss);
 

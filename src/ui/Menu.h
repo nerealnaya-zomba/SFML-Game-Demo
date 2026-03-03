@@ -7,6 +7,9 @@
 #include<TGUI/Backend/SFML-Graphics.hpp>
 #include<TGUI/Backend/Font/SFML-Graphics/BackendFontSFML.hpp>
 
+class ScreenTransition;
+class Player;
+
 const tgui::String BASE_PLAY_BUTTON_TEXT            = "Play";
 const tgui::String BASE_EXIT_BUTTON_TEXT            = "Exit";
 const tgui::String BASE_SETTINGS_BUTTON_TEXT        = "Settings";
@@ -30,6 +33,10 @@ const unsigned int BASE_MENU_BUTTONS_CHARACTER_SIZE = 25;
 
 
 class Menu{
+    // External objects
+    Player* player;
+
+
     public:
     //Bools
     bool isMainMenuCalled = true;
@@ -41,7 +48,6 @@ class Menu{
         //Font
         tgui::Font* font;
         //Buttons
-        tgui::Button::Ptr settingsButton;
         tgui::Button::Ptr exitButton;
         tgui::Button::Ptr playButton;
 
@@ -51,10 +57,12 @@ class Menu{
 
     void menuDraw(sf::RenderWindow& window);
     void menuHandleEvents(const sf::Event& ev);
+
     Menu(sf::Font& font, sf::RenderWindow& window, sf::RectangleShape& mouseRect);
     ~Menu();
 
     void connectTGUIFont(tgui::Font& font);
+    void connectPlayer(Player& p);
 private:
     MenuBackground background;
 

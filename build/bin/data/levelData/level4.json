@@ -217,8 +217,8 @@
   ],
   "Ground": [
     {
-      "GroundName": "MossyTileSet_26.png",
-      "Points": [0, 9000],
+      "GroundName": "TileSetGreen_02.png",
+      "Points": [0, 6100],
       "YPos": 1048
     }
   ],

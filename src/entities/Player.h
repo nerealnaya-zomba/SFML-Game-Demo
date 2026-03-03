@@ -127,6 +127,7 @@ public:
     int& getShootCooldown();
     sf::Clock& getDashClock();
     int& getDashCooldown();
+    ScreenTransition& getScreenTransition();
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);
@@ -224,6 +225,7 @@ private:
     ////////////////////////////////////////////////////////////
 public:
     void drawTransition();
+    void playFadeInAnimation();
 private:
     void updateTransition();
 ////////////////////////////////////////////////////////////

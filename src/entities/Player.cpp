@@ -95,6 +95,11 @@ int &Player::getDashCooldown()
     return dashCooldown;
 }
 
+ScreenTransition &Player::getScreenTransition()
+{
+    return *transition;
+}
+
 sf::Clock &Player::getPortalClock()
 {
     return portalCooldownClock;
@@ -335,6 +340,11 @@ void Player::drawTransition()
     this->transition->draw();
 }
 
+void Player::playFadeInAnimation()
+{
+    transition->fadeIn();
+}
+
 void Player::updateTransition()
 {
     transition->update();
@@ -371,8 +381,8 @@ void Player::loadData()
     std::fstream f("PlayerConfig.json");
     nlohmann::json data = nlohmann::json::parse(f);
     //Player
-    this->playerPosX_m = data["Player"]["PosX"];
-    this->playerPosY_m = data["Player"]["PosY"];
+    // this->playerPosX_m = data["Player"]["PosX"]; // DEPRECATED
+    // this->playerPosY_m = data["Player"]["PosY"]; // DEPRECATED
     this->HP_ = data["Player"]["HP"];
     this->takeDMG_cooldown = data["Player"]["takeDMG_cooldown"];
 
