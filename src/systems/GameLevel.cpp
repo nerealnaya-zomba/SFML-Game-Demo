@@ -1,3 +1,4 @@
+#include "nlohmann/json_fwd.hpp"
 #include<GameLevel.h>
 
 void GameLevelManager::initializeLevels(const std::string levelsFolder)
@@ -288,22 +289,28 @@ void GameLevel::initializeDecorations(const nlohmann::json& data)
 
 void GameLevel::initializeBackground(const nlohmann::json& data)
 {
-    for (const auto &background : data["Background"])
-    {
-        sf::Vector2f position = {background["Position"][0],background["Position"][1]};
-        sf::Vector2f parallaxFactor = {background["ParallaxFactor"][0],background["ParallaxFactor"][1]};
-        std::string name = background["BgName"];
-        Type type = background["Type"];
+		try {
+			for (const auto &background : data["Background"])
+			{
+				sf::Vector2f position = {background["Position"][0],background["Position"][1]};
+				sf::Vector2f parallaxFactor = {background["ParallaxFactor"][0],background["ParallaxFactor"][1]};
+				std::string name = background["BgName"];
+				Type type = background["Type"];
 
-        this->background.push_back(
-            std::make_shared<Background>(
-                *this->data,
-                *this->camera,
-                *this,
-                position,name,
-                parallaxFactor,
-                type));
-    }
+				this->background.push_back(
+					std::make_shared<Background>(
+						*this->data,
+						*this->camera,
+						*this,
+						position,name,
+						parallaxFactor,
+						type));
+			}
+				
+		} catch (nlohmann::json::exception& msg) {
+			std::cout << std::endl << msg.what() << std::endl;				
+			std::cout << std::endl << "Error loading level data for:  " << this->levelName << std::endl;
+		}
 }
 
 void GameLevel::initializeGround(const nlohmann::json& data)

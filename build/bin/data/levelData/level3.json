@@ -107,37 +107,37 @@
   ],
   "Background": [
     {
-      "BgName": "Background_50.png",
+      "BgName": "Background_48.png",
       "Position": [960, 540],
       "ParallaxFactor": [0.95, 0.98],
       "Type": 1
     },
     {
-      "BgName": "Background_51.png",
+      "BgName": "Background_49.png",
       "Position": [960, 540],
       "ParallaxFactor": [0.85, 0.94],
       "Type": 1
     },
     {
-      "BgName": "Background_49.png",
+      "BgName": "Background_50.png",
       "Position": [960, 540],
       "ParallaxFactor": [0.75, 0.90],
       "Type": 1
     },
     {
-      "BgName": "Background_50.png",
+      "BgName": "Background_48.png",
       "Position": [2880, 540],
       "ParallaxFactor": [0.95, 0.98],
       "Type": 1
     },
     {
-      "BgName": "Background_51.png",
+      "BgName": "Background_49.png",
       "Position": [2880, 540],
       "ParallaxFactor": [0.85, 0.94],
       "Type": 1
     },
     {
-      "BgName": "Background_49.png",
+      "BgName": "Background_50.png",
       "Position": [2880, 540],
       "ParallaxFactor": [0.75, 0.90],
       "Type": 1
