@@ -124,6 +124,8 @@ public:
     //////////////////////////////////////////////////
     void resetTobase();         // IMPLEMENTME
 
+	void runErrorScreen(std::string errorString);
+
     //Getters
     sf::Vector2i getLevelSize() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();

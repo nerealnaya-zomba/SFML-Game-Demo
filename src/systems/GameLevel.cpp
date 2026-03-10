@@ -1,5 +1,21 @@
+#include "Defines.h"
+#include "Mounting.h"
 #include "nlohmann/json_fwd.hpp"
 #include<GameLevel.h>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Text.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
+#include <cstdlib>
+#include <exception>
+#include <TGUI/TGUI.hpp>
+#include <TGUI/Backend/SFML-Graphics.hpp>
+#include <TGUI/Backend/Font/SFML-Graphics/BackendFontSFML.hpp>
+#include <TGUI/AllWidgets.hpp>
+#include <string>
+#include "TGUI/Widgets/Button.hpp"
+#include "TGUI/Widgets/Label.hpp"
+
 
 void GameLevelManager::initializeLevels(const std::string levelsFolder)
 {
@@ -307,9 +323,11 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
 						type));
 			}
 				
-		} catch (nlohmann::json::exception& msg) {
-			std::cout << std::endl << msg.what() << std::endl;				
-			std::cout << std::endl << "Error loading level data for:  " << this->levelName << std::endl;
+		} catch (std::exception msg) {
+			std::string errorMsg = "Error loading level data for:  " + this->levelName;
+			std::cout << std::endl << errorMsg << std::endl;
+			
+			runErrorScreen(errorMsg);
 		}
 }
 
@@ -393,6 +411,35 @@ void GameLevel::saveLevelData()
 
 void GameLevel::resetTobase()
 {
+}
+
+void GameLevel::runErrorScreen(std::string errorString)
+{
+	sf::Text text(*data->gameFont);
+	text.setCharacterSize(50u);
+	text.setString(errorString+"\n Press 'Q' to exit");
+	setTextOriginToMiddle(text);
+	text.setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
+
+	while(true)
+	{
+		while(const auto ev = this->window->pollEvent())
+		{
+			if(const auto* keyPressed = ev->getIf<sf::Event::KeyPressed>())
+			{
+				if(keyPressed->scancode == sf::Keyboard::Scancode::Q)
+				{
+					exit(0);
+				}
+			}
+		}
+
+
+		window->clear(sf::Color::Red);
+		window->draw(text);
+		window->display();
+
+	}
 }
 
 sf::Vector2i GameLevel::getLevelSize() const
