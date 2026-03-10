@@ -1,23 +1,26 @@
 #include<Menu.h>
+#include <SFML/System/Vector2.hpp>
 #include<ScreenTransition.h>
 #include<Player.h>
 
 Menu::Menu(sf::Font &font, sf::RenderWindow &window, sf::RectangleShape &mouseRect)
-    : background(WINDOW_WIDTH, WINDOW_WIDTH)
+    : background(window.getSize().x, window.getSize().y)
 {
     //External references
     mouseRect_m = &mouseRect;
     window_m = &window;
     gui.setWindow(window);
 
+	sf::Vector2u windowSize = window.getSize();
+
     //Exit dialogue init
-    exitDialogue = new AskDialogue(sf::Vector2f(WINDOW_WIDTH/2,WINDOW_HEIGHT/2),sf::Vector2f(350,150),"Quit the game?",*window_m);
+    exitDialogue = new AskDialogue(sf::Vector2f(windowSize.x/2,windowSize.y/2),sf::Vector2f(350,150),"Quit the game?",*window_m);
     exitDialogue->setOnYesClick([](){exit(0);});
     exitDialogue->setOnNoClick([this](){exitDialogue->close();});
 
     exitButton = tgui::Button::create();
     exitButton->setSize({200.f,75.f});
-    exitButton->setPosition({(WINDOW_WIDTH/2)-(exitButton->getSize().x/2),WINDOW_HEIGHT*0.80});
+    exitButton->setPosition({(windowSize.x/2)-(exitButton->getSize().x/2), windowSize.y*0.80});
     exitButton->setText(BASE_EXIT_BUTTON_TEXT);
     exitButton->setTextSize(BASE_MENU_BUTTONS_CHARACTER_SIZE);
     exitButton->onClick([this](){this->exitButtonOnClick();});
@@ -31,7 +34,7 @@ Menu::Menu(sf::Font &font, sf::RenderWindow &window, sf::RectangleShape &mouseRe
 
     playButton = tgui::Button::create();
     playButton->setSize({200.f,75.f});
-    playButton->setPosition({(WINDOW_WIDTH/2)-(playButton->getSize().x/2),WINDOW_HEIGHT*0.70});
+    playButton->setPosition({(windowSize.x/2)-(playButton->getSize().x/2),windowSize.y*0.70});
     playButton->setText(BASE_PLAY_BUTTON_TEXT);
     playButton->setTextSize(BASE_MENU_BUTTONS_CHARACTER_SIZE);
     playButton->onClick([this](){this->playButtonOnClick();});
