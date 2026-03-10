@@ -64,7 +64,7 @@ AskDialogue::AskDialogue(sf::Vector2f pos,sf::Vector2f size, std::string text, s
     main_rect_m = new sf::RectangleShape;
     main_rect_m->setSize(size);
     setRectangleOriginToMiddle(*main_rect_m);
-    main_rect_m->setPosition(pos);
+    main_rect_m->setPosition({pos.x,pos.y-50});
     main_rect_m->setFillColor(BASE_ASKDIALOGUE_BACKGROUND_COLOR);
     main_rect_m->setOutlineThickness(5.f);
     main_rect_m->setOutlineColor(sf::Color(
