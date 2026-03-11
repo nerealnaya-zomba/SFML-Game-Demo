@@ -486,6 +486,12 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
     initializeItems();
     itemsIt = items.begin();
 
+
+	//FIXME There is scale error. Y scale of sprite(background) is undefined or sometrash.
+	//FIXME There is scale error. Y scale of sprite(background) is undefined or sometrash.
+	//FIXME There is scale error. Y scale of sprite(background) is undefined or sometrash.
+	//FIXME There is scale error. Y scale of sprite(background) is undefined or sometrash.
+	
     // Корректируем размеры фона
     sf::Vector2f baseBackgroundScale = {1.f, 1.f};
     if (!items.empty())
