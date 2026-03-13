@@ -251,7 +251,7 @@ private:
     std::string backgroundPath{"images/Background/Background_"};
 
     // Items texture path
-    std::string itemsPath{"images/items/item_"};
+    std::string itemsPath{"images/Items/Item_"};
 
     // GUI texture path
     std::string guiPath{"images/GUI/GUI_"};

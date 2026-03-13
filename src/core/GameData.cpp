@@ -1,4 +1,5 @@
 #include "GameData.h"
+#include <stdexcept>
 
 GameData::GameData(sf::RenderWindow* window,sf::Font* font)
 {
@@ -352,7 +353,8 @@ bool GameData::loadTexture(std::map<std::string,sf::Texture> &textures, std::str
     TextureSequenceInfo seq = analyzeTextureSequence(path);
     
     if (seq.count == 0) {
-        std::cerr << "ERROR: No textures found for path: " << path << std::endl;
+		std::string errorMsg = "ERROR: No textures found for path: " + path;
+		throw std::runtime_error(errorMsg);
         return false;
     }
     
