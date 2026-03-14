@@ -5,6 +5,10 @@
 #include<GameData.h>
 #include<vector>
 #include<Interactive.h>
+#include<filesystem>
+
+// Базовый путь к traderData.json
+const std::filesystem::path BASE_SHOP_DATA_PATH = "data/shopData.json";
 
 const unsigned int BASE_SHOP_COLUMNS                        = 5;
 const unsigned int BASE_SHOP_ROWS                           = 4;

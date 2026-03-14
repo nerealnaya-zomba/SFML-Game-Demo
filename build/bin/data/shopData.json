@@ -1,0 +1,306 @@
+[
+    {
+        "IconName": "Item_36.png",
+        "ItemName": "Blessed sword",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_12.png",
+        "ItemName": "Book of blood",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_13.png",
+        "ItemName": "Book of wind",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_14.png",
+        "ItemName": "Book of myth",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_15.png",
+        "ItemName": "Wooden book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_16.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_01.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_02.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_03.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_04.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_05.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_06.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_07.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_08.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_09.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_10.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_18.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_19.png",
+        "ItemName": "Blessed sword",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    },
+    {
+        "IconName": "Item_20.png",
+        "ItemName": "Dungeon book",
+        "Quality": 0,
+        "Price": 100,
+        "Stats":
+        {
+            "BulletSpeed" : 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 10
+        }
+    }
+]

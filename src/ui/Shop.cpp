@@ -1,4 +1,6 @@
 #include<Shop.h>
+#include<nlohmann/json.hpp>
+#include<fstream>
 
 void Shop::update()
 {
@@ -69,220 +71,47 @@ void Shop::draw(sf::RenderWindow& window)
 
 void Shop::initializeItems()
 {
-    Item::Stats statsBlood = {0,0,50,100,0,0,100};
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_36.png",
-        "Book of blood",
-        Item::COMMON,
-        140,
-        statsBlood
-    ));
+    std::fstream file(BASE_SHOP_DATA_PATH);
 
-    
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_12.png",
-        "Book of revenge",
-        Item::COMMON,
-        160,
-        statsBlood
-    ));
+    //Error loading handle
+    if(!file.is_open())
+    {
+        throw std::runtime_error("Cannot load: " + (BASE_SHOP_DATA_PATH.string()));
+    }
 
-    
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_13.png",
-        "Book of wind",
-        Item::COMMON,
-        200,
-        statsBlood
-    ));
+    nlohmann::json data = nlohmann::json::parse(file);
 
-    
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_14.png",
-        "Book of myth",
-        Item::COMMON,
-        210,
-        statsBlood
-    ));
+    // Загружаем данные о всех предметах
+    for (auto &&i : data)
+    {
+        std::string iconName = i["IconName"];
+        std::string itemName = i["ItemName"];
+        Item::Quality quality = i["Quality"];
+        int price = i["Price"];
 
-    
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_15.png",
-        "Wooden book",
-        Item::COMMON,
-        50,
-        statsBlood
-    ));
+        Item::Stats stats =
+         {
+            i["Stats"]["BulletSpeed"],
+            i["Stats"]["BulletDistance"],
+            i["Stats"]["ShootSpeedCooldownReduction"],
+            i["Stats"]["InitialSpeed"],
+            i["Stats"]["MaxSpeed"],
+            i["Stats"]["Health"],
+            i["Stats"]["Damage"]
+        };
 
-    
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_16.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
 
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_01.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_02.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_03.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_04.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_05.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_06.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_07.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_08.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_09.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_10.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_18.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_19.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
-
-    addItem(std::make_unique<Item>(
-        *this->data,
-        static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
-        static_cast<sf::Vector2i>(getCenterPosition()),
-        "Item_20.png",
-        "Dungeon book",
-        Item::COMMON,
-        100,
-        statsBlood
-    ));
+        addItem(std::make_unique<Item>(
+            *this->data,
+            static_cast<sf::Vector2i>(BASE_SHOP_CELL_SIZE),
+            static_cast<sf::Vector2i>(getCenterPosition()),
+            iconName,
+            itemName,
+            quality,
+            price,
+            stats
+        ));
+    }
 
     // Меняем ориджин всех спрайтов к центру, а скейл на базовый.
     for (auto &&i : items)
