@@ -17,6 +17,12 @@ class GameLevelManager;
 const sf::Vector2i BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN = {15,15};
 const sf::Vector2f BASE_DESTINATION_ICON_SIZE                = {30,30};
 
+//Text
+	//Level name text top-margin
+const float BASE_DESTINATION_TEXT_MARGIN = 10.f;
+	//Text size
+const unsigned int BASE_DESTINATION_TEXT_SIZE = 10u;
+
 //SelectionRect
 const sf::Color BASE_SELECTION_COLOR = sf::Color::Blue;
 const float     BASE_SELECTION_SIZE  = 2.f;
@@ -91,17 +97,13 @@ public:
 				void draw(sf::RenderWindow& w);
 			};
 
-			struct LevelDestinationText
-			{
-				bool isVisible = false;
-			};
 		//////////////////////////////////////////////////////////////////////////////////
 private:
 		///////////
 		// Elements
 		///////////
 			sf::Sprite background;
-			std::pair<LevelDestinationText, sf::Text> displayingLevelName;
+			sf::Text displayingLevelName;
 			std::vector<LevelDestinationRect> levels;
 
 		// Points to element
@@ -132,7 +134,7 @@ private:
 			void drawLevelDestinations(sf::RenderWindow& window);
 				void drawLevelDestinationsBackground(sf::RenderWindow& window);
 				void drawLevelDestinationsLevels(sf::RenderWindow& window);
-				void drawLevelDestinationsText(sf::RenderWindow& window);		// IMPLEMENTME
+				void drawLevelDestinationsText(sf::RenderWindow& window);
 		//////////////////////////
 
 		//////////////////
@@ -144,6 +146,8 @@ private:
 				// Mount selection rect to its icon's parametrs
 				void mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon);	
 				void mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf::Sprite& icon);	
+			//Check is some level selected. Returns <size_t> as index of selected level.
+			std::optional<size_t> checkIsLevelSelected(); 
 		//////////////////
 
 		//////////////////////////

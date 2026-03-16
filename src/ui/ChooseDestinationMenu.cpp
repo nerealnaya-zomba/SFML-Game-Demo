@@ -58,14 +58,17 @@ ChooseDestinationMenu::ChooseDestinationMenu(
     , moveLeftKey(mvLeftKey)
     , moveRightKey(mvRightKey)
     , selectKey(slctKey)
-    , displayingLevelName(LevelDestinationText{false}, *d.gameFont)
+    , displayingLevelName(*d.gameFont)
     , levelIt(levels.end()) 
     , desiredDestination(std::nullopt)
 {
     if (!d.gameFont) {
-        throw std::runtime_error("Font not loaded");
+        throw std::runtime_error("Font not loaded.\n Error at: ChooseDestinationMenu.cpp");
     }
 
+	//Setting text size
+	this->displayingLevelName.setCharacterSize(BASE_DESTINATION_TEXT_SIZE);
+	this->displayingLevelName.setFillColor(sf::Color::White);
 }
 
 void ChooseDestinationMenu::open()
@@ -126,6 +129,7 @@ void ChooseDestinationMenu::drawLevelDestinations(sf::RenderWindow& window){
 
 	drawLevelDestinationsBackground(window);
 	drawLevelDestinationsLevels(window);
+	drawLevelDestinationsText(window);
 }
 
 void ChooseDestinationMenu::drawLevelDestinationsBackground(sf::RenderWindow &window)
@@ -138,6 +142,22 @@ void ChooseDestinationMenu::drawLevelDestinationsLevels(sf::RenderWindow &window
 	for (auto& level : levels) {
 		level.draw(window);					
 	}
+}
+
+void ChooseDestinationMenu::drawLevelDestinationsText(sf::RenderWindow &window)
+{
+	std::optional<size_t> selectedLevel_Index = checkIsLevelSelected();
+
+	//Возвращаемся если ни один объект не выделен
+	if(!selectedLevel_Index.has_value()) 
+		return;
+
+	//Обновляем инфу по выделенному объекту
+	this->displayingLevelName.setString(levels[*selectedLevel_Index].leveldestination.level->levelName);
+	this->displayingLevelName.setOrigin(displayingLevelName.getGlobalBounds().getCenter());
+
+	//Отрисовываем текст с инфой по выделенному объекту
+	window.draw(this->displayingLevelName);
 }
 
 void ChooseDestinationMenu::update(){
@@ -227,6 +247,21 @@ void ChooseDestinationMenu::mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf
 	sr.setPosition			(icon.getPosition());
 }
 
+std::optional<size_t> ChooseDestinationMenu::checkIsLevelSelected()
+{
+    std::optional<size_t> selectedLevel_Index;
+	//Проверяем есть ли выделенный объект
+	for (size_t i = 0; i < levels.size(); i++)
+	{
+		if(levels[i].leveldestination.isSelected == true){
+			selectedLevel_Index = i;
+			break;
+		}
+	}
+
+	return selectedLevel_Index;
+}
+
 void ChooseDestinationMenu::initializeIsChoosed()
 {
 	checkWherePlayer();
@@ -277,6 +312,7 @@ void ChooseDestinationMenu::positioningLevelDestinations()
 {
     positioningLevelDestinationsBackground();
 	positioningLevelDestinationsLevels();
+	positioningLevelDestinationsText();
 }
 
 void ChooseDestinationMenu::positioningLevelDestinationsBackground()
@@ -290,15 +326,22 @@ void ChooseDestinationMenu::positioningLevelDestinationsBackground()
     float marginY = static_cast<float>(BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.y);
     
     // Вычисляем нужный размер фона
-    int totalWidth = static_cast<int>(
+    int totalWidth = int(
         levels.size() * iconWidth +          // суммарная ширина всех иконок
         (levels.size() + 1) * marginX        // отступы слева, справа и между иконками
     );
     
     int totalHeight = static_cast<int>(
-        iconHeight +                         // высота одной иконки
-        2 * marginY                          // отступы сверху и снизу
+        (iconHeight +                         // высота одной иконки
+        2 * marginY)                          // отступы сверху и снизу
     );
+	//Добавим высоту текста в расчет, если какой нибудь уровень выделен.
+	if(checkIsLevelSelected().has_value())
+	{
+		// Размер текста
+		sf::Vector2f textSize = displayingLevelName.getGlobalBounds().size;
+		totalHeight+=textSize.y+BASE_DESTINATION_TEXT_MARGIN;
+	}
     
     // Масштабируем фон
     sf::Vector2f bgTextureSize = static_cast<sf::Vector2f>(background.getTexture().getSize());
@@ -364,6 +407,17 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 
 void ChooseDestinationMenu::positioningLevelDestinationsText()
 {
+	std::optional<size_t> selectedLevel_Index = checkIsLevelSelected();
+
+	//Возвращаемся если ни один объект не выделен
+	if(!selectedLevel_Index.has_value()) 
+		return;
+
+	//Обновляем инфу по выделенному объекту
+	this->displayingLevelName.setString(levels[*selectedLevel_Index].leveldestination.level->levelName);
+	this->displayingLevelName.setOrigin(displayingLevelName.getLocalBounds().getCenter());
+
+	// Позиционирование
 	sf::Vector2f displayingLevelNamePos;		
 	sf::Vector2f displayingLevelNameSize;		
 	
@@ -372,24 +426,22 @@ void ChooseDestinationMenu::positioningLevelDestinationsText()
 	sf::Vector2f backgroundSize = static_cast<sf::Vector2f>( this->background.getTexture().getSize() );
 	sf::Vector2f backgroundScaledSize = {( backgroundSize.x * backgroundScale.x ), ( backgroundSize.y * backgroundScale.y )};
 
-	displayingLevelNamePos = this->displayingLevelName.second.getPosition();
-	displayingLevelNameSize = this->displayingLevelName.second.getGlobalBounds().size;
+	displayingLevelNamePos = this->displayingLevelName.getPosition();
+	displayingLevelNameSize = this->displayingLevelName.getGlobalBounds().size;
 
-	if(displayingLevelNameSize.x>0 && displayingLevelNameSize.y>0)
+	sf::Vector2f background_CenterDownPos = 
 	{
-		this->displayingLevelName.first.isVisible = true;	
-	}
-	else
-	{
-		this->displayingLevelName.first.isVisible = false;
-	}
+		this->background.getGlobalBounds().getCenter().x,
+		this->background.getGlobalBounds().getCenter().y + (BASE_DESTINATION_ICON_SIZE.y/2) + (displayingLevelNameSize.y/2) + BASE_DESTINATION_TEXT_MARGIN
+	}; 
 
-	displayingLevelName.second.setPosition
-			(
-			{
-				
-			}
-			);
+	displayingLevelName.setPosition
+		(
+		{
+			background_CenterDownPos.x,
+			background_CenterDownPos.y
+		}
+		);
 
 }
 
