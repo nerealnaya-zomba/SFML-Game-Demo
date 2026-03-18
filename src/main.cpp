@@ -1,98 +1,122 @@
 #include <sfml-headers.h>
 #include <Defines.h>
-#include<nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
 const std::string levelFolder = "data/levelData";
 
 int main()
 {
     srand(time(NULL));
-    //Window preferences
-    auto window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), WINDOW_TITLE, (sf::Style::Titlebar | sf::Style::Close), sf::State::Fullscreen);
+    
+    // ===== 1. ИНИЦИАЛИЗАЦИЯ ОКНА =====
+    auto window = sf::RenderWindow(
+        sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), 
+        WINDOW_TITLE, 
+        (sf::Style::Titlebar | sf::Style::Close), 
+        sf::State::Fullscreen
+    );
     window.setFramerateLimit(WINDOW_FPS);
     
-    //Loading font
+    // ===== 2. ЗАГРУЗКА РЕСУРСОВ =====
     sf::Font font;
     if(font.openFromFile("fonts/Roboto_Condensed-Black.ttf")) 
+    {
         std::cout << "Font opened" << std::endl;
+    }
     else
     {
         std::cout << "Font error" << std::endl;
         return 0;
     }
     
-    GameData gameData(&window,&font);
-
-    sf::View view({0,0},{WINDOW_WIDTH,WINDOW_HEIGHT});
-    //Mouse
-    sf::RectangleShape mouseRect({1.f,1.f});
-
-    //Background vars
-    sf::Color menuBackGroundColor({0u,0u,0u});
-    sf::Color gameBackGroundColor({0,0,0,255});
+    // ===== 3. БАЗОВЫЕ ОБЪЕКТЫ =====
+    GameData gameData(&window, &font);
+    sf::View view({0, 0}, {WINDOW_WIDTH, WINDOW_HEIGHT});
+    sf::RectangleShape mouseRect({1.f, 1.f});  // Для определения позиции мыши
     
+    // Цвета фона
+    sf::Color menuBackGroundColor({0u, 0u, 0u});
+    sf::Color gameBackGroundColor({0, 0, 0, 255});
     
-    //Main menu
-    Menu menu(font,window,mouseRect);                                                   // Menu
+    // ===== 4. СОЗДАНИЕ МЕНЮ =====
+    Menu menu(font, window, mouseRect);
     tgui::Font tguiFont("fonts/Roboto_Condensed-Black.ttf");
     menu.connectTGUIFont(tguiFont);
     
-    //Game
-    GameCamera camera(view);                                                            // Camera
-    GameLevelManager levelManager(gameData,camera,window,levelFolder);                  // Level manager
-    Player player(gameData,levelManager,camera,window);                                        // Player
-    PlayerUI PUI(player,camera);
-
-    PUI.addCooldownRect(player.getDashClock(),player.getDashCooldown(),gameData.satiro_dashTextures[0]);
-    PUI.addCooldownRect(player.getShootClock(),player.getShootCooldown(),gameData.bulletTextures[0]);
-    PUI.addCooldownRect(player.getPortalClock(),player.getPortalCooldown(),gameData.portalBlue8Textures[0]);
-
+    // ===== 5. СОЗДАНИЕ ИГРОВЫХ ОБЪЕКТОВ =====
+    // 5.1. Камера и уровни
+    GameCamera camera(view);
+    GameLevelManager levelManager(gameData, camera, window, levelFolder);
+    
+    // 5.2. Игрок и интерфейс
+    Player player(gameData, levelManager, camera, window);
+    PlayerUI PUI(player, camera);
+    
+    // 5.3. Настройка кулдаунов интерфейса
+    PUI.addCooldownRect(
+        player.getDashClock(), 
+        player.getDashCooldown(), 
+        gameData.satiro_dashTextures[0]
+    );
+    PUI.addCooldownRect(
+        player.getShootClock(), 
+        player.getShootCooldown(), 
+        gameData.bulletTextures[0]
+    );
+    PUI.addCooldownRect(
+        player.getPortalClock(), 
+        player.getPortalCooldown(), 
+        gameData.portalBlue8Textures[0]
+    );
+    
+    // 5.4. Связывание объектов
     levelManager.attachPlayer(player);
     levelManager.setPlayerPositionToBase();
-
+    
     camera.attachGameLevelManager(levelManager);
     camera.attachPlayer(player);
     
     menu.connectPlayer(player);
-
-    sf::Vector2f posss = {800.f,940.f};
+    
+    // 5.5. Торговец и частицы
+    sf::Vector2f posss = {800.f, 940.f};
     Trader trader(gameData, player, posss);
-
+    
     std::vector<Particle> particles;
 
-    //Main loop
+    // ===== 6. ГЛАВНЫЙ ИГРОВОЙ ЦИКЛ =====
     while (window.isOpen())
     {
+        // ===== 6.1. ОБРАБОТКА СОБЫТИЙ =====
         while (const std::optional event = window.pollEvent())
         {
-            //Close window on "Close" button
+            // Закрытие окна
             if (event->is<sf::Event::Closed>())
             {
                 window.close();
             } 
-            //↓↓-----MAIN MENU-----↓↓
+            
+            // ----- РЕЖИМ МЕНЮ -----
             if(menu.isMainMenuCalled)
             {
                 menu.menuHandleEvents(*event);
                 continue;
             }
 
-            //Call main menu on 'Escape' button
+            // ----- РЕЖИМ ИГРЫ -----
+            // Вызов меню по Escape
             if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
                 if(keyPressed->scancode == sf::Keyboard::Scancode::Escape)
                 {
-                    view.setCenter({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
+                    view.setCenter({WINDOW_WIDTH/2, WINDOW_HEIGHT/2});
                     view.setSize({WINDOW_WIDTH, WINDOW_HEIGHT});
                     window.setView(view);
-
                     menu.isMainMenuCalled = true;
                 }
             }
             
-           //↑↑-----MAIN MENU-----↑↑ 
-
-           //↓↓-----GAME-----↓↓
+            // Обработка событий торговца и меню выбора
             if(!player.isCDMenuOpened())
             {
                 trader.handleEvent(*event);
@@ -102,83 +126,83 @@ int main()
                 player.chooseDestinationMenuHandleEvents(*event);
             }
 
+            // Отладка: вывод позиции мыши при клике
             if(const auto* keyPressed = event->getIf<sf::Event::MouseButtonPressed>())
             {
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window);
                 std::cout << "MouseX: " << mousePos.x << "  MouseY: " << mousePos.y << std::endl;
             }
-
-            //↑↑-----GAME-----↑↑
         }
-        //Main menu drawing
+        
+        // ===== 6.2. ОТРИСОВКА МЕНЮ =====
         if(menu.isMainMenuCalled)
         {
-            // view.zoom(1.f);
-            // view.setCenter({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
-            // window.setView(view);
             sf::View lView = window.getView();
-            std::cout << "X: " << lView.getSize().x << "Y: " << lView.getSize().y << std::endl;
+            std::cout << "View - X: " << lView.getSize().x << " Y: " << lView.getSize().y << std::endl;
             menu.menuDraw(window);
-            
             continue;
         }
         
-        //Contol logic
-            //Player contol
+        // ===== 6.3. ИГРОВАЯ ЛОГИКА =====
+        // Управление игроком
         player.updateControls();
         
-        //Logic 
-            //Player logic
-                //Physical logic
+        // Физика и коллизии
         player.updatePhysics();
         player.checkGroundCollision(levelManager.getGroundRect());
         player.checkPlatformRectCollision(levelManager.getPlatformRects());
         player.moveBullets();
 
-        // Level objects updating
+        // Обновление уровней и врагов
         levelManager.update();
         levelManager.updateEnemyManager();
 
-        //Texture update
+        // Обновление текстур игрока
         player.updateTextures();
         
-        //Temporary control for exit
+        // ===== 6.4. ОТЛАДОЧНЫЕ ФУНКЦИИ =====
+        // Выход по клавише ~ (Grave)
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Grave))
         {
             window.close();
         }
+        
+        // Тестовое создание частиц по клавише 3
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3))
         {
-                for (int i = 0; i < 1; i++) {
-                    particles.emplace_back(
-                        sf::Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2),
-                        sf::Vector2f(rand() % 300 - 150, rand() % -300 - 150),
-                        sf::Vector2f(rand() % 120 - 60, rand() % 120 - 60),
-                        sf::Color(255, 0, 0),
-                        2.0f,
-                        150.0f,
-                        0.8f,
-                        2.0f
-                    );
-                }
+            for (int i = 0; i < 1; i++) 
+            {
+                particles.emplace_back(
+                    sf::Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2),
+                    sf::Vector2f(rand() % 300 - 150, rand() % -300 - 150),
+                    sf::Vector2f(rand() % 120 - 60, rand() % 120 - 60),
+                    sf::Color(255, 0, 0),
+                    2.0f,
+                    150.0f,
+                    0.8f,
+                    2.0f
+                );
+            }
         }
 
-        //Drawing
+        // ===== 6.5. ОТРИСОВКА ИГРЫ =====
         window.clear(gameBackGroundColor);
 
-            //Back level drawing
+        // Задний план
         levelManager.drawBackgrounds();
         levelManager.drawDecorations();
         levelManager.drawGrounds();
         levelManager.drawEnemyManager();
         
+        // Торговец
         trader.update();
         trader.draw(window);
-            //Player drawing
+        
+        // Игрок и его пули
         player.draw(window);
         player.drawBullets(window);
 
-            //Front level drawing
+        // Передний план и интерфейс
         levelManager.drawPlatforms();
         PUI.update();
         player.chooseDestinationMenuUpdate();
@@ -186,14 +210,11 @@ int main()
         player.chooseDestinationMenuDraw(window);
         player.drawTransition();
 
-        //////////////////
-        // Camera updating
-        //////////////////
+        // ===== 6.6. ОБНОВЛЕНИЕ КАМЕРЫ =====
         camera.update();
         window.setView(view);
-        //////////////////
+        
+        // ===== 6.7. ВЫВОД НА ЭКРАН =====
         window.display();
-        
-        
     }
 }
