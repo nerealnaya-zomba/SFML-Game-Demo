@@ -100,6 +100,11 @@ ScreenTransition &Player::getScreenTransition()
     return *transition;
 }
 
+bool Player::isCDMenuOpened()
+{
+    return this->CDMenu.getIsOpened();
+}
+
 sf::Clock &Player::getPortalClock()
 {
     return portalCooldownClock;

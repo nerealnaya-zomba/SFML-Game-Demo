@@ -108,6 +108,11 @@ void Trader::handleEvent(const sf::Event &event)
     }
 }
 
+bool Trader::isShopOpened()
+{
+    return this->shop->getIsOpened();
+}
+
 bool switchToNextSpritePingPong(sf::Sprite* sprite,
     std::vector<sf::Texture>& texturesArray, 
     texturesIterHelper& iterHelper)

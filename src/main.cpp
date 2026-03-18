@@ -93,8 +93,14 @@ int main()
            //↑↑-----MAIN MENU-----↑↑ 
 
            //↓↓-----GAME-----↓↓
-            trader.handleEvent(*event);
-            player.chooseDestinationMenuHandleEvents(*event);
+            if(!player.isCDMenuOpened())
+            {
+                trader.handleEvent(*event);
+            }
+            if(!trader.isShopOpened())
+            {
+                player.chooseDestinationMenuHandleEvents(*event);
+            }
 
             if(const auto* keyPressed = event->getIf<sf::Event::MouseButtonPressed>())
             {

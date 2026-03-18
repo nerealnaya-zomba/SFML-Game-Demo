@@ -128,6 +128,7 @@ public:
     sf::Clock& getDashClock();
     int& getDashCooldown();
     ScreenTransition& getScreenTransition();
+    bool isCDMenuOpened();
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);

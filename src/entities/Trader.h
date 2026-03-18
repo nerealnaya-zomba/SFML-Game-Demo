@@ -44,4 +44,7 @@ public:
     void update()                               override;
     void handleEvent(const sf::Event& event)    override;
 
+    //Getters
+    bool isShopOpened();
+    
 };
