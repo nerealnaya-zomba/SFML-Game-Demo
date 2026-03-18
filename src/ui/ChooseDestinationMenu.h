@@ -91,17 +91,13 @@ public:
 				void draw(sf::RenderWindow& w);
 			};
 
-			struct LevelDestinationText
-			{
-				bool isVisible = false;
-			};
 		//////////////////////////////////////////////////////////////////////////////////
 private:
 		///////////
 		// Elements
 		///////////
 			sf::Sprite background;
-			std::pair<LevelDestinationText, sf::Text> displayingLevelName;
+			sf::Text displayingLevelName;
 			std::vector<LevelDestinationRect> levels;
 
 		// Points to element
@@ -139,12 +135,14 @@ private:
 		/// Action methods
 		//////////////////
 			void currentSelectedElementToDesiredDestination();
-				/// Returns level name
-				std::string getCurrentLevelName();
-				// Mount selection rect to its icon's parametrs
-				void mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon);	
-				void mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf::Sprite& icon);	
-		//////////////////
+			/// Returns level name
+			std::string getCurrentLevelName();
+			// Mount selection rect to its icon's parametrs
+			void mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon);	
+			void mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf::Sprite& icon);	
+			// 
+			void setDisplayingLevelNameString(std::string str);
+	//////////////////
 
 		//////////////////////////
 		/// Initialization methods

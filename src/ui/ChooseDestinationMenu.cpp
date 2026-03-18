@@ -58,7 +58,7 @@ ChooseDestinationMenu::ChooseDestinationMenu(
     , moveLeftKey(mvLeftKey)
     , moveRightKey(mvRightKey)
     , selectKey(slctKey)
-    , displayingLevelName(LevelDestinationText{false}, *d.gameFont)
+    , displayingLevelName(*d.gameFont)
     , levelIt(levels.end()) 
     , desiredDestination(std::nullopt)
 {
@@ -66,6 +66,10 @@ ChooseDestinationMenu::ChooseDestinationMenu(
         throw std::runtime_error("Font not loaded");
     }
 
+	displayingLevelName.setCharacterSize(30);
+	displayingLevelName.setFillColor(sf::Color(180, 150, 90, 255));	//Цвет слоновой кости //FIXME Магическое число
+	displayingLevelName.setString("Helloooooo");
+	displayingLevelName.setOrigin(displayingLevelName.getGlobalBounds().getCenter());
 }
 
 void ChooseDestinationMenu::open()
@@ -81,6 +85,14 @@ void ChooseDestinationMenu::open()
 	
 	levelIt = levels.begin();
 	levelIt->leveldestination.isSelected = true;
+
+	// Set displayLevelName to first level in vector, only if there's any level
+	if(!levels.empty())
+	{
+		std::string levelName = levelIt->leveldestination.level->levelName;
+		setDisplayingLevelNameString(levelName);
+	}
+	
 }
 
 void ChooseDestinationMenu::close()
@@ -105,6 +117,10 @@ void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, sf::Texture
 	this->levels.push_back(l);
 
 	initializeIsChoosed();
+
+	// Set displayLevelName to first level in vector
+	std::string levelName = levels.begin()->leveldestination.level->levelName;
+	setDisplayingLevelNameString(levelName);
 }
 
 void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, const sf::Texture& icon)
@@ -120,6 +136,10 @@ void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, const sf::T
 	this->levels.push_back(l);
 
 	initializeIsChoosed();
+
+	// Set displayLevelName to first level in vector
+	std::string levelName = levels.begin()->leveldestination.level->levelName;
+	setDisplayingLevelNameString(levelName);
 }
 
 void ChooseDestinationMenu::drawLevelDestinations(sf::RenderWindow& window){
@@ -152,6 +172,7 @@ void ChooseDestinationMenu::draw(sf::RenderWindow& w){
 	if(!isOpened) return;
 
 	drawLevelDestinations(w);
+	w.draw(displayingLevelName);
 
 }
 
@@ -227,6 +248,11 @@ void ChooseDestinationMenu::mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf
 	sr.setPosition			(icon.getPosition());
 }
 
+void ChooseDestinationMenu::setDisplayingLevelNameString(std::string str)
+{
+	displayingLevelName.setString(str);
+}
+
 void ChooseDestinationMenu::initializeIsChoosed()
 {
 	checkWherePlayer();
@@ -256,6 +282,10 @@ void ChooseDestinationMenu::moveLevelItLeft()
 		levelIt--;
 		levelIt->leveldestination.isSelected = true;
 	}
+
+	// Set displayLevelName to first level in vector
+	std::string levelName = levelIt->leveldestination.level->levelName;
+	setDisplayingLevelNameString(levelName);
 }
 
 void ChooseDestinationMenu::moveLevelItRight()
@@ -271,12 +301,17 @@ void ChooseDestinationMenu::moveLevelItRight()
 		levelIt++;
 		levelIt->leveldestination.isSelected = true;
 	}
+
+	// Set displayLevelName to first level in vector
+	std::string levelName = levelIt->leveldestination.level->levelName;
+	setDisplayingLevelNameString(levelName);
 }
 
 void ChooseDestinationMenu::positioningLevelDestinations()
 {
     positioningLevelDestinationsBackground();
 	positioningLevelDestinationsLevels();
+	positioningLevelDestinationsText();
 }
 
 void ChooseDestinationMenu::positioningLevelDestinationsBackground()
@@ -363,34 +398,14 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 }
 
 void ChooseDestinationMenu::positioningLevelDestinationsText()
-{
-	sf::Vector2f displayingLevelNamePos;		
-	sf::Vector2f displayingLevelNameSize;		
-	
-	sf::Vector2f backgroundPos = this->background.getPosition();
-	sf::Vector2f backgroundScale = this->background.getScale();
-	sf::Vector2f backgroundSize = static_cast<sf::Vector2f>( this->background.getTexture().getSize() );
-	sf::Vector2f backgroundScaledSize = {( backgroundSize.x * backgroundScale.x ), ( backgroundSize.y * backgroundScale.y )};
-
-	displayingLevelNamePos = this->displayingLevelName.second.getPosition();
-	displayingLevelNameSize = this->displayingLevelName.second.getGlobalBounds().size;
-
-	if(displayingLevelNameSize.x>0 && displayingLevelNameSize.y>0)
+{			
+	displayingLevelName.setPosition
+	(
 	{
-		this->displayingLevelName.first.isVisible = true;	
+		this->camera->getCameraCenterPos().x,
+		this->camera->getCameraCenterPos().y-300.f	// FIXME Магическое число. Поменять на const в .h файле. 300.f - оффсет от центра экрана
 	}
-	else
-	{
-		this->displayingLevelName.first.isVisible = false;
-	}
-
-	displayingLevelName.second.setPosition
-			(
-			{
-				
-			}
-			);
-
+	);
 }
 
 void ChooseDestinationMenu::checkWherePlayer()
