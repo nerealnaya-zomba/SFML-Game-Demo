@@ -60,6 +60,7 @@ public:
     float frictionForce = 0.1f;             // Ground friction
     float playerPosX_m{};                   // Initial X position from PlayerConfig.json
     float playerPosY_m{};                   // Initial Y position from PlayerConfig.json
+    int maxHP{};                            // Max health points from PlayerConfig.json
     int HP_{};                              // Health points from PlayerConfig.json
     int DMG_{};                             // Damage value from PlayerConfig.json
 
@@ -129,6 +130,8 @@ public:
     int& getDashCooldown();
     ScreenTransition& getScreenTransition();
     bool isCDMenuOpened();
+    int getHP();
+    int getMaxHP();
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);

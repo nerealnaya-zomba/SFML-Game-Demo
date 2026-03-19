@@ -105,6 +105,16 @@ bool Player::isCDMenuOpened()
     return this->CDMenu.getIsOpened();
 }
 
+int Player::getHP()
+{
+    return this->HP_;
+}
+
+int Player::getMaxHP()
+{
+    return this->maxHP;
+}
+
 sf::Clock &Player::getPortalClock()
 {
     return portalCooldownClock;
@@ -389,6 +399,7 @@ void Player::loadData()
     // this->playerPosX_m = data["Player"]["PosX"]; // DEPRECATED
     // this->playerPosY_m = data["Player"]["PosY"]; // DEPRECATED
     this->HP_ = data["Player"]["HP"];
+    maxHP = HP_;
     this->takeDMG_cooldown = data["Player"]["takeDMG_cooldown"];
 
     //Jump

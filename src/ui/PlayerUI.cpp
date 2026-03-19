@@ -1,4 +1,5 @@
 #include<PlayerUI.h>
+#include<GameData.h>
 
 void PlayerUI::updateCooldownRects()
 {
@@ -101,13 +102,41 @@ void PlayerUI::addCooldownRect(sf::Clock& currentCD, int& targetCD, sf::Texture&
     cooldownRects.push_back(std::move(cr));
 }
 
+void PlayerUI::updateHP()
+{
+    hpBack.setPosition({camera->getScreenViewPos().x+BASE_HP_BAR_OFFSET.x,camera->getScreenViewPos().y+BASE_HP_BAR_OFFSET.y});
+    hpFront.setPosition({camera->getScreenViewPos().x+BASE_HP_BAR_OFFSET.x,camera->getScreenViewPos().y+BASE_HP_BAR_OFFSET.y});
+
+    updateInterpolation();
+}
+
+void PlayerUI::updateInterpolation()
+{
+    float playerHP = static_cast<float>(player->getHP());
+    float playerMaxHP = static_cast<float>(player->getMaxHP());
+
+    float interpolationFactor = playerHP/playerMaxHP;
+
+    hpFront.setSize({hpBack.getSize().x*interpolationFactor,hpBack.getSize().y});
+}
+
 PlayerUI::PlayerUI(Player &p, GameCamera &c)
     : camera(&c), player(&p)
 {
+    //hpBack hpFront init
+    hpBack.setSize({600,30});
+    hpBack.setFillColor(sf::Color::Black);
+    hpBack.setPosition({camera->getScreenViewPos().x+BASE_HP_BAR_OFFSET.x,camera->getScreenViewPos().y+BASE_HP_BAR_OFFSET.y});
+
+    hpFront.setSize({0,30});
+    hpFront.setFillColor(sf::Color::Green);
+    hpFront.setPosition({camera->getScreenViewPos().x+BASE_HP_BAR_OFFSET.x,camera->getScreenViewPos().y+BASE_HP_BAR_OFFSET.y});
+
 }
 
 void PlayerUI::draw(sf::RenderWindow &window)
 {
+    // Cooldown
     for (auto &&r : cooldownRects)
     {
         window.draw(r.back);
@@ -115,9 +144,14 @@ void PlayerUI::draw(sf::RenderWindow &window)
         window.draw(r.front);
     }
     
+    // HP
+    window.draw(hpBack);
+    window.draw(hpFront);
 }
 
 void PlayerUI::update()
 {
     updateCooldownRects();
+
+    updateHP();
 }
