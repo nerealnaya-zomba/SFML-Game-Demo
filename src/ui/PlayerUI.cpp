@@ -107,10 +107,12 @@ void PlayerUI::updateHP()
     hpBack.setPosition({camera->getScreenViewPos().x+BASE_HP_BAR_OFFSET.x,camera->getScreenViewPos().y+BASE_HP_BAR_OFFSET.y});
     hpFront.setPosition({camera->getScreenViewPos().x+BASE_HP_BAR_OFFSET.x,camera->getScreenViewPos().y+BASE_HP_BAR_OFFSET.y});
 
-    updateInterpolation();
+    updateHpInterpolation();
+
+    updateHpText();
 }
 
-void PlayerUI::updateInterpolation()
+void PlayerUI::updateHpInterpolation()
 {
     float playerHP = static_cast<float>(player->getHP());
     float playerMaxHP = static_cast<float>(player->getMaxHP());
@@ -120,8 +122,14 @@ void PlayerUI::updateInterpolation()
     hpFront.setSize({hpBack.getSize().x*interpolationFactor,hpBack.getSize().y});
 }
 
+void PlayerUI::updateHpText()
+{
+    hpText.setString(std::to_string(player->getHP()) + " / " + std::to_string(player->getMaxHP()));
+    hpText.setPosition(hpBack.getGlobalBounds().getCenter());
+}
+
 PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
-    : camera(&c), player(&p), data(&d)
+    : camera(&c), player(&p), data(&d), hpText(*d.gameFont)
 {
     //hpBack hpFront init
     hpBack.setSize({600,30});
@@ -132,6 +140,11 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
     hpFront.setFillColor(sf::Color::Green);
     hpFront.setPosition({camera->getScreenViewPos().x+BASE_HP_BAR_OFFSET.x,camera->getScreenViewPos().y+BASE_HP_BAR_OFFSET.y});
 
+    hpText.setCharacterSize(20);
+    hpText.setFillColor(sf::Color::White);
+    hpText.setString(std::to_string(player->getHP()) + " / " + std::to_string(player->getMaxHP()));
+    hpText.setOrigin(hpText.getGlobalBounds().getCenter());
+    hpText.setPosition(hpBack.getGlobalBounds().getCenter());
 }
 
 void PlayerUI::draw(sf::RenderWindow &window)
@@ -145,8 +158,12 @@ void PlayerUI::draw(sf::RenderWindow &window)
     }
     
     // HP
+        // Bar
     window.draw(hpBack);
     window.draw(hpFront);
+        // Text
+    window.draw(hpText);
+
 }
 
 void PlayerUI::update()

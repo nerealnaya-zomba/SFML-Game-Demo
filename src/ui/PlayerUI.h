@@ -64,8 +64,11 @@ private:
     sf::RectangleShape hpBack;
     sf::RectangleShape hpFront;
 
+    sf::Text hpText;
+
     void updateHP();
-        void updateInterpolation();
+        void updateHpInterpolation();
+        void updateHpText();
 
 public:
     PlayerUI(Player &p, GameCamera &c, GameData &d);
