@@ -68,7 +68,7 @@ private:
         void updateInterpolation();
 
 public:
-    PlayerUI(Player& p, GameCamera& c);
+    PlayerUI(Player &p, GameCamera &c, GameData &d);
     ~PlayerUI() = default;
 
     void draw(sf::RenderWindow& window);

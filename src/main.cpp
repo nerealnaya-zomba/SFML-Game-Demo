@@ -50,7 +50,7 @@ int main()
     
     // 5.2. Игрок и интерфейс
     Player player(gameData, levelManager, camera, window);
-    PlayerUI PUI(player, camera);
+    PlayerUI PUI(player, camera, gameData);
     
     // 5.3. Настройка кулдаунов интерфейса
     PUI.addCooldownRect(

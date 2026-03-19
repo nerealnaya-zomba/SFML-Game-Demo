@@ -120,8 +120,8 @@ void PlayerUI::updateInterpolation()
     hpFront.setSize({hpBack.getSize().x*interpolationFactor,hpBack.getSize().y});
 }
 
-PlayerUI::PlayerUI(Player &p, GameCamera &c)
-    : camera(&c), player(&p)
+PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
+    : camera(&c), player(&p), data(&d)
 {
     //hpBack hpFront init
     hpBack.setSize({600,30});
