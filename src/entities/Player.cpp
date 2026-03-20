@@ -115,6 +115,16 @@ int Player::getMaxHP()
     return this->maxHP;
 }
 
+int Player::getEnergy()
+{
+    return this->energy;
+}
+
+int Player::getMaxEnergy()
+{
+    return this->maxEnergy;
+}
+
 sf::Clock &Player::getPortalClock()
 {
     return portalCooldownClock;

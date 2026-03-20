@@ -136,6 +136,8 @@ public:
     bool isCDMenuOpened();
     int getHP();
     int getMaxHP();
+    int getEnergy();
+    int getMaxEnergy();
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);
