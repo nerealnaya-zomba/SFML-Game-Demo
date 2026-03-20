@@ -1,7 +1,10 @@
 {
     "Player":{
         "HP": 1000,
-        "takeDMG_cooldown": 1000
+        "takeDMG_cooldown": 1000,
+        "Energy": 1000,
+        "EnergyGain": 1,
+        "ShootCost": 100
     },
     "Jump":{
         "repeatCooldown": 100

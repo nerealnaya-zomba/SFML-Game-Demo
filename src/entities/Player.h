@@ -58,11 +58,15 @@ public:
     float speed = 0.15f;                    // Movement acceleration
     float maxWalkSpeed = 4.f;               // Maximum horizontal speed
     float frictionForce = 0.1f;             // Ground friction
-    float playerPosX_m{};                   // Initial X position from PlayerConfig.json
-    float playerPosY_m{};                   // Initial Y position from PlayerConfig.json
-    int maxHP{};                            // Max health points from PlayerConfig.json
-    int HP_{};                              // Health points from PlayerConfig.json
-    int DMG_{};                             // Damage value from PlayerConfig.json
+    float playerPosX_m{};                   // Initial X position from  PlayerConfig.json
+    float playerPosY_m{};                   // Initial Y position from  PlayerConfig.json
+    int maxHP{};                            // Max health points from   PlayerConfig.json
+    int HP_{};                              // Health points from       PlayerConfig.json
+    int maxEnergy{};                        // Max energy points from   PlayerConfig.json
+    int energy{};                           // Energy points from       PlayerConfig.json
+    int energyGain{};                       // Energy gain from         PlayerConfig.json
+    int shootCost{};                        // Shoot cost from          PlayerConfig.json
+    int DMG_{};                             // Damage value from        PlayerConfig.json
 
     // Таймеры для кнопок
     sf::Clock shootTimer;
@@ -144,7 +148,7 @@ public:
     void jump();                            // Jump action
     void fallDown();                        // Force fall
     void dash();                            // Dash ability
-    void shoot(bool direction);             // Shoot (false=left, true=right)
+    bool shoot(bool direction);             // Shoot (false=left, true=right)
     
         //Dash particles
     void dashParticles();
@@ -158,7 +162,8 @@ public:
     void checkPlatformRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects); // Platform collision
     void checkGroundCollision(sf::RectangleShape& groundRect);                        // Ground collision
     void moveBullets();                                                               // Update all active bullets
-    void updateParticles();                                                           // Update particle effects
+    void updateParticles(); 
+    void updateEnergy();                                                              // Update particle effects
     
         // Rendering methods
     void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);

@@ -396,11 +396,13 @@ void Player::loadData()
     std::fstream f("PlayerConfig.json");
     nlohmann::json data = nlohmann::json::parse(f);
     //Player
-    // this->playerPosX_m = data["Player"]["PosX"]; // DEPRECATED
-    // this->playerPosY_m = data["Player"]["PosY"]; // DEPRECATED
     this->HP_ = data["Player"]["HP"];
     maxHP = HP_;
     this->takeDMG_cooldown = data["Player"]["takeDMG_cooldown"];
+    this->energy = data["Player"]["Energy"];
+    maxEnergy = energy;
+    this->energyGain = data["Player"]["EnergyGain"];
+    this->shootCost = data["Player"]["ShootCost"];
 
     //Jump
     this->ButtonRepeat_jumpCooldown = data["Jump"]["repeatCooldown"];
@@ -519,6 +521,16 @@ void Player::updateParticles()
     );
 }
 
+void Player::updateEnergy()
+{
+    // Energy gain
+    if(energy>=maxEnergy) return;
+    energy+=energyGain;
+    if(energy>maxEnergy) energy=maxEnergy;
+    std::cout << "Energy: " << energy << " / " << maxEnergy << std::endl;
+
+}
+
 void Player::walkLeft()
 {
     if(!this->isAlive || isPlayingDieAnimation || isPlayingDashAnimation) return;       //Locking movement on Die, Dash
@@ -581,9 +593,10 @@ void Player::dash()
     }
 }
 
-void Player::shoot(bool direction)
+bool Player::shoot(bool direction)
 {
-    if(!this->isAlive || isPlayingDieAnimation) return;
+    if(!this->isAlive || isPlayingDieAnimation) return false;
+    if(energy<shootCost) return false;
 
     std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),this->bulletMaxDistance_,*this->gameTextures);
     if(direction)
@@ -607,6 +620,11 @@ void Player::shoot(bool direction)
     }
 
     bullets.push_back(std::move(bulletPtr));
+
+    energy-=shootCost;
+    if(energy<0) energy = 0;
+
+    return true;
 }
 void Player::dashParticles()
 {
@@ -728,9 +746,11 @@ void Player::updateControls()
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && canShoot)
     {
         std::cout << "Shoot" << std::endl;
-        shoot(getSpriteScale().x > 0);
-        canShoot = false;
-        shootTimer.restart();
+        if(shoot(getSpriteScale().x > 0))
+        {
+            canShoot = false;
+            shootTimer.restart();
+        } 
     }
     
     // Jumping (Z key)
@@ -777,6 +797,8 @@ void Player::updatePhysics()
     applyFriction(initialWalkSpeed,this->frictionForce);
     
     updateParticles();
+
+    updateEnergy();
 
     if(fallingSpeed<0)
     {
