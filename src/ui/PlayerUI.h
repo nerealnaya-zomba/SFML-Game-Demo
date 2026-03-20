@@ -70,6 +70,18 @@ private:
         void updateHpInterpolation();
         void updateHpText();
 
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ЭНЕРГИЯ
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    sf::RectangleShape energyBack;
+    sf::RectangleShape energyFront;
+
+    sf::Text energyText;
+
+    void updateEnergy();
+        void updateEnergyInterpolation();
+        void updateEnergyText();
+
 public:
     PlayerUI(Player &p, GameCamera &c, GameData &d);
     ~PlayerUI() = default;
