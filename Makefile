@@ -239,6 +239,32 @@ sfml-audio/fast:
 	$(MAKE) $(MAKESILENT) -f _deps/sfml-build/src/SFML/Audio/CMakeFiles/sfml-audio.dir/build.make _deps/sfml-build/src/SFML/Audio/CMakeFiles/sfml-audio.dir/build
 .PHONY : sfml-audio/fast
 
+#=============================================================================
+# Target rules for targets named tgui
+
+# Build rule for target.
+tgui: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tgui
+.PHONY : tgui
+
+# fast build rule for target.
+tgui/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/tgui-build/src/CMakeFiles/tgui.dir/build.make _deps/tgui-build/src/CMakeFiles/tgui.dir/build
+.PHONY : tgui/fast
+
+#=============================================================================
+# Target rules for targets named gui-builder
+
+# Build rule for target.
+gui-builder: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gui-builder
+.PHONY : gui-builder
+
+# fast build rule for target.
+gui-builder/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/tgui-build/gui-builder/CMakeFiles/gui-builder.dir/build.make _deps/tgui-build/gui-builder/CMakeFiles/gui-builder.dir/build
+.PHONY : gui-builder/fast
+
 src/core/Enemy.o: src/core/Enemy.cpp.o
 .PHONY : src/core/Enemy.o
 
@@ -671,6 +697,30 @@ src/systems/Item.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/systems/Item.cpp.s
 .PHONY : src/systems/Item.cpp.s
 
+src/systems/LevelTask.o: src/systems/LevelTask.cpp.o
+.PHONY : src/systems/LevelTask.o
+
+# target to build an object file
+src/systems/LevelTask.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/systems/LevelTask.cpp.o
+.PHONY : src/systems/LevelTask.cpp.o
+
+src/systems/LevelTask.i: src/systems/LevelTask.cpp.i
+.PHONY : src/systems/LevelTask.i
+
+# target to preprocess a source file
+src/systems/LevelTask.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/systems/LevelTask.cpp.i
+.PHONY : src/systems/LevelTask.cpp.i
+
+src/systems/LevelTask.s: src/systems/LevelTask.cpp.s
+.PHONY : src/systems/LevelTask.s
+
+# target to generate assembly for a file
+src/systems/LevelTask.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/systems/LevelTask.cpp.s
+.PHONY : src/systems/LevelTask.cpp.s
+
 src/systems/Platform.o: src/systems/Platform.cpp.o
 .PHONY : src/systems/Platform.o
 
@@ -743,29 +793,29 @@ src/ui/AskDialogue.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/AskDialogue.cpp.s
 .PHONY : src/ui/AskDialogue.cpp.s
 
-src/ui/ChooseDestination.o: src/ui/ChooseDestination.cpp.o
-.PHONY : src/ui/ChooseDestination.o
+src/ui/ChooseDestinationMenu.o: src/ui/ChooseDestinationMenu.cpp.o
+.PHONY : src/ui/ChooseDestinationMenu.o
 
 # target to build an object file
-src/ui/ChooseDestination.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ChooseDestination.cpp.o
-.PHONY : src/ui/ChooseDestination.cpp.o
+src/ui/ChooseDestinationMenu.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ChooseDestinationMenu.cpp.o
+.PHONY : src/ui/ChooseDestinationMenu.cpp.o
 
-src/ui/ChooseDestination.i: src/ui/ChooseDestination.cpp.i
-.PHONY : src/ui/ChooseDestination.i
+src/ui/ChooseDestinationMenu.i: src/ui/ChooseDestinationMenu.cpp.i
+.PHONY : src/ui/ChooseDestinationMenu.i
 
 # target to preprocess a source file
-src/ui/ChooseDestination.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ChooseDestination.cpp.i
-.PHONY : src/ui/ChooseDestination.cpp.i
+src/ui/ChooseDestinationMenu.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ChooseDestinationMenu.cpp.i
+.PHONY : src/ui/ChooseDestinationMenu.cpp.i
 
-src/ui/ChooseDestination.s: src/ui/ChooseDestination.cpp.s
-.PHONY : src/ui/ChooseDestination.s
+src/ui/ChooseDestinationMenu.s: src/ui/ChooseDestinationMenu.cpp.s
+.PHONY : src/ui/ChooseDestinationMenu.s
 
 # target to generate assembly for a file
-src/ui/ChooseDestination.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ChooseDestination.cpp.s
-.PHONY : src/ui/ChooseDestination.cpp.s
+src/ui/ChooseDestinationMenu.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ChooseDestinationMenu.cpp.s
+.PHONY : src/ui/ChooseDestinationMenu.cpp.s
 
 src/ui/GameLoadingScreen.o: src/ui/GameLoadingScreen.cpp.o
 .PHONY : src/ui/GameLoadingScreen.o
@@ -839,6 +889,30 @@ src/ui/Menu.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/Menu.cpp.s
 .PHONY : src/ui/Menu.cpp.s
 
+src/ui/MenuBackground.o: src/ui/MenuBackground.cpp.o
+.PHONY : src/ui/MenuBackground.o
+
+# target to build an object file
+src/ui/MenuBackground.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/MenuBackground.cpp.o
+.PHONY : src/ui/MenuBackground.cpp.o
+
+src/ui/MenuBackground.i: src/ui/MenuBackground.cpp.i
+.PHONY : src/ui/MenuBackground.i
+
+# target to preprocess a source file
+src/ui/MenuBackground.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/MenuBackground.cpp.i
+.PHONY : src/ui/MenuBackground.cpp.i
+
+src/ui/MenuBackground.s: src/ui/MenuBackground.cpp.s
+.PHONY : src/ui/MenuBackground.s
+
+# target to generate assembly for a file
+src/ui/MenuBackground.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/MenuBackground.cpp.s
+.PHONY : src/ui/MenuBackground.cpp.s
+
 src/ui/PlayerInventory.o: src/ui/PlayerInventory.cpp.o
 .PHONY : src/ui/PlayerInventory.o
 
@@ -887,6 +961,30 @@ src/ui/PlayerUI.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/PlayerUI.cpp.s
 .PHONY : src/ui/PlayerUI.cpp.s
 
+src/ui/ScreenTransition.o: src/ui/ScreenTransition.cpp.o
+.PHONY : src/ui/ScreenTransition.o
+
+# target to build an object file
+src/ui/ScreenTransition.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ScreenTransition.cpp.o
+.PHONY : src/ui/ScreenTransition.cpp.o
+
+src/ui/ScreenTransition.i: src/ui/ScreenTransition.cpp.i
+.PHONY : src/ui/ScreenTransition.i
+
+# target to preprocess a source file
+src/ui/ScreenTransition.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ScreenTransition.cpp.i
+.PHONY : src/ui/ScreenTransition.cpp.i
+
+src/ui/ScreenTransition.s: src/ui/ScreenTransition.cpp.s
+.PHONY : src/ui/ScreenTransition.s
+
+# target to generate assembly for a file
+src/ui/ScreenTransition.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ui/ScreenTransition.cpp.s
+.PHONY : src/ui/ScreenTransition.cpp.s
+
 src/ui/Shop.o: src/ui/Shop.cpp.o
 .PHONY : src/ui/Shop.o
 
@@ -923,12 +1021,14 @@ help:
 	@echo "... install/strip"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
+	@echo "... gui-builder"
 	@echo "... main"
 	@echo "... sfml-audio"
 	@echo "... sfml-graphics"
 	@echo "... sfml-network"
 	@echo "... sfml-system"
 	@echo "... sfml-window"
+	@echo "... tgui"
 	@echo "... src/core/Enemy.o"
 	@echo "... src/core/Enemy.i"
 	@echo "... src/core/Enemy.s"
@@ -983,6 +1083,9 @@ help:
 	@echo "... src/systems/Item.o"
 	@echo "... src/systems/Item.i"
 	@echo "... src/systems/Item.s"
+	@echo "... src/systems/LevelTask.o"
+	@echo "... src/systems/LevelTask.i"
+	@echo "... src/systems/LevelTask.s"
 	@echo "... src/systems/Platform.o"
 	@echo "... src/systems/Platform.i"
 	@echo "... src/systems/Platform.s"
@@ -992,9 +1095,9 @@ help:
 	@echo "... src/ui/AskDialogue.o"
 	@echo "... src/ui/AskDialogue.i"
 	@echo "... src/ui/AskDialogue.s"
-	@echo "... src/ui/ChooseDestination.o"
-	@echo "... src/ui/ChooseDestination.i"
-	@echo "... src/ui/ChooseDestination.s"
+	@echo "... src/ui/ChooseDestinationMenu.o"
+	@echo "... src/ui/ChooseDestinationMenu.i"
+	@echo "... src/ui/ChooseDestinationMenu.s"
 	@echo "... src/ui/GameLoadingScreen.o"
 	@echo "... src/ui/GameLoadingScreen.i"
 	@echo "... src/ui/GameLoadingScreen.s"
@@ -1004,12 +1107,18 @@ help:
 	@echo "... src/ui/Menu.o"
 	@echo "... src/ui/Menu.i"
 	@echo "... src/ui/Menu.s"
+	@echo "... src/ui/MenuBackground.o"
+	@echo "... src/ui/MenuBackground.i"
+	@echo "... src/ui/MenuBackground.s"
 	@echo "... src/ui/PlayerInventory.o"
 	@echo "... src/ui/PlayerInventory.i"
 	@echo "... src/ui/PlayerInventory.s"
 	@echo "... src/ui/PlayerUI.o"
 	@echo "... src/ui/PlayerUI.i"
 	@echo "... src/ui/PlayerUI.s"
+	@echo "... src/ui/ScreenTransition.o"
+	@echo "... src/ui/ScreenTransition.i"
+	@echo "... src/ui/ScreenTransition.s"
 	@echo "... src/ui/Shop.o"
 	@echo "... src/ui/Shop.i"
 	@echo "... src/ui/Shop.s"

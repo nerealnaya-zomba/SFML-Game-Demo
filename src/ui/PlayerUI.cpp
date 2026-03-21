@@ -138,8 +138,17 @@ void PlayerUI::updateHpInterpolation()
 
 void PlayerUI::updateHpText()
 {
-    hpText.setString(std::to_string(player->getHP()) + " / " + std::to_string(player->getMaxHP()));
-    hpText.setPosition(hpBack.getGlobalBounds().getCenter());
+    hpTextInfo.setString(std::to_string(player->getHP()) + " / " + std::to_string(player->getMaxHP()));
+    hpTextInfo.setPosition(hpBack.getGlobalBounds().getCenter());
+
+
+	hpText.setPosition
+		(
+		 {
+			hpBack.getPosition().x + hpBack.getSize().x + BASE_HP_BAR_OFFSET.x,
+			hpBack.getPosition().y
+		 }
+		);
 }
 
 void PlayerUI::updateEnergy()
@@ -179,12 +188,21 @@ void PlayerUI::updateEnergyInterpolation()
 
 void PlayerUI::updateEnergyText()
 {
-    energyText.setString(std::to_string(player->getEnergy()) + " / " + std::to_string(player->getMaxEnergy()));
-    energyText.setPosition(energyBack.getGlobalBounds().getCenter());
+    energyTextInfo.setString(std::to_string(player->getEnergy()) + " / " + std::to_string(player->getMaxEnergy()));
+    energyTextInfo.setPosition(energyBack.getGlobalBounds().getCenter());
+
+	
+	energyText.setPosition
+		(
+		 {
+			energyBack.getPosition().x + energyBack.getSize().x + BASE_HP_BAR_OFFSET.x,
+			energyBack.getPosition().y
+		 }
+		);
 }
 
 PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
-    : camera(&c), player(&p), data(&d), hpText(*d.gameFont), energyText(*d.gameFont)
+    : camera(&c), player(&p), data(&d), hpTextInfo(*d.gameFont), energyTextInfo(*d.gameFont), energyText(*d.gameFont),hpText(*d.gameFont)
 {
 
     sf::Vector2f screenViewPos = camera->getScreenViewPos();
@@ -204,11 +222,23 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
         }
     );
 
+    hpTextInfo.setCharacterSize(20);
+    hpTextInfo.setFillColor(sf::Color::White);
+    hpTextInfo.setString(std::to_string(player->getHP()) + " / " + std::to_string(player->getMaxHP()));
+    hpTextInfo.setOrigin(hpTextInfo.getGlobalBounds().getCenter());
+    hpTextInfo.setPosition(hpBack.getGlobalBounds().getCenter());
+
     hpText.setCharacterSize(20);
     hpText.setFillColor(sf::Color::White);
-    hpText.setString(std::to_string(player->getHP()) + " / " + std::to_string(player->getMaxHP()));
-    hpText.setOrigin(hpText.getGlobalBounds().getCenter());
-    hpText.setPosition(hpBack.getGlobalBounds().getCenter());
+    hpText.setString("Health");
+    hpText.setPosition
+		(
+		 {
+			hpBack.getPosition().x + hpBack.getSize().x + BASE_HP_BAR_OFFSET.x,
+			hpBack.getPosition().y
+		 }
+		);
+
 
     //energyBack hpFront init
     energyBack.setSize({600,30});
@@ -231,11 +261,22 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
         }
     );
 
+    energyTextInfo.setCharacterSize(20);
+    energyTextInfo.setFillColor(sf::Color::White);
+    energyTextInfo.setString(std::to_string(player->getEnergy()) + " / " + std::to_string(player->getMaxHP()));
+    energyTextInfo.setOrigin(energyTextInfo.getGlobalBounds().getCenter());
+    energyTextInfo.setPosition(energyBack.getGlobalBounds().getCenter());
+
     energyText.setCharacterSize(20);
     energyText.setFillColor(sf::Color::White);
-    energyText.setString(std::to_string(player->getEnergy()) + " / " + std::to_string(player->getMaxHP()));
-    energyText.setOrigin(energyText.getGlobalBounds().getCenter());
-    energyText.setPosition(energyBack.getGlobalBounds().getCenter());
+    energyText.setString("Energy");
+	energyText.setPosition
+		(
+		 {
+			energyBack.getPosition().x + energyBack.getSize().x + BASE_HP_BAR_OFFSET.x,
+			energyBack.getPosition().y
+		 }
+		);
 }
 
 void PlayerUI::draw(sf::RenderWindow &window)
@@ -253,14 +294,16 @@ void PlayerUI::draw(sf::RenderWindow &window)
     window.draw(hpBack);
     window.draw(hpFront);
         // Text
-    window.draw(hpText);
+    window.draw(hpTextInfo);
+	window.draw(hpText);
 
     // Energy
         // Bar
     window.draw(energyBack);
     window.draw(energyFront);
         // Text
-    window.draw(energyText);
+    window.draw(energyTextInfo);
+	window.draw(energyText);
 
 }
 

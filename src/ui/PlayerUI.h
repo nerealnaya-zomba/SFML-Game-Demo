@@ -63,8 +63,8 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     sf::RectangleShape hpBack;
     sf::RectangleShape hpFront;
-
-    sf::Text hpText;
+    sf::Text hpTextInfo;
+	sf::Text hpText; // "Health" label after a bar
 
     void updateHP();
         void updateHpInterpolation();
@@ -76,7 +76,8 @@ private:
     sf::RectangleShape energyBack;
     sf::RectangleShape energyFront;
 
-    sf::Text energyText;
+    sf::Text energyTextInfo;
+	sf::Text energyText; // "Energy" label after a bar
 
     void updateEnergy();
         void updateEnergyInterpolation();
