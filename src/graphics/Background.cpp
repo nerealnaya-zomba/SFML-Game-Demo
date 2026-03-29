@@ -69,9 +69,7 @@ void Background::draw(sf::RenderWindow &window)
 void Background::applyParallax()
 {
     const sf::Vector2f baseObjectPos = position;
-    static const sf::Vector2f initialCameraPos = camera->getCameraCenterPos();
-    const sf::Vector2f currentCameraPos = camera->getCameraCenterPos();
-    const sf::Vector2f cameraOffset = currentCameraPos - initialCameraPos;
+    const sf::Vector2f cameraOffset = camera->getCameraCenterPos() - BASE_CAMERAPOS;
 
     bgFront->setPosition({
         baseObjectPos.x + cameraOffset.x * parallaxFactor.x,

@@ -7,7 +7,10 @@ void Shop::update()
     if(!isOpened) return;
 
     alignItemsOnGrid();
-    onItemSelected();
+    if (hasItems())
+    {
+        onItemSelected();
+    }
 
     widget.update();
 }
@@ -51,6 +54,11 @@ void Shop::handleEvent(const sf::Event &event)
 bool Shop::getIsOpened()
 {
     return this->isOpened;
+}
+
+bool Shop::hasItems() const
+{
+    return !items.empty() && itemsIt != items.end();
 }
 
 void Shop::draw(sf::RenderWindow& window)
@@ -124,6 +132,11 @@ void Shop::initializeItems()
 
 void Shop::alignItemsOnGrid()
 {
+    if (items.empty())
+    {
+        return;
+    }
+
     sf::Vector2f backgroundStart = {
         sprite.get()->getPosition().x,
         sprite.get()->getPosition().y};
@@ -170,11 +183,21 @@ void Shop::alignItemsOnGrid()
 
 void Shop::onItemSelected()
 {
+    if (!hasItems())
+    {
+        return;
+    }
+
     itemsIt->first.setScale(BASE_SHOP_CELL_SPRITE_SELECTED_SCALE);
 }
 
 void Shop::onSelectedChanged()
 {
+    if (!hasItems())
+    {
+        return;
+    }
+
     itemsIt->first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
 }
 
@@ -193,6 +216,11 @@ void Shop::onShopOpened()
 
 void Shop::moveSelectionRight()
 {
+    if (!hasItems())
+    {
+        return;
+    }
+
     onSelectedChanged();
 
     itemsIt++;
@@ -204,6 +232,11 @@ void Shop::moveSelectionRight()
 
 void Shop::moveSelectionLeft()
 {
+    if (!hasItems())
+    {
+        return;
+    }
+
     onSelectedChanged();
 
     if (itemsIt == items.begin()) {
@@ -215,6 +248,11 @@ void Shop::moveSelectionLeft()
 
 void Shop::moveSelectionDown()
 {
+    if (!hasItems())
+    {
+        return;
+    }
+
     onSelectedChanged();
     
     size_t currentIndex = itemsIt - items.begin();
@@ -241,6 +279,11 @@ void Shop::moveSelectionDown()
 }
 void Shop::moveSelectionUp()
 {
+    if (!hasItems())
+    {
+        return;
+    }
+
     onSelectedChanged();
     
     size_t currentIndex = itemsIt - items.begin();
@@ -287,6 +330,11 @@ void Shop::unblockPlayerControl()
 
 void Shop::openSelectedItemWidget()
 {
+    if (!hasItems())
+    {
+        return;
+    }
+
     isItemWidgetOpened = true;
     widget.attachItemStats(*itemsIt->second.get());
     widget.open();
@@ -306,83 +354,9 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
       widget(d,BASE_SHOP_WIDGET_SPRITE_SCALE,pos,{0,0},{0.f,BASE_SHOP_BACKGROUND_SIZE.y}, *d.gameFont, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/20, (BASE_SHOP_BACKGROUND_SIZE.x+BASE_SHOP_BACKGROUND_SIZE.y)/25),
       itemsMargin(BASE_SHOP_ITEMS_MARGIN)
 {   
-    // shopBackground.setSize(BASE_SHOP_BACKGROUND_SIZE);
-    // setRectangleOriginToMiddle(shopBackground);
-    // shopBackground.setPosition(pos);
-    // shopBackground.setFillColor(sf::Color::Red);
-
-    // Инициализация предметов
     initializeItems();
     itemsIt = items.begin();
-
-
-	//FIXME There is scale error. Y scale of sprite(background) is undefined or sometrash.
-	//FIXME There is scale error. Y scale of sprite(background) is undefined or sometrash.
-	//FIXME There is scale error. Y scale of sprite(background) is undefined or sometrash.
-	//FIXME There is scale error. Y scale of sprite(background) is undefined or sometrash.
-	
-    // Корректируем размеры фона
-    sf::Vector2f baseBackgroundScale = {1.f, 1.f};
-    if (!items.empty())
-    {
-        // Получаем размер текстуры одного предмета (в пикселях)
-        sf::Vector2u itemTextureSize = items[0].second->getTextureSize(); // или itemsIt->get()->getTextureSize()
-        sf::Vector2f itemScale = items[0].second->getBaseScale();
-        
-        // Реальный размер предмета на экране (с учетом его текущего масштаба)
-        sf::Vector2f itemDisplaySize = {
-            itemTextureSize.x * itemScale.x,
-            itemTextureSize.y * itemScale.y
-        };
-        
-        // Вычисляем требуемый размер фона для размещения всех предметов
-        // Учитываем отступы между предметами
-        float requiredWidth = itemDisplaySize.x * columns + 
-                            itemsMargin.x * (columns - 1); // Отступы между столбцами
-        float requiredHeight;
-        
-        // Вычисляем количество строк
-        unsigned int rows = (items.size() + columns - 1) / columns; // Округление вверх
-        requiredHeight = itemDisplaySize.y * rows + 
-                        itemsMargin.y * (rows - 1); // Отступы между строками
-        
-        // Получаем текущие параметры фона
-        sf::Vector2u backTextureSize = sprite->getTexture().getSize();
-        sf::Vector2f currentBackScale = sprite->getScale();
-        
-        // Вычисляем нужный масштаб для фона
-        sf::Vector2f newBackScale;
-        newBackScale.x = requiredWidth / static_cast<float>(backTextureSize.x);
-        newBackScale.y = requiredHeight / static_cast<float>(backTextureSize.y);
-        
-        // Применяем масштаб с небольшой погрешностью
-        const float epsilon = 0.001f;
-        if (!isEqualFloat(currentBackScale.x, newBackScale.x, epsilon) ||
-            !isEqualFloat(currentBackScale.y, newBackScale.y, epsilon))
-        {
-            sprite->setScale(newBackScale);
-        }
-        sprite.get()->setPosition({
-            pos.x-((backTextureSize.x*newBackScale.x)/2),
-            pos.y-(backTextureSize.x*newBackScale.x/2)
-        });
-        // Добавляем дополнительный scale
-        setScale({
-            sprite.get()->getScale().x+BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.x, 
-            sprite.get()->getScale().y+BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.y
-        });
-    }
-    else
-    {
-        // Добавляем дополнительный scale
-        setScale({
-            sprite.get()->getScale().x+BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.x, 
-            sprite.get()->getScale().y+BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.y
-        });
-
-        sprite.get()->setPosition(pos);;
-    }
-
+    updateBackgroundLayout(pos);
 }
 
 void Shop::open()
@@ -404,6 +378,42 @@ void Shop::close()
 void Shop::addItem(std::unique_ptr<Item> item)
 {
     items.push_back(std::pair(sf::Sprite(data->guiTextures.at("GUI_04.png")),std::move(item)));
+}
+
+void Shop::updateBackgroundLayout(const sf::Vector2f& pos)
+{
+    const sf::Vector2u backTextureSize = sprite->getTexture().getSize();
+
+    if (items.empty())
+    {
+        setScale({
+            sprite->getScale().x + BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.x,
+            sprite->getScale().y + BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.y
+        });
+        sprite->setPosition(pos);
+        return;
+    }
+
+    const sf::Vector2u itemTextureSize = items.front().second->getTextureSize();
+    const sf::Vector2f itemScale = items.front().second->getBaseScale();
+    const sf::Vector2f itemDisplaySize = {
+        itemTextureSize.x * itemScale.x,
+        itemTextureSize.y * itemScale.y
+    };
+
+    const unsigned int requiredRows = static_cast<unsigned int>((items.size() + columns - 1) / columns);
+    const float requiredWidth = itemDisplaySize.x * columns + itemsMargin.x * (columns - 1);
+    const float requiredHeight = itemDisplaySize.y * requiredRows + itemsMargin.y * (requiredRows - 1);
+
+    sf::Vector2f finalScale = {
+        requiredWidth / static_cast<float>(backTextureSize.x),
+        requiredHeight / static_cast<float>(backTextureSize.y)
+    };
+
+    finalScale += BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE;
+    setScale(finalScale);
+    setSpriteOriginToMiddle(*sprite);
+    sprite->setPosition(pos);
 }
 
 Shop::ItemWidget::ItemWidget(GameData& data,sf::Vector2f widgetScale, sf::Vector2f widgetPos,sf::Vector2f displayNamePosLocal, sf::Vector2f statsTextPosLocal, sf::Font& font, uint8_t displayNameSize, uint8_t statsTextSize)

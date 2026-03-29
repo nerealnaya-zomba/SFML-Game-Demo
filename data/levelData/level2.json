@@ -3,7 +3,7 @@
     "isConstant": true,
     "isAvaiable": true,
     "Size": [6000, 1080],
-    "PlayerSpawn": [100,900]
+    "PlayerSpawn": [100, 900]
   },
   "Platforms": [
     {
@@ -41,144 +41,158 @@
   ],
   "Decorations": [
     {
+      "Name": "MossyBackgroundDecoration_01.png",
+      "Position": [1200, 620],
+      "Scale": [0.38, 0.38],
+      "Color": [140, 150, 160, 180],
+      "ParallaxFactor": [0.14, 0.12],
+      "Z": -3
+    },
+    {
+      "Name": "MossyBackgroundDecoration_04.png",
+      "Position": [4020, 540],
+      "Scale": [0.44, 0.44],
+      "Color": [140, 150, 160, 170],
+      "ParallaxFactor": [0.18, 0.16],
+      "Z": -3
+    },
+    {
       "Name": "MossyHills_06.png",
-      "Position": [760, 970],
-      "Scale": [0.5, 0.5],
-      "Color": [150, 150, 170, 255],
-      "ParallaxFactor": [0.40, 0.40],
-      "Z": 1
+      "Position": [680, 920],
+      "Scale": [0.52, 0.52],
+      "Color": [160, 165, 185, 255],
+      "ParallaxFactor": [0.20, 0.18],
+      "Z": -2
     },
     {
-      "Name": "MossyHills_04.png",
-      "Position": [2000, 480],
-      "Scale": [0.5, 0.5],
-      "Color": [150, 150, 170, 255],
-      "ParallaxFactor": [0.55, 0.55],
-      "Z": 1
-    },
-    {
-      "Name": "plant6",
-      "Position": [1800, 380],
-      "Scale": [0.5, 0.5],
-      "Color": [150, 150, 170, 255],
-      "ParallaxFactor": [0.55, 0.55],
-      "Z": 0
-    },
-    {
-      "Name": "plant6",
-      "Position": [2200, 380],
-      "Scale": [-0.5, 0.5],
-      "Color": [150, 150, 170, 255],
-      "ParallaxFactor": [0.55, 0.55],
-      "Z": 0
-    },
-    {
-      "Name": "plant5",
-      "Position": [2000, 300],
-      "Scale": [-0.5, 0.5],
-      "Color": [150, 150, 170, 255],
-      "ParallaxFactor": [0.55, 0.55],
-      "Z": 0
-    },
-    {
-      "Name": "plant2",
-      "Position": [2000, 300],
-      "Scale": [0.5, 0.5],
-      "Color": [150, 150, 170, 255],
-      "ParallaxFactor": [0.55, 0.55],
-      "Z": -1
+      "Name": "MossyHills_05.png",
+      "Position": [1700, 780],
+      "Scale": [0.56, 0.56],
+      "Color": [170, 175, 195, 255],
+      "ParallaxFactor": [0.26, 0.22],
+      "Z": -2
     },
     {
       "Name": "MossyHills_03.png",
-      "Position": [2880, 480],
-      "Scale": [0.2, 0.2],
-      "Color": [180, 180, 200, 255],
-      "ParallaxFactor": [0.40, 0.40],
-      "Z": 2
+      "Position": [3100, 880],
+      "Scale": [0.60, 0.60],
+      "Color": [180, 185, 205, 255],
+      "ParallaxFactor": [0.30, 0.24],
+      "Z": -1
     },
     {
       "Name": "MossyHills_01.png",
-      "Position": [2400, 620],
-      "Scale": [0.3, 0.3],
-      "Color": [230, 230, 255, 255],
-      "ParallaxFactor": [0.20, 0.20],
-      "Z": 3
+      "Position": [4700, 820],
+      "Scale": [0.54, 0.54],
+      "Color": [190, 195, 215, 255],
+      "ParallaxFactor": [0.24, 0.20],
+      "Z": -2
+    },
+    {
+      "Name": "MossyHangingPlants_03.png",
+      "Position": [980, 260],
+      "Scale": [0.40, 0.40],
+      "Color": [180, 205, 180, 220],
+      "ParallaxFactor": [0.38, 0.34],
+      "Z": 0
+    },
+    {
+      "Name": "MossyHangingPlants_06.png",
+      "Position": [2480, 240],
+      "Scale": [0.46, 0.46],
+      "Color": [180, 205, 180, 220],
+      "ParallaxFactor": [0.42, 0.36],
+      "Z": 0
     },
     {
       "Name": "MossyDecorationHazard_02.png",
-      "Position": [2400, 922],
-      "Scale": [0.3, 0.3],
+      "Position": [1580, 930],
+      "Scale": [0.34, 0.34],
       "Color": [230, 230, 255, 255],
-      "ParallaxFactor": [0.10, 0.10],
-      "Z": 5
+      "ParallaxFactor": [0.50, 0.50],
+      "Z": 1
+    },
+    {
+      "Name": "MossyDecorationHazard_09.png",
+      "Position": [3560, 930],
+      "Scale": [0.30, 0.30],
+      "Color": [230, 230, 255, 255],
+      "ParallaxFactor": [0.46, 0.46],
+      "Z": 1
+    },
+    {
+      "Name": "plant6",
+      "Position": [560, 985],
+      "Scale": [0.46, 0.46],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.62, 0.62],
+      "Z": 2
+    },
+    {
+      "Name": "plant2",
+      "Position": [1540, 760],
+      "Scale": [0.44, 0.44],
+      "Color": [230, 230, 255, 255],
+      "ParallaxFactor": [0.60, 0.60],
+      "Z": 2
+    },
+    {
+      "Name": "plant5",
+      "Position": [2860, 994],
+      "Scale": [0.52, 0.52],
+      "Color": [230, 230, 255, 255],
+      "ParallaxFactor": [0.68, 0.68],
+      "Z": 2
     },
     {
       "Name": "plant3",
-      "Position": [2222, 922],
-      "Scale": [0.6, 0.6],
+      "Position": [5220, 992],
+      "Scale": [0.48, 0.48],
       "Color": [230, 230, 255, 255],
-      "ParallaxFactor": [0.20, 0.20],
-      "Z": 4
+      "ParallaxFactor": [0.70, 0.70],
+      "Z": 2
     }
   ],
   "Background": [
     {
       "BgName": "Background_39.png",
-      "Position": [960,540],
-      "ParallaxFactor": [0.95, 0.99],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_39.png",
-      "Position": [2880,540],
-      "ParallaxFactor": [0.95, 0.99],
-      "Type": 1
+      "Position": [960, 540],
+      "ParallaxFactor": [0.96, 0.99],
+      "Type": 0
     },
     {
       "BgName": "Background_40.png",
-      "Position": [960,540],
-      "ParallaxFactor": [0.90, 0.98],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_40.png",
-      "Position": [2880,540],
-      "ParallaxFactor": [0.90, 0.98],
-      "Type": 1
+      "Position": [960, 540],
+      "ParallaxFactor": [0.90, 0.97],
+      "Type": 0
     },
     {
       "BgName": "Background_41.png",
-      "Position": [960,540],
-      "ParallaxFactor": [0.80, 0.96],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_41.png",
-      "Position": [2880,540],
-      "ParallaxFactor": [0.80, 0.96],
-      "Type": 1
+      "Position": [960, 540],
+      "ParallaxFactor": [0.80, 0.94],
+      "Type": 0
     },
     {
       "BgName": "Background_42.png",
-      "Position": [960,540],
-      "ParallaxFactor": [0.70, 0.94],
-      "Type": 1
+      "Position": [960, 540],
+      "ParallaxFactor": [0.68, 0.90],
+      "Type": 0
     }
   ],
   "Ground": [
     {
       "GroundName": "TileSetGreen_02.png",
-      "Points": [0, 6100],
+      "Points": [0, 6000],
       "YPos": 1048
     }
   ],
-  "Spawners":[
+  "Spawners": [
     {
       "EnemyName": "SkeletonYellow",
       "EnemyAmount": 100,
       "SpawnCooldown": 7000,
       "EnemyPerSpawn": 10,
-      "SpawnArea": [[200,700],[700,800]]
+      "SpawnArea": [[200, 700], [700, 800]]
     }
   ]
 }

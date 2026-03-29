@@ -20,6 +20,7 @@ private:
     int width, height;
     bool textureReady;
     bool firstFrame;  // Флаг первого кадра
+    int lastColorSwapStep;
     
     void createParticles(int count);
     sf::Color interpolateColor(float t);
@@ -34,4 +35,3 @@ public:
     void setColors(const sf::Color& c1, const sf::Color& c2);
     void setParticleCount(int count);
 };
-

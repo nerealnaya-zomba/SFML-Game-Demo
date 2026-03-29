@@ -41,106 +41,136 @@
   ],
   "Decorations": [
     {
+      "Name": "MossyBackgroundDecoration_02.png",
+      "Position": [2480, 560],
+      "Scale": [0.44, 0.44],
+      "Color": [150, 160, 170, 180],
+      "ParallaxFactor": [0.12, 0.12],
+      "Z": -3
+    },
+    {
+      "Name": "MossyBackgroundDecoration_06.png",
+      "Position": [5660, 520],
+      "Scale": [0.50, 0.50],
+      "Color": [150, 160, 170, 170],
+      "ParallaxFactor": [0.16, 0.14],
+      "Z": -3
+    },
+    {
       "Name": "MossyHills_01.png",
-      "Position": [800, 700],
-      "Scale": [0.4, 0.4],
-      "Color": [220, 220, 240, 255],
-      "ParallaxFactor": [0.20, 0.20],
-      "Z": 3
+      "Position": [700, 860],
+      "Scale": [0.44, 0.44],
+      "Color": [225, 225, 245, 255],
+      "ParallaxFactor": [0.18, 0.18],
+      "Z": -2
     },
     {
       "Name": "MossyHills_03.png",
-      "Position": [1500, 650],
-      "Scale": [0.5, 0.5],
+      "Position": [1760, 820],
+      "Scale": [0.50, 0.50],
       "Color": [210, 210, 230, 255],
-      "ParallaxFactor": [0.25, 0.25],
-      "Z": 3
+      "ParallaxFactor": [0.24, 0.22],
+      "Z": -2
     },
     {
       "Name": "MossyHills_05.png",
-      "Position": [2500, 600],
-      "Scale": [0.6, 0.6],
+      "Position": [3100, 780],
+      "Scale": [0.58, 0.58],
       "Color": [200, 200, 220, 255],
-      "ParallaxFactor": [0.30, 0.30],
-      "Z": 2
+      "ParallaxFactor": [0.30, 0.26],
+      "Z": -1
     },
     {
       "Name": "MossyHills_07.png",
-      "Position": [3500, 550],
-      "Scale": [0.7, 0.7],
+      "Position": [4680, 760],
+      "Scale": [0.64, 0.64],
       "Color": [190, 190, 210, 255],
-      "ParallaxFactor": [0.35, 0.35],
-      "Z": 2
+      "ParallaxFactor": [0.34, 0.30],
+      "Z": -1
     },
     {
-      "Name": "plant6",
-      "Position": [2800, 980],
-      "Scale": [0.3, 0.3],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.60, 0.60],
-      "Z": 0
-    },
-    {
-      "Name": "plant3",
-      "Position": [3200, 970],
-      "Scale": [0.4, 0.4],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.65, 0.65],
-      "Z": 0
+      "Name": "MossyHills_02.png",
+      "Position": [6200, 800],
+      "Scale": [0.48, 0.48],
+      "Color": [215, 215, 235, 255],
+      "ParallaxFactor": [0.22, 0.20],
+      "Z": -2
     },
     {
       "Name": "MossyHangingPlants_03.png",
-      "Position": [500, 400],
-      "Scale": [0.5, 0.5],
-      "Color": [150, 180, 150, 255],
-      "ParallaxFactor": [0.40, 0.40],
-      "Z": 1
+      "Position": [980, 300],
+      "Scale": [0.44, 0.44],
+      "Color": [155, 185, 155, 230],
+      "ParallaxFactor": [0.38, 0.34],
+      "Z": 0
     },
     {
       "Name": "MossyHangingPlants_07.png",
-      "Position": [5500, 350],
-      "Scale": [0.6, 0.6],
-      "Color": [150, 180, 150, 255],
-      "ParallaxFactor": [0.42, 0.42],
+      "Position": [5480, 260],
+      "Scale": [0.54, 0.54],
+      "Color": [155, 185, 155, 230],
+      "ParallaxFactor": [0.42, 0.36],
+      "Z": 0
+    },
+    {
+      "Name": "MossyDecorationHazard_08.png",
+      "Position": [2860, 710],
+      "Scale": [0.30, 0.30],
+      "Color": [220, 220, 240, 255],
+      "ParallaxFactor": [0.48, 0.44],
       "Z": 1
+    },
+    {
+      "Name": "plant6",
+      "Position": [520, 988],
+      "Scale": [0.36, 0.36],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.60, 0.60],
+      "Z": 2
+    },
+    {
+      "Name": "plant3",
+      "Position": [2480, 990],
+      "Scale": [0.42, 0.42],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.64, 0.64],
+      "Z": 2
+    },
+    {
+      "Name": "plant5",
+      "Position": [4100, 992],
+      "Scale": [0.48, 0.48],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.68, 0.68],
+      "Z": 2
+    },
+    {
+      "Name": "plant1",
+      "Position": [6460, 988],
+      "Scale": [0.44, 0.44],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.70, 0.70],
+      "Z": 2
     }
   ],
   "Background": [
     {
       "BgName": "Background_48.png",
       "Position": [960, 540],
-      "ParallaxFactor": [0.95, 0.98],
-      "Type": 1
+      "ParallaxFactor": [0.96, 0.98],
+      "Type": 0
     },
     {
       "BgName": "Background_49.png",
       "Position": [960, 540],
-      "ParallaxFactor": [0.85, 0.94],
-      "Type": 1
+      "ParallaxFactor": [0.86, 0.94],
+      "Type": 0
     },
     {
       "BgName": "Background_50.png",
       "Position": [960, 540],
-      "ParallaxFactor": [0.75, 0.90],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_48.png",
-      "Position": [2880, 540],
-      "ParallaxFactor": [0.95, 0.98],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_49.png",
-      "Position": [2880, 540],
-      "ParallaxFactor": [0.85, 0.94],
-      "Type": 1
-    },
-    {
-      "BgName": "Background_50.png",
-      "Position": [2880, 540],
-      "ParallaxFactor": [0.75, 0.90],
-      "Type": 1
+      "ParallaxFactor": [0.74, 0.88],
+      "Type": 0
     }
   ],
   "Ground": [
@@ -150,7 +180,7 @@
       "YPos": 1048
     }
   ],
-  "Spawners":[
+  "Spawners": [
     {
       "EnemyName": "SkeletonWhite",
       "EnemyAmount": 3,

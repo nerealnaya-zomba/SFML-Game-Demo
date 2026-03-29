@@ -83,8 +83,10 @@ set(SFML_GAME_DEMO_RUNTIME_ASSETS
     images
 )
 
+add_custom_target(sync_runtime_assets ALL DEPENDS main)
+
 foreach(asset_dir IN LISTS SFML_GAME_DEMO_RUNTIME_ASSETS)
-    add_custom_command(TARGET main POST_BUILD
+    add_custom_command(TARGET sync_runtime_assets POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/${asset_dir}"
             "$<TARGET_FILE_DIR:main>/${asset_dir}"

@@ -161,10 +161,10 @@ void Menu::initializeControlsWindow()
 {
     controlsWindow = tgui::ChildWindow::create();
     controlsWindow->setTitle("Controls");
-    controlsWindow->setClientSize({420.f, 260.f});
+    controlsWindow->setClientSize({440.f, 360.f});
     controlsWindow->setPosition({
-        window_m->getSize().x / 2.f - 210.f,
-        window_m->getSize().y / 2.f - 160.f
+        window_m->getSize().x / 2.f - 220.f,
+        window_m->getSize().y / 2.f - 190.f
     });
     controlsWindow->setVisible(false);
 
@@ -181,13 +181,13 @@ void Menu::initializeControlsWindow()
         "Menus\n"
         "Escape - Pause"
     );
-    controlsLabel->setTextSize(20);
+    controlsLabel->setTextSize(18);
     controlsLabel->setPosition({18.f, 16.f});
     controlsWindow->add(controlsLabel);
 
     auto closeButton = tgui::Button::create();
-    closeButton->setSize({380.f, 40.f});
-    closeButton->setPosition({18.f, 200.f});
+    closeButton->setSize({404.f, 40.f});
+    closeButton->setPosition({18.f, 300.f});
     closeButton->setText("Close");
     styleButton(closeButton);
     closeButton->onClick([this]() { controlsWindow->setVisible(false); });

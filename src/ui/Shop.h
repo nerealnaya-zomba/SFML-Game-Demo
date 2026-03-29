@@ -31,7 +31,7 @@ const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_UP            = sf::Keyboard::Scan
 const sf::Keyboard::Scancode SHOP_KEY_TO_OPEN_ITEM_WIDGET   = sf::Keyboard::Scancode::Z;
 const sf::Keyboard::Scancode SHOP_KEY_TO_CLOSE_ITEM_WIDGET  = sf::Keyboard::Scancode::X;
 
-class Shop : InteractiveObject
+class Shop : public InteractiveObject
 {
 private:
     class ItemWidget
@@ -75,8 +75,8 @@ private:
         void setWidgetCenterPosition(sf::Vector2f position);
     };
 private:
-    Player* player;
-    GameData* data;
+    Player* player = nullptr;
+    GameData* data = nullptr;
 
     ItemWidget widget;
 
@@ -98,6 +98,8 @@ private:
     
     // Items init
     void initializeItems();
+    bool hasItems() const;
+    void updateBackgroundLayout(const sf::Vector2f& pos);
     
     // Items aligning
     void alignItemsOnGrid();

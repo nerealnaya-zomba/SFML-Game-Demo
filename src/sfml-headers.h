@@ -16,7 +16,6 @@
 #include<GameData.h>
 #include<Bullet.h>
 #include<GameLoadingScreen.h>
-#include<LoadScreen.h>
 #include<TexturesIterHelper.h>
 #include<Trail.h>
 #include<Skeleton.h>

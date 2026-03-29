@@ -11,7 +11,8 @@ MenuBackground::MenuBackground(int w, int h)
       color1(20, 30, 50),    
       color2(70, 40, 80),    
       textureReady(false),
-      firstFrame(true) {
+      firstFrame(true),
+      lastColorSwapStep(-1) {
     
     // Создаем текстуру
     textureReady = backgroundTexture.resize(sf::Vector2u(width, height));
@@ -110,9 +111,12 @@ void MenuBackground::update(float deltaTime) {
         }
     }
     
-    // Плавная смена цветов
-    if (static_cast<int>(time * 2) % 300 == 0 && !firstFrame) {
+    // Меняем цвета только один раз при переходе к следующему шагу,
+    // чтобы не мигать каждый кадр в течение одного и того же интервала.
+    const int colorSwapStep = static_cast<int>(time * 2.f);
+    if (!firstFrame && colorSwapStep > 0 && colorSwapStep % 300 == 0 && colorSwapStep != lastColorSwapStep) {
         std::swap(color1, color2);
+        lastColorSwapStep = colorSwapStep;
     }
 }
 

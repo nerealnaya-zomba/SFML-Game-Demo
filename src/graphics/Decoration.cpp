@@ -234,25 +234,17 @@ void Decoration::applyParalaxes(
         const std::pair<sf::Vector2f, sf::Vector2f>& vectorPair ,   // for std::pair : first - parallaxFactor, second - baseObjectPos  
         const std::unique_ptr<sf::Sprite>& sprite                   // second arg. in std::unordered_map
 ) {
-    sf::Vector2f baseObjectPos = vectorPair.second;
-    sf::Vector2f parallaxFactor = vectorPair.first;
-    
-    // Добавляем статическую переменную для хранения начальной позиции камеры
-    static sf::Vector2f initialCameraPos = camera->getCameraCenterPos();
-    sf::Vector2f currentCameraPos = camera->getCameraCenterPos();
-    
-    // Вычисляем смещение камеры от её начальной позиции
-    sf::Vector2f cameraOffset = currentCameraPos - initialCameraPos;
+    const sf::Vector2f baseObjectPos = vectorPair.second;
+    const sf::Vector2f parallaxFactor = vectorPair.first;
+    const sf::Vector2f cameraOffset = camera->getCameraCenterPos() - BASE_CAMERAPOS;
 
-    sf::Vector2f difference = baseObjectPos - camera->getCameraCenterPos();
-    
-    if (sprite.get()) {
+    if (sprite.get())
+    {
         sprite.get()->setPosition({
             baseObjectPos.x + cameraOffset.x * parallaxFactor.x,
             baseObjectPos.y + cameraOffset.y * parallaxFactor.y
         });
     }
-    
 }
 
 void Decoration::initDecoration(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color,
@@ -264,15 +256,8 @@ void Decoration::initDecoration(sf::Vector2f position, sf::Vector2f scale, sf::V
         sprite->setPosition(position);
         sprite->setScale(scale);
         sprite->setColor(color);
-
-        sf::Vector2f difference = position - camera->getCameraCenter();
-        sf::Vector2f calculatedWithParallaxPos =    // NOTE Работает несовсем правильно. Наверное стоит дописать формулу.
-            {
-                position.x - parallaxFactor.x,
-                position.y - parallaxFactor.y
-            };
         all_Z.insert(z);
-        sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,calculatedWithParallaxPos),z),std::move(sprite));
+        sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
 }
 
 void Decoration::initDecoration(std::string& name, sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color, std::unordered_multimap<Vector2fPairWithZ, std::unique_ptr<sf::Sprite>, Vector2fPairWithZHash, Vector2fPairWithZEqual> &sprites, std::map<std::string, sf::Texture> *textures)
