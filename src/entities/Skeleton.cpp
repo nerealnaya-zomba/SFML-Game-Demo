@@ -249,8 +249,7 @@ void Skeleton::applyFriction(float &walkSpeed, float friction) {
 
 // ========== ЗАГРУЗКА ДАННЫХ ==========
 void Skeleton::loadData() {
-    std::ifstream in("data/enemySettings.json");
-    nlohmann::json j = nlohmann::json::parse(in);
+    const nlohmann::json& j = gameData->getEnemySettings();
     
     enemyScale_ = sf::Vector2f(j["general"]["scaleX"], j["general"]["scaleY"]);
     distanceToMakeAttack = j["general"]["distanceToMakeAttack"];
@@ -284,9 +283,10 @@ Skeleton::Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, 
     this->ground_ = &ground;
     this->platform_ = &platform;
     this->player_ = &player;
+    this->gameData = &gameData;
     this->type_ = type;
     this->enemyPos = pos;
-    this->portal = new enemyPortal(gameData,pos);
+    this->portal = std::make_unique<enemyPortal>(gameData,pos);
     this->gameLevel = &gl;
     
     loadData();
@@ -308,7 +308,7 @@ Skeleton::Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, 
         attachTexture(gameData.skeletonWhite_attack2Textures, skeleton_attack2Textures, 
                      gameData.skeletonWhite_attack2_helper, skeleton_attack2_helper);
         
-        skeletonSprite = new sf::Sprite(skeleton_idleTextures->at(0));
+        skeletonSprite = std::make_unique<sf::Sprite>(skeleton_idleTextures->at(0));
     } else if (type == "yellow") {
         attachTexture(gameData.skeletonYellow_idleTextures, skeleton_idleTextures, 
                      gameData.skeletonYellow_idle_helper, skeleton_idle_helper);
@@ -323,7 +323,7 @@ Skeleton::Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, 
         attachTexture(gameData.skeletonYellow_attack2Textures, skeleton_attack2Textures, 
                      gameData.skeletonYellow_attack2_helper, skeleton_attack2_helper);
         
-        skeletonSprite = new sf::Sprite(skeleton_idleTextures->at(0));
+        skeletonSprite = std::make_unique<sf::Sprite>(skeleton_idleTextures->at(0));
     }
     
     // Инициализация спрайта
@@ -331,7 +331,7 @@ Skeleton::Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, 
     setSpriteOriginToMiddle(*skeletonSprite);
 
     // Инициализация хитбокса
-    skeletonRect = new sf::RectangleShape();
+    skeletonRect = std::make_unique<sf::RectangleShape>();
     float sizeX = 23.f * enemyScale_.x;
     float sizeY = 47.f * enemyScale_.y; 
     skeletonRect->setSize({sizeX, sizeY});
@@ -343,15 +343,12 @@ Skeleton::Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, 
     portal->setPosition(rectCenter);
 
     // Полоска здоровья
-    healthbar = new HealthBar(skeletonRect, window, sf::Color::Red, sf::Color::Green, 
-                             {50.f, 5.f}, HP_, {0.f, -50.f});
+    healthbar = std::make_unique<HealthBar>(skeletonRect.get(), window, sf::Color::Red, sf::Color::Green,
+                             sf::Vector2f{50.f, 5.f}, HP_, sf::Vector2f{0.f, -50.f});
 }
 
 // ========== ДЕСТРУКТОР ==========
-Skeleton::~Skeleton() {
-    delete skeletonSprite;
-    delete skeletonRect;
-}
+Skeleton::~Skeleton() = default;
 
 // ========== ОБНОВЛЕНИЕ ИИ ==========
 void Skeleton::updateAI() {
@@ -518,7 +515,7 @@ void Skeleton::updateTextures() {
     // Анимация получения урона
     if (isPlayingHurtAnimation && HP_ > 0) {
         pulseSprite(*skeletonSprite, sf::Color(255, 0, 0, 255), 1.f, sf::seconds(0.2f));
-        if (!switchToNextSprite(skeletonSprite, *skeleton_hurtTextures, 
+        if (!switchToNextSprite(skeletonSprite.get(), *skeleton_hurtTextures, 
             skeleton_hurt_helper, switchSprite_SwitchOption::Single)) {
             isPlayingHurtAnimation = false;
             skeletonSprite->setColor({255, 255, 255, 255});
@@ -533,7 +530,7 @@ void Skeleton::updateTextures() {
     // Анимация смерти
     if (isPlayingDieAnimation) {   
         skeletonSprite->setColor(sf::Color::Red);
-        if (!switchToNextSprite(skeletonSprite, *skeleton_dieTextures, 
+        if (!switchToNextSprite(skeletonSprite.get(), *skeleton_dieTextures, 
             skeleton_die_helper, switchSprite_SwitchOption::Single)) {
             isPlayingDieAnimation = false;
             isAlive = false;
@@ -556,7 +553,7 @@ void Skeleton::updateTextures() {
         } 
 
         if (action_ == ATTACK1) {
-            attackFinished = !switchToNextSprite(skeletonSprite, *skeleton_attack1Textures,
+            attackFinished = !switchToNextSprite(skeletonSprite.get(), *skeleton_attack1Textures,
                             skeleton_attack1_helper, switchSprite_SwitchOption::Single);
             
             // Нанесение урона в середине анимации
@@ -564,7 +561,7 @@ void Skeleton::updateTextures() {
                 tryAttackPlayer();
             }
         } else { 
-            attackFinished = !switchToNextSprite(skeletonSprite, *skeleton_attack2Textures,
+            attackFinished = !switchToNextSprite(skeletonSprite.get(), *skeleton_attack2Textures,
                             skeleton_attack2_helper, switchSprite_SwitchOption::Single);
             
             // Нанесение урона в середине анимации
@@ -589,19 +586,19 @@ void Skeleton::updateTextures() {
     // Обычные анимации
     switch (action_) {
         case IDLE:
-            switchToNextSprite(skeletonSprite, *skeleton_idleTextures, 
+            switchToNextSprite(skeletonSprite.get(), *skeleton_idleTextures, 
                             skeleton_idle_helper, switchSprite_SwitchOption::Loop);
             break;
 
         case WALKRIGHT:
             skeletonSprite->setScale({enemyScale_.x, enemyScale_.y});
-            switchToNextSprite(skeletonSprite, *skeleton_walkTextures,     
+            switchToNextSprite(skeletonSprite.get(), *skeleton_walkTextures,     
                             skeleton_walk_helper, switchSprite_SwitchOption::Loop);   
             break;
 
         case WALKLEFT:
             skeletonSprite->setScale({-enemyScale_.x, enemyScale_.y});
-            switchToNextSprite(skeletonSprite, *skeleton_walkTextures,
+            switchToNextSprite(skeletonSprite.get(), *skeleton_walkTextures,
                             skeleton_walk_helper, switchSprite_SwitchOption::Loop);
             break;
     }

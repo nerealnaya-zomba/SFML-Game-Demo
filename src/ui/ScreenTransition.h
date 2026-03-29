@@ -18,7 +18,7 @@ private:
     
     // Дополнительные эффекты для красоты
     sf::CircleShape vignette;
-    sf::Shader* shader;
+    std::unique_ptr<sf::Shader> shader;
     bool useShader;
 
 public:

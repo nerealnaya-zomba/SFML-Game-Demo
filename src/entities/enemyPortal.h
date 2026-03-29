@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <Mounting.h>
 #include<GameData.h>
+#include <memory>
 
 const sf::Vector2f PORTAL_OPENED_SCALE = {3.f,3.f};
 const sf::Vector2f PORTAL_START_SCALE = {0.f,0.f};
@@ -27,7 +28,7 @@ private:
 
     sf::Clock portalClock;              // Считает время сколько портал существует
     
-    sf::Sprite* portalSprite;
+    std::unique_ptr<sf::Sprite> portalSprite;
     texturesIterHelper portalHelper;
 
     void sizeUp();                      

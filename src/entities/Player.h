@@ -108,7 +108,6 @@ public:
     
     // Game objects
     sf::RectangleShape* playerRectangle_;   // Collision rectangle
-    Bullet* playerBullet_;                  // Bullet template
     std::list<std::shared_ptr<Bullet>> bullets; // Active bullets
 
     std::vector<sf::Texture>* satiro_dieTextures;
@@ -168,7 +167,6 @@ public:
     void updateEnergy();                                                              // Update particle effects
     
         // Rendering methods
-    void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
     void updateTextures();                          // Update sprite animations
     void drawBullets(sf::RenderWindow& window);     // Draw all bullets
     void draw(sf::RenderWindow& window);            // Draw player

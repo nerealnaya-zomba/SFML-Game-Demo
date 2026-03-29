@@ -269,11 +269,6 @@ void Player::portalUpdate()
         portalCooldownClock.stop();
     }
 
-    if(portalCallOpenCooldownClock.isRunning())
-    {
-        std::cout << "Current cooldown: " << portalCallOpenCooldownClock.getElapsedTime().asMilliseconds() <<"\n";
-    }
-
     //Closing portal
     if(portal->getIsOpened() && !portal->getIsCalledForClose() && !portalCallCloseCooldownClock.isRunning())
     {
@@ -394,7 +389,7 @@ void Player::applyFriction(float &walkSpeed, float friction)
 
 void Player::saveData()
 {
-    std::ifstream f("GameData.json");
+    std::ifstream f("data/GameData.json");
     nlohmann::json data = nlohmann::json::parse(f);
 
 
@@ -403,7 +398,7 @@ void Player::saveData()
 
 void Player::loadData()
 {
-    std::fstream f("PlayerConfig.json");
+    std::fstream f("data/PlayerConfig.json");
     nlohmann::json data = nlohmann::json::parse(f);
     //Player
     this->HP_ = data["Player"]["HP"];
@@ -537,8 +532,6 @@ void Player::updateEnergy()
     if(energy>=maxEnergy) return;
     energy+=energyGain;
     if(energy>maxEnergy) energy=maxEnergy;
-    std::cout << "Energy: " << energy << " / " << maxEnergy << std::endl;
-
 }
 
 void Player::walkLeft()
@@ -567,7 +560,6 @@ void Player::jump()
 {
     if(!this->isAlive || isPlayingDieAnimation || isPlayingDashAnimation) return;       //Locking movement on Die, Dash
 
-    std::cout << "Jump" << std::endl;
     playerRectangle_->setPosition({playerRectangle_->getPosition().x,playerRectangle_->getPosition().y-1.f});
     fallingSpeed = -5.5f;
 }
@@ -599,7 +591,6 @@ void Player::dash()
         } else{
             initialWalkSpeed = -dashForce;
         }
-        std::cout << "Dash: "<< std::endl; // REMOVELATER Player dashed debug
     }
 }
 
@@ -708,7 +699,6 @@ bool Player::takeDMG(int count, sf::Vector2f knockback, bool side)
         //Cooldown
         takeDMG_isOnCooldown = true;
         takeDMG_timer.restart();
-        std::cout << "Player hitted. HP: " << this->HP_ << std::endl; // REMOVELATER Player hitted debug
         return true;
     }
     return false;
@@ -755,7 +745,6 @@ void Player::updateControls()
     // Shooting (X key)
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && canShoot)
     {
-        std::cout << "Shoot" << std::endl;
         if(shoot(getSpriteScale().x > 0))
         {
             canShoot = false;
@@ -777,7 +766,6 @@ void Player::updateControls()
     // Dash (C key)
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C) && canDash)
     {
-        std::cout << "Dash" << std::endl;
         dash();
         canDash = false;
         dashTimer.restart();
@@ -857,25 +845,6 @@ void Player::updatePhysics()
     else if(playerRectangle_->getPosition().x<=0)
     {
         playerRectangle_->setPosition({0.f,playerRectangle_->getPosition().y});
-    }
-}
-
-void Player::initTextures(std::vector<sf::Texture> &textures, std::vector<std::string> paths)
-{
-    for (size_t i = 0; i < paths.size(); i++)
-    {
-        sf::Texture* texture = new sf::Texture();
-        if(!texture->loadFromFile(paths[i]))
-        {
-            std::cout << "Error loading texture: " << paths[i] << std::endl;
-        }
-        else
-        {
-            std::cout << "Texture loaded: " << paths[i] << std::endl;
-        }
-        textures.push_back(*texture);
-        
-        
     }
 }
 

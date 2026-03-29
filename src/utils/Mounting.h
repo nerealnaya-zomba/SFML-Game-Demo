@@ -12,6 +12,20 @@
 #include<limits>
 #include<cmath>
 
+#ifndef GAME_VERBOSE_LOGS
+#define GAME_VERBOSE_LOGS 0
+#endif
+
+template <typename... Args>
+static void debugLog(Args&&... args)
+{
+#if GAME_VERBOSE_LOGS
+    (std::cout << ... << args) << std::endl;
+#else
+    (void)sizeof...(args);
+#endif
+}
+
 static void setRectangleOriginToMiddle(sf::RectangleShape& rect)
 {
     rect.setOrigin({rect.getSize().x/2,rect.getSize().y/2});
@@ -28,23 +42,21 @@ static void setTextOriginToMiddle(sf::Text& text)
 static bool initTextures(std::vector<sf::Texture> &textures, std::string path, 
                          int texturesCount, int maxDigits = 5, int startCounter = 0)
 {
-    // Очищаем вектор на случай повторного использования
     textures.clear();
-    
-    std::string basePath = path;
-    
+    textures.reserve(static_cast<size_t>(texturesCount));
+
     for (int counter = startCounter; counter < startCounter + texturesCount; counter++) {
         std::ostringstream filename;
-        filename << basePath 
+        filename << path
                  << std::setw(maxDigits) << std::setfill('0') << counter 
                  << ".png";
 
-        sf::Texture texture;
-        if (!texture.loadFromFile(filename.str())) {
+        textures.emplace_back();
+        if (!textures.back().loadFromFile(filename.str())) {
+            textures.pop_back();
             std::cerr << "Failed to load image: " << filename.str() << std::endl;
             return false;
         }
-        textures.push_back(texture);
     }
     
     return true;
@@ -53,25 +65,24 @@ static bool initTextures(std::vector<sf::Texture> &textures, std::string path,
 static bool initTextures(std::map<std::string,sf::Texture> &textures, std::string path, 
                          int texturesCount, int maxDigits = 5, int startCounter = 0, bool clearOnReuse = true)
 {
-    // Очищаем вектор на случай повторного использования
     if(clearOnReuse) textures.clear();
-    
-    std::string basePath = path;
-    
+
     for (int counter = startCounter; counter < startCounter + texturesCount; counter++) {
         std::ostringstream filename;
-        filename << basePath 
+        filename << path
                  << std::setw(maxDigits) << std::setfill('0') << counter 
                  << ".png";
 
-        sf::Texture texture;
-        if (!texture.loadFromFile(filename.str())) {
+        std::string only_filename = filename.str().substr(filename.str().find_last_of("/\\") + 1);
+        auto [it, inserted] = textures.try_emplace(only_filename);
+        if (!it->second.loadFromFile(filename.str())) {
+            if (inserted) {
+                textures.erase(it);
+            }
             std::cerr << "Failed to load image: " << filename.str() << std::endl;
             exit(1);
             return false;
         }
-        std::string only_filename = filename.str().substr(filename.str().find_last_of("/\\") + 1);
-        textures.emplace(only_filename,texture);
     }
     
     return true;
@@ -208,10 +219,10 @@ static TextureSequenceInfo analyzeTextureSequence(std::string path)
             info.count = count;
             
             // Отладочный вывод
-            std::cout << "Found pattern for " << basePath 
-                      << ": digits=" << digits 
-                      << ", start=" << start 
-                      << ", count=" << count << std::endl;
+            debugLog("Found pattern for ", basePath,
+                     ": digits=", digits,
+                     ", start=", start,
+                     ", count=", count);
             return info;
         }
     }
@@ -339,13 +350,13 @@ static void substractUnsigned(unsigned int &first, unsigned int second)
     if (second>first) {
         first = 0;
     }else
-        first-second;
+        first -= second;
 }
 static void substractUnsigned(uint8_t &first, int second)
 {
     if (second>first) {
         first = 0;
-    }else first-second;
+    }else first = static_cast<uint8_t>(first - second);
 }
 static bool isEqualFloat(float a, float b, float epsilon = 0.0001f)
 {

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 
 // Central resource manager for textures and game data
 ////////////////////////////////////////////////////// NOTE Гайд по загрузке текстур
@@ -144,6 +145,8 @@ public:
     // GUI textures
     std::map<std::string,sf::Texture> guiTextures;
 
+    const nlohmann::json& getEnemySettings() const;
+
 private:
     // Texture loading and processing
     int standartIterationsTillSwitch = 7;
@@ -158,11 +161,13 @@ private:
     // Loading system variables
     int succesedOperationsCount_m{};    // Tracks completed loading operations
     int allOperations_count_m{};        // Total operations from launchSettings.json
-    LoadingScreen* loadingScreen_m;     // Loading screen display
+    std::unique_ptr<LoadingScreen> loadingScreen_m;     // Loading screen display
+    nlohmann::json enemySettings_m{};
 
     // Data persistence
     void saveOperationsData();
     void loadData();
+    void loadEnemySettings();
 
     // Texture file paths
     

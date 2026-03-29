@@ -82,6 +82,12 @@ void ChooseDestinationMenu::open()
 	{
 		level.leveldestination.isSelected = false;
 	}
+
+	if (levels.empty())
+	{
+		levelIt = levels.end();
+		return;
+	}
 	
 	levelIt = levels.begin();
 	levelIt->leveldestination.isSelected = true;
@@ -110,6 +116,7 @@ void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, sf::Texture
 	l.leveldestination.level     = &level;
 	l.leveldestination.isOpened  = false ;
 	l.leveldestination.isVisible = true  ;
+	applyIconScale(l.icon);
 
 	mountSelectionRect(l.selectionRect,l.icon);
 	mountCurrentLevelMarkRect(l.currentLevelMarkRect,l.icon);
@@ -129,6 +136,7 @@ void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, const sf::T
 	l.leveldestination.level     = &level;
 	l.leveldestination.isOpened  = false ;
 	l.leveldestination.isVisible = true  ;
+	applyIconScale(l.icon);
 
 	mountSelectionRect(l.selectionRect,l.icon);
 	mountCurrentLevelMarkRect(l.currentLevelMarkRect,l.icon);
@@ -172,7 +180,7 @@ void ChooseDestinationMenu::draw(sf::RenderWindow& w){
 	if(!isOpened) return;
 
 	drawLevelDestinations(w);
-	w.draw(displayingLevelName);
+	drawLevelDestinationsText(w);
 
 }
 
@@ -204,6 +212,12 @@ void ChooseDestinationMenu::LevelDestinationRect::draw(sf::RenderWindow& w){
 
 void ChooseDestinationMenu::currentSelectedElementToDesiredDestination()
 {
+	if (levels.empty() || levelIt == levels.end())
+	{
+		desiredDestination = std::nullopt;
+		return;
+	}
+
 	this->desiredDestination = std::make_optional<std::string>( levelIt->leveldestination.level->levelName);
 	// Setting isChoosed=false to all levels
 	for (auto &&level : levels)
@@ -251,6 +265,17 @@ void ChooseDestinationMenu::mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf
 void ChooseDestinationMenu::setDisplayingLevelNameString(std::string str)
 {
 	displayingLevelName.setString(str);
+	displayingLevelName.setOrigin(displayingLevelName.getGlobalBounds().getCenter());
+}
+
+void ChooseDestinationMenu::applyIconScale(sf::Sprite& icon)
+{
+	sf::Vector2f iconSize = static_cast<sf::Vector2f>(icon.getTexture().getSize());
+	sf::Vector2f scale = {
+		BASE_DESTINATION_ICON_SIZE.x / iconSize.x,
+		BASE_DESTINATION_ICON_SIZE.y / iconSize.y
+	};
+	icon.setScale(scale);
 }
 
 void ChooseDestinationMenu::initializeIsChoosed()
@@ -271,6 +296,8 @@ void ChooseDestinationMenu::initializeIsChoosed()
 
 void ChooseDestinationMenu::moveLevelItLeft()
 {
+	if (levels.empty() || levelIt == levels.end()) return;
+
 	levelIt->leveldestination.isSelected = false;
 	if(levelIt==levels.begin())
 	{
@@ -290,6 +317,8 @@ void ChooseDestinationMenu::moveLevelItLeft()
 
 void ChooseDestinationMenu::moveLevelItRight()
 {
+	if (levels.empty() || levelIt == levels.end()) return;
+
 	levelIt->leveldestination.isSelected = false;
 	if(levelIt == levels.end()-1)
 	{
@@ -362,18 +391,7 @@ void ChooseDestinationMenu::positioningLevelDestinationsBackground()
 void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 {
     if (levels.empty()) return;
-    
-    // 1. Сначала масштабируем все иконки под единый размер
-    for (auto& level : levels) {
-        sf::Vector2f iconSize = static_cast<sf::Vector2f>(level.icon.getTexture().getSize());
-        sf::Vector2f scale = {
-            BASE_DESTINATION_ICON_SIZE.x / iconSize.x,
-            BASE_DESTINATION_ICON_SIZE.y / iconSize.y
-        };
-        level.icon.setScale(scale);
-    }
-    
-    // 2. Теперь позиционируем иконки
+
     float iconWidth = BASE_DESTINATION_ICON_SIZE.x;
     float iconHeight = BASE_DESTINATION_ICON_SIZE.y;
     float marginX = static_cast<float>(BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN.x);
@@ -402,8 +420,8 @@ void ChooseDestinationMenu::positioningLevelDestinationsText()
 	displayingLevelName.setPosition
 	(
 	{
-		this->camera->getCameraCenterPos().x,
-		this->camera->getCameraCenterPos().y-300.f	// FIXME Магическое число. Поменять на const в .h файле. 300.f - оффсет от центра экрана
+			this->camera->getCameraCenterPos().x,
+			this->camera->getCameraCenterPos().y-BASE_DESTINATION_NAME_OFFSET_Y
 	}
 	);
 }
@@ -412,20 +430,14 @@ void ChooseDestinationMenu::checkWherePlayer()
 {
 	std::string currentLevelName = getCurrentLevelName();
 
-	// Setting false for all levels
 	for (auto &&level : levels)
 	{
-		level.leveldestination.isPlayerThere = false;
+		level.leveldestination.isPlayerThere =
+			(level.leveldestination.level->levelName == currentLevelName);
 	}
-	
-	// Find first level that matches level name, and set its  isPlayerThere  to  true
-	for (auto &&level : levels)
-	{
-		if(level.leveldestination.level->levelName == currentLevelName)
-		{
-			level.leveldestination.isPlayerThere = true;
-			return;
-		}
-	}
+}
 
+void ChooseDestinationMenu::drawLevelDestinationsText(sf::RenderWindow& window)
+{
+	window.draw(displayingLevelName);
 }

@@ -9,6 +9,7 @@
 #include <HealthBar.h>
 #include <math.h>
 #include <enemyPortal.h>
+#include <memory>
 
 class GameLevel;
 
@@ -31,13 +32,14 @@ private:
     Platform* platform_;  
     Player* player_;
     GameLevel* gameLevel;
+    GameData* gameData;
 
     // Портал
-    enemyPortal* portal;
+    std::unique_ptr<enemyPortal> portal;
 
     // Основные свойства
     std::string type_;              // "white" или "yellow"
-    HealthBar* healthbar;
+    std::unique_ptr<HealthBar> healthbar;
     
     // Флаги состояний
     bool isIdle = true;
@@ -64,8 +66,8 @@ private:
 
     // Графика
     sf::Vector2f enemyScale_;
-    sf::Sprite* skeletonSprite;
-    sf::RectangleShape* skeletonRect;
+    std::unique_ptr<sf::Sprite> skeletonSprite;
+    std::unique_ptr<sf::RectangleShape> skeletonRect;
 
     // Текстуры белого скелета
     std::vector<sf::Texture>* skeleton_idleTextures;

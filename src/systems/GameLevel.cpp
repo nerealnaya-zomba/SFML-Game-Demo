@@ -1,208 +1,290 @@
 #include "Defines.h"
 #include "Mounting.h"
 #include "nlohmann/json_fwd.hpp"
-#include<GameLevel.h>
+#include <GameLevel.h>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <TGUI/AllWidgets.hpp>
+#include <TGUI/Backend/Font/SFML-Graphics/BackendFontSFML.hpp>
+#include <TGUI/Backend/SFML-Graphics.hpp>
+#include <TGUI/TGUI.hpp>
 #include <cstdlib>
 #include <exception>
-#include <TGUI/TGUI.hpp>
-#include <TGUI/Backend/SFML-Graphics.hpp>
-#include <TGUI/Backend/Font/SFML-Graphics/BackendFontSFML.hpp>
-#include <TGUI/AllWidgets.hpp>
+#include <filesystem>
+#include <stdexcept>
 #include <string>
-#include "TGUI/Widgets/Button.hpp"
-#include "TGUI/Widgets/Label.hpp"
 
-
-void GameLevelManager::initializeLevels(const std::string levelsFolder)
+void GameLevelManager::initializeLevels(const std::string& levelsFolder)
 {
-    std::filesystem::path p(levelsFolder);
-    
-    //Проходимся по всем файлам директории
-    for (auto const &dir_entry : std::filesystem::directory_iterator{p})
-    {
-        std::string onlyFileName = dir_entry.path().filename().u8string();
-        std::string fileNamePath = dir_entry.path().u8string();
+    const std::filesystem::path levelsPath(levelsFolder);
 
-        // Вставляем в хранилище
+    for (const auto& dirEntry : std::filesystem::directory_iterator{levelsPath})
+    {
+        const std::string onlyFileName = dirEntry.path().filename().u8string();
+
         levels.emplace(
-            // Имя файла
-        onlyFileName, 
-            // Помещаем shared_ptr<GameLevel> в хранилище
-        std::make_shared<GameLevel>(
-            *this->data,
-            *this->player,
-            *this->camera,
-            *this,
-            *this->window, 
-            onlyFileName
-        ));
+            onlyFileName,
+            std::make_shared<GameLevel>(
+                *data,
+                *camera,
+                *this,
+                *window,
+                onlyFileName
+            )
+        );
     }
 }
 
-GameLevelManager::GameLevelManager(GameData &d, GameCamera& c,sf::RenderWindow& w, const std::string& lF)
-    : data(&d), camera(&c), window(&w), levelsFolder(lF)
+GameLevelManager::GameLevelManager(GameData& d, GameCamera& c, sf::RenderWindow& w, const std::string& lF)
+    : data(&d)
+    , camera(&c)
+    , window(&w)
+    , levelsFolder(lF)
 {
-    initializeLevels(levelsFolder);     // Инициализирует все уровни
-    
-    levelIt = levels.find("level1.json");  
+    initializeLevels(levelsFolder);
+
+    levelIt = levels.find("level1.json");
+    if (levelIt == levels.end())
+    {
+        levelIt = levels.begin();
+    }
 }
 
-GameLevelManager::~GameLevelManager()
-{
-}
+GameLevelManager::~GameLevelManager() = default;
 
 void GameLevelManager::setPlayerPositionToBase()
 {
+    if (!player || levels.empty() || levelIt == levels.end())
+    {
+        return;
+    }
+
     player->setPosition(levelIt->second->getPlayerSpawnPos());
 }
 
 bool GameLevelManager::goToLevel(std::optional<std::string> levelName)
 {
-    if(levels.empty())
+    if (levels.empty() || !levelName.has_value())
     {
-        std::cerr << "LevelManager does not consist any level" << std::endl;
-        exit(1);
+        return false;
     }
-    
-    if( levelName.has_value() && levels.find(levelName.value()) != levels.end() )
+
+    auto nextLevelIt = levels.find(*levelName);
+    if (nextLevelIt == levels.end())
     {
-        levelIt->second->saveLevelData(); // Сохранить прошлый уровень перед переходом
-        
+        return false;
+    }
+
+    if (levelIt != levels.end())
+    {
+        levelIt->second->saveLevelData();
         levelIt->second->clearLevel();
-
-        levelIt = levels.find(levelName.value());      
-    
-        levelIt->second->loadLevelData(levelName.value()); // Загрузить следующий уровень после перехода
-
-        player->setPosition(levelIt->second->getPlayerSpawnPos());
-        camera->setCenterPosition(levelIt->second->getPlayerSpawnPos());
-
-        return true;
     }
-    
-    return false;
+
+    levelIt = nextLevelIt;
+    levelIt->second->loadLevelData(*levelName);
+
+    if (player)
+    {
+        const sf::Vector2f spawnPos = levelIt->second->getPlayerSpawnPos();
+        player->setPosition(spawnPos);
+        camera->setCenterPosition(spawnPos);
+    }
+
+    return true;
+}
+
+bool GameLevelManager::restartCurrentLevel()
+{
+    if (levels.empty() || levelIt == levels.end())
+    {
+        return false;
+    }
+
+    const std::string currentLevelName = levelIt->first;
+    levelIt->second->clearLevel();
+    levelIt->second->loadLevelData(currentLevelName);
+
+    if (player)
+    {
+        const sf::Vector2f spawnPos = levelIt->second->getPlayerSpawnPos();
+        player->setPosition(spawnPos);
+        camera->setCenterPosition(spawnPos);
+    }
+
+    return true;
 }
 
 void GameLevelManager::update()
 {
-    if(levels.empty()) return;
+    if (levels.empty() || levelIt == levels.end())
+    {
+        return;
+    }
 
     levelIt->second->update();
 }
 
 void GameLevelManager::updatePlatforms()
 {
-    levelIt->second->updatePlatforms();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->updatePlatforms();
+    }
 }
 
 void GameLevelManager::updateDecorations()
 {
-    levelIt->second->updateDecorations();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->updateDecorations();
+    }
 }
 
 void GameLevelManager::updateBackgrounds()
 {
-    levelIt->second->updateBackgrounds();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->updateBackgrounds();
+    }
 }
 
 void GameLevelManager::updateGrounds()
 {
-    levelIt->second->updateGrounds();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->updateGrounds();
+    }
 }
 
 void GameLevelManager::updateEnemyManager()
 {
-    levelIt->second->updateEnemyManager();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->updateEnemyManager();
+    }
 }
 
 void GameLevelManager::draw()
 {
-    if(levels.empty()) return;
+    if (levels.empty() || levelIt == levels.end())
+    {
+        return;
+    }
 
     levelIt->second->draw();
 }
 
 void GameLevelManager::drawPlatforms()
 {
-    levelIt->second->drawPlatforms();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->drawPlatforms();
+    }
 }
 
 void GameLevelManager::drawDecorations()
 {
-    levelIt->second->drawDecorations();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->drawDecorations();
+    }
 }
 
 void GameLevelManager::drawBackgrounds()
 {
-    levelIt->second->drawBackgrounds();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->drawBackgrounds();
+    }
 }
 
 void GameLevelManager::drawGrounds()
 {
-    levelIt->second->drawGrounds();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->drawGrounds();
+    }
 }
 
 void GameLevelManager::drawEnemyManager()
 {
-    levelIt->second->drawEnemyManager();
+    if (levelIt != levels.end())
+    {
+        levelIt->second->drawEnemyManager();
+    }
 }
 
 sf::Vector2i GameLevelManager::getCurrentLevelSize() const
-{   
-    return levelIt->second->getLevelSize();
+{
+    return levelIt != levels.end() ? levelIt->second->getLevelSize() : sf::Vector2i{};
 }
 
 std::string GameLevelManager::getCurrentLevelName() const
 {
-    return levelIt->second->levelName;
+    return levelIt != levels.end() ? levelIt->second->levelName : std::string{};
 }
 
-std::vector<std::shared_ptr<sf::RectangleShape>> &GameLevelManager::getPlatformRects()
+std::vector<std::string> GameLevelManager::getLevelNames() const
 {
-    if(levelIt->second == nullptr){
-        std::cerr << "Level doesn't exist\n";
-        exit(1);
+    std::vector<std::string> levelNames;
+    levelNames.reserve(levels.size());
+
+    for (const auto& [levelName, _] : levels)
+    {
+        levelNames.push_back(levelName);
     }
+
+    return levelNames;
+}
+
+std::vector<std::shared_ptr<sf::RectangleShape>>& GameLevelManager::getPlatformRects()
+{
+    if (levelIt == levels.end() || !levelIt->second)
+    {
+        throw std::runtime_error("Current level does not exist");
+    }
+
     return levelIt->second->getPlatformRects();
 }
 
-sf::RectangleShape &GameLevelManager::getGroundRect()
+sf::RectangleShape& GameLevelManager::getGroundRect()
 {
     return levelIt->second->getGroundRect();
 }
 
-const std::map<std::string, std::shared_ptr<GameLevel>> &GameLevelManager::getLevelsMap() const
+const std::map<std::string, std::shared_ptr<GameLevel>>& GameLevelManager::getLevelsMap() const
 {
-    return this->levels;
+    return levels;
 }
 
-std::map<std::string, std::shared_ptr<GameLevel>>::iterator &GameLevelManager::getIteratorReference()
+std::map<std::string, std::shared_ptr<GameLevel>>::iterator& GameLevelManager::getIteratorReference()
 {
-    return this->levelIt;
+    return levelIt;
 }
 
 void GameLevelManager::attachPlayer(Player& p)
 {
-    this->player = &p;
-    for (auto &&level : levels)
+    player = &p;
+
+    for (auto& [_, level] : levels)
     {
-        level.second->attachPlayer(p);
+        level->attachPlayer(p);
     }
 }
 
-GameLevel::GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath)
-    : data(&d), player(&p), camera(&c), levelManager(&m), window(&w)
+GameLevel::GameLevel(GameData& d, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath)
+    : data(&d)
+    , camera(&c)
+    , levelManager(&m)
+    , window(&w)
 {
     loadLevelData(fileNamePath);
 }
 
-GameLevel::~GameLevel()
-{
-}
+GameLevel::~GameLevel() = default;
 
 void GameLevel::updatePlatforms()
 {
@@ -210,12 +292,15 @@ void GameLevel::updatePlatforms()
 
 void GameLevel::updateDecorations()
 {
-    decorations->updateTextures();
+    if (decorations)
+    {
+        decorations->updateTextures();
+    }
 }
 
 void GameLevel::updateBackgrounds()
 {
-    for (auto &&i : background)
+    for (auto&& i : background)
     {
         i->update();
     }
@@ -227,6 +312,11 @@ void GameLevel::updateGrounds()
 
 void GameLevel::updateEnemyManager()
 {
+    if (!enemyManager)
+    {
+        return;
+    }
+
     enemyManager->updateAI_all();
     enemyManager->updateControls_all();
     enemyManager->updatePhysics_all();
@@ -244,17 +334,23 @@ void GameLevel::update()
 
 void GameLevel::drawPlatforms()
 {
-    platforms->draw(*window);
+    if (platforms)
+    {
+        platforms->draw(*window);
+    }
 }
 
 void GameLevel::drawDecorations()
 {
-    decorations->draw(*window);
+    if (decorations)
+    {
+        decorations->draw(*window);
+    }
 }
 
 void GameLevel::drawBackgrounds()
 {
-    for (auto &&i : background)
+    for (auto&& i : background)
     {
         i->draw(*window);
     }
@@ -262,104 +358,136 @@ void GameLevel::drawBackgrounds()
 
 void GameLevel::drawGrounds()
 {
+    if (ground)
+    {
         ground->draw(*window);
+    }
 }
 
 void GameLevel::drawEnemyManager()
 {
-    enemyManager->draw_all();
+    if (enemyManager)
+    {
+        enemyManager->draw_all();
+    }
 }
 
 void GameLevel::initializePlatforms(const nlohmann::json& data)
 {
     platforms = std::make_shared<Platform>();
 
-    for (const auto &platform : data["Platforms"])
+    for (const auto& platform : data["Platforms"])
     {
-        sf::Vector2f position = {
+        const sf::Vector2f position = {
             platform["Position"][0],
-            platform["Position"][1]};
+            platform["Position"][1]
+        };
 
-        std::string type = platform["Type"];
-
-        platforms->addPlatform(position,type);
+        const std::string type = platform["Type"];
+        platforms->addPlatform(position, type);
     }
 }
 
 void GameLevel::initializeDecorations(const nlohmann::json& data)
 {
-    decorations = std::make_shared<Decoration>(*this->data,*this->camera);
+    decorations = std::make_shared<Decoration>(*this->data, *this->camera);
 
-    for (const auto &decoration : data["Decorations"])
+    for (const auto& decoration : data["Decorations"])
     {
-        std::string name = decoration["Name"];
-        sf::Vector2f position = {decoration["Position"][0],decoration["Position"][1]};
-        sf::Vector2f scale = {decoration["Scale"][0],decoration["Scale"][1]};
-        sf::Color color = sf::Color{decoration["Color"][0],decoration["Color"][1],decoration["Color"][2],decoration["Color"][3]};
-        sf::Vector2f parallaxFactor = {decoration["ParallaxFactor"][0],decoration["ParallaxFactor"][1]};
-        int ZDepth = decoration["Z"];
+        const std::string name = decoration["Name"];
+        const sf::Vector2f position = {decoration["Position"][0], decoration["Position"][1]};
+        const sf::Vector2f scale = {decoration["Scale"][0], decoration["Scale"][1]};
+        const sf::Color color = sf::Color{
+            decoration["Color"][0],
+            decoration["Color"][1],
+            decoration["Color"][2],
+            decoration["Color"][3]
+        };
+        const sf::Vector2f parallaxFactor = {decoration["ParallaxFactor"][0], decoration["ParallaxFactor"][1]};
+        const int zDepth = decoration["Z"];
 
-        decorations->addDecoration(name,position,scale,parallaxFactor,ZDepth,color);
+        decorations->addDecoration(name, position, scale, parallaxFactor, zDepth, color);
     }
 }
 
 void GameLevel::initializeBackground(const nlohmann::json& data)
 {
-		try {
-			for (const auto &background : data["Background"])
-			{
-				sf::Vector2f position = {background["Position"][0],background["Position"][1]};
-				sf::Vector2f parallaxFactor = {background["ParallaxFactor"][0],background["ParallaxFactor"][1]};
-				std::string name = background["BgName"];
-				Type type = background["Type"];
+    try
+    {
+        for (const auto& backgroundData : data["Background"])
+        {
+            const sf::Vector2f position = {backgroundData["Position"][0], backgroundData["Position"][1]};
+            const sf::Vector2f parallaxFactor = {
+                backgroundData["ParallaxFactor"][0],
+                backgroundData["ParallaxFactor"][1]
+            };
+            const std::string name = backgroundData["BgName"];
+            const Type type = backgroundData["Type"];
 
-				this->background.push_back(
-					std::make_shared<Background>(
-						*this->data,
-						*this->camera,
-						*this,
-						position,name,
-						parallaxFactor,
-						type));
-			}
-				
-		} catch (std::exception msg) {
-			std::string errorMsg = "Error loading level data for:  " + this->levelName;
-			std::cout << std::endl << errorMsg << std::endl;
-			
-			runErrorScreen(errorMsg);
-		}
+            background.push_back(
+                std::make_shared<Background>(
+                    *this->data,
+                    *this->camera,
+                    *this,
+                    position,
+                    name,
+                    parallaxFactor,
+                    type
+                )
+            );
+        }
+    }
+    catch (const std::exception&)
+    {
+        const std::string errorMsg = "Error loading level data for: " + levelName;
+        std::cout << std::endl << errorMsg << std::endl;
+        runErrorScreen(errorMsg);
+    }
 }
 
 void GameLevel::initializeGround(const nlohmann::json& data)
 {
-    for (const auto &ground : data["Ground"])
+    for (const auto& groundData : data["Ground"])
     {
-        std::string groundName = ground["GroundName"];
-        sf::Vector2u position = {ground["Points"][0],ground["Points"][1]};
-        unsigned int yPos = ground["YPos"];
-        
-        this->ground =std::make_shared<Ground>(
-                *this->data,
-                *this,
-                groundName,
-                position.x,
-                position.y,
-                yPos
-            );
+        const std::string groundName = groundData["GroundName"];
+        const sf::Vector2u position = {groundData["Points"][0], groundData["Points"][1]};
+        const unsigned int yPos = groundData["YPos"];
+
+        ground = std::make_shared<Ground>(
+            *this->data,
+            *this,
+            groundName,
+            position.x,
+            position.y,
+            yPos
+        );
     }
 }
 
-void GameLevel::initializeEnemyManager(const nlohmann::json &data)
+void GameLevel::initializeEnemyManager(const nlohmann::json& data)
 {
-    enemyManager = new EnemyManager(data,
+    if (!player || !platforms || !ground)
+    {
+        return;
+    }
+
+    enemyManager = std::make_unique<EnemyManager>(
+        data,
         *this->data,
-        *this, 
+        *this,
         *platforms,
         *ground,
         *player,
         *window
     );
+}
+
+void GameLevel::tryInitializeEnemyManager()
+{
+    if (player && !loadedLevelData.is_null())
+    {
+        initializeEnemyManager(loadedLevelData);
+    }
 }
 
 void GameLevel::draw()
@@ -371,38 +499,53 @@ void GameLevel::draw()
 }
 
 void GameLevel::loadLevelData(const std::string& fileNamePath)
-{   
-    // Пробуем открыть файл
-    std::ifstream dataFile(LEVELS_FOLDER+fileNamePath);
-    if(!dataFile.good()){
-        std::cerr << "Error reading level's json data:\n\t" << LEVELS_FOLDER+fileNamePath << " not found!\n";
-        exit(EXIT_FAILURE);
+{
+    std::ifstream dataFile(LEVELS_FOLDER + fileNamePath);
+    if (!dataFile.good())
+    {
+        std::cerr << "Error reading level's json data:\n\t" << LEVELS_FOLDER + fileNamePath << " not found!\n";
+        std::exit(EXIT_FAILURE);
     }
 
-    nlohmann::json data = nlohmann::json::parse(dataFile);
+    loadedLevelData = nlohmann::json::parse(dataFile);
 
-    this->size = sf::Vector2i(data["Presets"]["Size"][0],data["Presets"]["Size"][1]);
-    this->levelName = fileNamePath;
+    size = sf::Vector2i(loadedLevelData["Presets"]["Size"][0], loadedLevelData["Presets"]["Size"][1]);
+    levelName = fileNamePath;
 
-    initializePlatforms(data);
+    initializePlatforms(loadedLevelData);
+    initializeDecorations(loadedLevelData);
+    initializeBackground(loadedLevelData);
+    initializeGround(loadedLevelData);
 
-    initializeDecorations(data);
+    enemyManager.reset();
+    tryInitializeEnemyManager();
 
-    initializeBackground(data);
-
-    initializeGround(data);
-
-    initializeEnemyManager(data);
-
-    playerSpawnPos = {data["Presets"]["PlayerSpawn"][0],data["Presets"]["PlayerSpawn"][1]};
-
+    playerSpawnPos = {
+        loadedLevelData["Presets"]["PlayerSpawn"][0],
+        loadedLevelData["Presets"]["PlayerSpawn"][1]
+    };
 }
 
 void GameLevel::clearLevel()
 {
-    platforms->clearPlatforms();
-    decorations->clearDecorations();
+    if (platforms)
+    {
+        platforms->clearPlatforms();
+    }
+    if (decorations)
+    {
+        decorations->clearDecorations();
+    }
+    if (enemyManager)
+    {
+        enemyManager->clearEnemies();
+        enemyManager.reset();
+    }
+
     background.clear();
+    ground.reset();
+    platforms.reset();
+    decorations.reset();
 }
 
 void GameLevel::saveLevelData()
@@ -415,44 +558,42 @@ void GameLevel::resetTobase()
 
 void GameLevel::runErrorScreen(std::string errorString)
 {
-	sf::Text text(*data->gameFont);
-	text.setCharacterSize(50u);
-	text.setString(errorString+"\n Press 'Q' to exit");
-	setTextOriginToMiddle(text);
-	text.setPosition({WINDOW_WIDTH/2,WINDOW_HEIGHT/2});
+    sf::Text text(*data->gameFont);
+    text.setCharacterSize(50u);
+    text.setString(errorString + "\n Press 'Q' to exit");
+    setTextOriginToMiddle(text);
+    text.setPosition({WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2});
 
-	while(true)
-	{
-		while(const auto ev = this->window->pollEvent())
-		{
-			if(const auto* keyPressed = ev->getIf<sf::Event::KeyPressed>())
-			{
-				if(keyPressed->scancode == sf::Keyboard::Scancode::Q)
-				{
-					exit(0);
-				}
-			}
-		}
+    while (true)
+    {
+        while (const auto ev = this->window->pollEvent())
+        {
+            if (const auto* keyPressed = ev->getIf<sf::Event::KeyPressed>())
+            {
+                if (keyPressed->scancode == sf::Keyboard::Scancode::Q)
+                {
+                    std::exit(0);
+                }
+            }
+        }
 
-
-		window->clear(sf::Color::Red);
-		window->draw(text);
-		window->display();
-
-	}
+        window->clear(sf::Color::Red);
+        window->draw(text);
+        window->display();
+    }
 }
 
 sf::Vector2i GameLevel::getLevelSize() const
 {
-    return this->size;
+    return size;
 }
 
-std::vector<std::shared_ptr<sf::RectangleShape>> &GameLevel::getPlatformRects()
+std::vector<std::shared_ptr<sf::RectangleShape>>& GameLevel::getPlatformRects()
 {
-    return this->platforms->getRects();
+    return platforms->getRects();
 }
 
-sf::RectangleShape &GameLevel::getGroundRect()
+sf::RectangleShape& GameLevel::getGroundRect()
 {
     return ground->getRect();
 }
@@ -462,13 +603,20 @@ sf::Vector2f GameLevel::getPlayerSpawnPos()
     return playerSpawnPos;
 }
 
-sf::Sprite &GameLevel::getLevelBackgroundSprite()
+sf::Sprite& GameLevel::getLevelBackgroundSprite()
 {
-    return this->background.begin()->get()->getSprite();
+    return background.begin()->get()->getSprite();
 }
 
-void GameLevel::attachPlayer(Player &p)
+void GameLevel::attachPlayer(Player& p)
 {
-    this->player = &p;
-    enemyManager->attachPlayer(p);
+    player = &p;
+
+    if (enemyManager)
+    {
+        enemyManager->attachPlayer(p);
+        return;
+    }
+
+    tryInitializeEnemyManager();
 }

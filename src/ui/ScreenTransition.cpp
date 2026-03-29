@@ -21,16 +21,12 @@ ScreenTransition::ScreenTransition(sf::RenderWindow& win, GameCamera& c, float t
     vignette.setOutlineColor(sf::Color(0, 0, 0, 0));
     
     // Попытка загрузить шейдер (если есть)
-    if (sf::Shader::isAvailable()) {
-        shader = new sf::Shader();
-        // Можно добавить путь к файлу шейдера
-        useShader = false; // Пока отключаем, если нет шейдера
+    if (sf::Shader::isAvailable() && useShader) {
+        shader = std::make_unique<sf::Shader>();
     }
 }
 
-ScreenTransition::~ScreenTransition() {
-    if (useShader) delete shader;
-}
+ScreenTransition::~ScreenTransition() = default;
 
 void ScreenTransition::fadeOut() {
     isTransitioning = true;
@@ -95,7 +91,7 @@ void ScreenTransition::draw() {
             shader->setUniform("time", clock.getElapsedTime().asSeconds());
             // Применяем шейдер ко всему экрану
             sf::RenderStates states;
-            states.shader = shader;
+            states.shader = shader.get();
             window.draw(overlay, states);
         }
     }

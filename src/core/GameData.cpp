@@ -5,9 +5,10 @@ GameData::GameData(sf::RenderWindow* window,sf::Font* font)
 {
     //Loading data from launchSettings.json
     loadData();
+    loadEnemySettings();
 
     //LoadingScreen initialization
-    loadingScreen_m = new LoadingScreen(window,font,allOperations_count_m);
+    loadingScreen_m = std::make_unique<LoadingScreen>(window,font,allOperations_count_m);
 
     this->gameFont = font;
 
@@ -308,19 +309,18 @@ GameData::~GameData()
 
 bool GameData::initSatiroTextures(std::vector<sf::Texture> &textures, std::vector<std::string> paths)
 {
+    textures.clear();
+    textures.reserve(paths.size());
     for (size_t i = 0; i < paths.size(); i++)
     {
-        sf::Texture* texture = new sf::Texture();
-        if(!texture->loadFromFile(paths[i]))
+        textures.emplace_back();
+        if(!textures.back().loadFromFile(paths[i]))
         {
+            textures.pop_back();
             std::cout << "Error loading texture: " << paths[i] << std::endl;
             return false;
         }
-        else
-        {
-            std::cout << "Texture loaded: " << paths[i] << std::endl;
-        }
-        textures.push_back(*texture);
+        debugLog("Texture loaded: ", paths[i]);
     }
     return true;
 }
@@ -337,10 +337,10 @@ bool GameData::loadTexture(std::vector<sf::Texture> &textures, std::string path,
     }
     
     // Отладочный вывод
-    std::cout << "Loading textures: " << path 
-              << ", start=" << seq.startCounter 
-              << ", count=" << seq.count 
-              << ", digits=" << seq.maxDigits << std::endl;
+    debugLog("Loading textures: ", path,
+             ", start=", seq.startCounter,
+             ", count=", seq.count,
+             ", digits=", seq.maxDigits);
     
     helper.countOfTextures = seq.count - 1;
     helper.iterationsTillSwitch = pauseTillSwitch;
@@ -359,10 +359,10 @@ bool GameData::loadTexture(std::map<std::string,sf::Texture> &textures, std::str
     }
     
     // Отладочный вывод
-    std::cout << "Loading textures: " << path 
-              << ", start=" << seq.startCounter 
-              << ", count=" << seq.count 
-              << ", digits=" << seq.maxDigits << std::endl;
+    debugLog("Loading textures: ", path,
+             ", start=", seq.startCounter,
+             ", count=", seq.count,
+             ", digits=", seq.maxDigits);
     
     // ОЧЕНЬ ВАЖНО: передаем количество текстур, а не последний номер
     if(clearOnReuse) return initTextures(textures, path, seq.count, seq.maxDigits, seq.startCounter);
@@ -375,11 +375,11 @@ void GameData::generateMipmapTextures(std::map<std::string, sf::Texture> &textur
     {
         if(i.second.generateMipmap())
         {
-            std::cout << "Mipmap generated\n"; 
+            debugLog("Mipmap generated");
         }
         else
         {
-            std::cout << "Error while generating mipmap\n";
+            debugLog("Error while generating mipmap");
         }
     }
 }
@@ -390,11 +390,11 @@ void GameData::generateMipmapTextures(std::vector<sf::Texture> &texturesArray)
     {
         if(i.generateMipmap())
         {
-            std::cout << "Mipmap generated\n"; 
+            debugLog("Mipmap generated");
         }
         else
         {
-            std::cout << "Error while generating mipmap\n";
+            debugLog("Error while generating mipmap");
         }
     }
 }
@@ -437,4 +437,15 @@ void GameData::loadData()
     std::fstream f("data/launchSettings.json");
     nlohmann::json j = nlohmann::json::parse(f);
     allOperations_count_m = j["loadingGameAssets_operationsCount"];
+}
+
+void GameData::loadEnemySettings()
+{
+    std::fstream f("data/enemySettings.json");
+    enemySettings_m = nlohmann::json::parse(f);
+}
+
+const nlohmann::json& GameData::getEnemySettings() const
+{
+    return enemySettings_m;
 }

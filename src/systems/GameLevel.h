@@ -1,16 +1,17 @@
 #pragma once
-#include<iostream>
-#include<SFML/Graphics.hpp>
-#include<Background.h>
-#include<Platform.h>
-#include<Decoration.h>
-#include<Ground.h>
-#include<vector>
-#include<memory.h>
-#include<map>
-#include<fstream>
-#include<EnemyManager.h>
-#include<Player.h>
+
+#include <Background.h>
+#include <Decoration.h>
+#include <EnemyManager.h>
+#include <Ground.h>
+#include <Platform.h>
+#include <SFML/Graphics.hpp>
+#include <fstream>
+#include <map>
+#include <memory>
+#include <nlohmann/json.hpp>
+#include <optional>
+#include <vector>
 
 class Background;
 class Decoration;
@@ -20,197 +21,116 @@ class Player;
 
 const std::string LEVELS_FOLDER = "data/levelData/";
 
-//////////////////////////////////////////////////
-// Определяет экземпляр уровня с объектами, врагами, спавнерами
-//////////////////////////////////////////////////
 class GameLevel
 {
 private:
-    sf::Vector2i size;                                          // Длинна и ширина уровня
-    std::shared_ptr< Platform   > platforms;                    // Платформы
-    std::shared_ptr< Decoration > decorations;                  // Декорации
-    std::shared_ptr< Ground     > ground;                       // Пол
-    std::vector<std::shared_ptr< Background >> background;      // Фон
-    
+    sf::Vector2i size{};
+    std::shared_ptr<Platform> platforms;
+    std::shared_ptr<Decoration> decorations;
+    std::shared_ptr<Ground> ground;
+    std::vector<std::shared_ptr<Background>> background;
 
-    Player* player;
-    GameData* data;
-    GameCamera* camera;
-    GameLevelManager* levelManager;
-    EnemyManager*  enemyManager;
-    sf::RenderWindow* window;
+    Player* player = nullptr;
+    GameData* data = nullptr;
+    GameCamera* camera = nullptr;
+    GameLevelManager* levelManager = nullptr;
+    std::unique_ptr<EnemyManager> enemyManager;
+    sf::RenderWindow* window = nullptr;
 
-    sf::Vector2f playerSpawnPos;
+    sf::Vector2f playerSpawnPos{};
+    nlohmann::json loadedLevelData{};
 
-    //////////////////////////////////////////////////
-    // Определяет, нужно ли сбрасывать состояние объектов на уровне.
-    // После первой загрузки уровня, становится false.
-    //////////////////////////////////////////////////
     bool doResetToBase = true;
-
-    //////////////////////////////////////////////////
-    // Если уровень константный, то любые изменения на нем не фиксируются.
-    // Уровень сбрасывается к изначальному состоянию каждую загрузку
-    //////////////////////////////////////////////////
     bool isConstant = true;
 
-    ////////////////////////////////////////////////////
-    // Инициализация объектов
-    ////////////////////////////////////////////////////
     void initializePlatforms(const nlohmann::json& data);
     void initializeDecorations(const nlohmann::json& data);
     void initializeBackground(const nlohmann::json& data);
     void initializeGround(const nlohmann::json& data);
     void initializeEnemyManager(const nlohmann::json& data);
-    ////////////////////////////////////////////////////
-public:
+    void tryInitializeEnemyManager();
 
-    GameLevel(GameData& d, Player& p, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath);
+public:
+    GameLevel(GameData& d, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath);
     ~GameLevel();
 
-    //////////////////Variables///////////////////////
     std::string levelName;
-    //////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////
-    // Обновляет уровень на который указывает итератор
-    ////////////////////////////////////////////////////
-    void update();           
-    ////////////////////////////////////////////////////
-    // Обновляет уровень на который указывает итератор
-    ////////////////////////////////////////////////////
-    void updatePlatforms();     // NOTE Не реализовано т.к. у объекта нет update()
-    void updateDecorations();   
-    void updateBackgrounds();   
-    void updateGrounds();       // NOTE Не реализовано т.к. у объекта нет update()
+    void update();
+    void updatePlatforms();
+    void updateDecorations();
+    void updateBackgrounds();
+    void updateGrounds();
     void updateEnemyManager();
-    ////////////////////////////////////////////////////                
 
-    ////////////////////////////////////////////////////
-    // Рисует уровень на который указывает итератор
-    ////////////////////////////////////////////////////
     void draw();
-    ////////////////////////////////////////////////////
-    // Рисует уровень на который указывает итератор
-    ////////////////////////////////////////////////////
     void drawPlatforms();
     void drawDecorations();
     void drawBackgrounds();
     void drawGrounds();
     void drawEnemyManager();
-    ////////////////////////////////////////////////////
 
-    //////////////////////////////////////////////////
-    // Должен подгружать данные из json файла.
-    // Данные ето позиции и тип платформ, декораций, земли, фона. А также название уровня.
-    //
-    // Если doResetToBase==true, подгружает данные о уровне из основного файла, а если нет - из файла сохранения уровня(хранится в json)
-    //////////////////////////////////////////////////
-    void loadLevelData(const std::string& fileName);       
-
-    //////////////////////////////////////////////////
-    // Прибраться на уровне. Удалить все объекты.
-    //////////////////////////////////////////////////
+    void loadLevelData(const std::string& fileName);
     void clearLevel();
+    void saveLevelData();
+    void resetTobase();
 
-    //////////////////////////////////////////////////
-    // Должен сохранять некоторые состояние объектов на уровне.
-    // У сохраняемого объекта должен быть тип "save=true".
-    //////////////////////////////////////////////////
-    void saveLevelData();       // IMPLEMENTME
+    void runErrorScreen(std::string errorString);
 
-    //////////////////////////////////////////////////
-    // Должен менять переменную doResetToBase на true.
-    //////////////////////////////////////////////////
-    void resetTobase();         // IMPLEMENTME
-
-	void runErrorScreen(std::string errorString);
-
-    //Getters
     sf::Vector2i getLevelSize() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
     sf::Vector2f getPlayerSpawnPos();
-    sf::Sprite &getLevelBackgroundSprite();
+    sf::Sprite& getLevelBackgroundSprite();
 
-    // Setters
     void attachPlayer(Player& p);
 };
 
-//////////////////////////////////////////////////////
-// Управляет игровыми уровнями
-//////////////////////////////////////////////////////
 class GameLevelManager
 {
 private:
-    // Указатели на внешние объекты
-    Player* player;
-    GameData* data;
-    GameCamera* camera;
-    sf::RenderWindow* window;
+    Player* player = nullptr;
+    GameData* data = nullptr;
+    GameCamera* camera = nullptr;
+    sf::RenderWindow* window = nullptr;
 
     const std::string levelsFolder;
 
-    //////////////////////////////////////////////////
-    // string - Название уровня, подгружается из GameLevel
-    // GameLevel - Экземляр уровня
-    //////////////////////////////////////////////////
-    std::map<std::string, std::shared_ptr< GameLevel >> levels;
+    std::map<std::string, std::shared_ptr<GameLevel>> levels;
+    std::map<std::string, std::shared_ptr<GameLevel>>::iterator levelIt;
 
-    std::map<std::string, std::shared_ptr< GameLevel >>::iterator levelIt;
-
-    void initializeLevels(const std::string levelsFolder);   
+    void initializeLevels(const std::string& levelsFolder);
 
 public:
-    GameLevelManager(GameData &d, GameCamera& c,sf::RenderWindow& w, const std::string& lF);
+    GameLevelManager(GameData& d, GameCamera& c, sf::RenderWindow& w, const std::string& lF);
     ~GameLevelManager();
 
-    ////////////////////////////////////////////////////
-    // Поставить игрока изначальную позицию в уровне
-    ////////////////////////////////////////////////////
     void setPlayerPositionToBase();
 
-    ////////////////////////////////////////////////////
-    // Перемещает итератор на уровень с ключем <name> в std::map levels
-    ////////////////////////////////////////////////////
     bool goToLevel(std::optional<std::string> levelName);
+    bool restartCurrentLevel();
 
-    ////////////////////////////////////////////////////
-    // Обновляет уровень на который указывает итератор
-    ////////////////////////////////////////////////////
     void update();
-    ////////////////////////////////////////////////////
-    // Обновляет уровень на который указывает итератор
-    ////////////////////////////////////////////////////
-    void updatePlatforms();     // NOTE Не реализовано т.к. у объекта нет update()
-    void updateDecorations();   
-    void updateBackgrounds();   
-    void updateGrounds();       // NOTE Не реализовано т.к. у объекта нет update()
+    void updatePlatforms();
+    void updateDecorations();
+    void updateBackgrounds();
+    void updateGrounds();
     void updateEnemyManager();
-    ////////////////////////////////////////////////////       
 
-    ////////////////////////////////////////////////////
-    // Отрисовывает уровень на который указывает итератор
-    ////////////////////////////////////////////////////
-    void draw();    
-    ////////////////////////////////////////////////////
-    // Отрисовывает уровень на который указывает итератор
-    ////////////////////////////////////////////////////
+    void draw();
     void drawPlatforms();
     void drawDecorations();
     void drawBackgrounds();
     void drawGrounds();
     void drawEnemyManager();
-    ////////////////////////////////////////////////////
 
-    //Getters
     sf::Vector2i getCurrentLevelSize() const;
-    std::string  getCurrentLevelName() const;
+    std::string getCurrentLevelName() const;
+    std::vector<std::string> getLevelNames() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
-    const std::map<std::string, std::shared_ptr< GameLevel >>& getLevelsMap() const;
-    std::map<std::string, std::shared_ptr< GameLevel >>::iterator& getIteratorReference();
+    const std::map<std::string, std::shared_ptr<GameLevel>>& getLevelsMap() const;
+    std::map<std::string, std::shared_ptr<GameLevel>>::iterator& getIteratorReference();
 
-    // Setters
     void attachPlayer(Player& p);
 };

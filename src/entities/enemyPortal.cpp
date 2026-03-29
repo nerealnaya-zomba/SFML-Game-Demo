@@ -35,7 +35,7 @@ enemyPortal::enemyPortal(GameData& data, sf::Vector2f position)
     this->portalClock.start();
 
     // Portal sprite
-    this->portalSprite = new sf::Sprite(data.portalGreenTextures.at(0));
+    this->portalSprite = std::make_unique<sf::Sprite>(data.portalGreenTextures.at(0));
     this->portalSprite->setScale(PORTAL_START_SCALE);
     setSpriteOriginToMiddle(*this->portalSprite);
     this->portalSprite->setPosition(position);
@@ -44,9 +44,7 @@ enemyPortal::enemyPortal(GameData& data, sf::Vector2f position)
     this->portalHelper = data.portalGreen;
 }
 
-enemyPortal::~enemyPortal()
-{
-}
+enemyPortal::~enemyPortal() = default;
 
 void enemyPortal::update()
 {
@@ -70,7 +68,7 @@ void enemyPortal::update()
 
 void enemyPortal::updateTextures()
 {
-    gameUtils::switchToNextSprite(this->portalSprite,data->portalGreenTextures,this->portalHelper,switchSprite_SwitchOption::Single);
+    gameUtils::switchToNextSprite(this->portalSprite.get(),data->portalGreenTextures,this->portalHelper,switchSprite_SwitchOption::Single);
 }
 
 void enemyPortal::draw(sf::RenderWindow &window)

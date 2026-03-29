@@ -1,15 +1,17 @@
-#include<Background.h>
+#include <Background.h>
+
+#include <algorithm>
+#include <cmath>
+#include <utility>
 
 class GameCamera;
 
-Background::Background(GameData& d, GameCamera& c, GameLevel& l, sf::Vector2f pos, std::string bgName, sf::Vector2f parallaxFact, Type t=Type::SingleBackground) 
-: position(pos), name(bgName), type(t), gamedata(&d), camera(&c), level(&l), parallaxFactor(parallaxFact)
+Background::Background(GameData& d, GameCamera& c, GameLevel& l, sf::Vector2f pos, std::string bgName, sf::Vector2f parallaxFact, Type t)
+: position(pos), name(std::move(bgName)), type(t), camera(&c), level(&l), parallaxFactor(parallaxFact)
 {
-    // Получаем ссылку на нужную текстуру
-    sf::Texture& bgTexture = d.backgroundTextures.at(bgName);
-    bgFront = new sf::Sprite(bgTexture);
+    sf::Texture& bgTexture = d.backgroundTextures.at(name);
+    bgFront = std::make_unique<sf::Sprite>(bgTexture);
     
-    // Уменьшаем размер фона, до размера окна
     sf::Vector2f windowSizes = {static_cast<float>(WINDOW_WIDTH),static_cast<float>(WINDOW_HEIGHT)};
     sf::Vector2f textureSizes = {static_cast<float>(bgTexture.getSize().x),static_cast<float>(bgTexture.getSize().y)};
     bgFront->setScale({windowSizes.x/textureSizes.x , windowSizes.y/textureSizes.y });
@@ -19,15 +21,11 @@ Background::Background(GameData& d, GameCamera& c, GameLevel& l, sf::Vector2f po
     bgTextureSize = bgTexture.getSize();
 }
 
-Background::~Background()
-{
-}
+Background::~Background() = default;
 
 void Background::update()
 {
-    // Двигаем слой в зависимости от глубины
     applyParallax();
-    
 }
 
 void Background::draw(sf::RenderWindow &window)
@@ -37,18 +35,29 @@ void Background::draw(sf::RenderWindow &window)
             window.draw(*bgFront);
             break;
 
-        case Type::RepeatedBackground:  // FIXME Не работает. Не отрисовывается/отрисовывается в другом месте.
+        case Type::RepeatedBackground:
         {
-            window.draw(*bgFront);
-            //Повторение по координате X
-            int countOfRepeatsX = (level->getLevelSize().x) / (static_cast<int>(bgTextureSize.x));
-            for (int i = 0; i < countOfRepeatsX; i++)
+            const float repeatedWidth = bgFront->getGlobalBounds().size.x;
+            if (repeatedWidth <= 0.f)
             {
-                float repeatedPosX = static_cast<float>(static_cast<int>(position.x)+static_cast<int>((bgTextureSize.x/2U) * static_cast<int>(i+1)));
-                bgFront->setPosition({repeatedPosX,position.y});
                 window.draw(*bgFront);
+                break;
             }
-            bgFront->setPosition(position);
+
+            const int countOfRepeatsX = std::max(
+                1,
+                static_cast<int>(std::ceil(static_cast<float>(level->getLevelSize().x) / repeatedWidth)) + 2
+            );
+
+            for (int i = -1; i < countOfRepeatsX; ++i)
+            {
+                sf::Sprite repeatedSprite = *bgFront;
+                repeatedSprite.setPosition({
+                    bgFront->getPosition().x + repeatedWidth * static_cast<float>(i),
+                    bgFront->getPosition().y
+                });
+                window.draw(repeatedSprite);
+            }
             break;
         }
 
@@ -59,23 +68,15 @@ void Background::draw(sf::RenderWindow &window)
 
 void Background::applyParallax()
 {
-    sf::Vector2f baseObjectPos = position;
-    
-    // Добавляем статическую переменную для хранения начальной позиции камеры
-    static sf::Vector2f initialCameraPos = camera->getCameraCenterPos();
-    sf::Vector2f currentCameraPos = camera->getCameraCenterPos();
-    
-    // Вычисляем смещение камеры от её начальной позиции
-    sf::Vector2f cameraOffset = currentCameraPos - initialCameraPos;
+    const sf::Vector2f baseObjectPos = position;
+    static const sf::Vector2f initialCameraPos = camera->getCameraCenterPos();
+    const sf::Vector2f currentCameraPos = camera->getCameraCenterPos();
+    const sf::Vector2f cameraOffset = currentCameraPos - initialCameraPos;
 
-    sf::Vector2f difference = baseObjectPos - camera->getCameraCenterPos();
-    
-    if (bgFront) {
-        bgFront->setPosition({
-            baseObjectPos.x + cameraOffset.x * parallaxFactor.x,
-            baseObjectPos.y + cameraOffset.y * parallaxFactor.y
-        });
-    }
+    bgFront->setPosition({
+        baseObjectPos.x + cameraOffset.x * parallaxFactor.x,
+        baseObjectPos.y + cameraOffset.y * parallaxFactor.y
+    });
 }
 
 void Background::setParallaxFactor(sf::Vector2f f)
@@ -85,5 +86,5 @@ void Background::setParallaxFactor(sf::Vector2f f)
 
 sf::Sprite &Background::getSprite()
 {
-    return *this->bgFront;
+    return *bgFront;
 }

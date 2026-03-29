@@ -5,7 +5,7 @@
 #include<Defines.h>
 #include<GameData.h>
 #include<GameCamera.h>
-#include<Player.h>
+#include <memory>
 /////////////////////////////////////
 // BASE_PARALLAX_FACTOR == 1.f - Фон следует за игроком без малейших изменений в позиции
 // BASE_PARALLAX_FACTOR == 0.f - Фон остается на месте своего создания
@@ -63,9 +63,7 @@ public:
 private:
     // Указатели на внешние данные
     const GameCamera* camera;
-    const GameData* gamedata;
     const GameLevel* level;
-    const Player* player;
 
     const Type type;                        // Тип фона
     const sf::Vector2f position;            // Позиция при создании.
@@ -79,5 +77,5 @@ private:
     void applyParallax(); // Вычисляет offset, основываясь на zDepth и удалении от сентра спрайта
 
     // Основной спрайт
-    sf::Sprite* bgFront;
+    std::unique_ptr<sf::Sprite> bgFront;
 };

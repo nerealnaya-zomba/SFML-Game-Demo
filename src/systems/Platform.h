@@ -28,21 +28,9 @@ class Platform
     ~Platform();
 
     private:
-    sf::Vector2f pos;
     std::vector<std::unique_ptr<sf::Sprite>> sprites;
     std::vector<std::shared_ptr<sf::RectangleShape>> rects;
+    const std::vector<sf::Texture>* textures{};
 
-    std::vector<sf::Texture> textures;
-    std::vector<std::string> paths{
-        "images/platform/Double-horizontal-1.png",
-        "images/platform/Double-horizontal-2.png",
-        "images/platform/Double-vertical.png",
-        "images/platform/Quadruple.png",
-        "images/platform/Single-angled.png",
-        "images/platform/Single-flat.png",
-        "images/platform/Single-square.png",
-        "images/platform/Triple.png"
-    };
-
-    void initTextures(std::vector<sf::Texture>& textures, std::vector<std::string> paths);
+    static const std::vector<sf::Texture>& getSharedTextures();
 };

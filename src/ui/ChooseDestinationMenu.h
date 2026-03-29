@@ -27,6 +27,7 @@ const float     BASE_LEVELMARK_SIZE  = 2.f;
 
 //Background
 const float BASE_DESTINATION_BACKGROUND_TOPMARGIN = 30.f;
+const float BASE_DESTINATION_NAME_OFFSET_Y = 300.f;
 
 ////////////////////////
 /// Представляет собой меню для выбора места назначения телепорта
@@ -140,9 +141,10 @@ private:
 			// Mount selection rect to its icon's parametrs
 			void mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon);	
 			void mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf::Sprite& icon);	
-			// 
-			void setDisplayingLevelNameString(std::string str);
-	//////////////////
+				// 
+				void setDisplayingLevelNameString(std::string str);
+				void applyIconScale(sf::Sprite& icon);
+		//////////////////
 
 		//////////////////////////
 		/// Initialization methods
@@ -152,9 +154,7 @@ private:
 
 	//////////////////////////////////
 
-	// Events handling
-		// bools
-		bool isKeyPressed = false;
+		// Events handling
 			void handleMoveEvents(const sf::Event& ev);
 			void handleActivateEvent(const sf::Event& ev);
 
