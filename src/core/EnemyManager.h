@@ -6,6 +6,7 @@
 #include<deque>
 #include<map>
 #include <GameData.h>
+#include <GoldCoin.h>
 #include <Platform.h>
 #include <Ground.h>
 #include <Player.h>
@@ -44,6 +45,7 @@ private:
     ////////////////////////
     std::vector<std::shared_ptr<Skeleton>> skeletons;
     std::vector<Spawner> spawners;
+    std::vector<GoldCoin> coins;
 
     ////////////////////////
     //Spawners updating
@@ -57,6 +59,7 @@ private:
         Remove enemy
     */
     void removeIfNotAlive();
+    void updateCoins();
 
     
     ////////////////////////
@@ -86,6 +89,7 @@ public:
         Add enemy
     */
     void addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos);
+    void dropGold(const sf::Vector2f& position, const std::string& enemyType);
     void addFlyingEnemy();   // IMPLEMENTME Добавь че нить
 
     /*

@@ -7,6 +7,7 @@
 #include <sfml-headers.h>
 #include <Trail.h>
 #include <Bullet.h>
+#include <Item.h>
 #include <list>
 #include <algorithm>
 #include <GameData.h>
@@ -39,6 +40,14 @@ const float BASE_OFFSET_TO_CREATE_PORTAL    = 200.f;
 
 class Player {
 public:
+    struct OwnedItem {
+        std::string iconName;
+        std::string displayName;
+        Item::Quality quality = Item::COMMON;
+        int price = 0;
+        Item::Stats stats{};
+    };
+
     Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w);
     virtual ~Player();
 
@@ -137,10 +146,17 @@ public:
     int getMaxHP();
     int getEnergy();
     int getMaxEnergy();
+    int getGold() const;
+    bool canAfford(int amount) const;
+    const std::vector<OwnedItem>& getInventory() const;
+    bool ownsItem(const std::string& iconName) const;
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);
     void setPosition(sf::Vector2f pos);
+    void addGold(int amount);
+    bool spendGold(int amount);
+    bool tryPurchaseItem(const Item& item);
 
         // Control methods
     void updateControls();                  // Process player input
@@ -245,4 +261,19 @@ private:
     // Data persistence
     void saveData();                        // Save player data to file
     void loadData();                        // Load player data from file
+    void recalculateStatsFromInventory();
+
+    int gold_ = 0;
+    int baseHP_ = 0;
+    int baseMaxEnergy_ = 0;
+    int baseEnergyGain_ = 0;
+    int baseShootCost_ = 0;
+    int baseDMG_ = 0;
+    float baseBulletSpeed_ = 0.f;
+    float baseBulletMaxDistance_ = 0.f;
+    int baseShootCooldown_ = 0;
+    float baseAcceleration_ = 0.f;
+    float baseMaxWalkSpeed_ = 0.f;
+    Item::Stats inventoryStatsBonus_{};
+    std::vector<OwnedItem> inventory_;
 };

@@ -1,6 +1,8 @@
 #include<Player.h>
 #include<ScreenTransition.h>
 
+#include <algorithm>
+
 using namespace gameUtils;
 Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w)
     : 
@@ -125,6 +127,32 @@ int Player::getMaxEnergy()
     return this->maxEnergy;
 }
 
+int Player::getGold() const
+{
+    return gold_;
+}
+
+bool Player::canAfford(int amount) const
+{
+    return amount <= gold_;
+}
+
+const std::vector<Player::OwnedItem> &Player::getInventory() const
+{
+    return inventory_;
+}
+
+bool Player::ownsItem(const std::string &iconName) const
+{
+    return std::any_of(
+        inventory_.begin(),
+        inventory_.end(),
+        [&](const OwnedItem& ownedItem) {
+            return ownedItem.iconName == iconName;
+        }
+    );
+}
+
 sf::Clock &Player::getPortalClock()
 {
     return portalCooldownClock;
@@ -144,6 +172,46 @@ void Player::setPosition(sf::Vector2f pos)
 {
     this->playerRectangle_->setPosition(pos);
     this->playerSprite->setPosition(playerRectangle_->getGlobalBounds().getCenter());
+}
+
+void Player::addGold(int amount)
+{
+    if(amount <= 0)
+    {
+        return;
+    }
+
+    gold_ += amount;
+}
+
+bool Player::spendGold(int amount)
+{
+    if(amount < 0 || gold_ < amount)
+    {
+        return false;
+    }
+
+    gold_ -= amount;
+    return true;
+}
+
+bool Player::tryPurchaseItem(const Item &item)
+{
+    if(item.isPurchased() || ownsItem(item.iconName) || !spendGold(item.price))
+    {
+        return false;
+    }
+
+    inventory_.push_back({
+        item.iconName,
+        item.displayName,
+        item.quality,
+        item.price,
+        item.stats
+    });
+
+    recalculateStatsFromInventory();
+    return true;
 }
 
 void Player::updateTextures()
@@ -401,29 +469,73 @@ void Player::loadData()
     std::fstream f("data/PlayerConfig.json");
     nlohmann::json data = nlohmann::json::parse(f);
     //Player
-    this->HP_ = data["Player"]["HP"];
-    maxHP = HP_;
+    baseHP_ = data["Player"]["HP"];
+    this->HP_ = baseHP_;
+    maxHP = baseHP_;
     this->takeDMG_cooldown = data["Player"]["takeDMG_cooldown"];
+    gold_ = data["Player"].value("Gold", 0);
     this->energy = data["Player"]["Energy"];
     maxEnergy = energy;
+    baseMaxEnergy_ = maxEnergy;
     this->energyGain = data["Player"]["EnergyGain"];
+    baseEnergyGain_ = energyGain;
     this->shootCost = data["Player"]["ShootCost"];
+    baseShootCost_ = shootCost;
 
     //Jump
     this->ButtonRepeat_jumpCooldown = data["Jump"]["repeatCooldown"];
 
     //Bullet
     this->DMG_ = data["Bullet"]["DMG"];
+    baseDMG_ = DMG_;
     this->bulletMaxDistance_ = data["Bullet"]["bulletMaxDistance"];
+    baseBulletMaxDistance_ = bulletMaxDistance_;
     this->bulletSpeed = data["Bullet"]["bulletSpeed"];
+    baseBulletSpeed_ = bulletSpeed;
     this->bulletSpeedReduction = data["Bullet"]["bulletSpeedReduction"];
     this->ButtonRepeat_shootCooldown = data["Bullet"]["repeatCooldown"];
+    baseShootCooldown_ = ButtonRepeat_shootCooldown;
     
 
     //Dash
     this->dashForce = data["Dash"]["force"];
     this->dashCooldown = data["Dash"]["Cooldown"];
     this->ButtonRepeat_dashCooldown = data["Dash"]["repeatCooldown"];
+
+    baseAcceleration_ = speed;
+    baseMaxWalkSpeed_ = maxWalkSpeed;
+    inventory_.clear();
+    inventoryStatsBonus_ = {};
+}
+
+void Player::recalculateStatsFromInventory()
+{
+    inventoryStatsBonus_ = {};
+    for (const auto& item : inventory_)
+    {
+        inventoryStatsBonus_.bulletSpeed += item.stats.bulletSpeed;
+        inventoryStatsBonus_.bulletDistance += item.stats.bulletDistance;
+        inventoryStatsBonus_.shootSpeedCooldownReduction += item.stats.shootSpeedCooldownReduction;
+        inventoryStatsBonus_.initialSpeed += item.stats.initialSpeed;
+        inventoryStatsBonus_.maxSpeed += item.stats.maxSpeed;
+        inventoryStatsBonus_.health += item.stats.health;
+        inventoryStatsBonus_.damage += item.stats.damage;
+    }
+
+    const int previousMaxHP = maxHP;
+
+    maxHP = baseHP_ + inventoryStatsBonus_.health;
+    HP_ = std::min(HP_ + std::max(0, maxHP - previousMaxHP), maxHP);
+    maxEnergy = baseMaxEnergy_;
+    energyGain = baseEnergyGain_;
+    shootCost = baseShootCost_;
+
+    DMG_ = baseDMG_ + inventoryStatsBonus_.damage;
+    bulletSpeed = baseBulletSpeed_ + static_cast<float>(inventoryStatsBonus_.bulletSpeed);
+    bulletMaxDistance_ = baseBulletMaxDistance_ + static_cast<float>(inventoryStatsBonus_.bulletDistance);
+    ButtonRepeat_shootCooldown = std::max(20, baseShootCooldown_ - inventoryStatsBonus_.shootSpeedCooldownReduction);
+    speed = baseAcceleration_ + static_cast<float>(inventoryStatsBonus_.initialSpeed) / 100.f;
+    maxWalkSpeed = baseMaxWalkSpeed_ + static_cast<float>(inventoryStatsBonus_.maxSpeed) / 10.f;
 }
 
 void Player::checkPlatformRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects)

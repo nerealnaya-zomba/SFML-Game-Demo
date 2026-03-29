@@ -16,6 +16,7 @@ private:
     std::unique_ptr<sf::Sprite> sprite; // Иконка
 
     sf::Vector2f baseScale;
+    bool purchased = false;
 public:
     struct Stats {
         int bulletSpeed = 0;
@@ -32,6 +33,7 @@ public:
     enum Quality {COMMON, RARE, MYTH, LEGENDARY};
     const Quality quality;
 
+    const std::string iconName;
     const int price;
     const std::string displayName;  // Отображаемое название
 
@@ -46,8 +48,13 @@ public:
     sf::Vector2f getBaseScale();
     sf::Vector2u getTextureSize();
     sf::Vector2f getCenterPosition();
+    sf::FloatRect getBounds() const;
+    const sf::Texture& getTexture() const;
+    bool isPurchased() const;
 
     // Setters
-    void setPosition(sf::Vector2i& pos);
+    void setPosition(const sf::Vector2i& pos);
     void setScale(sf::Vector2f scale);
+    void setColor(const sf::Color& color);
+    void markPurchased(bool value = true);
 };

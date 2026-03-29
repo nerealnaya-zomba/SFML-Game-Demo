@@ -12,6 +12,7 @@
 #include <memory>
 
 class GameLevel;
+class EnemyManager;
 
 // Анимационные состояния скелета
 enum skeletonAction {
@@ -33,6 +34,7 @@ private:
     Player* player_;
     GameLevel* gameLevel;
     GameData* gameData;
+    EnemyManager* enemyManager = nullptr;
 
     // Портал
     std::unique_ptr<enemyPortal> portal;
@@ -47,6 +49,7 @@ private:
     bool isPlayingHurtAnimation = false;
     bool isPlayingDieAnimation = false;
     bool isPlayerOutOfReach = false;
+    bool hasDroppedGold = false;
     
     skeletonAction action_ = IDLE;
 
@@ -160,7 +163,7 @@ private:
     void loadData();
 
 public:
-    Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, Ground& ground, 
+    Skeleton(GameData &gameData, EnemyManager& em, GameLevel& gl, sf::RenderWindow &window, Ground& ground, 
              Platform& platform, Player& player, std::string type, sf::Vector2f pos);
     ~Skeleton();
 

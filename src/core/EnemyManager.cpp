@@ -51,10 +51,53 @@ void EnemyManager::loadSpawnerData()
     }
 }
 
+void EnemyManager::updateCoins()
+{
+    if(!ground || !platform || !player || !gameLevel)
+    {
+        return;
+    }
+
+    const sf::FloatRect levelBounds = {
+        {0.f, 0.f},
+        static_cast<sf::Vector2f>(gameLevel->getLevelSize())
+    };
+
+    for (auto&& coin : coins)
+    {
+        coin.update(*ground, *platform, *player, levelBounds);
+    }
+
+    coins.erase(
+        std::remove_if(coins.begin(), coins.end(),
+            [](const GoldCoin& coin) {
+                return coin.isCollected();
+            }),
+        coins.end()
+    );
+}
+
 void EnemyManager::addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos)
 {
-    skeletons.push_back(std::make_shared<Skeleton>(data,*this->gameLevel,window,ground,platform,player,type,pos)); 
+    skeletons.push_back(std::make_shared<Skeleton>(data,*this,*this->gameLevel,window,ground,platform,player,type,pos)); 
 }   
+
+void EnemyManager::dropGold(const sf::Vector2f &position, const std::string& enemyType)
+{
+    const bool isYellow = enemyType == "yellow";
+    const int coinCount = isYellow ? random(4, 6) : random(3, 5);
+    const int minValue = isYellow ? 6 : 4;
+    const int maxValue = isYellow ? 10 : 7;
+
+    for (int index = 0; index < coinCount; ++index)
+    {
+        coins.emplace_back(
+            sf::Vector2f{position.x, position.y - random(4.f, 16.f)},
+            random(minValue, maxValue),
+            sf::Vector2f{random(-2.3f, 2.3f), random(-4.8f, -2.6f)}
+        );
+    }
+}
 
 void EnemyManager::updateAI_all()
 {
@@ -75,6 +118,8 @@ void EnemyManager::updatePhysics_all()
     for (auto &&enemy : skeletons) {
         enemy->updatePhysics();
     }
+
+    updateCoins();
 }
 
 void EnemyManager::updateTextures_all()
@@ -99,12 +144,18 @@ void EnemyManager::draw_all()
     for (auto &&enemy : skeletons) {
         enemy->draw();
     }
+
+    for (auto&& coin : coins)
+    {
+        coin.draw(*window);
+    }
 }
 
 void EnemyManager::clearEnemies()
 {
     skeletons.clear();
     spawners.clear();
+    coins.clear();
 }
 
 void EnemyManager::addSpawner(std::string enemyName)

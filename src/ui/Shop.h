@@ -1,11 +1,15 @@
 #pragma once
-#include<SFML/Graphics.hpp>
-#include<Item.h>
-#include<Player.h>
-#include<GameData.h>
-#include<vector>
-#include<Interactive.h>
-#include<filesystem>
+
+#include <SFML/Graphics.hpp>
+#include <GameData.h>
+#include <Interactive.h>
+#include <Item.h>
+#include <Player.h>
+
+#include <filesystem>
+#include <memory>
+#include <utility>
+#include <vector>
 
 // Базовый путь к traderData.json
 const std::filesystem::path BASE_SHOP_DATA_PATH = "data/shopData.json";
@@ -13,14 +17,11 @@ const std::filesystem::path BASE_SHOP_DATA_PATH = "data/shopData.json";
 const unsigned int BASE_SHOP_COLUMNS                        = 5;
 const unsigned int BASE_SHOP_ROWS                           = 4;
 const sf::Vector2f BASE_SHOP_CELL_SIZE                      = {40,40};
-const sf::Vector2f BASE_SHOP_BACKGROUND_SIZE                = {200,200};
 const sf::Vector2f BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE    = {1.0f,1.0f};
 const sf::Vector2f BASE_SHOP_PADDING                        = {52,60};
 const sf::Vector2f BASE_SHOP_CELL_SPRITE_SCALE              = {2.0,2.0};
 const sf::Vector2f BASE_SHOP_CELL_SPRITE_SELECTED_SCALE     = {2.3,2.3};
 const sf::Vector2f BASE_SHOP_WIDGET_SPRITE_SCALE            = {5.f,5.f};
-const sf::Vector2f BASE_SHOP_WIDGET_DISPLAY_NAME_PADDING    = {30.f,40};
-const sf::Vector2f BASE_SHOP_WIDGET_STATS_TEXT_PADDING      = {30.f,-100};
 
 const sf::Vector2i BASE_SHOP_ITEMS_MARGIN                   = {20,20};
 
@@ -37,15 +38,27 @@ private:
     class ItemWidget
     {
     private:
-        sf::Text displayNameText;
-        sf::Text statsText;
-        sf::Sprite background;
-        Item::Stats stat;
+        Shop* owner = nullptr;
+        Item* attachedItem = nullptr;
 
-        bool isOpened;
+        sf::Sprite background;
+        std::unique_ptr<sf::Sprite> itemIcon;
+        bool hasItemIcon = false;
+
+        sf::Text displayNameText;
+        sf::Text qualityText;
+        sf::Text priceText;
+        sf::Text statsText;
+        sf::Text stateText;
+        sf::Text hintText;
+
+        bool isOpened = false;
+
+        void refreshState();
+        void updateLayout();
 
     public:
-        ItemWidget(GameData& data, sf::Vector2f widgetSize, sf::Vector2f widgetPos, sf::Vector2f displayNamePosLocal, sf::Vector2f statsTextPosLocal, sf::Font& font, uint8_t displayNameSize, uint8_t statsTextSize);
+        ItemWidget(Shop& owner, GameData& data, sf::Vector2f widgetScale, sf::Vector2f widgetPos, sf::Font& font);
         ~ItemWidget() = default;
 
         void draw(sf::RenderWindow& window);
@@ -54,26 +67,14 @@ private:
 
         void open();
         void close();
-
         void buy();
-        void cancel();
 
-        // Getters
         bool getIsOpened();
 
-        // Setters
         void attachItemStats(Item& item);
-        void setWidgetScale(sf::Vector2f size);
-        void setDisplayNameText(std::string str);
-        void setStatsText(std::string str);
-        void setDisplayNameColor(sf::Color c);
-        void setStatsTextColor(sf::Color c);
-            // Перемещается ТОЛЬКО внутри области виджета. Позиционирование от левого-верхнего угла
-        void setDisplayNamePosition(sf::Vector2f position);
-        void setStatsTextPosition(sf::Vector2f position);
-            // Перемещает весь виджет, включая текст. Позиционирование по центру.
         void setWidgetCenterPosition(sf::Vector2f position);
     };
+
 private:
     Player* player = nullptr;
     GameData* data = nullptr;
@@ -85,6 +86,9 @@ private:
     int rows;
     sf::Vector2i itemsMargin;
     sf::Vector2f cellSize;
+
+    sf::Text titleText;
+    sf::Text goldText;
 
     // Items storage
     std::vector<std::pair<sf::Sprite,std::unique_ptr<Item>>> items;
@@ -100,6 +104,8 @@ private:
     void initializeItems();
     bool hasItems() const;
     void updateBackgroundLayout(const sf::Vector2f& pos);
+    void updateHeaderTexts();
+    void updateItemFrameStates();
     
     // Items aligning
     void alignItemsOnGrid();
@@ -112,6 +118,8 @@ private:
     void onShopClosed();
     // Событие при открытии магазина
     void onShopOpened();
+
+    bool buySelectedItem();
 
     // Двинуть выделение
     void moveSelectionRight();

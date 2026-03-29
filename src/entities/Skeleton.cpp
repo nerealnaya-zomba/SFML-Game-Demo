@@ -2,6 +2,7 @@
 #include "Ground.h"    
 #include "Platform.h"  
 #include "Player.h"
+#include <EnemyManager.h>
 #include<GameLevel.h>
 using namespace gameUtils;
 
@@ -275,7 +276,7 @@ void Skeleton::loadData() {
 }
 
 // ========== КОНСТРУКТОР ==========
-Skeleton::Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, Ground& ground, 
+Skeleton::Skeleton(GameData &gameData, EnemyManager& em, GameLevel& gl, sf::RenderWindow &window, Ground& ground, 
              Platform& platform, Player& player, std::string type, sf::Vector2f pos) 
     : Enemy(gameData) {
     
@@ -284,6 +285,7 @@ Skeleton::Skeleton(GameData &gameData, GameLevel& gl, sf::RenderWindow &window, 
     this->platform_ = &platform;
     this->player_ = &player;
     this->gameData = &gameData;
+    this->enemyManager = &em;
     this->type_ = type;
     this->enemyPos = pos;
     this->portal = std::make_unique<enemyPortal>(gameData,pos);
@@ -532,6 +534,11 @@ void Skeleton::updateTextures() {
         skeletonSprite->setColor(sf::Color::Red);
         if (!switchToNextSprite(skeletonSprite.get(), *skeleton_dieTextures, 
             skeleton_die_helper, switchSprite_SwitchOption::Single)) {
+            if(!hasDroppedGold && enemyManager)
+            {
+                enemyManager->dropGold(skeletonRect->getGlobalBounds().getCenter(), type_);
+                hasDroppedGold = true;
+            }
             isPlayingDieAnimation = false;
             isAlive = false;
         }

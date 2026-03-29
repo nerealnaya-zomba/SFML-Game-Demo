@@ -1,6 +1,7 @@
 {
     "Player":{
         "HP": 1000,
+        "Gold": 0,
         "takeDMG_cooldown": 1000,
         "Energy": 1000,
         "EnergyGain": 1,

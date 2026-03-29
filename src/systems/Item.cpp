@@ -1,10 +1,15 @@
 #include<Item.h>
+#include<stdexcept>
 
 Item::Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, std::string name, std::string displayItemName, Quality q, int p, Stats itemStats)
-    : quality(q), price(p), displayName(displayItemName), stats(itemStats)
+    : quality(q), iconName(name), price(p), displayName(displayItemName), stats(itemStats)
 {
     // Получаем текстуру по названию
     auto itemIt = data.itemsTextures.find(name);
+    if(itemIt == data.itemsTextures.end())
+    {
+        throw std::runtime_error("Cannot find item texture: " + name);
+    }
     sprite = std::make_unique<sf::Sprite>(itemIt->second);
 
     setSpriteOriginToMiddle(*sprite);
@@ -70,7 +75,22 @@ sf::Vector2f Item::getCenterPosition()
     return static_cast<sf::Vector2f>(this->rect.getCenter());
 }
 
-void Item::setPosition(sf::Vector2i &pos)
+sf::FloatRect Item::getBounds() const
+{
+    return sprite->getGlobalBounds();
+}
+
+const sf::Texture &Item::getTexture() const
+{
+    return sprite->getTexture();
+}
+
+bool Item::isPurchased() const
+{
+    return purchased;
+}
+
+void Item::setPosition(const sf::Vector2i &pos)
 {
     rect.position = {pos.x-rect.size.x,pos.y-rect.size.y};
     sprite->setPosition(static_cast<sf::Vector2f>(pos));
@@ -79,4 +99,14 @@ void Item::setPosition(sf::Vector2i &pos)
 void Item::setScale(sf::Vector2f scale)
 {
     this->sprite->setScale(scale);
+}
+
+void Item::setColor(const sf::Color &color)
+{
+    sprite->setColor(color);
+}
+
+void Item::markPurchased(bool value)
+{
+    purchased = value;
 }

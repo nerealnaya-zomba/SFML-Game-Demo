@@ -1,6 +1,10 @@
 #pragma once
+
 #include<SFML/Graphics.hpp>
 #include<Player.h>
+
+#include<memory>
+#include<vector>
 
 // Cooldown
 const sf::Vector2f BASE_UI_COOLDOWN_RECTS_SIZE              = {50.f,50.f};
@@ -14,19 +18,16 @@ const uint8_t BASE_UI_COOLDOWNT_RECT_FRONT_ALPHA_ACTIVE     = 0;
 // HP bar
 const sf::Vector2f BASE_HP_BAR_OFFSET                       = {10.f,10.f};
 
-class GameData;
+// Inventory panel
+const sf::Vector2f BASE_INVENTORY_PANEL_OFFSET              = {24.f,20.f};
+const sf::Vector2f BASE_INVENTORY_PANEL_SIZE                = {320.f,0.f};
+const sf::Vector2f BASE_INVENTORY_SLOT_SIZE                 = {48.f,48.f};
+const sf::Vector2f BASE_INVENTORY_SLOT_GAP                  = {10.f,10.f};
+const unsigned int BASE_INVENTORY_COLUMNS                   = 4;
 
-///////////////////////////////////
-// Реализует интерфейс игрока:
-// *  Здоровье
-// *  Энергия
-// 
-// *  Кулдаун телепорта
-// *  Кулдаун выстрела
-// *  Кулдаун деша
-// *  
-// 
-///////////////////////////////////
+class GameData;
+class GameCamera;
+
 class PlayerUI
 {
 private:
@@ -38,7 +39,6 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ПЕРЕЗАРЯДКА
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Представляет собой иконку отображающую перезарядку
     struct CooldownRect{
         int* targetCooldown;
         sf::Clock* currentCooldown;
@@ -49,14 +49,10 @@ private:
 
     std::vector<CooldownRect> cooldownRects;
     
-    ///////////////////////////////////
-    // Обновляет все cooldownRects: текущий cooldown, back(красный если не готов, зеленый если готов), front(линейная интерполяция размера по Y в зависимости от кулдауна)
-    ///////////////////////////////////
     void updateCooldownRects();
-        // Содержит:
-        void updateCooldownRectsPos();
-        void updateIterpolation();
-        void updateCooldownRectsColor();
+    void updateCooldownRectsPos();
+    void updateIterpolation();
+    void updateCooldownRectsColor();
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ЗДОРОВЬЕ
@@ -64,11 +60,11 @@ private:
     sf::RectangleShape hpBack;
     sf::RectangleShape hpFront;
     sf::Text hpTextInfo;
-	sf::Text hpText; // "Health" label after a bar
+    sf::Text hpText;
 
     void updateHP();
-        void updateHpInterpolation();
-        void updateHpText();
+    void updateHpInterpolation();
+    void updateHpText();
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ЭНЕРГИЯ
@@ -77,11 +73,41 @@ private:
     sf::RectangleShape energyFront;
 
     sf::Text energyTextInfo;
-	sf::Text energyText; // "Energy" label after a bar
+    sf::Text energyText;
 
     void updateEnergy();
-        void updateEnergyInterpolation();
-        void updateEnergyText();
+    void updateEnergyInterpolation();
+    void updateEnergyText();
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ИНВЕНТАРЬ И ЗОЛОТО
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    struct InventorySlotVisual {
+        sf::RectangleShape shadow;
+        sf::RectangleShape background;
+        sf::RectangleShape accent;
+        std::unique_ptr<sf::Sprite> icon;
+    };
+
+    sf::RectangleShape inventoryPanelShadow;
+    sf::RectangleShape inventoryPanelBack;
+    sf::RectangleShape inventoryHeaderAccent;
+    sf::RectangleShape inventoryDivider;
+    sf::RectangleShape goldChip;
+    sf::CircleShape goldCoinGlow;
+    sf::CircleShape goldCoinOuter;
+    sf::CircleShape goldCoinInner;
+    sf::RectangleShape goldCoinShine;
+
+    sf::Text inventoryTitleText;
+    sf::Text inventoryGoldText;
+    sf::Text inventoryEmptyText;
+
+    std::vector<InventorySlotVisual> inventorySlots;
+    sf::Clock uiAnimationClock;
+
+    void updateInventoryPanel();
+    void syncInventoryIcons();
 
 public:
     PlayerUI(Player &p, GameCamera &c, GameData &d);
@@ -90,9 +116,5 @@ public:
     void draw(sf::RenderWindow& window);
     void update();
 
-    ///////////////////////////////////
-    // Добавить отображение кулдауна
-    ///////////////////////////////////
     void addCooldownRect(sf::Clock& currentCD, int& targetCD, sf::Texture& iconTexture);
-
 };
