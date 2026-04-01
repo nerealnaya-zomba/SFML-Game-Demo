@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Background.h>
+#include <DeathRecovery.h>
 #include <Decoration.h>
 #include <EnemyManager.h>
 #include <Ground.h>
@@ -98,8 +99,12 @@ private:
 
     std::map<std::string, std::shared_ptr<GameLevel>> levels;
     std::map<std::string, std::shared_ptr<GameLevel>>::iterator levelIt;
+    std::vector<std::unique_ptr<DeathRecovery>> deathRecoveries;
 
     void initializeLevels(const std::string& levelsFolder);
+    void updateDeathRecoveries();
+    void drawDeathRecoveries();
+    sf::Vector2f findDeathRecoveryAnchor(const sf::Vector2f& position);
 
 public:
     GameLevelManager(GameData& d, GameCamera& c, sf::RenderWindow& w, const std::string& lF);
@@ -109,6 +114,7 @@ public:
 
     bool goToLevel(std::optional<std::string> levelName);
     bool restartCurrentLevel();
+    bool respawnPlayerAtCurrentSpawn();
 
     void update();
     void updatePlatforms();
@@ -133,4 +139,6 @@ public:
     std::map<std::string, std::shared_ptr<GameLevel>>::iterator& getIteratorReference();
 
     void attachPlayer(Player& p);
+    void registerDeathRecovery(const sf::Vector2f& position, int goldAmount);
+    void handleEvent(const sf::Event& event);
 };

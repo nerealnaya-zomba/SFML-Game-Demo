@@ -27,6 +27,21 @@ sf::Color getQualityColor(Item::Quality quality)
     return sf::Color::White;
 }
 
+sf::Color getShopFrameColor(bool isPurchased, bool isSelected)
+{
+    if (isPurchased)
+    {
+        return sf::Color(120, 112, 118, 170);
+    }
+
+    if (isSelected)
+    {
+        return sf::Color(186, 54, 72, 255);
+    }
+
+    return sf::Color(145, 33, 50, 230);
+}
+
 std::string getQualityLabel(Item::Quality quality)
 {
     switch (quality)
@@ -85,6 +100,28 @@ std::string buildStatsText(const Item::Stats& stats)
     }
 
     return builtText;
+}
+
+void makeTextReadable(sf::Text& text, unsigned int characterSize, sf::Color fillColor, float outlineThickness)
+{
+    text.setCharacterSize(characterSize);
+    text.setFillColor(fillColor);
+    text.setOutlineThickness(outlineThickness);
+    text.setOutlineColor(sf::Color(13, 18, 28, 230));
+}
+
+sf::FloatRect getInsetBounds(const sf::FloatRect& bounds, float insetRatioX, float insetRatioY)
+{
+    const float insetX = bounds.size.x * insetRatioX;
+    const float insetY = bounds.size.y * insetRatioY;
+
+    return {
+        {bounds.position.x + insetX, bounds.position.y + insetY},
+        {
+            std::max(0.f, bounds.size.x - insetX * 2.f),
+            std::max(0.f, bounds.size.y - insetY * 2.f)
+        }
+    };
 }
 }
 
@@ -213,15 +250,19 @@ void Shop::initializeItems()
 
 void Shop::updateHeaderTexts()
 {
-    const sf::FloatRect bounds = sprite->getGlobalBounds();
+    const sf::FloatRect contentBounds = getInsetBounds(
+        sprite->getGlobalBounds(),
+        BASE_SHOP_FRAME_INSET_RATIO_X,
+        BASE_SHOP_FRAME_INSET_RATIO_Y
+    );
 
     titleText.setString("Merchant's stock");
-    titleText.setPosition({bounds.position.x + 24.f, bounds.position.y + 18.f});
+    titleText.setPosition({contentBounds.position.x, contentBounds.position.y});
 
     goldText.setString("Gold: " + std::to_string(player->getGold()));
     goldText.setPosition({
-        bounds.position.x + bounds.size.x - goldText.getGlobalBounds().size.x - 24.f,
-        bounds.position.y + 18.f
+        contentBounds.position.x + contentBounds.size.x - goldText.getGlobalBounds().size.x,
+        contentBounds.position.y
     });
 }
 
@@ -229,9 +270,7 @@ void Shop::updateItemFrameStates()
 {
     for (auto&& item : items)
     {
-        sf::Color frameColor = getQualityColor(item.second->quality);
-        frameColor.a = item.second->isPurchased() ? 125 : 210;
-        item.first.setColor(frameColor);
+        item.first.setColor(getShopFrameColor(item.second->isPurchased(), false));
         item.first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
 
         item.second->setColor(item.second->isPurchased()
@@ -247,9 +286,14 @@ void Shop::alignItemsOnGrid()
         return;
     }
 
-    sf::Vector2f backgroundStart = {
-        sprite.get()->getPosition().x,
-        sprite.get()->getPosition().y};
+    const sf::FloatRect contentBounds = getInsetBounds(
+        sprite->getGlobalBounds(),
+        BASE_SHOP_FRAME_INSET_RATIO_X,
+        BASE_SHOP_FRAME_INSET_RATIO_Y
+    );
+    const float gridWidth = columns * cellSize.x + (columns - 1) * static_cast<float>(itemsMargin.x);
+    const float gridStartX = contentBounds.position.x + std::max(0.f, (contentBounds.size.x - gridWidth) / 2.f);
+    const float gridStartY = contentBounds.position.y + BASE_SHOP_HEADER_SECTION_HEIGHT + BASE_SHOP_GRID_SECTION_GAP;
     
     int iterationCount = 0;
     int countingForNextRow = 0;
@@ -257,17 +301,14 @@ void Shop::alignItemsOnGrid()
     for (auto &&item : items)
     {
         sf::Vector2f nextPos = {
-            backgroundStart.x + (BASE_SHOP_CELL_SIZE.x / 2) + 
-            (BASE_SHOP_CELL_SIZE.x * iterationCount) + 
+            gridStartX + (BASE_SHOP_CELL_SIZE.x / 2) +
+            (BASE_SHOP_CELL_SIZE.x * iterationCount) +
             (itemsMargin.x * iterationCount),
             
-            backgroundStart.y + (BASE_SHOP_CELL_SIZE.y / 2) + 
-            (BASE_SHOP_CELL_SIZE.y * countingForNextRow) + 
+            gridStartY + (BASE_SHOP_CELL_SIZE.y / 2) +
+            (BASE_SHOP_CELL_SIZE.y * countingForNextRow) +
             (itemsMargin.y * countingForNextRow)
         };
-        
-        nextPos.x += BASE_SHOP_PADDING.x;
-        nextPos.y += BASE_SHOP_PADDING.y;
 
         const sf::Vector2i convertedNextPos = static_cast<sf::Vector2i>(nextPos);
         item.second->setPosition(convertedNextPos);
@@ -292,7 +333,7 @@ void Shop::onItemSelected()
     }
 
     itemsIt->first.setScale(BASE_SHOP_CELL_SPRITE_SELECTED_SCALE);
-    itemsIt->first.setColor(getQualityColor(itemsIt->second->quality));
+    itemsIt->first.setColor(getShopFrameColor(itemsIt->second->isPurchased(), true));
 }
 
 void Shop::onSelectedChanged()
@@ -524,20 +565,17 @@ void Shop::updateBackgroundLayout(const sf::Vector2f& pos)
         return;
     }
 
-    const sf::Vector2u itemTextureSize = items.front().second->getTextureSize();
-    const sf::Vector2f itemScale = items.front().second->getBaseScale();
-    const sf::Vector2f itemDisplaySize = {
-        itemTextureSize.x * itemScale.x,
-        itemTextureSize.y * itemScale.y
-    };
-
     const unsigned int requiredRows = static_cast<unsigned int>((items.size() + columns - 1) / columns);
-    const float requiredWidth = itemDisplaySize.x * columns + itemsMargin.x * (columns - 1);
-    const float requiredHeight = itemDisplaySize.y * requiredRows + itemsMargin.y * (requiredRows - 1);
+    const float requiredGridWidth = cellSize.x * columns + itemsMargin.x * (columns - 1);
+    const float requiredGridHeight = cellSize.y * requiredRows + itemsMargin.y * (requiredRows - 1);
+    const float requiredInnerWidth = requiredGridWidth;
+    const float requiredInnerHeight = BASE_SHOP_HEADER_SECTION_HEIGHT + BASE_SHOP_GRID_SECTION_GAP + requiredGridHeight;
+    const float usableWidthRatio = 1.f - BASE_SHOP_FRAME_INSET_RATIO_X * 2.f;
+    const float usableHeightRatio = 1.f - BASE_SHOP_FRAME_INSET_RATIO_Y * 2.f;
 
     sf::Vector2f finalScale = {
-        requiredWidth / static_cast<float>(backTextureSize.x),
-        requiredHeight / static_cast<float>(backTextureSize.y)
+        requiredInnerWidth / (static_cast<float>(backTextureSize.x) * usableWidthRatio),
+        requiredInnerHeight / (static_cast<float>(backTextureSize.y) * usableHeightRatio)
     };
 
     finalScale += BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE;
@@ -561,24 +599,14 @@ Shop::ItemWidget::ItemWidget(Shop& owner, GameData& data, sf::Vector2f widgetSca
 {
     background.setScale(widgetScale);
     setSpriteOriginToMiddle(background);
+    background.setColor(sf::Color(130, 138, 156, 248));
 
-    displayNameText.setCharacterSize(24);
-    displayNameText.setFillColor(sf::Color::White);
-
-    qualityText.setCharacterSize(18);
-    qualityText.setFillColor(sf::Color(255, 215, 102));
-
-    priceText.setCharacterSize(20);
-    priceText.setFillColor(sf::Color(255, 215, 102));
-
-    statsText.setCharacterSize(18);
-    statsText.setFillColor(sf::Color(232, 234, 240));
-
-    stateText.setCharacterSize(19);
-    stateText.setFillColor(sf::Color::White);
-
-    hintText.setCharacterSize(16);
-    hintText.setFillColor(sf::Color(180, 187, 206));
+    makeTextReadable(displayNameText, 23, sf::Color(245, 239, 227), 2.f);
+    makeTextReadable(qualityText, 17, sf::Color(255, 215, 102), 2.f);
+    makeTextReadable(priceText, 18, sf::Color(255, 215, 102), 2.f);
+    makeTextReadable(statsText, 16, sf::Color(232, 234, 240), 1.5f);
+    makeTextReadable(stateText, 18, sf::Color::White, 2.f);
+    makeTextReadable(hintText, 15, sf::Color(198, 206, 222), 1.5f);
 
     setWidgetCenterPosition(widgetPos);
 }
@@ -616,22 +644,30 @@ void Shop::ItemWidget::refreshState()
 
 void Shop::ItemWidget::updateLayout()
 {
-    const sf::FloatRect bounds = background.getGlobalBounds();
-    const float left = bounds.position.x + 32.f;
-    const float top = bounds.position.y + 28.f;
+    const sf::FloatRect contentBounds = getInsetBounds(
+        background.getGlobalBounds(),
+        BASE_SHOP_FRAME_INSET_RATIO_X,
+        BASE_SHOP_FRAME_INSET_RATIO_Y
+    );
+    const float left = contentBounds.position.x;
+    const float right = contentBounds.position.x + contentBounds.size.x;
+    const float top = contentBounds.position.y;
+    const float bottom = contentBounds.position.y + contentBounds.size.y;
+    const float iconColumnWidth = hasItemIcon ? std::min(BASE_SHOP_WIDGET_ICON_COLUMN_WIDTH, contentBounds.size.x * 0.35f) : 0.f;
+    const float iconCenterX = right - iconColumnWidth / 2.f;
 
     displayNameText.setPosition({left, top});
-    qualityText.setPosition({left, top + 34.f});
-    priceText.setPosition({left, top + 64.f});
-    statsText.setPosition({left, top + 114.f});
-    stateText.setPosition({left, bounds.position.y + bounds.size.y - 70.f});
-    hintText.setPosition({left, bounds.position.y + bounds.size.y - 40.f});
+    qualityText.setPosition({left, top + 36.f});
+    priceText.setPosition({left, top + 66.f});
+    statsText.setPosition({left, top + 118.f});
+    stateText.setPosition({left, bottom - 78.f});
+    hintText.setPosition({left, bottom - 44.f});
 
     if(hasItemIcon)
     {
         itemIcon->setPosition({
-            bounds.position.x + bounds.size.x - 108.f,
-            bounds.position.y + 106.f
+            iconCenterX,
+            top + 78.f
         });
     }
 }
@@ -723,7 +759,7 @@ void Shop::ItemWidget::attachItemStats(Item& item)
     itemIcon->setColor(item.isPurchased() ? sf::Color(190, 190, 190, 220) : sf::Color::White);
 
     const sf::Vector2u textureSize = item.getTexture().getSize();
-    const sf::Vector2f maxIconSize = {92.f, 92.f};
+    const sf::Vector2f maxIconSize = {76.f, 76.f};
     const float scaleX = maxIconSize.x / static_cast<float>(textureSize.x);
     const float scaleY = maxIconSize.y / static_cast<float>(textureSize.y);
     const float iconScale = std::min(scaleX, scaleY);

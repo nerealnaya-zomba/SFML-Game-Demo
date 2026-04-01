@@ -153,6 +153,22 @@ bool Player::ownsItem(const std::string &iconName) const
     );
 }
 
+sf::Vector2f Player::getFeetPosition() const
+{
+    const sf::FloatRect bounds = playerRectangle_->getGlobalBounds();
+    return {
+        bounds.position.x + bounds.size.x / 2.f,
+        bounds.position.y + bounds.size.y
+    };
+}
+
+int Player::takeAllGold()
+{
+    const int lostGold = gold_;
+    gold_ = 0;
+    return lostGold;
+}
+
 sf::Clock &Player::getPortalClock()
 {
     return portalCooldownClock;
@@ -193,6 +209,58 @@ bool Player::spendGold(int amount)
 
     gold_ -= amount;
     return true;
+}
+
+void Player::respawnAt(sf::Vector2f pos)
+{
+    HP_ = maxHP;
+    energy = maxEnergy;
+    fallingSpeed = 0.f;
+    initialWalkSpeed = 0.f;
+
+    isAlive = true;
+    isIdle = true;
+    isFalling = true;
+    isFliesUp = false;
+    isJumped = false;
+    isControlsBlocked = false;
+    isPlayingDieAnimation = false;
+    isPlayingHurtAnimation = false;
+    isPlayingDashAnimation = false;
+    isDashOnCooldown = false;
+    takeDMG_isOnCooldown = false;
+    isPortalOnCooldown = false;
+    canShoot = true;
+    canJump = true;
+    canDash = true;
+
+    bullets.clear();
+    particles.clear();
+
+    shootTimer.reset();
+    shootTimer.stop();
+    jumpTimer.reset();
+    jumpTimer.stop();
+    dashTimer.reset();
+    dashTimer.stop();
+    dash_Clock.reset();
+    dash_Clock.stop();
+    takeDMG_timer.reset();
+    takeDMG_timer.stop();
+    portalCooldownClock.reset();
+    portalCooldownClock.stop();
+    portalCallOpenCooldownClock.reset();
+    portalCallCloseCooldownClock.reset();
+
+    if (portal)
+    {
+        portal->resetState();
+    }
+
+    CDMenu.close();
+    setPosition(pos);
+    playerSprite->setTexture(idleTextures->at(0), true);
+    playerSprite->setScale({std::abs(playerSprite->getScale().x), playerSprite->getScale().y});
 }
 
 bool Player::tryPurchaseItem(const Item &item)
@@ -784,6 +852,11 @@ void Player::dashParticles()
 */
 bool Player::takeDMG(int count, sf::Vector2f knockback, bool side) 
 {
+    if(!isAlive || isPlayingDieAnimation)
+    {
+        return false;
+    }
+
     if(takeDMG_isOnCooldown)
     {
         if(takeDMG_timer.getElapsedTime().asMilliseconds() >= takeDMG_cooldown)
@@ -800,7 +873,7 @@ bool Player::takeDMG(int count, sf::Vector2f knockback, bool side)
         side ? this->initialWalkSpeed-=knockback.x : this->initialWalkSpeed+=knockback.x;
 
         //HP reduction
-        this->HP_ -= count;
+        this->HP_ = std::max(0, this->HP_ - count);
 
         //Hurt animation enabling
         isPlayingHurtAnimation = true;
@@ -811,6 +884,11 @@ bool Player::takeDMG(int count, sf::Vector2f knockback, bool side)
         //Cooldown
         takeDMG_isOnCooldown = true;
         takeDMG_timer.restart();
+
+        if (HP_ <= 0)
+        {
+            CDMenu.close();
+        }
         return true;
     }
     return false;
@@ -904,9 +982,18 @@ void Player::updatePhysics()
 {
     portalUpdate();
 
-    applyFriction(initialWalkSpeed,this->frictionForce);
-    
     updateParticles();
+
+    if(this->HP_<=0) isPlayingDieAnimation = true;
+
+    if(isPlayingDieAnimation || !isAlive)
+    {
+        initialWalkSpeed = 0.f;
+        fallingSpeed = 0.f;
+        return;
+    }
+
+    applyFriction(initialWalkSpeed,this->frictionForce);
 
     updateEnergy();
 
@@ -916,8 +1003,6 @@ void Player::updatePhysics()
             isJumped  = true;
     } else  isFliesUp = false;
 
-    if(this->HP_<=0) isPlayingDieAnimation = true;
-    
     if(!isPlayingDashAnimation) playerRectangle_->move({0.f,this->fallingSpeed});
     
     playerRectangle_->move({initialWalkSpeed,0.f});

@@ -204,6 +204,21 @@ void LevelPortal::checkIsTargetInAreaOfTeleportation()
     }
 }
 
+void LevelPortal::resetState()
+{
+    isUsed = false;
+    isCalledForOpen = false;
+    isCalledForClose = false;
+    isOpened = false;
+    isClosed = true;
+    isTargetInAreaOfTeleportation = false;
+    isTargetBeingSquished = false;
+    setPortalIteratorToBegin();
+    sprite->setScale(closedScale);
+    resetTargetScaleToBase();
+    resetSquishBools();
+}
+
 bool LevelPortal::getIsOpened()
 {
     return this->isOpened;

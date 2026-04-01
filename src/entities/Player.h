@@ -150,6 +150,8 @@ public:
     bool canAfford(int amount) const;
     const std::vector<OwnedItem>& getInventory() const;
     bool ownsItem(const std::string& iconName) const;
+    sf::Vector2f getFeetPosition() const;
+    int takeAllGold();
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);
@@ -157,6 +159,7 @@ public:
     void addGold(int amount);
     bool spendGold(int amount);
     bool tryPurchaseItem(const Item& item);
+    void respawnAt(sf::Vector2f pos);
 
         // Control methods
     void updateControls();                  // Process player input

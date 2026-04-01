@@ -9,6 +9,7 @@
 #include <TGUI/Backend/SFML-Graphics.hpp>
 #include <TGUI/TGUI.hpp>
 
+#include <array>
 #include <functional>
 #include <memory>
 #include <string>
@@ -24,13 +25,6 @@ inline const tgui::String BASE_CONTROLS_BUTTON_TEXT = "Controls";
 inline const tgui::String BASE_EXIT_BUTTON_TEXT = "Exit";
 inline const tgui::String BASE_SETTINGS_BUTTON_TEXT = "Settings";
 inline constexpr unsigned int BASE_MENU_BUTTONS_CHARACTER_SIZE = 25;
-
-inline const sf::Color BASE_IDLE_COLOR(70, 130, 180);
-inline const sf::Color BASE_HOVER_COLOR(100, 150, 200);
-inline const sf::Color BASE_CLICK_COLOR(40, 90, 140);
-inline const sf::Color BASE_TEXT_IDLE_COLOR(0, 0, 0);
-inline const sf::Color BASE_TEXT_HOVER_COLOR(255, 255, 255);
-inline const sf::Color BASE_TEXT_CLICK_COLOR(127, 127, 127);
 
 enum class MenuMode
 {
@@ -84,6 +78,13 @@ public:
     const std::string& getSelectedLevelName() const;
 
 private:
+    enum class ButtonStyleRole
+    {
+        Primary,
+        Secondary,
+        Danger
+    };
+
     MenuCallbacks callbacks_{};
     MenuState state_{};
     MenuMode mode_ = MenuMode::Main;
@@ -102,6 +103,7 @@ private:
     tgui::ComboBox::Ptr levelSelector;
     tgui::Label::Ptr titleLabel;
     tgui::Label::Ptr subtitleLabel;
+    tgui::Label::Ptr footerLabel;
     tgui::ChildWindow::Ptr settingsWindow;
     tgui::ChildWindow::Ptr controlsWindow;
     tgui::Button::Ptr vsyncToggleButton;
@@ -110,19 +112,38 @@ private:
     sf::RenderWindow* window_m = nullptr;
     MenuBackground background;
     sf::Clock menuAnimationClock;
+    float menuVisualTime_ = 0.f;
+
+    sf::RectangleShape panelShadow_;
+    sf::RectangleShape panelFrame_;
+    sf::RectangleShape panelInset_;
+    sf::RectangleShape titleBand_;
+    sf::RectangleShape dividerLine_;
+    sf::RectangleShape footerBand_;
+    std::array<sf::RectangleShape, 2> ornamentLines_;
+    sf::CircleShape sigilOuterRing_;
+    sf::CircleShape sigilInnerRing_;
+    sf::RectangleShape sigilVerticalBar_;
+    sf::RectangleShape sigilHorizontalBar_;
 
     bool vsyncEnabled = false;
     int menuParticleCount = 200;
 
     void setupMainWidgets();
     tgui::Button::Ptr createMenuButton(const tgui::String& text, float y);
-    void styleButton(const tgui::Button::Ptr& button) const;
+    void styleButton(const tgui::Button::Ptr& button, ButtonStyleRole role) const;
+    void styleLabel(const tgui::Label::Ptr& label, bool isTitle) const;
+    void styleSelector() const;
+    void styleChildWindow(const tgui::ChildWindow::Ptr& childWindow) const;
     void initializeLevelSelector();
     void initializeSettingsWindow();
     void initializeControlsWindow();
     void refreshLevelSelector();
     void refreshMenuContext();
     void applyModeLayout();
+    void applyModeTheme();
+    void updateDecorativeLayout();
+    void drawDecorativeLayout(sf::RenderWindow& window);
     void closePopups();
 
     void resumeButtonOnClick();

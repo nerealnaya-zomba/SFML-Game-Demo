@@ -100,6 +100,7 @@ public:
     void closePortal();
 
     void checkIsTargetInAreaOfTeleportation();
+    void resetState();
 
     // Getters
     bool getIsOpened();

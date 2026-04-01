@@ -21,7 +21,12 @@ const sf::Vector2f BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE    = {1.0f,1.0f};
 const sf::Vector2f BASE_SHOP_PADDING                        = {52,60};
 const sf::Vector2f BASE_SHOP_CELL_SPRITE_SCALE              = {2.0,2.0};
 const sf::Vector2f BASE_SHOP_CELL_SPRITE_SELECTED_SCALE     = {2.3,2.3};
-const sf::Vector2f BASE_SHOP_WIDGET_SPRITE_SCALE            = {5.f,5.f};
+const sf::Vector2f BASE_SHOP_WIDGET_SPRITE_SCALE            = {8.5f,5.2f};
+const float BASE_SHOP_FRAME_INSET_RATIO_X                   = 0.125f;
+const float BASE_SHOP_FRAME_INSET_RATIO_Y                   = 0.125f;
+const float BASE_SHOP_HEADER_SECTION_HEIGHT                 = 54.f;
+const float BASE_SHOP_GRID_SECTION_GAP                      = 14.f;
+const float BASE_SHOP_WIDGET_ICON_COLUMN_WIDTH              = 110.f;
 
 const sf::Vector2i BASE_SHOP_ITEMS_MARGIN                   = {20,20};
 

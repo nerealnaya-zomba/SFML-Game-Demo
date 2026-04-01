@@ -19,9 +19,14 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     yesButton->setText("Yes");
     yesButton->setTextSize(characterSize);
     yesButton->setWidgetName("yesButton");
+    yesButton->getRenderer()->setBorders({2.f});
+    yesButton->getRenderer()->setRoundedBorderRadius(8.f);
     yesButton->getRenderer()->setBackgroundColor(BASE_YES_IDLE_COLOR);
     yesButton->getRenderer()->setBackgroundColorHover(BASE_YES_HOVER_COLOR);
     yesButton->getRenderer()->setBackgroundColorDown(BASE_YES_CLICK_COLOR);
+    yesButton->getRenderer()->setBorderColor(sf::Color(179, 132, 84));
+    yesButton->getRenderer()->setBorderColorHover(sf::Color(219, 176, 120));
+    yesButton->getRenderer()->setBorderColorDown(sf::Color(219, 176, 120));
     yesButton->getRenderer()->setTextColor(BASE_YES_TEXT_IDLE_COLOR);
     yesButton->getRenderer()->setTextColorDown(BASE_YES_TEXT_CLICK_COLOR);
     yesButton->getRenderer()->setTextColorHover(BASE_YES_TEXT_HOVER_COLOR);
@@ -36,9 +41,14 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     noButton->setText("No");
     noButton->setTextSize(characterSize);
     noButton->setWidgetName("noButton");
+    noButton->getRenderer()->setBorders({2.f});
+    noButton->getRenderer()->setRoundedBorderRadius(8.f);
     noButton->getRenderer()->setBackgroundColor(BASE_NO_IDLE_COLOR);
     noButton->getRenderer()->setBackgroundColorHover(BASE_NO_HOVER_COLOR);
     noButton->getRenderer()->setBackgroundColorDown(BASE_NO_CLICK_COLOR);
+    noButton->getRenderer()->setBorderColor(sf::Color(176, 74, 73));
+    noButton->getRenderer()->setBorderColorHover(sf::Color(219, 112, 108));
+    noButton->getRenderer()->setBorderColorDown(sf::Color(219, 112, 108));
     noButton->getRenderer()->setTextColor(BASE_NO_TEXT_IDLE_COLOR);
     noButton->getRenderer()->setTextColorDown(BASE_NO_TEXT_CLICK_COLOR);
     noButton->getRenderer()->setTextColorHover(BASE_NO_TEXT_HOVER_COLOR);
@@ -50,6 +60,8 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     label->setPosition(pos.x, pos.y - characterSize);
     label->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
     label->getRenderer()->setTextColor(BASE_LABEL_TEXT_COLOR);
+    label->getRenderer()->setTextOutlineColor(sf::Color(0, 0, 0, 180));
+    label->getRenderer()->setTextOutlineThickness(1.f);
 
     gui.add(yesButton);
     gui.add(noButton);
@@ -59,12 +71,8 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     setRectangleOriginToMiddle(mainRect_m);
     mainRect_m.setPosition({pos.x, pos.y - 50});
     mainRect_m.setFillColor(BASE_ASKDIALOGUE_BACKGROUND_COLOR);
-    mainRect_m.setOutlineThickness(5.f);
-    mainRect_m.setOutlineColor(sf::Color(
-        BASE_ASKDIALOGUE_BACKGROUND_COLOR.r / 3,
-        BASE_ASKDIALOGUE_BACKGROUND_COLOR.g / 3,
-        BASE_ASKDIALOGUE_BACKGROUND_COLOR.b / 3
-    ));
+    mainRect_m.setOutlineThickness(3.f);
+    mainRect_m.setOutlineColor(sf::Color(146, 109, 80, 230));
 }
 
 AskDialogue::~AskDialogue() = default;

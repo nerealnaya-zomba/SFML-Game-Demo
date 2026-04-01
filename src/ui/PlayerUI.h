@@ -7,16 +7,16 @@
 #include<vector>
 
 // Cooldown
-const sf::Vector2f BASE_UI_COOLDOWN_RECTS_SIZE              = {50.f,50.f};
-const sf::Color BASE_UI_COOLDOWN_RECT_BACK_COLOR_ACTIVE     = sf::Color(180,180,180,255);
-const sf::Color BASE_UI_COOLDOWN_RECT_BACK_COLOR_INACTIVE   = sf::Color::Black;
-const sf::Color BASE_UI_COOLDOWN_RECT_FRONT_COLOR           = sf::Color::White;
-const uint8_t BASE_UI_COOLDOWNT_RECT_BACK_ALPHA_            = 180;
-const uint8_t BASE_UI_COOLDOWNT_RECT_FRONT_ALPHA_INACTIVE   = 180;
-const uint8_t BASE_UI_COOLDOWNT_RECT_FRONT_ALPHA_ACTIVE     = 0;
+const sf::Vector2f BASE_UI_COOLDOWN_RECTS_SIZE              = {58.f,58.f};
+const sf::Vector2f BASE_UI_COOLDOWN_INNER_SIZE              = {48.f,48.f};
+const sf::Vector2f BASE_UI_COOLDOWN_STACK_OFFSET            = {26.f,0.f};
+const float BASE_UI_COOLDOWN_STACK_GAP                      = 14.f;
 
 // HP bar
-const sf::Vector2f BASE_HP_BAR_OFFSET                       = {10.f,10.f};
+const sf::Vector2f BASE_HP_BAR_OFFSET                       = {18.f,18.f};
+const sf::Vector2f BASE_RESOURCE_BAR_SIZE                   = {600.f,42.f};
+const float BASE_RESOURCE_BAR_GAP                           = 14.f;
+const float BASE_RESOURCE_LABEL_WIDTH                       = 124.f;
 
 // Inventory panel
 const sf::Vector2f BASE_INVENTORY_PANEL_OFFSET              = {24.f,20.f};
@@ -42,8 +42,12 @@ private:
     struct CooldownRect{
         int* targetCooldown;
         sf::Clock* currentCooldown;
+        sf::RectangleShape shadow;
+        sf::RectangleShape frame;
         sf::RectangleShape back;
         sf::RectangleShape front;
+        sf::RectangleShape accent;
+        sf::CircleShape readyGlow;
         std::unique_ptr<sf::Sprite> icon;
     };
 
@@ -57,8 +61,12 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ЗДОРОВЬЕ
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    sf::RectangleShape hpShadow;
+    sf::RectangleShape hpFrame;
     sf::RectangleShape hpBack;
     sf::RectangleShape hpFront;
+    sf::RectangleShape hpHighlight;
+    sf::RectangleShape hpLabelPlate;
     sf::Text hpTextInfo;
     sf::Text hpText;
 
@@ -69,8 +77,12 @@ private:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ЭНЕРГИЯ
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    sf::RectangleShape energyShadow;
+    sf::RectangleShape energyFrame;
     sf::RectangleShape energyBack;
     sf::RectangleShape energyFront;
+    sf::RectangleShape energyHighlight;
+    sf::RectangleShape energyLabelPlate;
 
     sf::Text energyTextInfo;
     sf::Text energyText;

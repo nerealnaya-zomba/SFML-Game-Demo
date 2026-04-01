@@ -1,4 +1,6 @@
 #include <Defines.h>
+#include <DeathScreen.h>
+#include <ScreenTransition.h>
 #include <nlohmann/json.hpp>
 #include <sfml-headers.h>
 
@@ -9,6 +11,13 @@
 namespace
 {
 const std::string kLevelFolder = "data/levelData";
+
+enum class DeathFlowState
+{
+    Inactive,
+    FadingOut,
+    AwaitingChoice
+};
 
 void resetViewForMenu(sf::RenderWindow& window, sf::View& view)
 {
@@ -42,6 +51,7 @@ int main()
     const sf::Color gameBackGroundColor({0, 0, 0, 255});
 
     Menu menu(window);
+    DeathScreen deathScreen(window, font);
     tgui::Font tguiFont("fonts/Roboto_Condensed-Black.ttf");
     menu.connectTGUIFont(tguiFont);
 
@@ -76,6 +86,7 @@ int main()
     Trader trader(gameData, player, traderPosition);
 
     bool hasActiveRun = false;
+    DeathFlowState deathFlowState = DeathFlowState::Inactive;
 
     auto syncMenuState = [&]() {
         MenuState state;
@@ -100,6 +111,12 @@ int main()
             const bool changedLevel = levelManager.goToLevel(std::make_optional(levelName));
             if (changedLevel)
             {
+                const bool playerReady = player.isAlive || levelManager.respawnPlayerAtCurrentSpawn();
+                if (!playerReady)
+                {
+                    return false;
+                }
+
                 hasActiveRun = true;
                 player.playFadeInAnimation();
                 syncMenuState();
@@ -124,6 +141,27 @@ int main()
         }
     });
 
+    auto handleDeathScreenAction = [&](DeathScreenAction action) {
+        deathScreen.close();
+        deathFlowState = DeathFlowState::Inactive;
+
+        if (action == DeathScreenAction::RestartLevel)
+        {
+            if (levelManager.restartCurrentLevel())
+            {
+                hasActiveRun = true;
+                player.playFadeInAnimation();
+                syncMenuState();
+            }
+            return;
+        }
+
+        hasActiveRun = false;
+        syncMenuState();
+        resetViewForMenu(window, view);
+        menu.openMainMenu();
+    };
+
     while (window.isOpen())
     {
         while (const std::optional event = window.pollEvent())
@@ -139,6 +177,15 @@ int main()
                 continue;
             }
 
+            if (deathScreen.isOpen())
+            {
+                if (const auto action = deathScreen.handleEvent(*event))
+                {
+                    handleDeathScreenAction(*action);
+                }
+                continue;
+            }
+
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
                 if (keyPressed->scancode == sf::Keyboard::Scancode::Escape)
@@ -149,6 +196,17 @@ int main()
                     continue;
                 }
             }
+
+            if (
+                deathFlowState != DeathFlowState::Inactive ||
+                player.isPlayingDieAnimation ||
+                !player.isAlive
+            )
+            {
+                continue;
+            }
+
+            levelManager.handleEvent(*event);
 
             if (!player.isCDMenuOpened())
             {
@@ -167,16 +225,59 @@ int main()
             continue;
         }
 
-        player.updateControls();
-        player.updatePhysics();
-        player.checkGroundCollision(levelManager.getGroundRect());
-        player.checkPlatformRectCollision(levelManager.getPlatformRects());
-        player.moveBullets();
+        const bool deathSequenceActive =
+            deathFlowState != DeathFlowState::Inactive ||
+            player.isPlayingDieAnimation ||
+            !player.isAlive;
+        const bool deathChoiceActive = deathFlowState == DeathFlowState::AwaitingChoice;
 
-        levelManager.update();
-        levelManager.updateEnemyManager();
+        if (!deathSequenceActive)
+        {
+            player.updateControls();
+            player.updatePhysics();
+            player.checkGroundCollision(levelManager.getGroundRect());
+            player.checkPlatformRectCollision(levelManager.getPlatformRects());
+            player.moveBullets();
+        }
+
+        if (!deathChoiceActive)
+        {
+            levelManager.update();
+            levelManager.updateEnemyManager();
+            trader.update();
+            camera.update();
+        }
+        window.setView(view);
 
         player.updateTextures();
+
+        if (!player.isAlive && deathFlowState == DeathFlowState::Inactive)
+        {
+            const int lostGold = player.takeAllGold();
+            levelManager.registerDeathRecovery(player.getFeetPosition(), lostGold);
+            player.getScreenTransition().fadeOut();
+            deathFlowState = DeathFlowState::FadingOut;
+        }
+
+        if (
+            deathFlowState == DeathFlowState::FadingOut &&
+            player.getScreenTransition().isFadeOutComplete()
+        )
+        {
+            deathScreen.open();
+            deathFlowState = DeathFlowState::AwaitingChoice;
+        }
+
+        if (deathScreen.isOpen())
+        {
+            deathScreen.update();
+        }
+
+        if (!deathSequenceActive)
+        {
+            playerUI.update();
+            player.chooseDestinationMenuUpdate();
+        }
 
         window.clear(gameBackGroundColor);
 
@@ -185,21 +286,16 @@ int main()
         levelManager.drawGrounds();
         levelManager.drawEnemyManager();
 
-        trader.update();
         trader.draw(window);
 
         player.draw(window);
         player.drawBullets(window);
 
         levelManager.drawPlatforms();
-        playerUI.update();
-        player.chooseDestinationMenuUpdate();
         playerUI.draw(window);
         player.chooseDestinationMenuDraw(window);
         player.drawTransition();
-
-        camera.update();
-        window.setView(view);
+        deathScreen.draw();
         window.display();
     }
 }

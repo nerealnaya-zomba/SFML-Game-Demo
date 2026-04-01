@@ -7,22 +7,22 @@
 #include <TGUI/TGUI.hpp>
 #include <functional>
 
-const sf::Color BASE_YES_IDLE_COLOR(60, 180, 140);
-const sf::Color BASE_YES_HOVER_COLOR(80, 200, 160);
-const sf::Color BASE_YES_CLICK_COLOR(40, 140, 110);
-const sf::Color BASE_YES_TEXT_IDLE_COLOR(0, 0, 0);
-const sf::Color BASE_YES_TEXT_HOVER_COLOR(255, 255, 255);
-const sf::Color BASE_YES_TEXT_CLICK_COLOR(127, 127, 127);
+const sf::Color BASE_YES_IDLE_COLOR(78, 49, 28);
+const sf::Color BASE_YES_HOVER_COLOR(109, 66, 36);
+const sf::Color BASE_YES_CLICK_COLOR(137, 83, 44);
+const sf::Color BASE_YES_TEXT_IDLE_COLOR(244, 225, 196);
+const sf::Color BASE_YES_TEXT_HOVER_COLOR(255, 246, 230);
+const sf::Color BASE_YES_TEXT_CLICK_COLOR(255, 236, 211);
 
-const sf::Color BASE_NO_IDLE_COLOR(230, 150, 70);
-const sf::Color BASE_NO_HOVER_COLOR(250, 180, 100);
-const sf::Color BASE_NO_CLICK_COLOR(200, 120, 40);
-const sf::Color BASE_NO_TEXT_IDLE_COLOR(0, 0, 0);
-const sf::Color BASE_NO_TEXT_HOVER_COLOR(255, 255, 255);
-const sf::Color BASE_NO_TEXT_CLICK_COLOR(127, 127, 127);
+const sf::Color BASE_NO_IDLE_COLOR(59, 17, 19);
+const sf::Color BASE_NO_HOVER_COLOR(88, 25, 28);
+const sf::Color BASE_NO_CLICK_COLOR(119, 31, 34);
+const sf::Color BASE_NO_TEXT_IDLE_COLOR(239, 222, 208);
+const sf::Color BASE_NO_TEXT_HOVER_COLOR(255, 245, 234);
+const sf::Color BASE_NO_TEXT_CLICK_COLOR(255, 234, 214);
 
-const sf::Color BASE_LABEL_TEXT_COLOR(255, 255, 255);
-const sf::Color BASE_ASKDIALOGUE_BACKGROUND_COLOR(70, 130, 180);
+const sf::Color BASE_LABEL_TEXT_COLOR(235, 223, 209);
+const sf::Color BASE_ASKDIALOGUE_BACKGROUND_COLOR(14, 10, 12);
 
 class AskDialogue
 {

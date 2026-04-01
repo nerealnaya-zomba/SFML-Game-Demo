@@ -1,105 +1,149 @@
 #include "GameCamera.h"
 
+#include <algorithm>
+#include <cmath>
+
+namespace
+{
+sf::Vector2f clampVectorMagnitude(sf::Vector2f value, sf::Vector2f maxMagnitude)
+{
+    value.x = std::clamp(value.x, -maxMagnitude.x, maxMagnitude.x);
+    value.y = std::clamp(value.y, -maxMagnitude.y, maxMagnitude.y);
+    return value;
+}
+
+float expSmoothingFactor(float sharpness, float deltaTime)
+{
+    return 1.f - std::exp(-sharpness * deltaTime);
+}
+}
+
 void GameCamera::movementUpdate(float deltatime, unsigned int levelWidth, unsigned int levelHeight)
 {
-    float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
-    float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
+    targetPos = chasePlayer
+        ? calculateFollowTarget(deltatime, levelWidth, levelHeight)
+        : clampToLevelBounds(targetPos, levelWidth, levelHeight);
 
-    //Условия для коллизии цели с краями уровня
-    // Обработка по X
-    if (player->getCenterPosition().x < viewAreaWidth / 2) {
-        // Уперлись в левую границу
-        this->targetPos.x = viewAreaWidth / 2;
-    } else if (player->getCenterPosition().x > levelWidth - viewAreaWidth / 2) {
-        // Уперлись в правую границу
-        this->targetPos.x = levelWidth - viewAreaWidth / 2;
-    } else {
-        // Свободное движение
-        this->targetPos.x = player->getCenterPosition().x;
+    const float snapDistanceX = getScreenViewSize().x * BASE_CAMERA_SNAP_DISTANCE_FACTOR;
+    const float snapDistanceY = getScreenViewSize().y * BASE_CAMERA_SNAP_DISTANCE_FACTOR;
+
+    if (std::abs(targetPos.x - cameraPos.x) > snapDistanceX || std::abs(targetPos.y - cameraPos.y) > snapDistanceY)
+    {
+        cameraPos = targetPos;
+        resetMotionState();
+        return;
     }
 
-    // Обработка по Y
-    if (player->getCenterPosition().y < viewAreaHeight / 2) {
-        this->targetPos.y = viewAreaHeight / 2;
-    } else if (player->getCenterPosition().y > levelHeight - viewAreaHeight / 2) {
-        this->targetPos.y = levelHeight - viewAreaHeight / 2;
-    } else {
-        this->targetPos.y = player->getCenterPosition().y;
+    cameraPos.x = smoothDamp(
+        cameraPos.x,
+        targetPos.x,
+        speed.x,
+        BASE_CAMERA_SMOOTH_TIME.x,
+        maxSpeed.x,
+        deltatime
+    );
+
+    cameraPos.y = smoothDamp(
+        cameraPos.y,
+        targetPos.y,
+        speed.y,
+        BASE_CAMERA_SMOOTH_TIME.y,
+        maxSpeed.y,
+        deltatime
+    );
+
+    cameraPos = clampToLevelBounds(cameraPos, levelWidth, levelHeight);
+}
+
+sf::Vector2f GameCamera::clampToLevelBounds(sf::Vector2f pos, unsigned int levelWidth, unsigned int levelHeight) const
+{
+    const sf::Vector2f viewSize = getScreenViewSize();
+    const float halfWidth = viewSize.x / 2.f;
+    const float halfHeight = viewSize.y / 2.f;
+
+    const float minX = halfWidth;
+    const float minY = halfHeight;
+    const float maxX = std::max(minX, static_cast<float>(levelWidth) - halfWidth);
+    const float maxY = std::max(minY, static_cast<float>(levelHeight) - halfHeight);
+
+    pos.x = std::clamp(pos.x, minX, maxX);
+    pos.y = std::clamp(pos.y, minY, maxY);
+
+    return pos;
+}
+
+sf::Vector2f GameCamera::calculateFollowTarget(float deltatime, unsigned int levelWidth, unsigned int levelHeight)
+{
+    const sf::Vector2f playerPos = player->getCenterPosition();
+
+    if (!hasLastPlayerPos)
+    {
+        lastPlayerPos = playerPos;
+        hasLastPlayerPos = true;
     }
 
-    sf::Vector2f offset = targetPos - cameraPos;
-    float distance = std::sqrt(offset.x * offset.x + offset.y * offset.y);
-    
-    // Настройки пружины
-    float stiffness = 0.1f;    // Жёсткость пружины
-    float damping = 0.8f;      // Демпфирование
-    
-    // Сила пружины (сильнее при большем расстоянии)
-    sf::Vector2f springForce = offset * stiffness;
-    
-    // Демпфирующая сила (против скорости)
-    sf::Vector2f dampingForce = -speed * damping;
-    
-    // Результирующая сила
-    sf::Vector2f totalForce = (springForce * 480.f) + dampingForce;
-    
-    // Интегрируем (упрощённый Euler)
-    speed += totalForce * deltatime;
+    const float safeDeltaTime = std::max(deltatime, 0.0001f);
+    const sf::Vector2f rawPlayerVelocity = (playerPos - lastPlayerPos) / safeDeltaTime;
+    lastPlayerPos = playerPos;
 
-    // Зажим скорости в рамки максимальной
-speed.x = std::clamp(speed.x, -std::abs(maxSpeed.x - ( offset.x/4 )), std::abs(maxSpeed.x + ( offset.x/4 )));
-speed.y = std::clamp(speed.y, -std::abs(maxSpeed.y - ( offset.y/4 )), std::abs(maxSpeed.y + ( offset.y/4 )));
-    //Условия для коллизии камеры с краями уровня
-    // Проверка по X
-    float newX = cameraPos.x + speed.x * deltatime;
-    float minX = viewAreaWidth / 2;
-    float maxX = levelWidth - viewAreaWidth / 2;
+    smoothedPlayerVelocity += (rawPlayerVelocity - smoothedPlayerVelocity)
+        * expSmoothingFactor(BASE_CAMERA_LOOK_AHEAD_SHARPNESS, safeDeltaTime);
 
-    if (newX > minX && newX < maxX) {
-        // Свободное движение внутри границ
-        cameraPos.x = newX;
-    } else {
-        // Уперлись в границу
-        // Проверяем, пытаемся ли мы двигаться ОТ границы
-        if (cameraPos.x <= minX && speed.x > 0) {
-            // Камера у левой границы и пытается двигаться вправо
-            cameraPos.x = std::min(newX, maxX);
-        } else if (cameraPos.x >= maxX && speed.x < 0) {
-            // Камера у правой границы и пытается двигаться влево
-            cameraPos.x = std::max(newX, minX);
-        }
-        // Иначе остаёмся на границе (ничего не меняем)
+    const sf::Vector2f lookAheadOffset = clampVectorMagnitude(
+        smoothedPlayerVelocity * BASE_CAMERA_LOOK_AHEAD_TIME,
+        BASE_CAMERA_LOOK_AHEAD_MAX
+    );
+
+    return clampToLevelBounds(playerPos + lookAheadOffset, levelWidth, levelHeight);
+}
+
+float GameCamera::smoothDamp(
+    float current,
+    float target,
+    float& currentVelocity,
+    float smoothTime,
+    float maxSpeedValue,
+    float deltaTime
+)
+{
+    smoothTime = std::max(0.0001f, smoothTime);
+
+    const float omega = 2.f / smoothTime;
+    const float x = omega * deltaTime;
+    const float exp = 1.f / (1.f + x + 0.48f * x * x + 0.235f * x * x * x);
+
+    float change = current - target;
+    const float originalTarget = target;
+
+    const float maxChange = maxSpeedValue * smoothTime;
+    change = std::clamp(change, -maxChange, maxChange);
+    target = current - change;
+
+    const float temp = (currentVelocity + omega * change) * deltaTime;
+    currentVelocity = (currentVelocity - omega * temp) * exp;
+
+    float output = target + (change + temp) * exp;
+
+    if ((originalTarget - current > 0.f) == (output > originalTarget))
+    {
+        output = originalTarget;
+        currentVelocity = 0.f;
     }
 
-    // Проверка по Y (аналогично)
-    float newY = cameraPos.y + speed.y * deltatime;
-    float minY = viewAreaHeight / 2;
-    float maxY = levelHeight - viewAreaHeight / 2;
+    return output;
+}
 
-    if (newY > minY && newY < maxY) {
-        cameraPos.y = newY;
-    } else {
-        if (cameraPos.y <= minY && speed.y > 0) {
-            cameraPos.y = std::min(newY, maxY);
-        } else if (cameraPos.y >= maxY && speed.y < 0) {
-            cameraPos.y = std::max(newY, minY);
-        }
-    }
-    
-    // Дополнительное мягкое торможение вблизи цели
-    if (distance < brakeRadius) {
-        float brakeFactor = distance / brakeRadius;  // 1.0 на краю, 0.0 в центре
-        speed *= brakeFactor * 0.95f;  // Плавное замедление
-    }
-
+void GameCamera::resetMotionState()
+{
+    speed = {0.f, 0.f};
+    smoothedPlayerVelocity = {0.f, 0.f};
 }
 
 GameCamera::GameCamera(sf::View& view)
 {
-    // Привязываем ссылки к указателям
     this->view = &view;
-
-    this->view->zoom( ZOOM_SCALE ); // Приближаем камеру
+    this->view->setSize({WINDOW_WIDTH * ZOOM_SCALE, WINDOW_HEIGHT * ZOOM_SCALE});
+    this->view->setCenter(cameraPos);
 }
 
 GameCamera::~GameCamera()
@@ -109,19 +153,78 @@ GameCamera::~GameCamera()
 void GameCamera::update()
 {
     static sf::Clock clock;
-    float dt = clock.restart().asSeconds();
+    const float dt = std::clamp(clock.restart().asSeconds(), 0.0001f, 0.05f);
 
-    if(this->isConditionSuccessed)
-    {   
-        this->movementUpdate(
-            dt,
-            levelManager->getCurrentLevelSize().x,
-            levelManager->getCurrentLevelSize().y
-        );
-        this->view->setSize({WINDOW_WIDTH * ZOOM_SCALE, WINDOW_HEIGHT * ZOOM_SCALE});
-        this->view->setCenter(this->cameraPos);
+    if (!player || !levelManager || !view)
+    {
         return;
     }
+
+    const sf::Vector2i levelSize = levelManager->getCurrentLevelSize();
+    mapBorders = {static_cast<float>(levelSize.x), static_cast<float>(levelSize.y)};
+
+    if (!isConditionSuccessed)
+    {
+        bool shouldReleaseTarget = false;
+
+        if (useTimedPointTarget && pointTargetClock.getElapsedTime() >= pointTargetDuration)
+        {
+            shouldReleaseTarget = true;
+        }
+
+        if (releaseCondition && releaseCondition())
+        {
+            shouldReleaseTarget = true;
+        }
+
+        if (shouldReleaseTarget)
+        {
+            isConditionSuccessed = true;
+            chasePlayer = true;
+            useTimedPointTarget = false;
+            pointTargetDuration = sf::Time::Zero;
+            releaseCondition = {};
+        }
+    }
+
+    movementUpdate(
+        dt,
+        static_cast<unsigned int>(std::max(0, levelSize.x)),
+        static_cast<unsigned int>(std::max(0, levelSize.y))
+    );
+
+    view->setSize({WINDOW_WIDTH * ZOOM_SCALE, WINDOW_HEIGHT * ZOOM_SCALE});
+    view->setCenter(cameraPos);
+}
+
+void GameCamera::pointCameraAt(sf::Vector2f pos, std::function<bool()> condition)
+{
+    chasePlayer = false;
+    isConditionSuccessed = false;
+    targetPos = pos;
+    releaseCondition = std::move(condition);
+    useTimedPointTarget = false;
+    pointTargetDuration = sf::Time::Zero;
+    pointTargetClock.restart();
+}
+
+void GameCamera::pointCameraAt(sf::Vector2f pos, unsigned int time)
+{
+    chasePlayer = false;
+    isConditionSuccessed = false;
+    targetPos = pos;
+    releaseCondition = {};
+    useTimedPointTarget = true;
+    pointTargetDuration = sf::milliseconds(time);
+    pointTargetClock.restart();
+}
+
+void GameCamera::setMoveSpeed(sf::Vector2f pos)
+{
+    maxSpeed = {
+        std::max(1.f, std::abs(pos.x)),
+        std::max(1.f, std::abs(pos.y))
+    };
 }
 
 void GameCamera::attachGameLevelManager(GameLevelManager &m)
@@ -132,32 +235,38 @@ void GameCamera::attachGameLevelManager(GameLevelManager &m)
 void GameCamera::attachPlayer(Player &player)
 {
     this->player = &player;
+    lastPlayerPos = player.getCenterPosition();
+    hasLastPlayerPos = true;
 }
 
 void GameCamera::setCenterPosition(sf::Vector2f pos)
 {
-    float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
-    float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
-    screenViewSize = {viewAreaWidth,viewAreaHeight};
-    // Проверка, не будет ли камера при перемещении выходить за границы
-    if(pos.x-(screenViewSize.x/2)<0)
+    if (levelManager)
     {
-        pos.x = (screenViewSize.x/2);
-    } 
-    else if(pos.x+(screenViewSize.x/2)>mapBorders.x)
-    {
-        pos.x = mapBorders.x-screenViewSize.x;
-    }
-    if(pos.y-(screenViewSize.y/2)>0)
-    {
-        pos.y = (screenViewSize.y/2);
-    }
-    else if(pos.y+(screenViewSize.y/2)<mapBorders.y)
-    {
-        pos.y = mapBorders.y-screenViewSize.y;
+        const sf::Vector2i levelSize = levelManager->getCurrentLevelSize();
+        mapBorders = {static_cast<float>(levelSize.x), static_cast<float>(levelSize.y)};
+        pos = clampToLevelBounds(
+            pos,
+            static_cast<unsigned int>(std::max(0, levelSize.x)),
+            static_cast<unsigned int>(std::max(0, levelSize.y))
+        );
     }
 
-    this->cameraPos = pos;
+    cameraPos = pos;
+    targetPos = pos;
+    resetMotionState();
+
+    if (player)
+    {
+        lastPlayerPos = player->getCenterPosition();
+        hasLastPlayerPos = true;
+    }
+
+    if (view)
+    {
+        view->setSize({WINDOW_WIDTH * ZOOM_SCALE, WINDOW_HEIGHT * ZOOM_SCALE});
+        view->setCenter(cameraPos);
+    }
 }
 
 float GameCamera::getZoom() const
@@ -167,18 +276,15 @@ float GameCamera::getZoom() const
 
 sf::Vector2f GameCamera::getScreenViewSize() const
 {
-    float viewAreaWidth = abs(WINDOW_WIDTH*ZOOM_SCALE);
-    float viewAreaHeight = abs(WINDOW_HEIGHT*ZOOM_SCALE);
-
-
-    return sf::Vector2f(viewAreaWidth,viewAreaHeight);
+    return {WINDOW_WIDTH * ZOOM_SCALE, WINDOW_HEIGHT * ZOOM_SCALE};
 }
 
 sf::Vector2f GameCamera::getScreenViewPos() const
 {
-    sf::Vector2f pos = {view->getCenter().x-(getScreenViewSize().x)/2,
-                        view->getCenter().y-(getScreenViewSize().y)/2};
-    return pos;
+    return {
+        view->getCenter().x - getScreenViewSize().x / 2.f,
+        view->getCenter().y - getScreenViewSize().y / 2.f
+    };
 }
 
 sf::Vector2f GameCamera::getSpeed() const

@@ -7,6 +7,27 @@
 
 namespace
 {
+const sf::Color kHudBronzeBorder(168, 126, 88, 255);
+const sf::Color kHudBronzeGlow(228, 181, 126, 255);
+const sf::Color kHudPanelShadow(0, 0, 0, 125);
+const sf::Color kHudPanelFrame(20, 11, 12, 232);
+const sf::Color kHudPanelInset(10, 8, 10, 220);
+const sf::Color kHudTextPrimary(242, 229, 212, 255);
+const sf::Color kHudTextSecondary(203, 186, 166, 255);
+const sf::Color kHudCrimsonFill(153, 34, 29, 245);
+const sf::Color kHudCrimsonHighlight(236, 112, 91, 180);
+const sf::Color kHudCrimsonPlate(55, 15, 16, 235);
+const sf::Color kHudArcaneFill(31, 89, 125, 245);
+const sf::Color kHudArcaneHighlight(116, 207, 255, 180);
+const sf::Color kHudArcanePlate(13, 27, 42, 235);
+const sf::Color kCooldownMaskColor(7, 5, 7, 195);
+const sf::Color kCooldownInactiveIconColor(172, 155, 144, 170);
+const sf::Color kCooldownReadyIconColor(255, 239, 220, 255);
+const sf::Color kCooldownReadyAccent(214, 173, 120, 255);
+const sf::Color kCooldownChargeAccent(125, 90, 64, 255);
+const sf::Color kCooldownFrameReady(183, 140, 98, 255);
+const sf::Color kCooldownFrameInactive(102, 75, 60, 220);
+
 sf::Color getInventoryQualityColor(Item::Quality quality)
 {
     switch (quality)
@@ -22,6 +43,14 @@ sf::Color getInventoryQualityColor(Item::Quality quality)
     }
 
     return sf::Color::White;
+}
+
+void styleHudText(sf::Text& text, unsigned int size, sf::Color fillColor)
+{
+    text.setCharacterSize(size);
+    text.setFillColor(fillColor);
+    text.setOutlineThickness(1.5f);
+    text.setOutlineColor(sf::Color(0, 0, 0, 180));
 }
 }
 
@@ -39,20 +68,30 @@ void PlayerUI::updateCooldownRectsPos()
         camera->getCameraCenterPos().y
     };
 
-    float currentY = rightCameraSidePos.y;
+    const float totalHeight = cooldownRects.empty()
+        ? 0.f
+        : static_cast<float>(cooldownRects.size()) * BASE_UI_COOLDOWN_RECTS_SIZE.y +
+            static_cast<float>(cooldownRects.size() - 1) * BASE_UI_COOLDOWN_STACK_GAP;
+    const float stackX = rightCameraSidePos.x - BASE_UI_COOLDOWN_RECTS_SIZE.x - BASE_UI_COOLDOWN_STACK_OFFSET.x;
+    float currentY = rightCameraSidePos.y - totalHeight / 2.f;
+
     for (auto &&r : cooldownRects)
     {
+        r.shadow.setPosition({stackX + 5.f, currentY + 6.f});
+        r.frame.setPosition({stackX, currentY});
         r.back.setPosition({
-        rightCameraSidePos.x - r.back.getSize().x,
-        currentY
+            stackX + (BASE_UI_COOLDOWN_RECTS_SIZE.x - BASE_UI_COOLDOWN_INNER_SIZE.x) / 2.f,
+            currentY + (BASE_UI_COOLDOWN_RECTS_SIZE.y - BASE_UI_COOLDOWN_INNER_SIZE.y) / 2.f
         });
-        
-        setRectangleOriginToMiddle(r.front);
-        r.front.setPosition(r.back.getGlobalBounds().getCenter());
-        
+        r.front.setPosition(r.back.getPosition());
+        r.accent.setPosition({
+            r.back.getPosition().x,
+            r.back.getPosition().y + r.back.getSize().y - r.accent.getSize().y
+        });
+        r.readyGlow.setPosition(r.back.getGlobalBounds().getCenter());
         r.icon->setPosition(r.back.getGlobalBounds().getCenter());
-        
-        currentY += r.back.getSize().y;
+
+        currentY += BASE_UI_COOLDOWN_RECTS_SIZE.y + BASE_UI_COOLDOWN_STACK_GAP;
     }
 }
 
@@ -60,44 +99,73 @@ void PlayerUI::updateIterpolation()
 {
     for (auto&& r : cooldownRects)
     {
-        int currentCooldown = r.currentCooldown->getElapsedTime().asMilliseconds();
-        int targetCooldown = *r.targetCooldown;
-        
-        if (currentCooldown <= targetCooldown && targetCooldown > 0)
-        {
-            float progress = static_cast<float>(currentCooldown) / static_cast<float>(targetCooldown);
-            
-            r.front.setSize({
-                BASE_UI_COOLDOWN_RECTS_SIZE.x * progress,
-                BASE_UI_COOLDOWN_RECTS_SIZE.y * progress
-            });
-        }
+        const int currentCooldown = r.currentCooldown->getElapsedTime().asMilliseconds();
+        const int targetCooldown = *r.targetCooldown;
+        const float progress = (targetCooldown <= 0)
+            ? 1.f
+            : std::clamp(static_cast<float>(currentCooldown) / static_cast<float>(targetCooldown), 0.f, 1.f);
+
+        r.accent.setSize({
+            BASE_UI_COOLDOWN_INNER_SIZE.x * progress,
+            r.accent.getSize().y
+        });
+
+        r.front.setSize(BASE_UI_COOLDOWN_INNER_SIZE);
     }
 }
 
 void PlayerUI::updateCooldownRectsColor()
 {
+    const float elapsed = uiAnimationClock.getElapsedTime().asSeconds();
+
     for (auto &&r : cooldownRects)
     {
-        int currentCooldown = r.currentCooldown->getElapsedTime().asMilliseconds();
-        if((currentCooldown)>=(*r.targetCooldown))
-        {
-            r.back.setFillColor(BASE_UI_COOLDOWN_RECT_BACK_COLOR_ACTIVE);
+        const int currentCooldown = r.currentCooldown->getElapsedTime().asMilliseconds();
+        const int targetCooldown = *r.targetCooldown;
+        const float progress = (targetCooldown <= 0)
+            ? 1.f
+            : std::clamp(static_cast<float>(currentCooldown) / static_cast<float>(targetCooldown), 0.f, 1.f);
+        const bool isReady = (targetCooldown <= 0) || (currentCooldown >= targetCooldown);
+        const float pulse = 0.85f + std::sin(elapsed * 3.5f + progress * 2.f) * 0.15f;
 
-            sf::Color frontColor = r.front.getFillColor();
-            frontColor.a = BASE_UI_COOLDOWNT_RECT_FRONT_ALPHA_ACTIVE;
-            r.front.setFillColor(frontColor);
+        r.frame.setOutlineColor(isReady ? kCooldownFrameReady : kCooldownFrameInactive);
+        r.back.setOutlineColor(isReady
+            ? sf::Color(kHudBronzeGlow.r, kHudBronzeGlow.g, kHudBronzeGlow.b, 120)
+            : sf::Color(70, 53, 44, 120));
+        r.accent.setFillColor(isReady ? kCooldownReadyAccent : kCooldownChargeAccent);
+
+        const std::uint8_t maskAlpha = isReady
+            ? 0
+            : static_cast<std::uint8_t>(std::clamp((1.f - progress) * 180.f + 25.f, 0.f, 220.f));
+        r.front.setFillColor(sf::Color(
+            kCooldownMaskColor.r,
+            kCooldownMaskColor.g,
+            kCooldownMaskColor.b,
+            maskAlpha
+        ));
+
+        r.readyGlow.setScale({pulse, pulse});
+        r.readyGlow.setFillColor(sf::Color(
+            kHudBronzeGlow.r,
+            kHudBronzeGlow.g,
+            kHudBronzeGlow.b,
+            static_cast<std::uint8_t>(isReady ? 46.f + pulse * 34.f : 14.f + progress * 10.f)
+        ));
+
+        if (isReady)
+        {
+            r.icon->setColor(kCooldownReadyIconColor);
         }
         else
         {
-            r.back.setFillColor(BASE_UI_COOLDOWN_RECT_BACK_COLOR_INACTIVE);
-
-            sf::Color frontColor = r.front.getFillColor();
-            frontColor.a = BASE_UI_COOLDOWNT_RECT_FRONT_ALPHA_INACTIVE;
-            r.front.setFillColor(frontColor);
+            r.icon->setColor(sf::Color(
+                kCooldownInactiveIconColor.r,
+                kCooldownInactiveIconColor.g,
+                kCooldownInactiveIconColor.b,
+                static_cast<std::uint8_t>(170.f + progress * 45.f)
+            ));
         }
     }
-    
 }
 
 void PlayerUI::addCooldownRect(sf::Clock& currentCD, int& targetCD, sf::Texture& iconTexture)
@@ -106,123 +174,169 @@ void PlayerUI::addCooldownRect(sf::Clock& currentCD, int& targetCD, sf::Texture&
     cr.currentCooldown = &currentCD;
     cr.targetCooldown  = &targetCD;
 
-    cr.back.setSize(BASE_UI_COOLDOWN_RECTS_SIZE);
-    cr.back.setFillColor(BASE_UI_COOLDOWN_RECT_BACK_COLOR_ACTIVE);
+    cr.shadow.setSize(BASE_UI_COOLDOWN_RECTS_SIZE);
+    cr.shadow.setFillColor(kHudPanelShadow);
 
-    cr.front.setSize(BASE_UI_COOLDOWN_RECTS_SIZE);
-    cr.front.setFillColor(BASE_UI_COOLDOWN_RECT_FRONT_COLOR);
-    setRectangleOriginToMiddle(cr.front);
+    cr.frame.setSize(BASE_UI_COOLDOWN_RECTS_SIZE);
+    cr.frame.setFillColor(kHudPanelFrame);
+    cr.frame.setOutlineThickness(2.f);
+    cr.frame.setOutlineColor(kCooldownFrameReady);
+
+    cr.back.setSize(BASE_UI_COOLDOWN_INNER_SIZE);
+    cr.back.setFillColor(kHudPanelInset);
+    cr.back.setOutlineThickness(1.f);
+    cr.back.setOutlineColor(sf::Color(82, 59, 46, 120));
+
+    cr.front.setSize(BASE_UI_COOLDOWN_INNER_SIZE);
+    cr.front.setFillColor(kCooldownMaskColor);
+
+    cr.accent.setSize({0.f, 5.f});
+    cr.accent.setFillColor(kCooldownChargeAccent);
+
+    cr.readyGlow.setRadius(22.f);
+    cr.readyGlow.setOrigin({cr.readyGlow.getRadius(), cr.readyGlow.getRadius()});
+    cr.readyGlow.setFillColor(sf::Color(kHudBronzeGlow.r, kHudBronzeGlow.g, kHudBronzeGlow.b, 0));
 
     cr.icon = std::make_unique<sf::Sprite>(iconTexture);
 
-    sf::Vector2f textureSize = static_cast<sf::Vector2f>(iconTexture.getSize());
-    sf::Vector2f calculatedScale = {
-        BASE_UI_COOLDOWN_RECTS_SIZE.x/textureSize.x,
-        BASE_UI_COOLDOWN_RECTS_SIZE.y/textureSize.y
-    };
-    cr.icon->setScale(calculatedScale);
+    const sf::Vector2f textureSize = static_cast<sf::Vector2f>(iconTexture.getSize());
+    const sf::Vector2f targetSize = {28.f, 28.f};
+    const float scaleX = targetSize.x / textureSize.x;
+    const float scaleY = targetSize.y / textureSize.y;
+    const float scale = std::min(scaleX, scaleY);
+    cr.icon->setScale({scale, scale});
     setSpriteOriginToMiddle(*cr.icon);
+    cr.icon->setColor(kCooldownReadyIconColor);
 
     cooldownRects.push_back(std::move(cr));
 }
 
 void PlayerUI::updateHP()
 {
+    const sf::Vector2f screenViewPos = camera->getScreenViewPos();
+    const float elapsed = uiAnimationClock.getElapsedTime().asSeconds();
+    const float pulse = 0.9f + std::sin(elapsed * 2.3f) * 0.08f;
+    const sf::Vector2f basePos = {
+        screenViewPos.x + BASE_HP_BAR_OFFSET.x,
+        screenViewPos.y + BASE_HP_BAR_OFFSET.y
+    };
+    const sf::Vector2f innerPos = {basePos.x + 3.f, basePos.y + 3.f};
 
-    sf::Vector2f screenViewPos = camera->getScreenViewPos();
+    hpShadow.setPosition({basePos.x + 6.f, basePos.y + 6.f});
+    hpFrame.setPosition(basePos);
+    hpBack.setPosition(innerPos);
+    hpLabelPlate.setPosition(innerPos);
 
-    hpBack.setPosition
-    (
-        {
-            screenViewPos.x+BASE_HP_BAR_OFFSET.x,screenViewPos.y+BASE_HP_BAR_OFFSET.y
-        }
-    );
-    hpFront.setPosition
-    (
-        {
-            screenViewPos.x+BASE_HP_BAR_OFFSET.x,
-            screenViewPos.y+BASE_HP_BAR_OFFSET.y
-        }
-    );
+    hpFront.setPosition({
+        innerPos.x + BASE_RESOURCE_LABEL_WIDTH + 10.f,
+        innerPos.y + 5.f
+    });
+    hpHighlight.setPosition({
+        hpFront.getPosition().x + 3.f,
+        hpFront.getPosition().y + 2.f
+    });
+    hpFrame.setOutlineColor(sf::Color(
+        kHudBronzeBorder.r,
+        kHudBronzeBorder.g,
+        kHudBronzeBorder.b,
+        static_cast<std::uint8_t>(220.f + pulse * 22.f)
+    ));
 
     updateHpInterpolation();
-
     updateHpText();
 }
 
 void PlayerUI::updateHpInterpolation()
 {
-    float playerHP = static_cast<float>(player->getHP());
-    float playerMaxHP = static_cast<float>(player->getMaxHP());
+    const float playerHP = static_cast<float>(player->getHP());
+    const float playerMaxHP = static_cast<float>(player->getMaxHP());
+    const float interpolationFactor = (playerMaxHP <= 0.f)
+        ? 0.f
+        : std::clamp(playerHP / playerMaxHP, 0.f, 1.f);
 
-    float interpolationFactor = playerHP/playerMaxHP;
-
-    hpFront.setSize({hpBack.getSize().x*interpolationFactor,hpBack.getSize().y});
+    const float fillWidth = hpBack.getSize().x - BASE_RESOURCE_LABEL_WIDTH - 16.f;
+    const float currentWidth = fillWidth * interpolationFactor;
+    hpFront.setSize({currentWidth, hpFront.getSize().y});
+    hpHighlight.setSize({std::max(0.f, currentWidth - 6.f), hpHighlight.getSize().y});
 }
 
 void PlayerUI::updateHpText()
 {
     hpTextInfo.setString(std::to_string(player->getHP()) + " / " + std::to_string(player->getMaxHP()));
-    hpTextInfo.setPosition(hpBack.getGlobalBounds().getCenter());
+    setTextOriginToMiddle(hpTextInfo);
+    hpTextInfo.setPosition({
+        hpFront.getPosition().x + (hpBack.getSize().x - BASE_RESOURCE_LABEL_WIDTH - 16.f) / 2.f,
+        hpBack.getPosition().y + hpBack.getSize().y / 2.f - 2.f
+    });
 
-
-    hpText.setPosition
-        (
-         {
-            hpBack.getPosition().x + hpBack.getSize().x + BASE_HP_BAR_OFFSET.x,
-            hpBack.getPosition().y
-         }
-        );
+    hpText.setPosition({
+        hpLabelPlate.getPosition().x + 16.f,
+        hpLabelPlate.getPosition().y + 6.f
+    });
 }
 
 void PlayerUI::updateEnergy()
 {
+    const sf::Vector2f screenViewPos = camera->getScreenViewPos();
+    const float elapsed = uiAnimationClock.getElapsedTime().asSeconds();
+    const float pulse = 0.9f + std::sin(elapsed * 2.f + 0.8f) * 0.07f;
+    const sf::Vector2f basePos = {
+        screenViewPos.x + BASE_HP_BAR_OFFSET.x,
+        screenViewPos.y + BASE_HP_BAR_OFFSET.y + BASE_RESOURCE_BAR_SIZE.y + BASE_RESOURCE_BAR_GAP
+    };
+    const sf::Vector2f innerPos = {basePos.x + 3.f, basePos.y + 3.f};
 
-    sf::Vector2f screenViewPos = camera->getScreenViewPos();
+    energyShadow.setPosition({basePos.x + 6.f, basePos.y + 6.f});
+    energyFrame.setPosition(basePos);
+    energyBack.setPosition(innerPos);
+    energyLabelPlate.setPosition(innerPos);
 
-    energyBack.setPosition
-    (
-        {
-            screenViewPos.x + BASE_HP_BAR_OFFSET.x,
-            screenViewPos.y + BASE_HP_BAR_OFFSET.y + hpFront.getSize().y + BASE_HP_BAR_OFFSET.y
-        }
-    );
-    energyFront.setPosition
-    (
-        {
-            screenViewPos.x+BASE_HP_BAR_OFFSET.x,
-            screenViewPos.y + BASE_HP_BAR_OFFSET.y + hpFront.getSize().y + BASE_HP_BAR_OFFSET.y
-        }
-    );
+    energyFront.setPosition({
+        innerPos.x + BASE_RESOURCE_LABEL_WIDTH + 10.f,
+        innerPos.y + 5.f
+    });
+    energyHighlight.setPosition({
+        energyFront.getPosition().x + 3.f,
+        energyFront.getPosition().y + 2.f
+    });
+    energyFrame.setOutlineColor(sf::Color(
+        kHudBronzeBorder.r,
+        kHudBronzeBorder.g,
+        kHudBronzeBorder.b,
+        static_cast<std::uint8_t>(208.f + pulse * 18.f)
+    ));
 
     updateEnergyInterpolation();
-
     updateEnergyText();
 }
 
 void PlayerUI::updateEnergyInterpolation()
 {
-    float playerEnergy = static_cast<float>(player->getEnergy());
-    float playerMaxEnergy = static_cast<float>(player->getMaxEnergy());
+    const float playerEnergy = static_cast<float>(player->getEnergy());
+    const float playerMaxEnergy = static_cast<float>(player->getMaxEnergy());
+    const float interpolationFactor = (playerMaxEnergy <= 0.f)
+        ? 0.f
+        : std::clamp(playerEnergy / playerMaxEnergy, 0.f, 1.f);
 
-    float interpolationFactor = playerEnergy/playerMaxEnergy;
-
-    energyFront.setSize({energyBack.getSize().x*interpolationFactor,energyBack.getSize().y});
+    const float fillWidth = energyBack.getSize().x - BASE_RESOURCE_LABEL_WIDTH - 16.f;
+    const float currentWidth = fillWidth * interpolationFactor;
+    energyFront.setSize({currentWidth, energyFront.getSize().y});
+    energyHighlight.setSize({std::max(0.f, currentWidth - 6.f), energyHighlight.getSize().y});
 }
 
 void PlayerUI::updateEnergyText()
 {
     energyTextInfo.setString(std::to_string(player->getEnergy()) + " / " + std::to_string(player->getMaxEnergy()));
-    energyTextInfo.setPosition(energyBack.getGlobalBounds().getCenter());
+    setTextOriginToMiddle(energyTextInfo);
+    energyTextInfo.setPosition({
+        energyFront.getPosition().x + (energyBack.getSize().x - BASE_RESOURCE_LABEL_WIDTH - 16.f) / 2.f,
+        energyBack.getPosition().y + energyBack.getSize().y / 2.f - 2.f
+    });
 
-    
-    energyText.setPosition
-        (
-         {
-            energyBack.getPosition().x + energyBack.getSize().x + BASE_HP_BAR_OFFSET.x,
-            energyBack.getPosition().y
-         }
-        );
+    energyText.setPosition({
+        energyLabelPlate.getPosition().x + 16.f,
+        energyLabelPlate.getPosition().y + 6.f
+    });
 }
 
 void PlayerUI::syncInventoryIcons()
@@ -354,79 +468,61 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
     , inventoryGoldText(*d.gameFont)
     , inventoryEmptyText(*d.gameFont)
 {
+    hpShadow.setSize(BASE_RESOURCE_BAR_SIZE);
+    hpShadow.setFillColor(kHudPanelShadow);
 
-    sf::Vector2f screenViewPos = camera->getScreenViewPos();
+    hpFrame.setSize(BASE_RESOURCE_BAR_SIZE);
+    hpFrame.setFillColor(kHudPanelFrame);
+    hpFrame.setOutlineThickness(2.f);
+    hpFrame.setOutlineColor(kHudBronzeBorder);
 
-    //hpBack hpFront init
-    hpBack.setSize({600,30});
-    hpBack.setFillColor(sf::Color::Black);
-    hpBack.setPosition({screenViewPos.x+BASE_HP_BAR_OFFSET.x,screenViewPos.y+BASE_HP_BAR_OFFSET.y});
+    hpBack.setSize({BASE_RESOURCE_BAR_SIZE.x - 6.f, BASE_RESOURCE_BAR_SIZE.y - 6.f});
+    hpBack.setFillColor(kHudPanelInset);
 
-    hpFront.setSize({0,30});
-    hpFront.setFillColor(sf::Color::Green);
-    hpFront.setPosition
-    (
-        {
-            screenViewPos.x + BASE_HP_BAR_OFFSET.x,
-            screenViewPos.y + BASE_HP_BAR_OFFSET.y
-        }
-    );
+    hpLabelPlate.setSize({BASE_RESOURCE_LABEL_WIDTH, hpBack.getSize().y});
+    hpLabelPlate.setFillColor(kHudCrimsonPlate);
+    hpLabelPlate.setOutlineThickness(1.f);
+    hpLabelPlate.setOutlineColor(sf::Color(137, 70, 57, 220));
 
-    hpTextInfo.setCharacterSize(20);
-    hpTextInfo.setFillColor(sf::Color::White);
+    hpFront.setSize({0.f, hpBack.getSize().y - 10.f});
+    hpFront.setFillColor(kHudCrimsonFill);
+
+    hpHighlight.setSize({0.f, 8.f});
+    hpHighlight.setFillColor(kHudCrimsonHighlight);
+
+    styleHudText(hpTextInfo, 21, kHudTextPrimary);
     hpTextInfo.setString(std::to_string(player->getHP()) + " / " + std::to_string(player->getMaxHP()));
-    hpTextInfo.setOrigin(hpTextInfo.getGlobalBounds().getCenter());
-    hpTextInfo.setPosition(hpBack.getGlobalBounds().getCenter());
 
-    hpText.setCharacterSize(20);
-    hpText.setFillColor(sf::Color::White);
-    hpText.setString("Health");
-    hpText.setPosition
-        (
-         {
-            hpBack.getPosition().x + hpBack.getSize().x + BASE_HP_BAR_OFFSET.x,
-            hpBack.getPosition().y
-         }
-        );
+    styleHudText(hpText, 20, kHudTextSecondary);
+    hpText.setString("HEALTH");
 
+    energyShadow.setSize(BASE_RESOURCE_BAR_SIZE);
+    energyShadow.setFillColor(kHudPanelShadow);
 
-    //energyBack hpFront init
-    energyBack.setSize({600,30});
-    energyBack.setFillColor(sf::Color::Black);
-    energyBack.setPosition
-    (
-        {
-            screenViewPos.x + BASE_HP_BAR_OFFSET.x,
-            screenViewPos.y + BASE_HP_BAR_OFFSET.y + hpFront.getSize().y + BASE_HP_BAR_OFFSET.y
-        }
-    );
+    energyFrame.setSize(BASE_RESOURCE_BAR_SIZE);
+    energyFrame.setFillColor(kHudPanelFrame);
+    energyFrame.setOutlineThickness(2.f);
+    energyFrame.setOutlineColor(kHudBronzeBorder);
 
-    energyFront.setSize({0,30});
-    energyFront.setFillColor(sf::Color::Blue);
-    energyFront.setPosition
-    (
-        {
-            screenViewPos.x+BASE_HP_BAR_OFFSET.x,
-            screenViewPos.y + BASE_HP_BAR_OFFSET.y + hpFront.getSize().y + BASE_HP_BAR_OFFSET.y
-        }
-    );
+    energyBack.setSize({BASE_RESOURCE_BAR_SIZE.x - 6.f, BASE_RESOURCE_BAR_SIZE.y - 6.f});
+    energyBack.setFillColor(kHudPanelInset);
 
-    energyTextInfo.setCharacterSize(20);
-    energyTextInfo.setFillColor(sf::Color::White);
-    energyTextInfo.setString(std::to_string(player->getEnergy()) + " / " + std::to_string(player->getMaxHP()));
-    energyTextInfo.setOrigin(energyTextInfo.getGlobalBounds().getCenter());
-    energyTextInfo.setPosition(energyBack.getGlobalBounds().getCenter());
+    energyLabelPlate.setSize({BASE_RESOURCE_LABEL_WIDTH, energyBack.getSize().y});
+    energyLabelPlate.setFillColor(kHudArcanePlate);
+    energyLabelPlate.setOutlineThickness(1.f);
+    energyLabelPlate.setOutlineColor(sf::Color(67, 113, 145, 220));
 
-    energyText.setCharacterSize(20);
-    energyText.setFillColor(sf::Color::White);
-    energyText.setString("Energy");
-    energyText.setPosition
-        (
-         {
-            energyBack.getPosition().x + energyBack.getSize().x + BASE_HP_BAR_OFFSET.x,
-            energyBack.getPosition().y
-         }
-        );
+    energyFront.setSize({0.f, energyBack.getSize().y - 10.f});
+    energyFront.setFillColor(kHudArcaneFill);
+
+    energyHighlight.setSize({0.f, 8.f});
+    energyHighlight.setFillColor(kHudArcaneHighlight);
+
+    styleHudText(energyTextInfo, 21, kHudTextPrimary);
+    energyTextInfo.setString(std::to_string(player->getEnergy()) + " / " + std::to_string(player->getMaxEnergy()));
+
+    styleHudText(energyText, 20, kHudTextSecondary);
+    energyText.setString("ENERGY");
 
     inventoryPanelShadow.setFillColor(sf::Color(0, 0, 0, 115));
 
@@ -475,20 +571,32 @@ void PlayerUI::draw(sf::RenderWindow &window)
     // Cooldown
     for (auto &&r : cooldownRects)
     {
+        window.draw(r.shadow);
+        window.draw(r.readyGlow);
+        window.draw(r.frame);
         window.draw(r.back);
         window.draw(*r.icon);
         window.draw(r.front);
+        window.draw(r.accent);
     }
     
     // HP
+    window.draw(hpShadow);
+    window.draw(hpFrame);
     window.draw(hpBack);
     window.draw(hpFront);
+    window.draw(hpHighlight);
+    window.draw(hpLabelPlate);
     window.draw(hpTextInfo);
     window.draw(hpText);
 
     // Energy
+    window.draw(energyShadow);
+    window.draw(energyFrame);
     window.draw(energyBack);
     window.draw(energyFront);
+    window.draw(energyHighlight);
+    window.draw(energyLabelPlate);
     window.draw(energyTextInfo);
     window.draw(energyText);
 

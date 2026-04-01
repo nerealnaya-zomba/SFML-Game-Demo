@@ -110,10 +110,23 @@ bool GameLevelManager::restartCurrentLevel()
     if (player)
     {
         const sf::Vector2f spawnPos = levelIt->second->getPlayerSpawnPos();
-        player->setPosition(spawnPos);
+        player->respawnAt(spawnPos);
         camera->setCenterPosition(spawnPos);
     }
 
+    return true;
+}
+
+bool GameLevelManager::respawnPlayerAtCurrentSpawn()
+{
+    if (levels.empty() || levelIt == levels.end() || !player)
+    {
+        return false;
+    }
+
+    const sf::Vector2f spawnPos = levelIt->second->getPlayerSpawnPos();
+    player->respawnAt(spawnPos);
+    camera->setCenterPosition(spawnPos);
     return true;
 }
 
@@ -165,6 +178,8 @@ void GameLevelManager::updateEnemyManager()
     {
         levelIt->second->updateEnemyManager();
     }
+
+    updateDeathRecoveries();
 }
 
 void GameLevelManager::draw()
@@ -215,6 +230,8 @@ void GameLevelManager::drawEnemyManager()
     {
         levelIt->second->drawEnemyManager();
     }
+
+    drawDeathRecoveries();
 }
 
 sf::Vector2i GameLevelManager::getCurrentLevelSize() const
@@ -273,6 +290,110 @@ void GameLevelManager::attachPlayer(Player& p)
     {
         level->attachPlayer(p);
     }
+}
+
+void GameLevelManager::registerDeathRecovery(const sf::Vector2f& position, int goldAmount)
+{
+    if (!data || goldAmount <= 0 || levelIt == levels.end())
+    {
+        return;
+    }
+
+    deathRecoveries.push_back(std::make_unique<DeathRecovery>(
+        *data,
+        levelIt->first,
+        findDeathRecoveryAnchor(position),
+        goldAmount
+    ));
+}
+
+void GameLevelManager::handleEvent(const sf::Event& event)
+{
+    if (!player || levelIt == levels.end())
+    {
+        return;
+    }
+
+    for (auto& recovery : deathRecoveries)
+    {
+        if (recovery->belongsToLevel(levelIt->first) && recovery->handleEvent(event, *player))
+        {
+            break;
+        }
+    }
+
+    deathRecoveries.erase(
+        std::remove_if(deathRecoveries.begin(), deathRecoveries.end(),
+            [](const std::unique_ptr<DeathRecovery>& recovery) {
+                return recovery->isRecovered();
+            }),
+        deathRecoveries.end()
+    );
+}
+
+void GameLevelManager::updateDeathRecoveries()
+{
+    if (!player || levelIt == levels.end())
+    {
+        return;
+    }
+
+    for (auto& recovery : deathRecoveries)
+    {
+        if (recovery->belongsToLevel(levelIt->first))
+        {
+            recovery->update(*player);
+        }
+    }
+
+    deathRecoveries.erase(
+        std::remove_if(deathRecoveries.begin(), deathRecoveries.end(),
+            [](const std::unique_ptr<DeathRecovery>& recovery) {
+                return recovery->isRecovered();
+            }),
+        deathRecoveries.end()
+    );
+}
+
+void GameLevelManager::drawDeathRecoveries()
+{
+    if (levelIt == levels.end())
+    {
+        return;
+    }
+
+    for (auto& recovery : deathRecoveries)
+    {
+        if (recovery->belongsToLevel(levelIt->first))
+        {
+            recovery->draw(*window);
+        }
+    }
+}
+
+sf::Vector2f GameLevelManager::findDeathRecoveryAnchor(const sf::Vector2f& position)
+{
+    const float levelWidth = static_cast<float>(getCurrentLevelSize().x);
+    const float clampedX = std::clamp(position.x, 18.f, std::max(18.f, levelWidth - 18.f));
+
+    float supportY = getGroundRect().getPosition().y;
+    for (const auto& platformRect : getPlatformRects())
+    {
+        const sf::FloatRect bounds = platformRect->getGlobalBounds();
+        if (clampedX < bounds.position.x - 6.f || clampedX > bounds.position.x + bounds.size.x + 6.f)
+        {
+            continue;
+        }
+
+        if (bounds.position.y + 8.f < position.y)
+        {
+            continue;
+        }
+
+        supportY = std::min(supportY, bounds.position.y);
+    }
+
+    return {clampedX, supportY - 6.f};
 }
 
 GameLevel::GameLevel(GameData& d, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath)
