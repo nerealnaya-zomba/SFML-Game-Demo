@@ -135,6 +135,7 @@ private:
     float hoverPhase_ = 0.f;
     float patrolDir_ = 1.f;
     float attackImpactFrame_ = 3.f;
+    float hitFlashDurationMs_ = 180.f;
 
     int HP_ = 100;
     int maxHP_ = 100;
@@ -142,11 +143,15 @@ private:
 
     bool isOnGround_ = false;
     bool facingRight_ = true;
+    bool lockedAttackFacingRight_ = true;
     bool playerDetected_ = false;
     bool attackDamageApplied_ = false;
     bool deathEffectPlayed_ = false;
     bool hasDroppedGold_ = false;
     bool collidedHorizontally_ = false;
+    bool hitFlashActive_ = false;
+    bool scorpionDeathPulseMidPlayed_ = false;
+    bool scorpionDeathPulseLatePlayed_ = false;
 
     sf::Clock stateClock_{};
     sf::Clock attackCooldownClock_{};
@@ -155,6 +160,7 @@ private:
     sf::Clock patrolEffectClock_{};
     sf::Clock hopClock_{};
     sf::Clock deathSmokeClock_{};
+    sf::Clock hitFlashClock_{};
 
     void loadData();
     void attachTextures();
@@ -173,6 +179,9 @@ private:
     void updateFlyingPhysics();
     void updateVisualEffects();
     void drawVisualEffects();
+    void drawScorpionHitAura();
+    void drawScorpionDeathAura();
+    void triggerScorpionDeathBursts();
 
     void checkGroundCollision();
     void checkPlatformCollision();
@@ -198,6 +207,7 @@ private:
                   float thickness,
                   float alpha);
     void spawnNoticeEffect();
+    void spawnHitEffect(const sf::Color& impactColor, bool splashHit);
     void spawnAttackEffect();
     void spawnImpactEffect();
     void spawnDeathEffect();

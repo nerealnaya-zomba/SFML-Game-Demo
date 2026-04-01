@@ -203,6 +203,8 @@ void BestiaryEnemy::attachTextures()
             attachTexture(gameData_->dreadScorpion_walkTextures, idleTextures_, gameData_->dreadScorpion_walk_helper, idleHelper_);
             attachTexture(gameData_->dreadScorpion_walkTextures, moveTextures_, gameData_->dreadScorpion_walk_helper, moveHelper_);
             attachTexture(gameData_->dreadScorpion_stabTextures, attackTextures_, gameData_->dreadScorpion_stab_helper, attackHelper_);
+            moveHelper_.iterationsTillSwitch = 12;
+            attackHelper_.iterationsTillSwitch = 16;
             break;
     }
 }
@@ -228,6 +230,11 @@ void BestiaryEnemy::setState(State newState)
     stateClock_.restart();
     attackDamageApplied_ = false;
     resetAnimationHelpers();
+    if (state_ != State::Die)
+    {
+        scorpionDeathPulseMidPlayed_ = false;
+        scorpionDeathPulseLatePlayed_ = false;
+    }
 
     if (state_ == State::Windup)
     {
@@ -239,6 +246,7 @@ void BestiaryEnemy::setState(State newState)
     }
     else if (state_ == State::Die && !deathEffectPlayed_)
     {
+        hitFlashActive_ = false;
         spawnDeathEffect();
         deathEffectPlayed_ = true;
     }
@@ -319,14 +327,16 @@ void BestiaryEnemy::updateBatAI(const sf::Vector2f& center, const sf::Vector2f& 
         pushRing(center, sf::Color(186, 126, 230, 190), 10.f, 44.f, 3.f, 2.f, 190.f);
     }
 
-    facingRight_ = playerCenter.x >= center.x;
-
     if (state_ == State::Windup)
     {
         if (stateClock_.getElapsedTime().asMilliseconds() >= windupDurationMs_)
         {
             setState(State::Attack);
             attackVelocity_ = normalizeOrZero(playerCenter - center) * chargeSpeed_;
+            if (std::abs(attackVelocity_.x) > 0.18f)
+            {
+                facingRight_ = attackVelocity_.x >= 0.f;
+            }
             attackCooldownClock_.restart();
         }
         return;
@@ -468,8 +478,6 @@ void BestiaryEnemy::updateScorpionAI(const sf::Vector2f& center, const sf::Vecto
         pushRing(center, sf::Color(182, 214, 132, 170), 12.f, 38.f, 2.5f, 2.f, 170.f);
     }
 
-    facingRight_ = playerCenter.x >= center.x;
-
     if (state_ == State::Windup)
     {
         if (stateClock_.getElapsedTime().asMilliseconds() >= windupDurationMs_)
@@ -500,6 +508,11 @@ void BestiaryEnemy::updateScorpionAI(const sf::Vector2f& center, const sf::Vecto
             distanceY <= verticalTolerance_ * 0.8f &&
             attackCooldownClock_.getElapsedTime().asMilliseconds() >= attackCooldownMs_)
         {
+            if (std::abs(playerCenter.x - center.x) > 10.f)
+            {
+                facingRight_ = playerCenter.x >= center.x;
+            }
+            lockedAttackFacingRight_ = facingRight_;
             setState(State::Windup);
         }
         else
@@ -540,6 +553,8 @@ void BestiaryEnemy::updateControl()
 void BestiaryEnemy::updateBatControl(const sf::Vector2f& center, const sf::Vector2f& playerCenter)
 {
     const float time = auraClock_.getElapsedTime().asSeconds() + hoverPhase_;
+    constexpr float kBatAimThreshold = 42.f;
+    constexpr float kBatVelocityTurnThreshold = 0.7f;
 
     if (state_ == State::Die)
     {
@@ -565,16 +580,18 @@ void BestiaryEnemy::updateBatControl(const sf::Vector2f& center, const sf::Vecto
     }
     else if (state_ == State::Chase)
     {
+        const float desiredFacing = (playerCenter.x - center.x) >= 0.f ? 1.f : -1.f;
         desiredPoint = {
-            playerCenter.x - getFacingSign() * 72.f,
+            playerCenter.x - desiredFacing * 72.f,
             playerCenter.y - 30.f + std::sin(time * 3.2f) * 18.f
         };
         speedLimit = maxSpeed_ * 1.22f;
     }
     else if (state_ == State::Windup)
     {
+        const float desiredFacing = (playerCenter.x - center.x) >= 0.f ? 1.f : -1.f;
         desiredPoint = {
-            center.x - getFacingSign() * 26.f,
+            center.x - desiredFacing * 26.f,
             playerCenter.y - 16.f
         };
         speedLimit = maxSpeed_ * 0.75f;
@@ -595,7 +612,11 @@ void BestiaryEnemy::updateBatControl(const sf::Vector2f& center, const sf::Vecto
     velocityX_ = clampAbs(velocityX_, speedLimit);
     velocityY_ = clampAbs(velocityY_, speedLimit);
 
-    if (std::abs(velocityX_) > 0.08f)
+    if (state_ == State::Windup && std::abs(playerCenter.x - center.x) > kBatAimThreshold)
+    {
+        facingRight_ = playerCenter.x >= center.x;
+    }
+    else if (std::abs(velocityX_) > kBatVelocityTurnThreshold)
     {
         facingRight_ = velocityX_ >= 0.f;
     }
@@ -654,12 +675,17 @@ void BestiaryEnemy::updateScorpionControl(const sf::Vector2f& center, const sf::
             pushRing({center.x, center.y + 8.f}, sf::Color(132, 156, 118, 110), 9.f, 28.f, 2.2f, 2.f, 110.f);
         }
 
+        facingRight_ = patrolDir_ > 0.f;
         desiredSpeed = patrolDir_ * maxSpeed_ * 0.72f;
     }
     else if (state_ == State::Chase)
     {
-        facingRight_ = playerCenter.x >= center.x;
-        const float chaseDir = getFacingSign();
+        const float deltaX = playerCenter.x - center.x;
+        const float chaseDir = deltaX >= 0.f ? 1.f : -1.f;
+        if (std::abs(deltaX) > 12.f)
+        {
+            facingRight_ = chaseDir > 0.f;
+        }
         if (isOnGround_ && hasGroundAhead(chaseDir))
         {
             desiredSpeed = chaseDir * maxSpeed_;
@@ -1005,11 +1031,19 @@ void BestiaryEnemy::receiveBulletHit(const Bullet& bullet, bool splashHit)
         splashHit ? 2.f : 2.6f,
         splashHit ? 120.f : 170.f
     );
+    spawnHitEffect(impactColor, splashHit);
 
     if (HP_ <= 0)
     {
         HP_ = 0;
         setState(State::Die);
+        return;
+    }
+
+    if (kind_ == Kind::DreadScorpion)
+    {
+        playerDetected_ = true;
+        aggroClock_.restart();
         return;
     }
 
@@ -1030,14 +1064,15 @@ void BestiaryEnemy::damagePlayerOnContact()
     sf::FloatRect hitBounds = rect_->getGlobalBounds();
     if (kind_ == Kind::DreadScorpion && (state_ == State::Windup || state_ == State::Attack))
     {
-        const float extraReach = 36.f;
-        hitBounds.size.x += extraReach;
-        hitBounds.position.y -= 6.f;
-        hitBounds.size.y += 12.f;
-        if (!facingRight_)
-        {
-            hitBounds.position.x -= extraReach;
-        }
+        const bool strikeRight = lockedAttackFacingRight_;
+        const sf::Vector2f center = getCenterPosition();
+        const float strikeWidth = rect_->getSize().x + 12.f;
+        const float strikeHeight = rect_->getSize().y + 18.f;
+        hitBounds.size = {strikeWidth, strikeHeight};
+        hitBounds.position.y = rect_->getPosition().y - 6.f;
+        hitBounds.position.x = strikeRight
+            ? center.x + 4.f
+            : center.x - strikeWidth - 4.f;
     }
     else if (kind_ == Kind::WraithBat && state_ == State::Attack)
     {
@@ -1080,6 +1115,28 @@ void BestiaryEnemy::updateTextures()
     }
 
     sprite_->setColor(baseTint_);
+
+    if (kind_ == Kind::DreadScorpion && hitFlashActive_)
+    {
+        const float progress = static_cast<float>(hitFlashClock_.getElapsedTime().asMilliseconds()) / std::max(1.f, hitFlashDurationMs_);
+        if (progress >= 1.f)
+        {
+            hitFlashActive_ = false;
+        }
+        else
+        {
+            const float flicker = 0.8f + std::sin(progress * kPi * 8.f) * 0.2f;
+            const float intensity = std::clamp((1.f - progress) * flicker, 0.f, 1.f);
+            const sf::Color flashColor(244, 255, 210, 255);
+            const sf::Color baseColor = sprite_->getColor();
+            sprite_->setColor(sf::Color(
+                static_cast<std::uint8_t>(baseColor.r + (flashColor.r - baseColor.r) * intensity),
+                static_cast<std::uint8_t>(baseColor.g + (flashColor.g - baseColor.g) * intensity),
+                static_cast<std::uint8_t>(baseColor.b + (flashColor.b - baseColor.b) * intensity),
+                baseColor.a
+            ));
+        }
+    }
 
     if (state_ == State::Die)
     {
@@ -1133,10 +1190,15 @@ void BestiaryEnemy::updateTextures()
     }
     else
     {
-        if (state_ == State::Windup || state_ == State::Attack || state_ == State::Recover)
+        if (state_ == State::Windup)
+        {
+            sprite_->setTexture(attackTextures_->front());
+        }
+        else if (state_ == State::Attack)
         {
             const bool continues = switchToNextSprite(sprite_.get(), *attackTextures_, attackHelper_, switchSprite_SwitchOption::Single);
-            if (!attackDamageApplied_ && attackHelper_.ptrToTexture >= attackImpactFrame_)
+            const bool isStrikeFrame = &sprite_->getTexture() == &attackTextures_->back();
+            if (!attackDamageApplied_ && isStrikeFrame)
             {
                 damagePlayerOnContact();
             }
@@ -1154,7 +1216,12 @@ void BestiaryEnemy::updateTextures()
     const float visualScaleY = (kind_ == Kind::VoidSlime && state_ == State::Windup)
         ? enemyScale_.y * 0.84f
         : enemyScale_.y;
-    sprite_->setScale({getFacingSign() * enemyScale_.x, visualScaleY});
+    float visualScaleX = getFacingSign() * enemyScale_.x;
+    if (kind_ == Kind::DreadScorpion)
+    {
+        visualScaleX *= -1.f;
+    }
+    sprite_->setScale({visualScaleX, visualScaleY});
     syncSpriteToRect();
 }
 
@@ -1165,12 +1232,26 @@ void BestiaryEnemy::syncSpriteToRect()
         return;
     }
 
+    setSpriteOriginToMiddle(*sprite_);
     const sf::Vector2f center = rect_->getGlobalBounds().getCenter();
-    sprite_->setPosition({center.x, center.y + spriteOffsetY_});
+    float targetY = center.y + spriteOffsetY_;
+    if (kind_ != Kind::WraithBat)
+    {
+        const sf::Texture& texture = sprite_->getTexture();
+        const float scaledHeight = static_cast<float>(texture.getSize().y) * std::abs(sprite_->getScale().y);
+        targetY = rect_->getPosition().y + rect_->getSize().y - scaledHeight * 0.5f - spriteOffsetY_;
+    }
+
+    sprite_->setPosition({center.x, targetY});
 }
 
 void BestiaryEnemy::updateVisualEffects()
 {
+    if (kind_ == Kind::DreadScorpion && state_ == State::Die)
+    {
+        triggerScorpionDeathBursts();
+    }
+
     for (auto& particle : effectParticles_)
     {
         particle.update();
@@ -1202,26 +1283,33 @@ void BestiaryEnemy::drawVisualEffects()
     const sf::Vector2f center = getCenterPosition();
     if (state_ != State::Die)
     {
-        if (kind_ == Kind::WraithBat)
-        {
-            sf::CircleShape aura(18.f);
-            aura.setOrigin({18.f, 18.f});
-            aura.setScale({1.9f, 1.1f});
-            aura.setPosition(center);
-            aura.setFillColor(sf::Color(116, 74, 168, 42));
-            window_->draw(aura);
-        }
-        else
+        if (kind_ != Kind::WraithBat)
         {
             sf::CircleShape shadow(kind_ == Kind::VoidSlime ? 18.f : 22.f);
             shadow.setOrigin({shadow.getRadius(), shadow.getRadius()});
-            shadow.setScale({kind_ == Kind::VoidSlime ? 1.5f : 1.8f, 0.5f});
-            shadow.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 2.f});
-            shadow.setFillColor(kind_ == Kind::VoidSlime
-                ? sf::Color(86, 46, 142, 48)
-                : sf::Color(62, 74, 48, 44));
+            if (kind_ == Kind::DreadScorpion)
+            {
+                shadow.setScale({1.45f, 0.34f});
+                shadow.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 11.f});
+                shadow.setFillColor(sf::Color(46, 56, 34, 22));
+            }
+            else
+            {
+                shadow.setScale({1.5f, 0.5f});
+                shadow.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 2.f});
+                shadow.setFillColor(sf::Color(86, 46, 142, 48));
+            }
             window_->draw(shadow);
         }
+    }
+
+    if (kind_ == Kind::DreadScorpion && state_ == State::Die)
+    {
+        drawScorpionDeathAura();
+    }
+    else if (kind_ == Kind::DreadScorpion && hitFlashActive_)
+    {
+        drawScorpionHitAura();
     }
 
     for (const auto& ring : effectRings_)
@@ -1238,6 +1326,102 @@ void BestiaryEnemy::drawVisualEffects()
     for (const auto& particle : effectParticles_)
     {
         particle.draw(*window_);
+    }
+}
+
+void BestiaryEnemy::drawScorpionHitAura()
+{
+    const float progress = static_cast<float>(hitFlashClock_.getElapsedTime().asMilliseconds()) / std::max(1.f, hitFlashDurationMs_);
+    if (progress >= 1.f)
+    {
+        return;
+    }
+
+    const float intensity = std::clamp(1.f - progress, 0.f, 1.f);
+    const sf::Vector2f center = getCenterPosition();
+    const float drift = std::sin(progress * kPi * 7.f) * 6.f;
+
+    sf::CircleShape shellGlow(16.f + intensity * 12.f);
+    shellGlow.setOrigin({shellGlow.getRadius(), shellGlow.getRadius()});
+    shellGlow.setScale({1.45f, 0.78f});
+    shellGlow.setPosition({center.x + drift * 0.3f, center.y - 9.f});
+    shellGlow.setFillColor(sf::Color(236, 255, 194, static_cast<std::uint8_t>(22.f + intensity * 72.f)));
+    window_->draw(shellGlow);
+
+    sf::CircleShape toxicHalo(24.f + intensity * 15.f);
+    toxicHalo.setOrigin({toxicHalo.getRadius(), toxicHalo.getRadius()});
+    toxicHalo.setScale({1.1f, 0.52f});
+    toxicHalo.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 7.f});
+    toxicHalo.setFillColor(sf::Color::Transparent);
+    toxicHalo.setOutlineThickness(1.8f + intensity * 1.2f);
+    toxicHalo.setOutlineColor(sf::Color(164, 218, 112, static_cast<std::uint8_t>(36.f + intensity * 110.f)));
+    window_->draw(toxicHalo);
+
+    sf::RectangleShape shard({18.f + intensity * 18.f, 5.f + intensity * 4.f});
+    shard.setOrigin({shard.getSize().x * 0.35f, shard.getSize().y * 0.5f});
+    shard.setPosition({center.x + getFacingSign() * (6.f + intensity * 6.f), center.y - 16.f + drift * 0.2f});
+    shard.setRotation(sf::degrees(-20.f * getFacingSign() + drift));
+    shard.setFillColor(sf::Color(220, 255, 178, static_cast<std::uint8_t>(28.f + intensity * 120.f)));
+    window_->draw(shard);
+}
+
+void BestiaryEnemy::drawScorpionDeathAura()
+{
+    const float progress = std::clamp(
+        static_cast<float>(stateClock_.getElapsedTime().asMilliseconds()) / std::max(1.f, deathDurationMs_),
+        0.f,
+        1.f
+    );
+    const float fade = 1.f - progress;
+    const sf::Vector2f center = getCenterPosition();
+
+    sf::CircleShape core(18.f + progress * 22.f);
+    core.setOrigin({core.getRadius(), core.getRadius()});
+    core.setScale({1.45f, 0.88f});
+    core.setPosition({center.x, center.y - 8.f + progress * 4.f});
+    core.setFillColor(sf::Color(212, 246, 170, static_cast<std::uint8_t>(48.f + fade * 84.f)));
+    window_->draw(core);
+
+    sf::CircleShape bloom(26.f + progress * 34.f);
+    bloom.setOrigin({bloom.getRadius(), bloom.getRadius()});
+    bloom.setScale({1.2f, 0.62f});
+    bloom.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 8.f});
+    bloom.setFillColor(sf::Color::Transparent);
+    bloom.setOutlineThickness(2.2f + fade);
+    bloom.setOutlineColor(sf::Color(172, 214, 124, static_cast<std::uint8_t>(fade * 176.f)));
+    window_->draw(bloom);
+
+    sf::RectangleShape rupture({28.f + progress * 48.f, 8.f + progress * 9.f});
+    rupture.setOrigin({rupture.getSize().x * 0.5f, rupture.getSize().y * 0.5f});
+    rupture.setPosition({center.x, center.y - 12.f});
+    rupture.setRotation(sf::degrees(-12.f + progress * 26.f));
+    rupture.setFillColor(sf::Color(224, 255, 194, static_cast<std::uint8_t>(36.f + fade * 90.f)));
+    window_->draw(rupture);
+}
+
+void BestiaryEnemy::triggerScorpionDeathBursts()
+{
+    const float progress = std::clamp(
+        static_cast<float>(stateClock_.getElapsedTime().asMilliseconds()) / std::max(1.f, deathDurationMs_),
+        0.f,
+        1.f
+    );
+    const sf::Vector2f center = getCenterPosition();
+
+    if (!scorpionDeathPulseMidPlayed_ && progress >= 0.3f)
+    {
+        scorpionDeathPulseMidPlayed_ = true;
+        pushRing({center.x, center.y - 6.f}, sf::Color(230, 255, 194, 190), 10.f, 46.f, 3.6f, 2.4f, 190.f);
+        spawnParticleBurst({center.x, center.y - 12.f}, sf::Color(196, 236, 142, 200), 8, 46.f, 138.f, 2.6f, 8.f, 0.5f);
+        spawnParticleBurst({center.x, center.y + 2.f}, sf::Color(116, 152, 84, 150), 4, 16.f, 62.f, 2.4f, -10.f, 0.46f);
+    }
+
+    if (!scorpionDeathPulseLatePlayed_ && progress >= 0.66f)
+    {
+        scorpionDeathPulseLatePlayed_ = true;
+        pushRing({center.x, rect_->getPosition().y + rect_->getSize().y - 6.f}, sf::Color(126, 176, 86, 165), 14.f, 54.f, 3.2f, 2.2f, 165.f);
+        spawnParticleBurst({center.x + random(-6.f, 6.f), rect_->getPosition().y + rect_->getSize().y - 4.f}, sf::Color(86, 120, 64, 150), 7, 20.f, 78.f, 3.1f, -14.f, 0.62f);
+        spawnParticleBurst({center.x, center.y - 8.f}, sf::Color(214, 255, 172, 164), 5, 24.f, 82.f, 2.4f, 10.f, 0.44f);
     }
 }
 
@@ -1300,9 +1484,52 @@ void BestiaryEnemy::spawnNoticeEffect()
     spawnParticleBurst(getCenterPosition(), accent, 8, 40.f, 120.f, 2.4f, 18.f, 0.46f);
 }
 
+void BestiaryEnemy::spawnHitEffect(const sf::Color& impactColor, bool splashHit)
+{
+    if (kind_ != Kind::DreadScorpion)
+    {
+        return;
+    }
+
+    hitFlashActive_ = true;
+    hitFlashClock_.restart();
+
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Color paleImpact(
+        std::min(255, impactColor.r + 50),
+        std::min(255, impactColor.g + 70),
+        std::min(255, impactColor.b + 30),
+        splashHit ? 168 : 212
+    );
+    const sf::Color toxicAccent(154, 210, 108, splashHit ? 132 : 176);
+    const sf::Vector2f burstOrigin = {
+        center.x + random(-10.f, 10.f),
+        center.y - random(2.f, 12.f)
+    };
+
+    pushRing(burstOrigin, paleImpact, splashHit ? 10.f : 14.f, splashHit ? 34.f : 52.f, 3.3f, 2.4f, splashHit ? 150.f : 205.f);
+    pushRing({center.x, center.y + 2.f}, toxicAccent, 8.f, splashHit ? 24.f : 34.f, 2.4f, 1.8f, splashHit ? 115.f : 155.f);
+    spawnParticleBurst(burstOrigin, paleImpact, splashHit ? 6 : 10, 38.f, splashHit ? 108.f : 168.f, 2.4f, 18.f, 0.42f);
+    spawnParticleBurst({center.x, rect_->getPosition().y + rect_->getSize().y - 4.f}, toxicAccent, splashHit ? 3 : 5, 16.f, 58.f, 2.2f, -10.f, 0.38f);
+}
+
 void BestiaryEnemy::spawnAttackEffect()
 {
     const sf::Vector2f center = getCenterPosition();
+    if (kind_ == Kind::DreadScorpion)
+    {
+        const float direction = lockedAttackFacingRight_ ? 1.f : -1.f;
+        const sf::Vector2f strikeOrigin = {
+            center.x + direction * (rect_->getSize().x * 0.45f),
+            center.y - 6.f
+        };
+        pushRing(strikeOrigin, sf::Color(188, 232, 144, 205), 10.f, 48.f, 3.5f, 2.4f, 205.f);
+        pushRing({center.x - direction * 12.f, center.y - 8.f}, sf::Color(118, 154, 88, 135), 8.f, 24.f, 2.3f, 1.8f, 135.f);
+        spawnParticleBurst(strikeOrigin, sf::Color(196, 238, 152, 220), 9, 58.f, 176.f, 2.6f, 18.f, 0.5f);
+        spawnParticleBurst({strikeOrigin.x, strikeOrigin.y + 10.f}, sf::Color(112, 168, 98, 155), 5, 24.f, 88.f, 2.2f, -6.f, 0.44f);
+        return;
+    }
+
     const sf::Color accent = kind_ == Kind::WraithBat
         ? sf::Color(226, 156, 255, 214)
         : (kind_ == Kind::VoidSlime ? sf::Color(156, 116, 255, 220) : sf::Color(192, 222, 142, 220));
@@ -1313,6 +1540,20 @@ void BestiaryEnemy::spawnAttackEffect()
 void BestiaryEnemy::spawnImpactEffect()
 {
     const sf::Vector2f center = getCenterPosition();
+    if (kind_ == Kind::DreadScorpion)
+    {
+        const float direction = lockedAttackFacingRight_ ? 1.f : -1.f;
+        const sf::Vector2f impactPoint = {
+            center.x + direction * (rect_->getSize().x * 0.52f),
+            center.y - 4.f
+        };
+        pushRing(impactPoint, sf::Color(236, 255, 188, 220), 9.f, 40.f, 3.8f, 2.4f, 200.f);
+        pushRing({impactPoint.x, impactPoint.y + 10.f}, sf::Color(126, 172, 92, 155), 7.f, 26.f, 2.6f, 1.8f, 155.f);
+        spawnParticleBurst(impactPoint, sf::Color(224, 255, 190, 220), 10, 84.f, 206.f, 2.4f, 20.f, 0.44f);
+        spawnParticleBurst({impactPoint.x, impactPoint.y + 8.f}, sf::Color(114, 156, 92, 170), 6, 28.f, 104.f, 2.0f, -4.f, 0.42f);
+        return;
+    }
+
     const sf::Vector2f impactPoint = {
         center.x + getFacingSign() * (rect_->getSize().x * 0.45f),
         center.y - 4.f
@@ -1326,6 +1567,19 @@ void BestiaryEnemy::spawnImpactEffect()
 
 void BestiaryEnemy::spawnDeathEffect()
 {
+    if (kind_ == Kind::DreadScorpion)
+    {
+        const sf::Vector2f center = getCenterPosition();
+        pushRing(center, sf::Color(194, 236, 146, 225), 14.f, 84.f, 4.6f, 3.2f, 225.f);
+        pushRing({center.x, center.y - 10.f}, sf::Color(232, 255, 196, 205), 10.f, 54.f, 3.7f, 2.4f, 205.f);
+        pushRing({center.x, rect_->getPosition().y + rect_->getSize().y - 6.f}, sf::Color(92, 136, 68, 155), 18.f, 62.f, 3.4f, 2.6f, 155.f);
+        spawnParticleBurst(center, sf::Color(218, 255, 174, 220), 22, 96.f, 246.f, 3.2f, 20.f, 0.95f);
+        spawnParticleBurst({center.x, center.y - 8.f}, sf::Color(134, 188, 96, 185), 14, 34.f, 122.f, 2.8f, -8.f, 0.82f);
+        spawnParticleBurst({center.x, rect_->getPosition().y + rect_->getSize().y - 4.f}, sf::Color(92, 118, 70, 160), 10, 24.f, 86.f, 3.4f, -16.f, 0.9f);
+        deathSmokeClock_.restart();
+        return;
+    }
+
     const sf::Color accent = kind_ == Kind::WraithBat
         ? sf::Color(178, 116, 228, 225)
         : (kind_ == Kind::VoidSlime ? sf::Color(110, 70, 202, 225) : sf::Color(174, 210, 128, 225));
@@ -1402,12 +1656,12 @@ void BestiaryEnemy::spawnDeathSmoke()
     spawnParticleBurst(
         {getCenterPosition().x + random(-8.f, 8.f), getCenterPosition().y - random(4.f, 12.f)},
         smokeColor,
-        2,
+        kind_ == Kind::DreadScorpion ? 3 : 2,
         10.f,
-        38.f,
-        3.6f,
-        -10.f,
-        0.7f
+        kind_ == Kind::DreadScorpion ? 54.f : 38.f,
+        kind_ == Kind::DreadScorpion ? 4.2f : 3.6f,
+        kind_ == Kind::DreadScorpion ? -6.f : -10.f,
+        kind_ == Kind::DreadScorpion ? 0.82f : 0.7f
     );
 }
 

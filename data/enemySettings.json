@@ -63,7 +63,7 @@
         "scaleY": 2.35,
         "hitboxWidth": 50.0,
         "hitboxHeight": 34.0,
-        "spriteOffsetY": 6.0,
+        "spriteOffsetY": 4.0,
         "HP": 145,
         "DMG": 26,
         "KnockbackX": 8,
@@ -96,7 +96,7 @@
         "scaleY": 1.9,
         "hitboxWidth": 88.0,
         "hitboxHeight": 34.0,
-        "spriteOffsetY": 2.0,
+        "spriteOffsetY": 10.0,
         "HP": 180,
         "DMG": 34,
         "KnockbackX": 9,
@@ -106,7 +106,7 @@
         "friction": 0.05,
         "gravity": 0.18,
         "alertDistance": 310.0,
-        "attackDistance": 110.0,
+        "attackDistance": 96.0,
         "loseDistance": 390.0,
         "verticalTolerance": 110.0,
         "patrolRange": 180.0,
@@ -118,11 +118,11 @@
         "leapAttackX": 0.0,
         "leapAttackY": 0.0,
         "attackCooldownMs": 1200.0,
-        "attackDurationMs": 420.0,
-        "windupDurationMs": 160.0,
-        "recoverDurationMs": 180.0,
+        "attackDurationMs": 840.0,
+        "windupDurationMs": 320.0,
+        "recoverDurationMs": 260.0,
         "hurtDurationMs": 160.0,
         "deathDurationMs": 650.0,
-        "attackImpactFrame": 3.0
+        "attackImpactFrame": 1.0
     }
 }

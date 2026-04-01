@@ -1145,6 +1145,8 @@ void Skeleton::updateTextures() {
         attackDamageApplied = false;
     }
 
+    skeletonSprite->setColor({255, 255, 255, 255});
+
     // Обычные анимации
     switch (action_) {
         case IDLE:
