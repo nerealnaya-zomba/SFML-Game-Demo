@@ -1127,7 +1127,7 @@ void BestiaryEnemy::updateTextures()
         {
             const float flicker = 0.8f + std::sin(progress * kPi * 8.f) * 0.2f;
             const float intensity = std::clamp((1.f - progress) * flicker, 0.f, 1.f);
-            const sf::Color flashColor(244, 255, 210, 255);
+            const sf::Color flashColor(232, 255, 136, 255);
             const sf::Color baseColor = sprite_->getColor();
             sprite_->setColor(sf::Color(
                 static_cast<std::uint8_t>(baseColor.r + (flashColor.r - baseColor.r) * intensity),
@@ -1281,26 +1281,14 @@ void BestiaryEnemy::updateVisualEffects()
 void BestiaryEnemy::drawVisualEffects()
 {
     const sf::Vector2f center = getCenterPosition();
-    if (state_ != State::Die)
+    if (state_ != State::Die && kind_ == Kind::DreadScorpion)
     {
-        if (kind_ != Kind::WraithBat)
-        {
-            sf::CircleShape shadow(kind_ == Kind::VoidSlime ? 18.f : 22.f);
-            shadow.setOrigin({shadow.getRadius(), shadow.getRadius()});
-            if (kind_ == Kind::DreadScorpion)
-            {
-                shadow.setScale({1.45f, 0.34f});
-                shadow.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 11.f});
-                shadow.setFillColor(sf::Color(46, 56, 34, 22));
-            }
-            else
-            {
-                shadow.setScale({1.5f, 0.5f});
-                shadow.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 2.f});
-                shadow.setFillColor(sf::Color(86, 46, 142, 48));
-            }
-            window_->draw(shadow);
-        }
+        sf::CircleShape shadow(22.f);
+        shadow.setOrigin({shadow.getRadius(), shadow.getRadius()});
+        shadow.setScale({1.45f, 0.34f});
+        shadow.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 11.f});
+        shadow.setFillColor(sf::Color(46, 56, 34, 22));
+        window_->draw(shadow);
     }
 
     if (kind_ == Kind::DreadScorpion && state_ == State::Die)
@@ -1339,30 +1327,53 @@ void BestiaryEnemy::drawScorpionHitAura()
 
     const float intensity = std::clamp(1.f - progress, 0.f, 1.f);
     const sf::Vector2f center = getCenterPosition();
-    const float drift = std::sin(progress * kPi * 7.f) * 6.f;
+    const float direction = getFacingSign();
+    const float shimmer = std::sin(progress * kPi * 9.f);
+    const sf::Vector2f shellPulsePos = {
+        center.x - direction * (14.f - intensity * 5.f),
+        center.y - 18.f + shimmer * 2.5f
+    };
+    const sf::Vector2f stingPulsePos = {
+        center.x + direction * (rect_->getSize().x * 0.4f + intensity * 12.f),
+        center.y - 26.f + shimmer * 1.8f
+    };
 
-    sf::CircleShape shellGlow(16.f + intensity * 12.f);
-    shellGlow.setOrigin({shellGlow.getRadius(), shellGlow.getRadius()});
-    shellGlow.setScale({1.45f, 0.78f});
-    shellGlow.setPosition({center.x + drift * 0.3f, center.y - 9.f});
-    shellGlow.setFillColor(sf::Color(236, 255, 194, static_cast<std::uint8_t>(22.f + intensity * 72.f)));
-    window_->draw(shellGlow);
+    sf::CircleShape shellBloom(18.f + intensity * 14.f);
+    shellBloom.setOrigin({shellBloom.getRadius(), shellBloom.getRadius()});
+    shellBloom.setScale({1.55f, 0.74f});
+    shellBloom.setPosition(shellPulsePos);
+    shellBloom.setFillColor(sf::Color(218, 255, 118, static_cast<std::uint8_t>(38.f + intensity * 108.f)));
+    window_->draw(shellBloom);
 
-    sf::CircleShape toxicHalo(24.f + intensity * 15.f);
-    toxicHalo.setOrigin({toxicHalo.getRadius(), toxicHalo.getRadius()});
-    toxicHalo.setScale({1.1f, 0.52f});
-    toxicHalo.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 7.f});
-    toxicHalo.setFillColor(sf::Color::Transparent);
-    toxicHalo.setOutlineThickness(1.8f + intensity * 1.2f);
-    toxicHalo.setOutlineColor(sf::Color(164, 218, 112, static_cast<std::uint8_t>(36.f + intensity * 110.f)));
-    window_->draw(toxicHalo);
+    sf::CircleShape shellCore(10.f + intensity * 7.f);
+    shellCore.setOrigin({shellCore.getRadius(), shellCore.getRadius()});
+    shellCore.setScale({1.25f, 0.7f});
+    shellCore.setPosition({shellPulsePos.x - direction * 4.f, shellPulsePos.y - 1.f});
+    shellCore.setFillColor(sf::Color(244, 255, 182, static_cast<std::uint8_t>(64.f + intensity * 156.f)));
+    window_->draw(shellCore);
 
-    sf::RectangleShape shard({18.f + intensity * 18.f, 5.f + intensity * 4.f});
-    shard.setOrigin({shard.getSize().x * 0.35f, shard.getSize().y * 0.5f});
-    shard.setPosition({center.x + getFacingSign() * (6.f + intensity * 6.f), center.y - 16.f + drift * 0.2f});
-    shard.setRotation(sf::degrees(-20.f * getFacingSign() + drift));
-    shard.setFillColor(sf::Color(220, 255, 178, static_cast<std::uint8_t>(28.f + intensity * 120.f)));
-    window_->draw(shard);
+    sf::CircleShape stingGlow(9.f + intensity * 9.f);
+    stingGlow.setOrigin({stingGlow.getRadius(), stingGlow.getRadius()});
+    stingGlow.setScale({1.2f, 1.05f});
+    stingGlow.setPosition(stingPulsePos);
+    stingGlow.setFillColor(sf::Color(186, 255, 96, static_cast<std::uint8_t>(46.f + intensity * 146.f)));
+    window_->draw(stingGlow);
+
+    sf::RectangleShape stingSpark({22.f + intensity * 18.f, 5.f + intensity * 5.f});
+    stingSpark.setOrigin({stingSpark.getSize().x * 0.12f, stingSpark.getSize().y * 0.5f});
+    stingSpark.setPosition(stingPulsePos);
+    stingSpark.setRotation(sf::degrees(direction > 0.f ? -18.f + shimmer * 6.f : 198.f - shimmer * 6.f));
+    stingSpark.setFillColor(sf::Color(235, 255, 170, static_cast<std::uint8_t>(58.f + intensity * 168.f)));
+    window_->draw(stingSpark);
+
+    sf::CircleShape acidWake(28.f + intensity * 16.f);
+    acidWake.setOrigin({acidWake.getRadius(), acidWake.getRadius()});
+    acidWake.setScale({1.22f, 0.42f});
+    acidWake.setPosition({center.x - direction * 6.f, rect_->getPosition().y + rect_->getSize().y - 7.f});
+    acidWake.setFillColor(sf::Color::Transparent);
+    acidWake.setOutlineThickness(2.f + intensity * 1.4f);
+    acidWake.setOutlineColor(sf::Color(164, 255, 90, static_cast<std::uint8_t>(54.f + intensity * 134.f)));
+    window_->draw(acidWake);
 }
 
 void BestiaryEnemy::drawScorpionDeathAura()
@@ -1374,29 +1385,45 @@ void BestiaryEnemy::drawScorpionDeathAura()
     );
     const float fade = 1.f - progress;
     const sf::Vector2f center = getCenterPosition();
+    const float direction = getFacingSign();
+    const float oscillation = std::sin(progress * kPi * 6.f);
 
-    sf::CircleShape core(18.f + progress * 22.f);
-    core.setOrigin({core.getRadius(), core.getRadius()});
-    core.setScale({1.45f, 0.88f});
-    core.setPosition({center.x, center.y - 8.f + progress * 4.f});
-    core.setFillColor(sf::Color(212, 246, 170, static_cast<std::uint8_t>(48.f + fade * 84.f)));
-    window_->draw(core);
+    sf::CircleShape acidPool(30.f + progress * 28.f);
+    acidPool.setOrigin({acidPool.getRadius(), acidPool.getRadius()});
+    acidPool.setScale({1.36f, 0.46f});
+    acidPool.setPosition({center.x - direction * 4.f, rect_->getPosition().y + rect_->getSize().y - 7.f});
+    acidPool.setFillColor(sf::Color(80, 255, 92, static_cast<std::uint8_t>(24.f + fade * 80.f)));
+    window_->draw(acidPool);
 
-    sf::CircleShape bloom(26.f + progress * 34.f);
-    bloom.setOrigin({bloom.getRadius(), bloom.getRadius()});
-    bloom.setScale({1.2f, 0.62f});
-    bloom.setPosition({center.x, rect_->getPosition().y + rect_->getSize().y - 8.f});
-    bloom.setFillColor(sf::Color::Transparent);
-    bloom.setOutlineThickness(2.2f + fade);
-    bloom.setOutlineColor(sf::Color(172, 214, 124, static_cast<std::uint8_t>(fade * 176.f)));
-    window_->draw(bloom);
+    sf::CircleShape acidRing(40.f + progress * 36.f);
+    acidRing.setOrigin({acidRing.getRadius(), acidRing.getRadius()});
+    acidRing.setScale({1.22f, 0.42f});
+    acidRing.setPosition({center.x - direction * 2.f, rect_->getPosition().y + rect_->getSize().y - 7.f});
+    acidRing.setFillColor(sf::Color::Transparent);
+    acidRing.setOutlineThickness(2.8f + fade * 1.4f);
+    acidRing.setOutlineColor(sf::Color(170, 255, 108, static_cast<std::uint8_t>(92.f + fade * 126.f)));
+    window_->draw(acidRing);
 
-    sf::RectangleShape rupture({28.f + progress * 48.f, 8.f + progress * 9.f});
-    rupture.setOrigin({rupture.getSize().x * 0.5f, rupture.getSize().y * 0.5f});
-    rupture.setPosition({center.x, center.y - 12.f});
-    rupture.setRotation(sf::degrees(-12.f + progress * 26.f));
-    rupture.setFillColor(sf::Color(224, 255, 194, static_cast<std::uint8_t>(36.f + fade * 90.f)));
-    window_->draw(rupture);
+    sf::CircleShape backHalo(20.f + progress * 18.f);
+    backHalo.setOrigin({backHalo.getRadius(), backHalo.getRadius()});
+    backHalo.setScale({1.58f, 0.7f});
+    backHalo.setPosition({center.x - direction * 16.f, center.y - 20.f + oscillation * 2.f});
+    backHalo.setFillColor(sf::Color(226, 255, 138, static_cast<std::uint8_t>(34.f + fade * 120.f)));
+    window_->draw(backHalo);
+
+    sf::CircleShape stingNova(12.f + progress * 14.f);
+    stingNova.setOrigin({stingNova.getRadius(), stingNova.getRadius()});
+    stingNova.setScale({1.28f, 1.f});
+    stingNova.setPosition({center.x + direction * (rect_->getSize().x * 0.44f + progress * 14.f), center.y - 26.f + oscillation * 1.5f});
+    stingNova.setFillColor(sf::Color(196, 255, 104, static_cast<std::uint8_t>(56.f + fade * 156.f)));
+    window_->draw(stingNova);
+
+    sf::RectangleShape stingFlare({26.f + progress * 34.f, 7.f + progress * 6.f});
+    stingFlare.setOrigin({stingFlare.getSize().x * 0.08f, stingFlare.getSize().y * 0.5f});
+    stingFlare.setPosition({center.x + direction * (rect_->getSize().x * 0.38f), center.y - 22.f});
+    stingFlare.setRotation(sf::degrees(direction > 0.f ? -16.f + oscillation * 7.f : 196.f - oscillation * 7.f));
+    stingFlare.setFillColor(sf::Color(240, 255, 182, static_cast<std::uint8_t>(38.f + fade * 138.f)));
+    window_->draw(stingFlare);
 }
 
 void BestiaryEnemy::triggerScorpionDeathBursts()
@@ -1411,17 +1438,18 @@ void BestiaryEnemy::triggerScorpionDeathBursts()
     if (!scorpionDeathPulseMidPlayed_ && progress >= 0.3f)
     {
         scorpionDeathPulseMidPlayed_ = true;
-        pushRing({center.x, center.y - 6.f}, sf::Color(230, 255, 194, 190), 10.f, 46.f, 3.6f, 2.4f, 190.f);
-        spawnParticleBurst({center.x, center.y - 12.f}, sf::Color(196, 236, 142, 200), 8, 46.f, 138.f, 2.6f, 8.f, 0.5f);
-        spawnParticleBurst({center.x, center.y + 2.f}, sf::Color(116, 152, 84, 150), 4, 16.f, 62.f, 2.4f, -10.f, 0.46f);
+        pushRing({center.x - getFacingSign() * 12.f, center.y - 16.f}, sf::Color(238, 255, 188, 225), 12.f, 56.f, 4.f, 2.8f, 225.f);
+        spawnParticleBurst({center.x - getFacingSign() * 10.f, center.y - 18.f}, sf::Color(206, 255, 124, 220), 10, 56.f, 164.f, 2.8f, 6.f, 0.58f);
+        spawnParticleBurst({center.x, center.y + 2.f}, sf::Color(132, 212, 78, 180), 5, 18.f, 74.f, 2.6f, -10.f, 0.52f);
     }
 
     if (!scorpionDeathPulseLatePlayed_ && progress >= 0.66f)
     {
         scorpionDeathPulseLatePlayed_ = true;
-        pushRing({center.x, rect_->getPosition().y + rect_->getSize().y - 6.f}, sf::Color(126, 176, 86, 165), 14.f, 54.f, 3.2f, 2.2f, 165.f);
-        spawnParticleBurst({center.x + random(-6.f, 6.f), rect_->getPosition().y + rect_->getSize().y - 4.f}, sf::Color(86, 120, 64, 150), 7, 20.f, 78.f, 3.1f, -14.f, 0.62f);
-        spawnParticleBurst({center.x, center.y - 8.f}, sf::Color(214, 255, 172, 164), 5, 24.f, 82.f, 2.4f, 10.f, 0.44f);
+        pushRing({center.x + getFacingSign() * 16.f, center.y - 24.f}, sf::Color(184, 255, 102, 205), 10.f, 48.f, 3.8f, 2.6f, 205.f);
+        pushRing({center.x, rect_->getPosition().y + rect_->getSize().y - 6.f}, sf::Color(112, 255, 90, 185), 16.f, 64.f, 3.6f, 2.4f, 185.f);
+        spawnParticleBurst({center.x + random(-6.f, 6.f), rect_->getPosition().y + rect_->getSize().y - 4.f}, sf::Color(96, 196, 78, 180), 8, 26.f, 94.f, 3.2f, -14.f, 0.68f);
+        spawnParticleBurst({center.x + getFacingSign() * 18.f, center.y - 20.f}, sf::Color(230, 255, 170, 180), 6, 32.f, 96.f, 2.5f, 10.f, 0.48f);
     }
 }
 
@@ -1496,21 +1524,27 @@ void BestiaryEnemy::spawnHitEffect(const sf::Color& impactColor, bool splashHit)
 
     const sf::Vector2f center = getCenterPosition();
     const sf::Color paleImpact(
-        std::min(255, impactColor.r + 50),
-        std::min(255, impactColor.g + 70),
-        std::min(255, impactColor.b + 30),
-        splashHit ? 168 : 212
+        std::min(255, impactColor.r + 86),
+        std::min(255, impactColor.g + 120),
+        std::min(255, impactColor.b + 24),
+        splashHit ? 192 : 236
     );
-    const sf::Color toxicAccent(154, 210, 108, splashHit ? 132 : 176);
+    const sf::Color toxicAccent(136, 255, 82, splashHit ? 160 : 214);
+    const float direction = getFacingSign();
     const sf::Vector2f burstOrigin = {
-        center.x + random(-10.f, 10.f),
-        center.y - random(2.f, 12.f)
+        center.x - direction * (8.f - random(-3.f, 3.f)),
+        center.y - random(8.f, 18.f)
+    };
+    const sf::Vector2f stingOrigin = {
+        center.x + direction * (rect_->getSize().x * 0.38f),
+        center.y - 22.f
     };
 
-    pushRing(burstOrigin, paleImpact, splashHit ? 10.f : 14.f, splashHit ? 34.f : 52.f, 3.3f, 2.4f, splashHit ? 150.f : 205.f);
-    pushRing({center.x, center.y + 2.f}, toxicAccent, 8.f, splashHit ? 24.f : 34.f, 2.4f, 1.8f, splashHit ? 115.f : 155.f);
-    spawnParticleBurst(burstOrigin, paleImpact, splashHit ? 6 : 10, 38.f, splashHit ? 108.f : 168.f, 2.4f, 18.f, 0.42f);
-    spawnParticleBurst({center.x, rect_->getPosition().y + rect_->getSize().y - 4.f}, toxicAccent, splashHit ? 3 : 5, 16.f, 58.f, 2.2f, -10.f, 0.38f);
+    pushRing(burstOrigin, paleImpact, splashHit ? 12.f : 16.f, splashHit ? 42.f : 60.f, 3.7f, 2.8f, splashHit ? 176.f : 224.f);
+    pushRing(stingOrigin, toxicAccent, splashHit ? 10.f : 14.f, splashHit ? 32.f : 46.f, 3.f, 2.2f, splashHit ? 150.f : 196.f);
+    spawnParticleBurst(burstOrigin, paleImpact, splashHit ? 7 : 12, 44.f, splashHit ? 128.f : 194.f, 2.6f, 18.f, 0.46f);
+    spawnParticleBurst(stingOrigin, toxicAccent, splashHit ? 4 : 7, 28.f, splashHit ? 88.f : 138.f, 2.4f, 10.f, 0.42f);
+    spawnParticleBurst({center.x, rect_->getPosition().y + rect_->getSize().y - 4.f}, sf::Color(110, 238, 84, splashHit ? 128 : 170), splashHit ? 3 : 6, 18.f, 72.f, 2.4f, -12.f, 0.42f);
 }
 
 void BestiaryEnemy::spawnAttackEffect()
@@ -1523,10 +1557,10 @@ void BestiaryEnemy::spawnAttackEffect()
             center.x + direction * (rect_->getSize().x * 0.45f),
             center.y - 6.f
         };
-        pushRing(strikeOrigin, sf::Color(188, 232, 144, 205), 10.f, 48.f, 3.5f, 2.4f, 205.f);
-        pushRing({center.x - direction * 12.f, center.y - 8.f}, sf::Color(118, 154, 88, 135), 8.f, 24.f, 2.3f, 1.8f, 135.f);
-        spawnParticleBurst(strikeOrigin, sf::Color(196, 238, 152, 220), 9, 58.f, 176.f, 2.6f, 18.f, 0.5f);
-        spawnParticleBurst({strikeOrigin.x, strikeOrigin.y + 10.f}, sf::Color(112, 168, 98, 155), 5, 24.f, 88.f, 2.2f, -6.f, 0.44f);
+        pushRing(strikeOrigin, sf::Color(196, 255, 110, 230), 12.f, 54.f, 3.8f, 2.8f, 230.f);
+        pushRing({center.x - direction * 12.f, center.y - 10.f}, sf::Color(140, 242, 92, 165), 10.f, 28.f, 2.6f, 2.f, 165.f);
+        spawnParticleBurst(strikeOrigin, sf::Color(228, 255, 170, 230), 11, 66.f, 198.f, 2.8f, 18.f, 0.54f);
+        spawnParticleBurst({strikeOrigin.x, strikeOrigin.y + 10.f}, sf::Color(120, 220, 92, 180), 6, 28.f, 96.f, 2.4f, -6.f, 0.46f);
         return;
     }
 
@@ -1547,10 +1581,10 @@ void BestiaryEnemy::spawnImpactEffect()
             center.x + direction * (rect_->getSize().x * 0.52f),
             center.y - 4.f
         };
-        pushRing(impactPoint, sf::Color(236, 255, 188, 220), 9.f, 40.f, 3.8f, 2.4f, 200.f);
-        pushRing({impactPoint.x, impactPoint.y + 10.f}, sf::Color(126, 172, 92, 155), 7.f, 26.f, 2.6f, 1.8f, 155.f);
-        spawnParticleBurst(impactPoint, sf::Color(224, 255, 190, 220), 10, 84.f, 206.f, 2.4f, 20.f, 0.44f);
-        spawnParticleBurst({impactPoint.x, impactPoint.y + 8.f}, sf::Color(114, 156, 92, 170), 6, 28.f, 104.f, 2.0f, -4.f, 0.42f);
+        pushRing(impactPoint, sf::Color(240, 255, 174, 235), 10.f, 46.f, 4.f, 2.6f, 220.f);
+        pushRing({impactPoint.x, impactPoint.y + 10.f}, sf::Color(138, 246, 98, 188), 8.f, 30.f, 2.8f, 2.f, 188.f);
+        spawnParticleBurst(impactPoint, sf::Color(238, 255, 190, 230), 12, 94.f, 226.f, 2.6f, 20.f, 0.46f);
+        spawnParticleBurst({impactPoint.x, impactPoint.y + 8.f}, sf::Color(126, 218, 88, 190), 7, 32.f, 116.f, 2.2f, -4.f, 0.44f);
         return;
     }
 
@@ -1570,12 +1604,13 @@ void BestiaryEnemy::spawnDeathEffect()
     if (kind_ == Kind::DreadScorpion)
     {
         const sf::Vector2f center = getCenterPosition();
-        pushRing(center, sf::Color(194, 236, 146, 225), 14.f, 84.f, 4.6f, 3.2f, 225.f);
-        pushRing({center.x, center.y - 10.f}, sf::Color(232, 255, 196, 205), 10.f, 54.f, 3.7f, 2.4f, 205.f);
-        pushRing({center.x, rect_->getPosition().y + rect_->getSize().y - 6.f}, sf::Color(92, 136, 68, 155), 18.f, 62.f, 3.4f, 2.6f, 155.f);
-        spawnParticleBurst(center, sf::Color(218, 255, 174, 220), 22, 96.f, 246.f, 3.2f, 20.f, 0.95f);
-        spawnParticleBurst({center.x, center.y - 8.f}, sf::Color(134, 188, 96, 185), 14, 34.f, 122.f, 2.8f, -8.f, 0.82f);
-        spawnParticleBurst({center.x, rect_->getPosition().y + rect_->getSize().y - 4.f}, sf::Color(92, 118, 70, 160), 10, 24.f, 86.f, 3.4f, -16.f, 0.9f);
+        const float direction = getFacingSign();
+        pushRing({center.x - direction * 10.f, center.y - 18.f}, sf::Color(222, 255, 140, 240), 16.f, 92.f, 5.f, 3.4f, 240.f);
+        pushRing({center.x + direction * 18.f, center.y - 24.f}, sf::Color(184, 255, 98, 214), 12.f, 58.f, 4.f, 2.8f, 214.f);
+        pushRing({center.x, rect_->getPosition().y + rect_->getSize().y - 6.f}, sf::Color(94, 248, 92, 188), 20.f, 74.f, 3.8f, 2.8f, 188.f);
+        spawnParticleBurst({center.x - direction * 8.f, center.y - 12.f}, sf::Color(236, 255, 176, 228), 26, 108.f, 268.f, 3.3f, 18.f, 1.02f);
+        spawnParticleBurst({center.x + direction * 16.f, center.y - 20.f}, sf::Color(148, 255, 96, 210), 18, 42.f, 154.f, 2.9f, -4.f, 0.9f);
+        spawnParticleBurst({center.x, rect_->getPosition().y + rect_->getSize().y - 4.f}, sf::Color(96, 190, 80, 180), 12, 28.f, 96.f, 3.5f, -16.f, 0.94f);
         deathSmokeClock_.restart();
         return;
     }

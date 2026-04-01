@@ -9,6 +9,51 @@
 namespace
 {
 constexpr float kPi = 3.14159265f;
+
+std::string wrapTextToWidth(const sf::Text& prototype, const std::string& source, float maxWidth)
+{
+    if (source.empty())
+    {
+        return {};
+    }
+
+    sf::Text measuring = prototype;
+    std::istringstream stream(source);
+    std::string word;
+    std::string currentLine;
+    std::string wrapped;
+
+    while (stream >> word)
+    {
+        const std::string candidate = currentLine.empty() ? word : currentLine + " " + word;
+        measuring.setString(candidate);
+
+        if (!currentLine.empty() && measuring.getLocalBounds().size.x > maxWidth)
+        {
+            if (!wrapped.empty())
+            {
+                wrapped += '\n';
+            }
+            wrapped += currentLine;
+            currentLine = word;
+        }
+        else
+        {
+            currentLine = candidate;
+        }
+    }
+
+    if (!currentLine.empty())
+    {
+        if (!wrapped.empty())
+        {
+            wrapped += '\n';
+        }
+        wrapped += currentLine;
+    }
+
+    return wrapped;
+}
 }
 
 LoadingScreen::LoadingScreen(sf::RenderWindow& window, sf::Font& font)
@@ -148,7 +193,6 @@ void LoadingScreen::updateTexts()
 {
     statusText_.setCharacterSize(stageLabel_m.size() > 34 ? 24u : 28u);
     statusText_.setString(stageLabel_m);
-    loreText_.setCharacterSize(failed_m && errorMessage_m.size() > 60 ? 18u : 22u);
 
     std::ostringstream percentStream;
     if (totalOperations_m > 0)
@@ -172,15 +216,21 @@ void LoadingScreen::updateTexts()
     }
     counterText_.setString(counterStream.str());
 
+    const std::string loreSource = failed_m && !errorMessage_m.empty()
+        ? errorMessage_m
+        : (loreLines_.empty() ? std::string{} : loreLines_[loreIndex_m]);
+    const bool loreIsLong = loreSource.size() > 58;
+    loreText_.setCharacterSize(failed_m ? (loreIsLong ? 18u : 20u) : (loreIsLong ? 19u : 22u));
+
     if (failed_m && !errorMessage_m.empty())
     {
         loreText_.setFillColor(sf::Color(235, 150, 140, 240));
-        loreText_.setString(errorMessage_m);
+        loreText_.setString(wrapTextToWidth(loreText_, loreSource, 560.f));
     }
     else
     {
         loreText_.setFillColor(sf::Color(174, 159, 147, 228));
-        loreText_.setString(loreLines_.empty() ? "" : loreLines_[loreIndex_m]);
+        loreText_.setString(wrapTextToWidth(loreText_, loreSource, 560.f));
     }
 }
 
@@ -323,9 +373,9 @@ void LoadingScreen::drawProgressPanel()
     const float width = static_cast<float>(window_m->getSize().x);
     const float height = static_cast<float>(window_m->getSize().y);
     const sf::Vector2f panelCenter{width * 0.5f, height * 0.77f};
-    const sf::Vector2f panelSize{780.f, 208.f};
+    const sf::Vector2f panelSize{780.f, 236.f};
     const sf::Vector2f barSize{620.f, 24.f};
-    const sf::Vector2f barPosition{panelCenter.x - barSize.x / 2.f, panelCenter.y + 18.f};
+    const sf::Vector2f barPosition{panelCenter.x - barSize.x / 2.f, panelCenter.y + 14.f};
 
     sf::RectangleShape shadow(panelSize);
     shadow.setOrigin({panelSize.x / 2.f, panelSize.y / 2.f});
@@ -343,13 +393,13 @@ void LoadingScreen::drawProgressPanel()
 
     sf::RectangleShape titleBand({panelSize.x - 24.f, 42.f});
     titleBand.setOrigin({titleBand.getSize().x / 2.f, titleBand.getSize().y / 2.f});
-    titleBand.setPosition({panelCenter.x, panelCenter.y - 70.f});
+    titleBand.setPosition({panelCenter.x, panelCenter.y - 82.f});
     titleBand.setFillColor(sf::Color(53, 14, 15, 220));
     window_m->draw(titleBand);
 
-    sf::RectangleShape inset({panelSize.x - 32.f, panelSize.y - 66.f});
+    sf::RectangleShape inset({panelSize.x - 32.f, panelSize.y - 74.f});
     inset.setOrigin({inset.getSize().x / 2.f, inset.getSize().y / 2.f});
-    inset.setPosition({panelCenter.x, panelCenter.y + 12.f});
+    inset.setPosition({panelCenter.x, panelCenter.y + 10.f});
     inset.setFillColor(sf::Color(7, 5, 7, 150));
     inset.setOutlineThickness(1.f);
     inset.setOutlineColor(sf::Color(76, 36, 32, 165));
@@ -404,19 +454,20 @@ void LoadingScreen::drawProgressPanel()
     setTextOriginToMiddle(chapterText_);
     window_m->draw(chapterText_);
 
-    statusText_.setPosition({panelCenter.x, panelCenter.y - 26.f});
+    statusText_.setPosition({panelCenter.x, panelCenter.y - 34.f});
     setTextOriginToMiddle(statusText_);
     window_m->draw(statusText_);
 
-    percentText_.setPosition({panelCenter.x + 298.f, panelCenter.y - 68.f});
+    percentText_.setPosition({panelCenter.x + 298.f, panelCenter.y - 78.f});
     setTextOriginToMiddle(percentText_);
     window_m->draw(percentText_);
 
-    counterText_.setPosition({panelCenter.x, panelCenter.y + 64.f});
+    counterText_.setPosition({panelCenter.x, panelCenter.y + 72.f});
     setTextOriginToMiddle(counterText_);
     window_m->draw(counterText_);
 
-    loreText_.setPosition({panelCenter.x, panelCenter.y + 102.f});
+    const bool loreWrapped = loreText_.getString().find('\n') != std::string::npos;
+    loreText_.setPosition({panelCenter.x, panelCenter.y + (loreWrapped ? 100.f : 110.f)});
     setTextOriginToMiddle(loreText_);
     window_m->draw(loreText_);
 }

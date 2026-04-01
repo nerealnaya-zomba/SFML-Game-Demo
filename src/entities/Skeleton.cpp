@@ -711,34 +711,6 @@ void Skeleton::drawAttackTelegraph()
 
 void Skeleton::drawVisualEffects()
 {
-    const sf::Vector2f center = getCenterPosition();
-
-    if (!isPlayingDieAnimation)
-    {
-        const bool patrolWalking = awarenessState_ == SkeletonAwarenessState::Patrol &&
-            (action_ == WALKLEFT || action_ == WALKRIGHT);
-        const bool alerted = awarenessState_ == SkeletonAwarenessState::Alert || awarenessState_ == SkeletonAwarenessState::Search;
-
-        if (patrolWalking || alerted)
-        {
-            sf::CircleShape aura(alerted ? 20.f : 16.f);
-            aura.setOrigin({aura.getRadius(), aura.getRadius()});
-            aura.setScale({alerted ? 1.9f : 1.45f, alerted ? 0.78f : 0.62f});
-            aura.setPosition({center.x, skeletonRect->getPosition().y + skeletonRect->getSize().y - 4.f});
-
-            const float pulse = 0.78f + std::sin(alertPulseClock.getElapsedTime().asSeconds() * (alerted ? 9.f : 4.5f)) * 0.22f;
-            aura.setFillColor(alerted
-                ? sf::Color(
-                    type_ == "yellow" ? 255 : 184,
-                    type_ == "yellow" ? 194 : 74,
-                    type_ == "yellow" ? 110 : 64,
-                    static_cast<std::uint8_t>(52.f + pulse * 44.f)
-                )
-                : sf::Color(116, 136, 152, static_cast<std::uint8_t>(24.f + pulse * 24.f)));
-            window->draw(aura);
-        }
-    }
-
     for (const auto& ring : effectRings_)
     {
         sf::CircleShape circle(ring.radius);
