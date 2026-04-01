@@ -63,7 +63,7 @@
         "scaleY": 2.35,
         "hitboxWidth": 50.0,
         "hitboxHeight": 34.0,
-        "spriteOffsetY": 4.0,
+        "spriteOffsetY": 0.0,
         "HP": 145,
         "DMG": 26,
         "KnockbackX": 8,
