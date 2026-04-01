@@ -1,38 +1,83 @@
-#include<Bullet.h>
+#include <Bullet.h>
+
+#include <cmath>
+
 using namespace gameUtils;
-void Bullet::setSpeed(sf::Vector2f offset)
+
+namespace
 {
-    this->speed_ = offset;
-    this->maxReduction = 1.f;
-    originalSpeed_ = speed_;
+constexpr float kPi = 3.14159265f;
 
-    double reductionDistance = maxDistance_ / 2.0;
-    reductionDistance /= abs(originalSpeed_.x);
-    speedReductionValue = (abs(speed_.x) - maxReduction) / (reductionDistance);
-
+float vectorLength(const sf::Vector2f& vector)
+{
+    return std::sqrt(vector.x * vector.x + vector.y * vector.y);
 }
 
-void Bullet::colorReduction(sf::Color& c,int reduction)
+sf::Vector2f normalizeOrZero(const sf::Vector2f& vector)
 {
-    if(c.a > 0)
+    const float length = vectorLength(vector);
+    if (length <= 0.0001f)
+    {
+        return {0.f, 0.f};
+    }
+
+    return vector / length;
+}
+}
+
+void Bullet::colorReduction(sf::Color& color, int reduction)
+{
+    if(color.a > 0)
     {
         for (int i = 0; i < reduction; i++)
         {
-        if(c.a > 0) c.a--;
+            if(color.a > 0)
+            {
+                color.a--;
+            }
         }
     }
 }
 
-Bullet::Bullet(sf::Vector2f pos, float maxDistance, GameData &gamedata)
+void Bullet::alignSpriteToVelocity()
 {
-    maxDistance_=maxDistance;
+    if (!bulletSprite_)
+    {
+        return;
+    }
+
+    const sf::Vector2f velocity = speed_;
+    if (vectorLength(velocity) <= 0.01f)
+    {
+        return;
+    }
+
+    const float angleDegrees = std::atan2(velocity.y, velocity.x) * 180.f / kPi;
+    bulletSprite_->setRotation(sf::degrees(angleDegrees));
+}
+
+Bullet::Bullet(sf::Vector2f pos, float maxDistance, GameData& gamedata)
+    : Bullet(pos, maxDistance, gamedata, Config{})
+{
+}
+
+Bullet::Bullet(sf::Vector2f pos, float maxDistance, GameData &gamedata, const Config& config)
+    : config_(config)
+{
+    maxDistance_ = maxDistance;
+    remainingHits_ = std::max(1, config_.maxHits);
+    makeParticles_cooldown = config_.particleCooldownMs;
+
     bulletRect_ = new sf::RectangleShape();
     bulletRect_->setFillColor(sf::Color::Green);
-    bulletRect_->setSize({30.f,30.f});
+    bulletRect_->setSize(config_.hitboxSize);
     bulletRect_->setPosition(pos);
-    attachTexture(gamedata.bulletTextures,this->bulletTextures_,gamedata.satiro_bullet_helper,this->satiro_bullet_helper);
+
+    attachTexture(gamedata.bulletTextures, this->bulletTextures_, gamedata.satiro_bullet_helper, this->satiro_bullet_helper);
     bulletSprite_ = new sf::Sprite(bulletTextures_->at(0));
-    bulletSprite_->setOrigin(bulletSprite_->getGlobalBounds().getCenter());
+    setSpriteOriginToMiddle(*bulletSprite_);
+    bulletSprite_->setScale(config_.spriteScale);
+    bulletSprite_->setColor(config_.tint);
     bulletSprite_->setPosition(bulletRect_->getGlobalBounds().getCenter());
 }
 
@@ -40,6 +85,26 @@ Bullet::~Bullet()
 {
     delete bulletRect_;
     delete bulletSprite_;
+}
+
+void Bullet::setSpeed(sf::Vector2f offset)
+{
+    speed_ = offset;
+    originalSpeed_ = speed_;
+
+    if (config_.beamLike)
+    {
+        maxReduction = 0.f;
+        speedReductionValue = 0.f;
+        return;
+    }
+
+    maxReduction = 1.f;
+    const double originalMagnitude = std::max(0.001, static_cast<double>(vectorLength(originalSpeed_)));
+    double reductionDistance = maxDistance_ / 2.0;
+    reductionDistance /= originalMagnitude;
+    speedReductionValue = (originalMagnitude - maxReduction) / std::max(1.0, reductionDistance);
+    alignSpriteToVelocity();
 }
 
 void Bullet::setSpriteTexture(sf::Texture& texture)
@@ -52,9 +117,15 @@ void Bullet::setSpriteScale(sf::Vector2f scale)
     bulletSprite_->setScale(scale);
 }
 
+void Bullet::setPosition(const sf::Vector2f& position)
+{
+    bulletRect_->setPosition(position);
+    bulletSprite_->setPosition(bulletRect_->getGlobalBounds().getCenter());
+}
+
 sf::RectangleShape &Bullet::getBulletRect()
 {
-    return *this->bulletRect_;
+    return *bulletRect_;
 }
 
 sf::Vector2f Bullet::getPosition()
@@ -62,155 +133,245 @@ sf::Vector2f Bullet::getPosition()
     return bulletRect_->getPosition();
 }
 
+sf::Vector2f Bullet::getCenterPosition() const
+{
+    return bulletRect_->getGlobalBounds().getCenter();
+}
+
+const Bullet::Config& Bullet::getConfig() const
+{
+    return config_;
+}
+
+int Bullet::getDamage() const
+{
+    return config_.damage;
+}
+
+float Bullet::getSplashRadius() const
+{
+    return config_.splashRadius;
+}
+
+bool Bullet::isBeamLike() const
+{
+    return config_.beamLike;
+}
+
+bool Bullet::canHitTarget(const void* target) const
+{
+    return std::find(hitTargets_.begin(), hitTargets_.end(), target) == hitTargets_.end();
+}
+
+void Bullet::registerHitTarget(const void* target)
+{
+    if (!canHitTarget(target))
+    {
+        return;
+    }
+
+    hitTargets_.push_back(target);
+    if (remainingHits_ > 0)
+    {
+        --remainingHits_;
+    }
+
+    if (!config_.keepAliveOnHit || remainingHits_ <= 0)
+    {
+        isSheduledToBeDestroyed = true;
+    }
+}
+
+void Bullet::scheduleDestroy()
+{
+    isSheduledToBeDestroyed = true;
+}
+
 void Bullet::moveBullet()
 {
-    if(isSheduledToBeDestroyed) speed_ *= SPEED_REDUCTION_VALUE;
+    if (config_.beamLike)
+    {
+        if (lifeClock_.getElapsedTime().asSeconds() >= config_.beamLifetime)
+        {
+            isSheduledToBeDestroyed = true;
+        }
+        return;
+    }
 
-    if(distancePassed>=(maxDistance_/4)*2 && !isSheduledToBeDestroyed) speedReduction(); // Задействовать уменьшение скорости на 2/4 пройденных пути
+    if (isSheduledToBeDestroyed)
+    {
+        speed_ *= SPEED_REDUCTION_VALUE;
+    }
 
-    distancePassed+=std::abs(speed_.x);
+    if(distancePassed >= (maxDistance_ / 2.0) && !isSheduledToBeDestroyed)
+    {
+        speedReduction();
+    }
+
+    distancePassed += vectorLength(speed_);
     bulletRect_->move(speed_);
     bulletSprite_->move(speed_);
 }
 
 void Bullet::speedReduction()
 {
-    if(speed_.x > maxReduction) {
-        speed_.x -= speedReductionValue;
-        if(speed_.x < maxReduction) speed_.x = maxReduction;
+    const float currentMagnitude = vectorLength(speed_);
+    if (currentMagnitude <= maxReduction || currentMagnitude <= 0.0001f)
+    {
+        return;
     }
-    else if(speed_.x < -maxReduction) {
-        speed_.x += speedReductionValue;
-        if(speed_.x > -maxReduction) speed_.x = -maxReduction;
-    }
-    double reductionDistance = maxDistance_ / 2;
-    reductionDistance /= abs(speed_.x);
-    speedReductionValue = (abs(originalSpeed_.x) - maxReduction) / (reductionDistance);
+
+    const float newMagnitude = std::max(static_cast<float>(maxReduction), currentMagnitude - static_cast<float>(speedReductionValue));
+    speed_ = normalizeOrZero(speed_) * newMagnitude;
 }
 
 void Bullet::update()
 {
     moveBullet();
-    // std::cout << "Speed: " << speed_.x << std::endl;
-    // std::cout << "Reduction: " << speedReductionValue << std::endl;
-    //Остаточные частицы
-    if(!makeParticles_isOnCooldown){   
+
+    if(!makeParticles_isOnCooldown)
+    {
         makeAfterParticles();
         makeParticles_isOnCooldown = true;
         makeParticles_clock.restart();
-    } else if(makeParticles_clock.getElapsedTime().asMilliseconds() >= makeParticles_cooldown && !isSheduledToBeDestroyed){
+    }
+    else if(makeParticles_clock.getElapsedTime().asMilliseconds() >= makeParticles_cooldown && !isSheduledToBeDestroyed)
+    {
         makeParticles_isOnCooldown = false;
         makeParticles_clock.stop();
     }
-    
-    //Создаем частицы после смерти только единожды
-    if(!isMakedDeathParticles && isSheduledToBeDestroyed){
+
+    if(!isMakedDeathParticles && isSheduledToBeDestroyed)
+    {
         makeDeathParticles();
-        isMakedDeathParticles = true;       
+        isMakedDeathParticles = true;
     }
 
-    //Помечаем если пролетела максимальное расстояние
-    if(distancePassed>=maxDistance_ && !isSheduledToBeDestroyed)
+    if(distancePassed >= maxDistance_ && !isSheduledToBeDestroyed && !config_.beamLike)
     {
         isSheduledToBeDestroyed = true;
     }
 
     updateParticles();
 
-    if(particles.size() == 0) canBeDeleted = true;
+    if(isSheduledToBeDestroyed && particles.empty())
+    {
+        canBeDeleted = true;
+    }
 }
 
 void Bullet::updateTextures()
 {
-    switchToNextSprite(this->bulletSprite_,*this->bulletTextures_,satiro_bullet_helper,switchSprite_SwitchOption::Loop);
+    if (!config_.beamLike)
+    {
+        switchToNextSprite(bulletSprite_, *bulletTextures_, satiro_bullet_helper, switchSprite_SwitchOption::Loop);
+    }
+    const sf::Color currentColor = bulletSprite_->getColor();
+    bulletSprite_->setColor(sf::Color(config_.tint.r, config_.tint.g, config_.tint.b, currentColor.a));
+    alignSpriteToVelocity();
 }
 
 void Bullet::makeAfterParticles()
 {
-    sf::Vector2f bulletPos = this->bulletRect_->getGlobalBounds().getCenter();
+    const sf::Vector2f bulletCenter = getCenterPosition();
+    const sf::FloatRect bounds = bulletRect_->getGlobalBounds();
+    const int particleCount = std::max(1, config_.trailParticleCount);
 
-    for (int i = 0; i < 5; i++) {
-        sf::Color particleColor = sf::Color(127, 255, 212);
-        float playerRectDownSide = bulletPos.y+(bulletRect_->getSize().y/2);
-        float playerRectUpSide = bulletPos.y-(bulletRect_->getSize().y/2);
-        float particleSpeed = random(-150,150);
-        float particleSize = 1.f;
-        float particleGravity = 0.f;
-        float accelerationDamping = 0.8f;
-        float particleLifeTime = 0.5f;
+    for (int i = 0; i < particleCount; i++)
+    {
+        const sf::Vector2f particlePos = config_.beamLike
+            ? sf::Vector2f{
+                random(bounds.position.x, bounds.position.x + bounds.size.x),
+                random(bounds.position.y, bounds.position.y + bounds.size.y)
+            }
+            : sf::Vector2f{
+                bulletCenter.x + random(-bounds.size.x * 0.25f, bounds.size.x * 0.25f),
+                bulletCenter.y + random(-bounds.size.y * 0.25f, bounds.size.y * 0.25f)
+            };
+
+        const sf::Vector2f baseVelocity = config_.beamLike
+            ? sf::Vector2f{random(-20.f, 20.f), random(-10.f, 10.f)}
+            : normalizeOrZero(speed_) * random(-80.f, 20.f);
 
         particles.emplace_back(
-        sf::Vector2f(bulletPos.x,random(playerRectUpSide,playerRectDownSide)),
-        sf::Vector2f(particleSpeed, 0.f),
-        sf::Vector2f(random(-60,60), random(-60,60)),
-        sf::Color(particleColor),
-        particleSize,
-        particleGravity,
-        accelerationDamping,
-        particleLifeTime
+            particlePos,
+            baseVelocity,
+            sf::Vector2f(random(-40.f, 40.f), random(-40.f, 40.f)),
+            config_.trailColor,
+            config_.beamLike ? 1.7f : 1.2f,
+            config_.beamLike ? 0.f : 2.f,
+            0.82f,
+            config_.beamLike ? 0.18f : 0.38f
         );
     }
 }
 
 void Bullet::makeDeathParticles()
 {
-    sf::Vector2f bulletPos = this->bulletRect_->getPosition();
-    sf::Color explodeColor = {127, 255, 212};
-    for (int i = 0; i < 40; i++) {
-        // Угол от 0 до 360 градусов
-        float angle = random(0.f, 360.f) * 3.14159f / 180.f;
-        float speed = random(50.f, 150.f);
-        
-        sf::Vector2f velocity(
-            std::cos(angle) * speed,
-            std::sin(angle) * speed
+    const sf::Vector2f bulletCenter = getCenterPosition();
+    const int particleCount = std::max(8, config_.deathParticleCount);
+
+    for (int i = 0; i < particleCount; i++)
+    {
+        const float angle = random(0.f, 360.f) * kPi / 180.f;
+        const float speedValue = random(40.f, config_.beamLike ? 130.f : 180.f);
+        const sf::Vector2f velocity(
+            std::cos(angle) * speedValue,
+            std::sin(angle) * speedValue
         );
-        
-        // Случайная позиция в пределах пули
-        float x = random(bulletPos.x, bulletPos.x + bulletRect_->getSize().x);
-        float y = random(bulletPos.y, bulletPos.y + bulletRect_->getSize().y);
-        
-        // Случайное ускорение
-        float accel = random(-30.f, 30.f);
-        
+
         particles.emplace_back(
-            sf::Vector2f(x, y),
+            sf::Vector2f(
+                bulletCenter.x + random(-bulletRect_->getSize().x * 0.35f, bulletRect_->getSize().x * 0.35f),
+                bulletCenter.y + random(-bulletRect_->getSize().y * 0.35f, bulletRect_->getSize().y * 0.35f)
+            ),
             velocity,
-            sf::Vector2f(random(-accel, accel), random(-accel, accel)),
-            explodeColor,
-            1.f,
+            sf::Vector2f(random(-28.f, 28.f), random(-28.f, 28.f)),
+            config_.impactColor,
+            config_.beamLike ? 2.1f : 1.5f,
             0.f,
-            0.8f,
-            1.f
+            0.84f,
+            config_.beamLike ? 0.48f : 0.72f
         );
     }
 }
 
 void Bullet::updateParticles()
 {
-    for (auto& particle : particles) {
+    for (auto& particle : particles)
+    {
         particle.update();
     }
     particles.erase(
         std::remove_if(particles.begin(), particles.end(),
-            [](const Particle& p) { return !p.getIsAlive(); }),
+            [](const Particle& particle) { return !particle.getIsAlive(); }),
         particles.end()
     );
 }
 
 void Bullet::draw(sf::RenderWindow &window)
 {
-    // window.draw(*bulletRect_);
-    if(isSheduledToBeDestroyed){
-        sf::Color c = bulletSprite_->getColor();
+    if (config_.beamLike)
+    {
+        const sf::Vector2f center = getCenterPosition();
+        sf::RectangleShape beamGlow(bulletRect_->getSize());
+        beamGlow.setOrigin({beamGlow.getSize().x / 2.f, beamGlow.getSize().y / 2.f});
+        beamGlow.setPosition(center);
+        beamGlow.setRotation(bulletSprite_->getRotation());
+        beamGlow.setFillColor(sf::Color(config_.impactColor.r, config_.impactColor.g, config_.impactColor.b, 72));
+        window.draw(beamGlow);
+    }
 
-        colorReduction(c,ALFA_REDUCTION_VALUE);
-        
-        bulletSprite_->setColor(c);
-    } 
+    if(isSheduledToBeDestroyed)
+    {
+        sf::Color color = bulletSprite_->getColor();
+        colorReduction(color, ALFA_REDUCTION_VALUE);
+        bulletSprite_->setColor(color);
+    }
+
     window.draw(*bulletSprite_);
-    for (auto& particle : particles) {
+    for (auto& particle : particles)
+    {
         particle.draw(window);
     }
 }
-

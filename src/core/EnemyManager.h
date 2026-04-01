@@ -110,4 +110,5 @@ public:
 
     //Setters
     void attachPlayer(Player& p);
+    const std::vector<std::shared_ptr<Skeleton>>& getSkeletons() const;
 };

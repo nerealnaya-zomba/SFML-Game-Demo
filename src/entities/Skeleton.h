@@ -14,6 +14,7 @@
 
 class GameLevel;
 class EnemyManager;
+class Bullet;
 
 // Анимационные состояния скелета
 enum skeletonAction {
@@ -209,7 +210,7 @@ private:
 
     // Атака
     void tryAttackPlayer();
-    void onBulletHit();
+    void onBulletHit(const Bullet& bullet, bool splashHit = false);
     void beginAttack(skeletonAction attackAction);
     void updateVisualEffects();
     void drawVisualEffects();

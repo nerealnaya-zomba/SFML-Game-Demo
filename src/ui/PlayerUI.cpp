@@ -390,7 +390,7 @@ void PlayerUI::updateInventoryPanel()
     const float gridHeight = player->getInventory().empty()
         ? 56.f
         : inventoryRows * BASE_INVENTORY_SLOT_SIZE.y + (inventoryRows - 1) * BASE_INVENTORY_SLOT_GAP.y;
-    const float panelHeight = 128.f + gridHeight;
+    const float panelHeight = 168.f + gridHeight;
 
     const sf::Vector2f panelPos = {
         screenViewPos.x + screenViewSize.x - panelWidth - BASE_INVENTORY_PANEL_OFFSET.x,
@@ -410,12 +410,21 @@ void PlayerUI::updateInventoryPanel()
     goldChip.setSize({panelWidth - 36.f, 34.f});
     goldChip.setPosition({panelPos.x + 18.f, panelPos.y + 48.f});
 
+    weaponChip.setSize({panelWidth - 36.f, 40.f});
+    weaponChip.setPosition({panelPos.x + 18.f, panelPos.y + 88.f});
+
     inventoryDivider.setSize({panelWidth - 36.f, 2.f});
-    inventoryDivider.setPosition({panelPos.x + 18.f, panelPos.y + 94.f});
+    inventoryDivider.setPosition({panelPos.x + 18.f, panelPos.y + 132.f});
 
     inventoryTitleText.setPosition({panelPos.x + 18.f, panelPos.y + 16.f});
     inventoryGoldText.setString(std::to_string(player->getGold()) + " gold");
     inventoryGoldText.setPosition({panelPos.x + 58.f, panelPos.y + 52.f});
+    inventoryWeaponText.setString(player->getCurrentWeaponName());
+    inventoryWeaponText.setPosition({panelPos.x + 30.f, panelPos.y + 94.f});
+    inventoryWeaponHintText.setString("A / S - switch");
+    inventoryWeaponHintText.setPosition({panelPos.x + 30.f, panelPos.y + 114.f});
+    weaponChip.setOutlineColor(getInventoryQualityColor(player->getCurrentWeaponQuality()));
+    inventoryWeaponText.setFillColor(getInventoryQualityColor(player->getCurrentWeaponQuality()));
 
     goldCoinGlow.setScale({pulse, pulse});
     goldCoinGlow.setPosition({panelPos.x + 36.f, panelPos.y + 65.f});
@@ -424,7 +433,7 @@ void PlayerUI::updateInventoryPanel()
     goldCoinShine.setPosition({panelPos.x + 34.f, panelPos.y + 63.f});
     goldCoinShine.setRotation(sf::degrees(-24.f + std::sin(uiAnimationClock.getElapsedTime().asSeconds() * 5.f) * 5.f));
 
-    const sf::Vector2f gridStart = {panelPos.x + 18.f, panelPos.y + 108.f};
+    const sf::Vector2f gridStart = {panelPos.x + 18.f, panelPos.y + 146.f};
     for (size_t index = 0; index < inventorySlots.size(); ++index)
     {
         const unsigned int row = static_cast<unsigned int>(index / BASE_INVENTORY_COLUMNS);
@@ -450,10 +459,7 @@ void PlayerUI::updateInventoryPanel()
 
     inventoryEmptyText.setString("No relics yet");
     setTextOriginToMiddle(inventoryEmptyText);
-    inventoryEmptyText.setPosition({
-        panelPos.x + panelWidth / 2.f,
-        gridStart.y + gridHeight / 2.f
-    });
+    inventoryEmptyText.setPosition({panelPos.x + panelWidth / 2.f, gridStart.y + gridHeight / 2.f});
 }
 
 PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
@@ -466,6 +472,8 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
     , energyText(*d.gameFont)
     , inventoryTitleText(*d.gameFont)
     , inventoryGoldText(*d.gameFont)
+    , inventoryWeaponText(*d.gameFont)
+    , inventoryWeaponHintText(*d.gameFont)
     , inventoryEmptyText(*d.gameFont)
 {
     hpShadow.setSize(BASE_RESOURCE_BAR_SIZE);
@@ -537,6 +545,10 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
     goldChip.setOutlineThickness(1.f);
     goldChip.setOutlineColor(sf::Color(126, 93, 31, 255));
 
+    weaponChip.setFillColor(sf::Color(28, 19, 37, 232));
+    weaponChip.setOutlineThickness(1.f);
+    weaponChip.setOutlineColor(sf::Color(118, 83, 122, 255));
+
     goldCoinGlow.setRadius(14.f);
     goldCoinGlow.setOrigin({goldCoinGlow.getRadius(), goldCoinGlow.getRadius()});
     goldCoinGlow.setFillColor(sf::Color(255, 210, 106, 60));
@@ -561,6 +573,12 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
 
     inventoryGoldText.setCharacterSize(20);
     inventoryGoldText.setFillColor(sf::Color(255, 219, 120));
+
+    inventoryWeaponText.setCharacterSize(18);
+    inventoryWeaponText.setFillColor(sf::Color(229, 225, 240));
+
+    inventoryWeaponHintText.setCharacterSize(14);
+    inventoryWeaponHintText.setFillColor(sf::Color(162, 171, 194));
 
     inventoryEmptyText.setCharacterSize(17);
     inventoryEmptyText.setFillColor(sf::Color(173, 181, 201));
@@ -605,6 +623,7 @@ void PlayerUI::draw(sf::RenderWindow &window)
     window.draw(inventoryPanelBack);
     window.draw(inventoryHeaderAccent);
     window.draw(goldChip);
+    window.draw(weaponChip);
     window.draw(goldCoinGlow);
     window.draw(goldCoinOuter);
     window.draw(goldCoinInner);
@@ -612,6 +631,8 @@ void PlayerUI::draw(sf::RenderWindow &window)
     window.draw(inventoryDivider);
     window.draw(inventoryTitleText);
     window.draw(inventoryGoldText);
+    window.draw(inventoryWeaponText);
+    window.draw(inventoryWeaponHintText);
 
     for (auto&& slot : inventorySlots)
     {

@@ -191,3 +191,8 @@ void EnemyManager::attachPlayer(Player &p)
     }
     
 }
+
+const std::vector<std::shared_ptr<Skeleton>>& EnemyManager::getSkeletons() const
+{
+    return skeletons;
+}

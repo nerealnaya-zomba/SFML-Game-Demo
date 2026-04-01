@@ -31,6 +31,8 @@ Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::R
     this->camera = &c;
     //Loading data from GameData.json
     loadData();
+    initializeDefaultWeapon();
+    recalculateStatsFromInventory();
 
     // Attaching levels to ChooseDestinationMenu
     for (auto &&i : m.getLevelsMap())
@@ -329,27 +331,61 @@ void Player::spawnShootEffect(bool direction)
         center.x + facingDirection * 24.f,
         center.y - 4.f
     };
+    const Item::WeaponKind weaponKind = getCurrentWeapon().weaponStats.kind;
+    sf::Color primaryColor = sf::Color(255, 210, 148, 220);
+    sf::Color ringColor = sf::Color(242, 184, 112, 178);
+
+    switch (weaponKind)
+    {
+        case Item::WeaponKind::Gravepiercer:
+            primaryColor = sf::Color(214, 228, 242, 220);
+            ringColor = sf::Color(176, 204, 232, 178);
+            break;
+        case Item::WeaponKind::PyreOrb:
+            primaryColor = sf::Color(255, 136, 92, 225);
+            ringColor = sf::Color(255, 178, 122, 185);
+            break;
+        case Item::WeaponKind::StormNeedler:
+            primaryColor = sf::Color(120, 246, 255, 225);
+            ringColor = sf::Color(92, 198, 245, 185);
+            break;
+        case Item::WeaponKind::DreadPrism:
+            primaryColor = sf::Color(220, 132, 255, 228);
+            ringColor = sf::Color(170, 98, 240, 185);
+            break;
+        case Item::WeaponKind::NightfallBeam:
+            primaryColor = sf::Color(246, 96, 170, 235);
+            ringColor = sf::Color(196, 84, 210, 196);
+            break;
+        case Item::WeaponKind::AshenBolt:
+            break;
+    }
 
     pushRing(
         muzzleOrigin,
-        sf::Color(242, 184, 112, 178),
+        ringColor,
         7.f,
-        36.f,
-        3.6f,
+        weaponKind == Item::WeaponKind::NightfallBeam ? 48.f : 36.f,
+        weaponKind == Item::WeaponKind::NightfallBeam ? 4.4f : 3.6f,
         2.f,
         178.f
     );
     spawnParticleBurst(
         muzzleOrigin,
-        sf::Color(255, 210, 148, 220),
-        7,
+        primaryColor,
+        weaponKind == Item::WeaponKind::NightfallBeam ? 11 : 7,
         70.f,
-        188.f,
+        weaponKind == Item::WeaponKind::NightfallBeam ? 240.f : 188.f,
         2.1f,
         14.f,
         0.42f
     );
-    triggerCameraImpact({direction ? -1.f : 1.f, 0.f}, 18.f, 0.08f, 0.014f);
+    triggerCameraImpact(
+        {direction ? -1.f : 1.f, 0.f},
+        weaponKind == Item::WeaponKind::NightfallBeam ? 42.f : 18.f,
+        weaponKind == Item::WeaponKind::NightfallBeam ? 0.16f : 0.08f,
+        weaponKind == Item::WeaponKind::NightfallBeam ? 0.026f : 0.014f
+    );
 }
 
 void Player::spawnDashBurst()
@@ -422,6 +458,30 @@ void Player::spawnCriticalHealthEffect()
     pushRing(center, sf::Color(86, 22, 28, 75), 10.f, 32.f, 1.9f, 1.4f, 75.f);
 }
 
+void Player::spawnWeaponSwitchEffect()
+{
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Color weaponColor = getCurrentWeaponQuality() == Item::LEGENDARY
+        ? sf::Color(255, 214, 112, 195)
+        : getCurrentWeaponQuality() == Item::MYTH
+            ? sf::Color(255, 126, 102, 190)
+            : getCurrentWeaponQuality() == Item::RARE
+                ? sf::Color(118, 188, 255, 180)
+                : sf::Color(180, 188, 210, 165);
+
+    pushRing(center, weaponColor, 10.f, 54.f, 3.4f, 2.2f, 160.f);
+    spawnParticleBurst(
+        {center.x, center.y - 10.f},
+        weaponColor,
+        8,
+        40.f,
+        120.f,
+        2.2f,
+        -14.f,
+        0.52f
+    );
+}
+
 void Player::updateRingEffects()
 {
     for (auto& ring : effectRings_)
@@ -443,6 +503,125 @@ int Player::takeAllGold()
     const int lostGold = gold_;
     gold_ = 0;
     return lostGold;
+}
+
+void Player::initializeDefaultWeapon()
+{
+    arsenal_.clear();
+    arsenal_.push_back({
+        "Item_02.png",
+        "Ashen Bolt",
+        Item::COMMON,
+        Item::Category::Weapon,
+        0,
+        {},
+        {
+            Item::WeaponKind::AshenBolt,
+            0,
+            baseShootCooldown_,
+            baseShootCost_,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+        },
+        "The default rite: a single ember bolt, steady and dependable."
+    });
+    currentWeaponIndex_ = 0;
+}
+
+const Player::OwnedItem& Player::getCurrentWeapon() const
+{
+    if (arsenal_.empty())
+    {
+        static const OwnedItem fallbackWeapon{
+            "Item_02.png",
+            "Ashen Bolt",
+            Item::COMMON,
+            Item::Category::Weapon,
+            0,
+            {},
+            {},
+            "Fallback rite"
+        };
+        return fallbackWeapon;
+    }
+
+    return arsenal_[std::min(currentWeaponIndex_, arsenal_.size() - 1)];
+}
+
+std::string Player::getCurrentWeaponName() const
+{
+    return getCurrentWeapon().displayName;
+}
+
+std::string Player::getCurrentWeaponIconName() const
+{
+    return getCurrentWeapon().iconName;
+}
+
+Item::Quality Player::getCurrentWeaponQuality() const
+{
+    return getCurrentWeapon().quality;
+}
+
+const std::vector<Player::OwnedItem>& Player::getWeapons() const
+{
+    return arsenal_;
+}
+
+void Player::switchWeapon(int direction)
+{
+    if (arsenal_.size() <= 1)
+    {
+        return;
+    }
+
+    if (direction > 0)
+    {
+        currentWeaponIndex_ = (currentWeaponIndex_ + 1) % arsenal_.size();
+    }
+    else
+    {
+        currentWeaponIndex_ = currentWeaponIndex_ == 0 ? arsenal_.size() - 1 : currentWeaponIndex_ - 1;
+    }
+
+    applyCurrentWeaponStats();
+    spawnWeaponSwitchEffect();
+}
+
+void Player::applyCurrentWeaponStats()
+{
+    const OwnedItem& weapon = getCurrentWeapon();
+
+    shootCost = std::max(5, weapon.weaponStats.energyCost);
+    ButtonRepeat_shootCooldown = std::max(
+        20,
+        weapon.weaponStats.cooldownMs - inventoryStatsBonus_.shootSpeedCooldownReduction
+    );
+    DMG_ = baseDMG_ + inventoryStatsBonus_.damage + weapon.weaponStats.damageBonus;
+    bulletSpeed = baseBulletSpeed_ + static_cast<float>(inventoryStatsBonus_.bulletSpeed + weapon.weaponStats.projectileSpeed);
+    bulletMaxDistance_ = baseBulletMaxDistance_ + static_cast<float>(inventoryStatsBonus_.bulletDistance + weapon.weaponStats.projectileRange);
+}
+
+bool Player::canPerformJump() const
+{
+    return !isFalling || airJumpsRemaining_ > 0;
+}
+
+void Player::restoreAirJumps()
+{
+    airJumpsRemaining_ = maxAirJumps_;
+}
+
+std::shared_ptr<Bullet> Player::createProjectile(const Bullet::Config& config, const sf::Vector2f& startPosition, const sf::Vector2f& speedValue)
+{
+    auto projectile = std::make_shared<Bullet>(startPosition, bulletMaxDistance_, *gameTextures, config);
+    projectile->setSpeed(speedValue);
+    projectile->setPosition(startPosition);
+    return projectile;
 }
 
 sf::Clock &Player::getPortalClock()
@@ -509,6 +688,7 @@ void Player::respawnAt(sf::Vector2f pos)
     canShoot = true;
     canJump = true;
     canDash = true;
+    canSwitchWeapon = true;
 
     bullets.clear();
     particles.clear();
@@ -528,12 +708,16 @@ void Player::respawnAt(sf::Vector2f pos)
     portalCooldownClock.stop();
     portalCallOpenCooldownClock.reset();
     portalCallCloseCooldownClock.reset();
+    weaponSwitchTimer.reset();
+    weaponSwitchTimer.stop();
     runEffectClock_.restart();
     teleportEffectClock_.restart();
     criticalEffectClock_.restart();
     landingEffectClock_.restart();
     deathEffectPlayed_ = false;
     wasInTeleportArea_ = false;
+    restoreAirJumps();
+    applyCurrentWeaponStats();
 
     if (portal)
     {
@@ -563,11 +747,24 @@ bool Player::tryPurchaseItem(const Item &item)
         item.iconName,
         item.displayName,
         item.quality,
+        item.category,
         item.price,
-        item.stats
+        item.stats,
+        item.weaponStats,
+        item.description
     });
 
+    if (item.category == Item::Category::Weapon)
+    {
+        arsenal_.push_back(inventory_.back());
+        currentWeaponIndex_ = arsenal_.size() - 1;
+    }
+
     recalculateStatsFromInventory();
+    if (item.category == Item::Category::Weapon)
+    {
+        spawnWeaponSwitchEffect();
+    }
     return true;
 }
 
@@ -867,10 +1064,13 @@ void Player::loadData()
     this->dashForce = data["Dash"]["force"];
     this->dashCooldown = data["Dash"]["Cooldown"];
     this->ButtonRepeat_dashCooldown = data["Dash"]["repeatCooldown"];
+    baseDashForce_ = dashForce;
+    baseDashCooldown_ = dashCooldown;
 
     baseAcceleration_ = speed;
     baseMaxWalkSpeed_ = maxWalkSpeed;
     inventory_.clear();
+    arsenal_.clear();
     inventoryStatsBonus_ = {};
 }
 
@@ -886,6 +1086,11 @@ void Player::recalculateStatsFromInventory()
         inventoryStatsBonus_.maxSpeed += item.stats.maxSpeed;
         inventoryStatsBonus_.health += item.stats.health;
         inventoryStatsBonus_.damage += item.stats.damage;
+        inventoryStatsBonus_.dashForce += item.stats.dashForce;
+        inventoryStatsBonus_.dashCooldownReduction += item.stats.dashCooldownReduction;
+        inventoryStatsBonus_.extraJumpCount += item.stats.extraJumpCount;
+        inventoryStatsBonus_.jumpPower += item.stats.jumpPower;
+        inventoryStatsBonus_.slowFallPercent += item.stats.slowFallPercent;
     }
 
     const int previousMaxHP = maxHP;
@@ -896,12 +1101,15 @@ void Player::recalculateStatsFromInventory()
     energyGain = baseEnergyGain_;
     shootCost = baseShootCost_;
 
-    DMG_ = baseDMG_ + inventoryStatsBonus_.damage;
-    bulletSpeed = baseBulletSpeed_ + static_cast<float>(inventoryStatsBonus_.bulletSpeed);
-    bulletMaxDistance_ = baseBulletMaxDistance_ + static_cast<float>(inventoryStatsBonus_.bulletDistance);
-    ButtonRepeat_shootCooldown = std::max(20, baseShootCooldown_ - inventoryStatsBonus_.shootSpeedCooldownReduction);
     speed = baseAcceleration_ + static_cast<float>(inventoryStatsBonus_.initialSpeed) / 100.f;
     maxWalkSpeed = baseMaxWalkSpeed_ + static_cast<float>(inventoryStatsBonus_.maxSpeed) / 10.f;
+    dashForce = baseDashForce_ + static_cast<float>(inventoryStatsBonus_.dashForce) / 10.f;
+    dashCooldown = std::max(140, baseDashCooldown_ - inventoryStatsBonus_.dashCooldownReduction);
+    jumpImpulse_ = baseJumpImpulse_ + static_cast<float>(inventoryStatsBonus_.jumpPower) / 10.f;
+    gravity_ = baseGravity_ * std::clamp(1.f - static_cast<float>(inventoryStatsBonus_.slowFallPercent) / 100.f, 0.35f, 1.0f);
+    maxAirJumps_ = std::max(0, inventoryStatsBonus_.extraJumpCount);
+    restoreAirJumps();
+    applyCurrentWeaponStats();
 }
 
 void Player::checkPlatformRectCollision(std::vector<std::shared_ptr<sf::RectangleShape>>& rects)
@@ -962,6 +1170,8 @@ void Player::checkPlatformRectCollision(std::vector<std::shared_ptr<sf::Rectangl
                     {
                         spawnLandingEffect(landingSpeed);
                     }
+
+                    restoreAirJumps();
                 } else {
                     // Снизу
                     playerRectangle_->setPosition({playerBounds.position.x, platformBounds.position.y + platformBounds.size.y});
@@ -990,6 +1200,8 @@ void Player::checkGroundCollision(sf::RectangleShape& groundRect)
         {
             spawnLandingEffect(landingSpeed);
         }
+
+        restoreAirJumps();
     }
 }
 
@@ -1053,11 +1265,20 @@ void Player::walkRight()
 void Player::jump()
 {
     if(!this->isAlive || isPlayingDieAnimation || isPlayingDashAnimation) return;       //Locking movement on Die, Dash
+    if (isFalling && airJumpsRemaining_ <= 0)
+    {
+        return;
+    }
+
+    if (isFalling)
+    {
+        airJumpsRemaining_--;
+    }
 
     playerRectangle_->setPosition({playerRectangle_->getPosition().x,playerRectangle_->getPosition().y-1.f});
-    fallingSpeed = -5.5f;
+    fallingSpeed = -jumpImpulse_;
     spawnJumpEffect();
-    triggerCameraImpact({0.f, -1.f}, 16.f, 0.08f, 0.015f);
+    triggerCameraImpact({0.f, -1.f}, isFalling ? 24.f : 16.f, isFalling ? 0.12f : 0.08f, 0.015f);
 }
 
 void Player::fallDown()
@@ -1097,28 +1318,149 @@ bool Player::shoot(bool direction)
     if(!this->isAlive || isPlayingDieAnimation) return false;
     if(energy<shootCost) return false;
 
-    std::shared_ptr<Bullet> bulletPtr = std::make_shared<Bullet>(sf::Vector2f(playerRectangle_->getPosition().x+20.f,playerRectangle_->getPosition().y+20.f),this->bulletMaxDistance_,*this->gameTextures);
-    if(direction)
-    {
-        //If-else removes the possibility of spawning bullets slower than the standard bullet speed.
-        if(bulletSpeed+initialWalkSpeed<bulletSpeed)
+    const OwnedItem& weapon = getCurrentWeapon();
+    const float directionSign = direction ? 1.f : -1.f;
+    const sf::Vector2f playerCenter = playerRectangle_->getGlobalBounds().getCenter();
+    const sf::Vector2f baseSpawnPosition = {
+        playerCenter.x + directionSign * 16.f,
+        playerCenter.y - 4.f
+    };
+    const float inheritedSpeed = std::max(0.f, initialWalkSpeed * directionSign * 1.35f);
+    const float projectileSpeed = std::max(2.f, bulletSpeed + inheritedSpeed);
+
+    auto makeHorizontalVelocity = [&](float speedMultiplier = 1.f, float verticalSpeed = 0.f) {
+        return sf::Vector2f(directionSign * projectileSpeed * speedMultiplier, verticalSpeed);
+    };
+
+    auto pushProjectile = [&](const Bullet::Config& config, const sf::Vector2f& spawnPosition, const sf::Vector2f& speedValue, bool faceLeft = false) {
+        std::shared_ptr<Bullet> projectile = createProjectile(config, spawnPosition, speedValue);
+        if (faceLeft)
         {
-            bulletPtr->setSpeed(sf::Vector2f(bulletSpeed,0.f));
+            projectile->setSpriteScale({-config.spriteScale.x, config.spriteScale.y});
         }
-        else bulletPtr->setSpeed(sf::Vector2f(bulletSpeed+(initialWalkSpeed*1.5),0.f));
-    }
-    else
+        bullets.push_back(std::move(projectile));
+    };
+
+    switch (weapon.weaponStats.kind)
     {
-        //If-else removes the possibility of spawning bullets slower than the standard bullet speed.
-        if(-bulletSpeed+initialWalkSpeed>-bulletSpeed)
+        case Item::WeaponKind::AshenBolt:
         {
-            bulletPtr->setSpeed(sf::Vector2f(-bulletSpeed,0.f));
+            Bullet::Config config;
+            config.type = Bullet::Type::Ember;
+            config.tint = sf::Color(180, 244, 255, 255);
+            config.trailColor = sf::Color(124, 235, 255, 215);
+            config.impactColor = sf::Color(186, 248, 255, 235);
+            config.damage = DMG_;
+            config.maxHits = 1;
+            config.spriteScale = {direction ? 1.f : -1.f, 1.f};
+            pushProjectile(config, baseSpawnPosition, makeHorizontalVelocity());
+            break;
         }
-        else bulletPtr->setSpeed(sf::Vector2f(-bulletSpeed+(initialWalkSpeed*1.5),0.f));
-        bulletPtr->setSpriteScale({-1.f,1.f});
+        case Item::WeaponKind::Gravepiercer:
+        {
+            Bullet::Config config;
+            config.type = Bullet::Type::Piercing;
+            config.hitboxSize = {40.f, 18.f};
+            config.spriteScale = {1.45f, 0.75f};
+            config.tint = sf::Color(222, 230, 245, 255);
+            config.trailColor = sf::Color(198, 214, 235, 215);
+            config.impactColor = sf::Color(236, 242, 255, 235);
+            config.damage = DMG_;
+            config.maxHits = std::max(2, weapon.weaponStats.pierceCount + 1);
+            config.keepAliveOnHit = true;
+            config.trailParticleCount = 4;
+            pushProjectile(config, baseSpawnPosition, makeHorizontalVelocity(1.12f));
+            break;
+        }
+        case Item::WeaponKind::PyreOrb:
+        {
+            Bullet::Config config;
+            config.type = Bullet::Type::Splash;
+            config.hitboxSize = {34.f, 34.f};
+            config.spriteScale = {1.25f, 1.25f};
+            config.tint = sf::Color(255, 162, 116, 255);
+            config.trailColor = sf::Color(255, 126, 88, 215);
+            config.impactColor = sf::Color(255, 196, 144, 235);
+            config.damage = DMG_;
+            config.splashRadius = static_cast<float>(weapon.weaponStats.splashRadius);
+            config.deathParticleCount = 56;
+            config.trailParticleCount = 6;
+            pushProjectile(config, {baseSpawnPosition.x, baseSpawnPosition.y - 4.f}, makeHorizontalVelocity(0.82f, -0.18f));
+            break;
+        }
+        case Item::WeaponKind::StormNeedler:
+        {
+            Bullet::Config config;
+            config.type = Bullet::Type::Storm;
+            config.hitboxSize = {24.f, 12.f};
+            config.spriteScale = {1.1f, 0.6f};
+            config.tint = sf::Color(122, 244, 255, 255);
+            config.trailColor = sf::Color(82, 196, 255, 225);
+            config.impactColor = sf::Color(206, 248, 255, 240);
+            config.damage = DMG_;
+            config.maxHits = 1;
+            config.trailParticleCount = 3;
+
+            const std::vector<float> offsets = {-8.f, 0.f, 8.f};
+            for (const float offsetY : offsets)
+            {
+                pushProjectile(
+                    config,
+                    {baseSpawnPosition.x, baseSpawnPosition.y + offsetY},
+                    makeHorizontalVelocity(1.28f, offsetY * 0.035f)
+                );
+            }
+            break;
+        }
+        case Item::WeaponKind::DreadPrism:
+        {
+            Bullet::Config config;
+            config.type = Bullet::Type::Prism;
+            config.hitboxSize = {28.f, 16.f};
+            config.spriteScale = {1.15f, 0.78f};
+            config.tint = sf::Color(220, 136, 255, 255);
+            config.trailColor = sf::Color(170, 92, 240, 225);
+            config.impactColor = sf::Color(238, 188, 255, 240);
+            config.damage = DMG_;
+            config.maxHits = 2;
+            config.keepAliveOnHit = true;
+            config.trailParticleCount = 4;
+
+            const float spread = std::max(1.f, static_cast<float>(weapon.weaponStats.spread) * 0.18f);
+            pushProjectile(config, baseSpawnPosition, makeHorizontalVelocity(1.02f, -spread));
+            pushProjectile(config, baseSpawnPosition, makeHorizontalVelocity(1.08f, 0.f));
+            pushProjectile(config, baseSpawnPosition, makeHorizontalVelocity(1.02f, spread));
+            break;
+        }
+        case Item::WeaponKind::NightfallBeam:
+        {
+            const float beamLength = std::max(220.f, bulletMaxDistance_ * 0.55f);
+            const float beamHeight = 22.f;
+
+            Bullet::Config config;
+            config.type = Bullet::Type::Beam;
+            config.hitboxSize = {beamLength, beamHeight};
+            config.spriteScale = {beamLength / 30.f, 0.8f};
+            config.tint = sf::Color(255, 128, 196, 230);
+            config.trailColor = sf::Color(212, 102, 255, 205);
+            config.impactColor = sf::Color(255, 154, 214, 235);
+            config.damage = DMG_;
+            config.maxHits = 8;
+            config.keepAliveOnHit = true;
+            config.beamLike = true;
+            config.beamLifetime = 0.14f;
+            config.particleCooldownMs = 18.0;
+            config.trailParticleCount = 9;
+            config.deathParticleCount = 62;
+
+            const sf::Vector2f beamTopLeft = direction
+                ? sf::Vector2f{playerCenter.x + 26.f, playerCenter.y - beamHeight / 2.f}
+                : sf::Vector2f{playerCenter.x - beamLength - 26.f, playerCenter.y - beamHeight / 2.f};
+            pushProjectile(config, beamTopLeft, {0.f, 0.f}, !direction);
+            break;
+        }
     }
 
-    bullets.push_back(std::move(bulletPtr));
     spawnShootEffect(direction);
 
     energy-=shootCost;
@@ -1255,6 +1597,11 @@ void Player::updateControls()
         canDash = true;
         dashTimer.stop();
     }
+
+    if (!canSwitchWeapon && weaponSwitchTimer.getElapsedTime().asMilliseconds() >= ButtonRepeat_weaponSwitchCooldown) {
+        canSwitchWeapon = true;
+        weaponSwitchTimer.stop();
+    }
     
     // Shooting (X key)
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && canShoot)
@@ -1269,7 +1616,7 @@ void Player::updateControls()
     // Jumping (Z key)
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z) && canJump)
     {
-        if(!isFalling)
+        if(canPerformJump())
         {
             jump();
             canJump = false;
@@ -1283,6 +1630,22 @@ void Player::updateControls()
         dash();
         canDash = false;
         dashTimer.restart();
+    }
+
+    if (canSwitchWeapon)
+    {
+        if (sf::Keyboard::isKeyPressed(BASE_WEAPON_SWITCH_PREVIOUS_KEY))
+        {
+            switchWeapon(-1);
+            canSwitchWeapon = false;
+            weaponSwitchTimer.restart();
+        }
+        else if (sf::Keyboard::isKeyPressed(BASE_WEAPON_SWITCH_NEXT_KEY))
+        {
+            switchWeapon(1);
+            canSwitchWeapon = false;
+            weaponSwitchTimer.restart();
+        }
     }
     
     // Moving right-left
@@ -1381,6 +1744,7 @@ void Player::updatePhysics()
     {
         isFalling = false;
         playerRectangle_->setPosition({playerRectangle_->getPosition().x, WINDOW_HEIGHT-playerRectangle_->getSize().y});
+        restoreAirJumps();
     }
     else
     {
@@ -1392,7 +1756,7 @@ void Player::updatePhysics()
         {
             fallingSpeed= 0.f;
         } else{
-            fallingSpeed+=0.1f;
+            fallingSpeed += gravity_;
         }
 
     }

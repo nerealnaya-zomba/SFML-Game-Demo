@@ -1,77 +1,110 @@
 #pragma once
-#include <SFML/Graphics.hpp>
-#include <Particle.h>
-#include <Mounting.h>
-#include <algorithm>
-#include <GameData.h>
-#include <vector>
-#include <TexturesIterHelper.h>
-#include<Defines.h>
 
-const float SPEED_REDUCTION_RATIO = 0.01f; //1.5% от скорости пули
-const int   ALFA_REDUCTION_VALUE  = 5;     // Отнимается от альфы пули после разружшения
-const float SPEED_REDUCTION_VALUE = 0.95f; // Уменьшение скорости после разрушения
+#include <SFML/Graphics.hpp>
+#include <Defines.h>
+#include <GameData.h>
+#include <Mounting.h>
+#include <Particle.h>
+#include <TexturesIterHelper.h>
+
+#include <algorithm>
+#include <vector>
+
+const int   ALFA_REDUCTION_VALUE  = 5;
+const float SPEED_REDUCTION_VALUE = 0.95f;
 
 class Bullet
 {
-private:
-    // Graphics components
-    sf::RectangleShape* bulletRect_;           // Collision rectangle (hitbox)
-    std::vector<sf::Texture>* bulletTextures_; // Animation texture frames
-    texturesIterHelper satiro_bullet_helper;   // Animation control helper
-    sf::Sprite* bulletSprite_;                 // Visual representation
-
-    // Utils
-    void colorReduction(sf::Color& c,int reduction);
-    
 public:
-    // Bullet properties 
-    double maxDistance_{};                 // Maximum travel distance
-    double distancePassed{};                    // Current distance traveled
-    double speedReductionValue{};                 // Was 0.05f, when speed = 5.f
-    double maxReduction;
-    
-    // State flags
-    bool canBeDeleted = false;                 // Safe to remove from memory
-    bool isSheduledToBeDestroyed = false;      // Marked for destruction (hit something)
-    bool isMakedDeathParticles = false;        // Death particles already created
-    
-    // Movement
-    sf::Vector2f speed_{};              // Movement per frame
+    enum class Type
+    {
+        Ember,
+        Piercing,
+        Splash,
+        Storm,
+        Prism,
+        Beam
+    };
+
+    struct Config
+    {
+        Type type = Type::Ember;
+        sf::Vector2f hitboxSize{30.f, 30.f};
+        sf::Vector2f spriteScale{1.f, 1.f};
+        sf::Color tint{255, 255, 255, 255};
+        sf::Color trailColor{127, 255, 212, 255};
+        sf::Color impactColor{127, 255, 212, 255};
+        int damage = 10;
+        int maxHits = 1;
+        float splashRadius = 0.f;
+        bool keepAliveOnHit = false;
+        bool beamLike = false;
+        float beamLifetime = 0.12f;
+        double particleCooldownMs = 50.0;
+        int trailParticleCount = 5;
+        int deathParticleCount = 40;
+    };
+
+private:
+    sf::RectangleShape* bulletRect_ = nullptr;
+    std::vector<sf::Texture>* bulletTextures_ = nullptr;
+    texturesIterHelper satiro_bullet_helper;
+    sf::Sprite* bulletSprite_ = nullptr;
+
+    Config config_{};
+    int remainingHits_ = 1;
+    std::vector<const void*> hitTargets_;
+    sf::Clock lifeClock_;
+
+    void colorReduction(sf::Color& color, int reduction);
+    void alignSpriteToVelocity();
+
+public:
+    double maxDistance_{};
+    double distancePassed{};
+    double speedReductionValue{};
+    double maxReduction{};
+
+    bool canBeDeleted = false;
+    bool isSheduledToBeDestroyed = false;
+    bool isMakedDeathParticles = false;
+
+    sf::Vector2f speed_{};
     sf::Vector2f originalSpeed_{};
+    std::vector<Particle> particles;
+    sf::Clock makeParticles_clock;
+    double makeParticles_cooldown = 50;
+    bool makeParticles_isOnCooldown = false;
 
-    // Particle system
-    std::vector<Particle> particles;           // Visual effect particles
-    sf::Clock makeParticles_clock;             // Timer for particle cooldown
-    double makeParticles_cooldown = 50;         // Cooldown in milliseconds
-    bool makeParticles_isOnCooldown = false;   // Cooldown state
-
-    // Constructor & Destructor
     Bullet(sf::Vector2f startPosition, float maxDistance, GameData& gamedata);
+    Bullet(sf::Vector2f startPosition, float maxDistance, GameData& gamedata, const Config& config);
     virtual ~Bullet();
 
-    // Setters
     void setSpeed(sf::Vector2f offset);
-    void setSpriteTexture(sf::Texture& texture); // Change sprite texture
-    void setSpriteScale(sf::Vector2f scale);     // Change sprite scale
+    void setSpriteTexture(sf::Texture& texture);
+    void setSpriteScale(sf::Vector2f scale);
+    void setPosition(const sf::Vector2f& position);
 
-    // Getters
-    sf::RectangleShape& getBulletRect();         // Get collision rectangle
-    sf::Vector2f getPosition();                  // Get current position
+    sf::RectangleShape& getBulletRect();
+    sf::Vector2f getPosition();
+    sf::Vector2f getCenterPosition() const;
+    const Config& getConfig() const;
+    int getDamage() const;
+    float getSplashRadius() const;
+    bool isBeamLike() const;
+    bool canHitTarget(const void* target) const;
+    void registerHitTarget(const void* target);
+    void scheduleDestroy();
 
-    // Physics & movement
-    void moveBullet();                           // Update bullet position
-    void speedReduction();                       
-    void update();                               // Main update method (physics + particles)
+    void moveBullet();
+    void speedReduction();
+    void update();
 
-    // Animation
-    void updateTextures();                       // Update sprite animation frames
+    void updateTextures();
 
-    // Particle effects
-    void makeAfterParticles();                   // Create trail particles
-    void makeDeathParticles();                   // Create explosion particles on death
-    void updateParticles();                      // Update all particles
+    void makeAfterParticles();
+    void makeDeathParticles();
+    void updateParticles();
 
-    // Rendering
-    void draw(sf::RenderWindow& window);         // Draw bullet and particles
+    void draw(sf::RenderWindow& window);
 };

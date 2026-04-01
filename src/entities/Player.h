@@ -38,6 +38,8 @@ const float BASE_OFFSET_TO_CREATE_PORTAL    = 200.f;
     const sf::Keyboard::Scan BASE_CHOOSEDESTINATIONMENU_SELECT_KEY       = sf::Keyboard::Scan::Enter;
     const sf::Keyboard::Scan BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY     = sf::Keyboard::Scan::Q;
     const sf::Keyboard::Scan BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY    = sf::Keyboard::Scan::W;
+    const sf::Keyboard::Scan BASE_WEAPON_SWITCH_PREVIOUS_KEY             = sf::Keyboard::Scan::A;
+    const sf::Keyboard::Scan BASE_WEAPON_SWITCH_NEXT_KEY                 = sf::Keyboard::Scan::S;
 
 class Player {
 public:
@@ -45,8 +47,11 @@ public:
         std::string iconName;
         std::string displayName;
         Item::Quality quality = Item::COMMON;
+        Item::Category category = Item::Category::Upgrade;
         int price = 0;
         Item::Stats stats{};
+        Item::WeaponStats weaponStats{};
+        std::string description;
     };
 
     Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w);
@@ -82,16 +87,19 @@ public:
     sf::Clock shootTimer;
     sf::Clock jumpTimer;
     sf::Clock dashTimer;
+    sf::Clock weaponSwitchTimer;
     
     // Задержки (в секундах)
     int ButtonRepeat_shootCooldown{};
     int ButtonRepeat_jumpCooldown{};
     int ButtonRepeat_dashCooldown{};
+    int ButtonRepeat_weaponSwitchCooldown{140};
     
     // Флаги готовности
     bool canShoot = true;
     bool canJump = true;
     bool canDash = true;
+    bool canSwitchWeapon = true;
     
     //Player animation state
     bool isPlayingDieAnimation = false;
@@ -153,6 +161,10 @@ public:
     bool ownsItem(const std::string& iconName) const;
     sf::Vector2f getFeetPosition() const;
     int takeAllGold();
+    std::string getCurrentWeaponName() const;
+    std::string getCurrentWeaponIconName() const;
+    Item::Quality getCurrentWeaponQuality() const;
+    const std::vector<OwnedItem>& getWeapons() const;
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);
@@ -273,9 +285,17 @@ private:
     void spawnTeleportEffect(bool enteringPortal);
     void spawnDeathEffect();
     void spawnCriticalHealthEffect();
+    void spawnWeaponSwitchEffect();
     void updateRingEffects();
     void triggerCameraImpact(const sf::Vector2f& direction, float impulseStrength, float trauma, float zoomPunch = 0.02f);
     float getFacingDirection() const;
+    void initializeDefaultWeapon();
+    const OwnedItem& getCurrentWeapon() const;
+    void switchWeapon(int direction);
+    void applyCurrentWeaponStats();
+    bool canPerformJump() const;
+    void restoreAirJumps();
+    std::shared_ptr<Bullet> createProjectile(const Bullet::Config& config, const sf::Vector2f& startPosition, const sf::Vector2f& speed);
 
     ////////////////////////////////////////////////////////////
     // LevelPortal methods and fields  
@@ -335,6 +355,16 @@ private:
     int baseShootCooldown_ = 0;
     float baseAcceleration_ = 0.f;
     float baseMaxWalkSpeed_ = 0.f;
+    float baseDashForce_ = 0.f;
+    int baseDashCooldown_ = 0;
+    float baseJumpImpulse_ = 5.5f;
+    float jumpImpulse_ = 5.5f;
+    float baseGravity_ = 0.1f;
+    float gravity_ = 0.1f;
+    int maxAirJumps_ = 0;
+    int airJumpsRemaining_ = 0;
     Item::Stats inventoryStatsBonus_{};
     std::vector<OwnedItem> inventory_;
+    std::vector<OwnedItem> arsenal_;
+    std::size_t currentWeaponIndex_ = 0;
 };

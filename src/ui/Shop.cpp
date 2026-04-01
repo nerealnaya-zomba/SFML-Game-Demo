@@ -59,10 +59,80 @@ std::string getQualityLabel(Item::Quality quality)
     return "Relic";
 }
 
-std::string buildStatsText(const Item::Stats& stats)
+std::string getCategoryLabel(Item::Category category)
+{
+    switch (category)
+    {
+        case Item::Category::Upgrade:
+            return "Relic upgrade";
+        case Item::Category::Weapon:
+            return "Weapon rite";
+    }
+
+    return "Relic";
+}
+
+std::string getWeaponKindLabel(Item::WeaponKind kind)
+{
+    switch (kind)
+    {
+        case Item::WeaponKind::AshenBolt:
+            return "Ashen Bolt";
+        case Item::WeaponKind::Gravepiercer:
+            return "Gravepiercer";
+        case Item::WeaponKind::PyreOrb:
+            return "Pyre Orb";
+        case Item::WeaponKind::StormNeedler:
+            return "Storm Needler";
+        case Item::WeaponKind::DreadPrism:
+            return "Dread Prism";
+        case Item::WeaponKind::NightfallBeam:
+            return "Nightfall Beam";
+    }
+
+    return "Relic";
+}
+
+std::string buildStatsText(const Item& item)
 {
     std::ostringstream stream;
     stream << std::fixed << std::setprecision(2);
+
+    if(item.category == Item::Category::Weapon)
+    {
+        stream << "Form: " << getWeaponKindLabel(item.weaponStats.kind) << '\n';
+        stream << "Damage +" << item.weaponStats.damageBonus << '\n';
+        stream << "Cooldown " << item.weaponStats.cooldownMs << " ms\n";
+        stream << "Energy cost " << item.weaponStats.energyCost << '\n';
+        if(item.weaponStats.projectileSpeed != 0)
+        {
+            stream << "Shot speed +" << item.weaponStats.projectileSpeed << '\n';
+        }
+        if(item.weaponStats.projectileRange != 0)
+        {
+            stream << "Range +" << item.weaponStats.projectileRange << '\n';
+        }
+        if(item.weaponStats.projectileCount > 1)
+        {
+            stream << "Projectiles x" << item.weaponStats.projectileCount << '\n';
+        }
+        if(item.weaponStats.pierceCount > 0)
+        {
+            stream << "Pierce +" << item.weaponStats.pierceCount << '\n';
+        }
+        if(item.weaponStats.splashRadius > 0)
+        {
+            stream << "Splash " << item.weaponStats.splashRadius << '\n';
+        }
+        if(item.weaponStats.spread > 0)
+        {
+            stream << "Fan spread " << item.weaponStats.spread << '\n';
+        }
+
+        return stream.str();
+    }
+
+    const Item::Stats& stats = item.stats;
 
     if(stats.health != 0)
     {
@@ -91,6 +161,26 @@ std::string buildStatsText(const Item::Stats& stats)
     if(stats.shootSpeedCooldownReduction != 0)
     {
         stream << "Shoot cooldown -" << stats.shootSpeedCooldownReduction << " ms\n";
+    }
+    if(stats.dashForce != 0)
+    {
+        stream << "Dash force +" << static_cast<float>(stats.dashForce) / 10.f << '\n';
+    }
+    if(stats.dashCooldownReduction != 0)
+    {
+        stream << "Dash cooldown -" << stats.dashCooldownReduction << " ms\n";
+    }
+    if(stats.extraJumpCount != 0)
+    {
+        stream << "Extra jump +" << stats.extraJumpCount << '\n';
+    }
+    if(stats.jumpPower != 0)
+    {
+        stream << "Jump height +" << static_cast<float>(stats.jumpPower) / 10.f << '\n';
+    }
+    if(stats.slowFallPercent != 0)
+    {
+        stream << "Fall speed -" << stats.slowFallPercent << "%\n";
     }
 
     const std::string builtText = stream.str();
@@ -125,6 +215,73 @@ sf::FloatRect getInsetBounds(const sf::FloatRect& bounds, float insetRatioX, flo
 }
 }
 
+std::vector<Shop::ShopEntry>& Shop::getActiveItems()
+{
+    return activeTab_ == ShopTab::Weapons ? weaponItems : upgradeItems;
+}
+
+const std::vector<Shop::ShopEntry>& Shop::getActiveItems() const
+{
+    return activeTab_ == ShopTab::Weapons ? weaponItems : upgradeItems;
+}
+
+Shop::ShopEntry* Shop::getSelectedEntry()
+{
+    auto& activeItems = getActiveItems();
+    if (activeItems.empty())
+    {
+        return nullptr;
+    }
+
+    clampSelection();
+    return &activeItems[selectedIndex_];
+}
+
+const Shop::ShopEntry* Shop::getSelectedEntry() const
+{
+    const auto& activeItems = getActiveItems();
+    if (activeItems.empty())
+    {
+        return nullptr;
+    }
+
+    const std::size_t safeIndex = std::min(selectedIndex_, activeItems.size() - 1);
+    return &activeItems[safeIndex];
+}
+
+void Shop::clampSelection()
+{
+    auto& activeItems = getActiveItems();
+    if (activeItems.empty())
+    {
+        selectedIndex_ = 0;
+        return;
+    }
+
+    selectedIndex_ = std::min(selectedIndex_, activeItems.size() - 1);
+}
+
+void Shop::setActiveTab(ShopTab tab)
+{
+    if (activeTab_ == tab)
+    {
+        clampSelection();
+        return;
+    }
+
+    onSelectedChanged();
+    activeTab_ = tab;
+    selectedIndex_ = 0;
+    closeSelectedItemWidget();
+    clampSelection();
+    updateBackgroundLayout(sprite->getPosition());
+}
+
+void Shop::switchTab(int direction)
+{
+    setActiveTab(direction > 0 ? ShopTab::Weapons : ShopTab::Upgrades);
+}
+
 void Shop::update()
 {
     if(!isOpened) return;
@@ -150,7 +307,15 @@ void Shop::handleEvent(const sf::Event &event)
 
     if(const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
     {
-        if(keyPressed->scancode == SHOP_KEY_TO_MOVE_RIGHT)
+        if(keyPressed->scancode == SHOP_KEY_TO_PREVIOUS_TAB)
+        {
+            switchTab(-1);
+        }
+        else if(keyPressed->scancode == SHOP_KEY_TO_NEXT_TAB)
+        {
+            switchTab(1);
+        }
+        else if(keyPressed->scancode == SHOP_KEY_TO_MOVE_RIGHT)
         {
             moveSelectionRight();
         }
@@ -180,7 +345,7 @@ bool Shop::getIsOpened()
 
 bool Shop::hasItems() const
 {
-    return !items.empty() && itemsIt != items.end();
+    return !getActiveItems().empty();
 }
 
 void Shop::draw(sf::RenderWindow& window)
@@ -188,10 +353,15 @@ void Shop::draw(sf::RenderWindow& window)
     if(!isOpened) return;
 
     window.draw(*sprite);
+    window.draw(upgradesTabPlate);
+    window.draw(weaponsTabPlate);
     window.draw(titleText);
     window.draw(goldText);
+    window.draw(tabHintText);
+    window.draw(upgradesTabText);
+    window.draw(weaponsTabText);
 
-    for (auto &&item : items)
+    for (auto &&item : getActiveItems())
     {
         window.draw(item.first);
         item.second->draw(window);
@@ -216,7 +386,12 @@ void Shop::initializeItems()
         std::string iconName = itemData["IconName"];
         std::string itemName = itemData["ItemName"];
         Item::Quality quality = itemData["Quality"];
+        const std::string categoryName = itemData.value("Category", "Upgrade");
+        const Item::Category category = categoryName == "Weapon"
+            ? Item::Category::Weapon
+            : Item::Category::Upgrade;
         int price = itemData["Price"];
+        const std::string description = itemData.value("Description", "");
 
         Item::Stats stats =
         {
@@ -226,8 +401,55 @@ void Shop::initializeItems()
             itemData["Stats"]["InitialSpeed"],
             itemData["Stats"]["MaxSpeed"],
             itemData["Stats"]["Health"],
-            itemData["Stats"]["Damage"]
+            itemData["Stats"]["Damage"],
+            itemData["Stats"].value("DashForce", 0),
+            itemData["Stats"].value("DashCooldownReduction", 0),
+            itemData["Stats"].value("ExtraJumpCount", 0),
+            itemData["Stats"].value("JumpPower", 0),
+            itemData["Stats"].value("SlowFallPercent", 0)
         };
+
+        Item::WeaponStats weaponStats{};
+        if (category == Item::Category::Weapon && itemData.contains("Weapon"))
+        {
+            const auto& weaponData = itemData["Weapon"];
+            const std::string kindName = weaponData.value("Kind", "AshenBolt");
+
+            if (kindName == "Gravepiercer")
+            {
+                weaponStats.kind = Item::WeaponKind::Gravepiercer;
+            }
+            else if (kindName == "PyreOrb")
+            {
+                weaponStats.kind = Item::WeaponKind::PyreOrb;
+            }
+            else if (kindName == "StormNeedler")
+            {
+                weaponStats.kind = Item::WeaponKind::StormNeedler;
+            }
+            else if (kindName == "DreadPrism")
+            {
+                weaponStats.kind = Item::WeaponKind::DreadPrism;
+            }
+            else if (kindName == "NightfallBeam")
+            {
+                weaponStats.kind = Item::WeaponKind::NightfallBeam;
+            }
+            else
+            {
+                weaponStats.kind = Item::WeaponKind::AshenBolt;
+            }
+
+            weaponStats.damageBonus = weaponData.value("DamageBonus", 0);
+            weaponStats.cooldownMs = weaponData.value("CooldownMs", 0);
+            weaponStats.energyCost = weaponData.value("EnergyCost", 0);
+            weaponStats.projectileSpeed = weaponData.value("ProjectileSpeed", 0);
+            weaponStats.projectileRange = weaponData.value("ProjectileRange", 0);
+            weaponStats.projectileCount = weaponData.value("ProjectileCount", 1);
+            weaponStats.pierceCount = weaponData.value("PierceCount", 0);
+            weaponStats.splashRadius = weaponData.value("SplashRadius", 0);
+            weaponStats.spread = weaponData.value("Spread", 0);
+        }
 
         addItem(std::make_unique<Item>(
             *this->data,
@@ -236,12 +458,21 @@ void Shop::initializeItems()
             iconName,
             itemName,
             quality,
+            category,
             price,
-            stats
+            stats,
+            weaponStats,
+            description
         ));
     }
 
-    for (auto &&item : items)
+    for (auto &&item : upgradeItems)
+    {
+        setSpriteOriginToMiddle(item.first);
+        item.first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
+    }
+
+    for (auto &&item : weaponItems)
     {
         setSpriteOriginToMiddle(item.first);
         item.first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
@@ -256,7 +487,7 @@ void Shop::updateHeaderTexts()
         BASE_SHOP_FRAME_INSET_RATIO_Y
     );
 
-    titleText.setString("Merchant's stock");
+    titleText.setString(activeTab_ == ShopTab::Weapons ? "Arsenal of rites" : "Merchant's stock");
     titleText.setPosition({contentBounds.position.x, contentBounds.position.y});
 
     goldText.setString("Gold: " + std::to_string(player->getGold()));
@@ -264,11 +495,48 @@ void Shop::updateHeaderTexts()
         contentBounds.position.x + contentBounds.size.x - goldText.getGlobalBounds().size.x,
         contentBounds.position.y
     });
+
+    upgradesTabText.setString("Relics");
+    weaponsTabText.setString("Weapons");
+    tabHintText.setString("Q/W - Tabs");
+
+    const sf::Vector2f tabsOrigin = {contentBounds.position.x, contentBounds.position.y + 34.f};
+    const sf::Vector2f tabSize = {124.f, 28.f};
+    const bool upgradesActive = activeTab_ == ShopTab::Upgrades;
+
+    upgradesTabPlate.setPosition(tabsOrigin);
+    upgradesTabPlate.setSize(tabSize);
+    upgradesTabPlate.setFillColor(upgradesActive ? sf::Color(178, 61, 77, 230) : sf::Color(44, 28, 36, 215));
+    upgradesTabPlate.setOutlineThickness(1.f);
+    upgradesTabPlate.setOutlineColor(sf::Color(146, 94, 76, 210));
+
+    weaponsTabPlate.setPosition({tabsOrigin.x + tabSize.x + 10.f, tabsOrigin.y});
+    weaponsTabPlate.setSize(tabSize);
+    weaponsTabPlate.setFillColor(!upgradesActive ? sf::Color(178, 61, 77, 230) : sf::Color(44, 28, 36, 215));
+    weaponsTabPlate.setOutlineThickness(1.f);
+    weaponsTabPlate.setOutlineColor(sf::Color(146, 94, 76, 210));
+
+    upgradesTabText.setPosition({tabsOrigin.x + 18.f, tabsOrigin.y + 4.f});
+    weaponsTabText.setPosition({tabsOrigin.x + tabSize.x + 28.f, tabsOrigin.y + 4.f});
+    tabHintText.setPosition({
+        contentBounds.position.x + contentBounds.size.x - tabHintText.getGlobalBounds().size.x,
+        tabsOrigin.y + 5.f
+    });
 }
 
 void Shop::updateItemFrameStates()
 {
-    for (auto&& item : items)
+    for (auto&& item : upgradeItems)
+    {
+        item.first.setColor(getShopFrameColor(item.second->isPurchased(), false));
+        item.first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
+
+        item.second->setColor(item.second->isPurchased()
+            ? sf::Color(150, 150, 150, 225)
+            : sf::Color::White);
+    }
+
+    for (auto&& item : weaponItems)
     {
         item.first.setColor(getShopFrameColor(item.second->isPurchased(), false));
         item.first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
@@ -281,6 +549,7 @@ void Shop::updateItemFrameStates()
 
 void Shop::alignItemsOnGrid()
 {
+    auto& items = getActiveItems();
     if (items.empty())
     {
         return;
@@ -293,7 +562,7 @@ void Shop::alignItemsOnGrid()
     );
     const float gridWidth = columns * cellSize.x + (columns - 1) * static_cast<float>(itemsMargin.x);
     const float gridStartX = contentBounds.position.x + std::max(0.f, (contentBounds.size.x - gridWidth) / 2.f);
-    const float gridStartY = contentBounds.position.y + BASE_SHOP_HEADER_SECTION_HEIGHT + BASE_SHOP_GRID_SECTION_GAP;
+    const float gridStartY = contentBounds.position.y + BASE_SHOP_HEADER_SECTION_HEIGHT + BASE_SHOP_GRID_SECTION_GAP + 34.f;
     
     int iterationCount = 0;
     int countingForNextRow = 0;
@@ -327,28 +596,35 @@ void Shop::alignItemsOnGrid()
 
 void Shop::onItemSelected()
 {
-    if (!hasItems())
+    ShopEntry* selectedEntry = getSelectedEntry();
+    if (!selectedEntry)
     {
         return;
     }
 
-    itemsIt->first.setScale(BASE_SHOP_CELL_SPRITE_SELECTED_SCALE);
-    itemsIt->first.setColor(getShopFrameColor(itemsIt->second->isPurchased(), true));
+    selectedEntry->first.setScale(BASE_SHOP_CELL_SPRITE_SELECTED_SCALE);
+    selectedEntry->first.setColor(getShopFrameColor(selectedEntry->second->isPurchased(), true));
 }
 
 void Shop::onSelectedChanged()
 {
-    if (!hasItems())
+    ShopEntry* selectedEntry = getSelectedEntry();
+    if (!selectedEntry)
     {
         return;
     }
 
-    itemsIt->first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
+    selectedEntry->first.setScale(BASE_SHOP_CELL_SPRITE_SCALE);
 }
 
 void Shop::onShopClosed()
 {
-    for (auto &&item : items)
+    for (auto &&item : upgradeItems)
+    {
+        item.second->setScale(item.second->getBaseScale());
+    }
+
+    for (auto &&item : weaponItems)
     {
         item.second->setScale(item.second->getBaseScale());
     }
@@ -359,17 +635,19 @@ void Shop::onShopClosed()
 
 void Shop::onShopOpened()
 {
+    clampSelection();
     updateHeaderTexts();
 }
 
 bool Shop::buySelectedItem()
 {
-    if(!hasItems())
+    ShopEntry* selectedEntry = getSelectedEntry();
+    if(!selectedEntry)
     {
         return false;
     }
 
-    Item& selectedItem = *itemsIt->second;
+    Item& selectedItem = *selectedEntry->second;
     if(selectedItem.isPurchased())
     {
         return false;
@@ -387,46 +665,41 @@ bool Shop::buySelectedItem()
 
 void Shop::moveSelectionRight()
 {
-    if (!hasItems())
+    auto& items = getActiveItems();
+    if (items.empty())
     {
         return;
     }
 
     onSelectedChanged();
 
-    itemsIt++;
-    if(itemsIt == items.end())
-    {
-        itemsIt = items.begin();
-    }
+    selectedIndex_ = (selectedIndex_ + 1) % items.size();
 }
 
 void Shop::moveSelectionLeft()
 {
-    if (!hasItems())
+    auto& items = getActiveItems();
+    if (items.empty())
     {
         return;
     }
 
     onSelectedChanged();
 
-    if (itemsIt == items.begin()) {
-        itemsIt = std::prev(items.end());
-    } else {
-        itemsIt--;
-    }
+    selectedIndex_ = selectedIndex_ == 0 ? items.size() - 1 : selectedIndex_ - 1;
 }
 
 void Shop::moveSelectionDown()
 {
-    if (!hasItems())
+    auto& items = getActiveItems();
+    if (items.empty())
     {
         return;
     }
 
     onSelectedChanged();
     
-    const size_t currentIndex = itemsIt - items.begin();
+    const size_t currentIndex = selectedIndex_;
     size_t newIndex = currentIndex + columns;
     
     if (newIndex >= items.size())
@@ -440,19 +713,20 @@ void Shop::moveSelectionDown()
         }
     }
     
-    itemsIt = items.begin() + newIndex;
+    selectedIndex_ = newIndex;
 }
 
 void Shop::moveSelectionUp()
 {
-    if (!hasItems())
+    auto& items = getActiveItems();
+    if (items.empty())
     {
         return;
     }
 
     onSelectedChanged();
     
-    const size_t currentIndex = itemsIt - items.begin();
+    const size_t currentIndex = selectedIndex_;
     
     if (currentIndex < columns)
     {
@@ -468,11 +742,11 @@ void Shop::moveSelectionUp()
             }
         }
         
-        itemsIt = items.begin() + newIndex;
+        selectedIndex_ = newIndex;
     }
     else
     {
-        itemsIt -= columns;
+        selectedIndex_ -= columns;
     }
 }
 
@@ -488,13 +762,14 @@ void Shop::unblockPlayerControl()
 
 void Shop::openSelectedItemWidget()
 {
-    if (!hasItems())
+    ShopEntry* selectedEntry = getSelectedEntry();
+    if (!selectedEntry)
     {
         return;
     }
 
     isItemWidgetOpened = true;
-    widget.attachItemStats(*itemsIt->second.get());
+    widget.attachItemStats(*selectedEntry->second.get());
     widget.open();
 }
 
@@ -515,6 +790,9 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
     , cellSize(BASE_SHOP_CELL_SIZE)
     , titleText(*d.gameFont)
     , goldText(*d.gameFont)
+    , tabHintText(*d.gameFont)
+    , upgradesTabText(*d.gameFont)
+    , weaponsTabText(*d.gameFont)
     , isOpened(false)
     , isItemWidgetOpened(false)
 {   
@@ -524,15 +802,24 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
     goldText.setCharacterSize(20);
     goldText.setFillColor(sf::Color(255, 215, 102));
 
+    tabHintText.setCharacterSize(15);
+    tabHintText.setFillColor(sf::Color(188, 195, 212));
+
+    upgradesTabText.setCharacterSize(17);
+    upgradesTabText.setFillColor(sf::Color(242, 237, 226));
+
+    weaponsTabText.setCharacterSize(17);
+    weaponsTabText.setFillColor(sf::Color(242, 237, 226));
+
     initializeItems();
-    itemsIt = items.begin();
+    clampSelection();
     updateBackgroundLayout(pos);
 }
 
 void Shop::open()
 {
     isOpened = true;
-    itemsIt = items.begin();
+    selectedIndex_ = 0;
     onShopOpened();
     blockPlayerControl();
 }
@@ -540,21 +827,36 @@ void Shop::open()
 void Shop::close()
 {
     isOpened = false;
-    itemsIt = items.begin();
+    selectedIndex_ = 0;
     onShopClosed();
     unblockPlayerControl();
 }
 
 void Shop::addItem(std::unique_ptr<Item> item)
 {
-    items.push_back(std::pair(sf::Sprite(data->guiTextures.at("GUI_04.png")),std::move(item)));
+    if (!item)
+    {
+        return;
+    }
+
+    ShopEntry entry{sf::Sprite(data->guiTextures.at("GUI_04.png")), std::move(item)};
+    if (entry.second->category == Item::Category::Weapon)
+    {
+        weaponItems.push_back(std::move(entry));
+    }
+    else
+    {
+        upgradeItems.push_back(std::move(entry));
+    }
 }
 
 void Shop::updateBackgroundLayout(const sf::Vector2f& pos)
 {
     const sf::Vector2u backTextureSize = sprite->getTexture().getSize();
 
-    if (items.empty())
+    const std::size_t maxItems = std::max(upgradeItems.size(), weaponItems.size());
+
+    if (maxItems == 0)
     {
         setScale({
             sprite->getScale().x + BASE_SHOP_BACKGROUND_ADDITIONAL_SCALE.x,
@@ -565,11 +867,11 @@ void Shop::updateBackgroundLayout(const sf::Vector2f& pos)
         return;
     }
 
-    const unsigned int requiredRows = static_cast<unsigned int>((items.size() + columns - 1) / columns);
+    const unsigned int requiredRows = static_cast<unsigned int>((maxItems + columns - 1) / columns);
     const float requiredGridWidth = cellSize.x * columns + itemsMargin.x * (columns - 1);
     const float requiredGridHeight = cellSize.y * requiredRows + itemsMargin.y * (requiredRows - 1);
     const float requiredInnerWidth = requiredGridWidth;
-    const float requiredInnerHeight = BASE_SHOP_HEADER_SECTION_HEIGHT + BASE_SHOP_GRID_SECTION_GAP + requiredGridHeight;
+    const float requiredInnerHeight = BASE_SHOP_HEADER_SECTION_HEIGHT + BASE_SHOP_GRID_SECTION_GAP + 34.f + requiredGridHeight;
     const float usableWidthRatio = 1.f - BASE_SHOP_FRAME_INSET_RATIO_X * 2.f;
     const float usableHeightRatio = 1.f - BASE_SHOP_FRAME_INSET_RATIO_Y * 2.f;
 
@@ -591,9 +893,11 @@ Shop::ItemWidget::ItemWidget(Shop& owner, GameData& data, sf::Vector2f widgetSca
     : owner(&owner)
     , background(data.guiTextures.at("GUI_17.png"))
     , displayNameText(font)
+    , categoryText(font)
     , qualityText(font)
     , priceText(font)
     , statsText(font)
+    , descriptionText(font)
     , stateText(font)
     , hintText(font)
 {
@@ -602,9 +906,11 @@ Shop::ItemWidget::ItemWidget(Shop& owner, GameData& data, sf::Vector2f widgetSca
     background.setColor(sf::Color(130, 138, 156, 248));
 
     makeTextReadable(displayNameText, 23, sf::Color(245, 239, 227), 2.f);
+    makeTextReadable(categoryText, 15, sf::Color(196, 204, 220), 1.5f);
     makeTextReadable(qualityText, 17, sf::Color(255, 215, 102), 2.f);
     makeTextReadable(priceText, 18, sf::Color(255, 215, 102), 2.f);
     makeTextReadable(statsText, 16, sf::Color(232, 234, 240), 1.5f);
+    makeTextReadable(descriptionText, 15, sf::Color(216, 221, 231), 1.2f);
     makeTextReadable(stateText, 18, sf::Color::White, 2.f);
     makeTextReadable(hintText, 15, sf::Color(198, 206, 222), 1.5f);
 
@@ -630,7 +936,9 @@ void Shop::ItemWidget::refreshState()
     {
         stateText.setString("You have enough gold");
         stateText.setFillColor(sf::Color(255, 215, 102));
-        hintText.setString("Z - Buy    X - Close");
+        hintText.setString(attachedItem->category == Item::Category::Weapon
+            ? "Z - Buy and equip    X - Close"
+            : "Z - Buy    X - Close");
     }
     else
     {
@@ -657,9 +965,11 @@ void Shop::ItemWidget::updateLayout()
     const float iconCenterX = right - iconColumnWidth / 2.f;
 
     displayNameText.setPosition({left, top});
-    qualityText.setPosition({left, top + 36.f});
-    priceText.setPosition({left, top + 66.f});
-    statsText.setPosition({left, top + 118.f});
+    categoryText.setPosition({left, top + 34.f});
+    qualityText.setPosition({left, top + 58.f});
+    priceText.setPosition({left, top + 86.f});
+    descriptionText.setPosition({left, top + 120.f});
+    statsText.setPosition({left, top + 172.f});
     stateText.setPosition({left, bottom - 78.f});
     hintText.setPosition({left, bottom - 44.f});
 
@@ -682,8 +992,10 @@ void Shop::ItemWidget::draw(sf::RenderWindow &window)
         window.draw(*itemIcon);
     }
     window.draw(this->displayNameText);
+    window.draw(this->categoryText);
     window.draw(this->qualityText);
     window.draw(this->priceText);
+    window.draw(this->descriptionText);
     window.draw(this->statsText);
     window.draw(this->stateText);
     window.draw(this->hintText);
@@ -749,10 +1061,14 @@ void Shop::ItemWidget::attachItemStats(Item& item)
 {
     attachedItem = &item;
     displayNameText.setString(item.displayName);
-    displayNameText.setFillColor(getQualityColor(item.quality));
+    displayNameText.setFillColor(sf::Color(245, 239, 227));
+    categoryText.setString(getCategoryLabel(item.category));
     qualityText.setString(getQualityLabel(item.quality));
     qualityText.setFillColor(getQualityColor(item.quality));
-    statsText.setString(buildStatsText(item.stats));
+    priceText.setFillColor(sf::Color(255, 215, 102));
+    statsText.setString(buildStatsText(item));
+    descriptionText.setString(item.description);
+    descriptionText.setLineSpacing(1.15f);
 
     itemIcon = std::make_unique<sf::Sprite>(item.getTexture());
     setSpriteOriginToMiddle(*itemIcon);

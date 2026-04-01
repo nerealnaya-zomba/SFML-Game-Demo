@@ -106,6 +106,7 @@ private:
     sf::RectangleShape inventoryHeaderAccent;
     sf::RectangleShape inventoryDivider;
     sf::RectangleShape goldChip;
+    sf::RectangleShape weaponChip;
     sf::CircleShape goldCoinGlow;
     sf::CircleShape goldCoinOuter;
     sf::CircleShape goldCoinInner;
@@ -113,6 +114,8 @@ private:
 
     sf::Text inventoryTitleText;
     sf::Text inventoryGoldText;
+    sf::Text inventoryWeaponText;
+    sf::Text inventoryWeaponHintText;
     sf::Text inventoryEmptyText;
 
     std::vector<InventorySlotVisual> inventorySlots;

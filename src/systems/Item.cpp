@@ -1,14 +1,33 @@
 #include<Item.h>
 #include<stdexcept>
 
-Item::Item(GameData& data, sf::Vector2i iconSize, sf::Vector2i position, std::string name, std::string displayItemName, Quality q, int p, Stats itemStats)
-    : quality(q), iconName(name), price(p), displayName(displayItemName), stats(itemStats)
+Item::Item(
+    GameData& data,
+    sf::Vector2i iconSize,
+    sf::Vector2i position,
+    std::string name,
+    std::string displayItemName,
+    Quality q,
+    Category c,
+    int p,
+    Stats itemStats,
+    WeaponStats weaponData,
+    std::string itemDescription
+)
+    : stats(itemStats)
+    , weaponStats(weaponData)
+    , quality(q)
+    , category(c)
+    , iconName(std::move(name))
+    , price(p)
+    , displayName(std::move(displayItemName))
+    , description(std::move(itemDescription))
 {
     // Получаем текстуру по названию
-    auto itemIt = data.itemsTextures.find(name);
+    auto itemIt = data.itemsTextures.find(iconName);
     if(itemIt == data.itemsTextures.end())
     {
-        throw std::runtime_error("Cannot find item texture: " + name);
+        throw std::runtime_error("Cannot find item texture: " + iconName);
     }
     sprite = std::make_unique<sf::Sprite>(itemIt->second);
 

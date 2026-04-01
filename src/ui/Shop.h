@@ -36,10 +36,20 @@ const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_DOWN          = sf::Keyboard::Scan
 const sf::Keyboard::Scancode SHOP_KEY_TO_MOVE_UP            = sf::Keyboard::Scancode::Up;
 const sf::Keyboard::Scancode SHOP_KEY_TO_OPEN_ITEM_WIDGET   = sf::Keyboard::Scancode::Z;
 const sf::Keyboard::Scancode SHOP_KEY_TO_CLOSE_ITEM_WIDGET  = sf::Keyboard::Scancode::X;
+const sf::Keyboard::Scancode SHOP_KEY_TO_PREVIOUS_TAB       = sf::Keyboard::Scancode::Q;
+const sf::Keyboard::Scancode SHOP_KEY_TO_NEXT_TAB           = sf::Keyboard::Scancode::W;
 
 class Shop : public InteractiveObject
 {
 private:
+    enum class ShopTab
+    {
+        Upgrades,
+        Weapons
+    };
+
+    using ShopEntry = std::pair<sf::Sprite, std::unique_ptr<Item>>;
+
     class ItemWidget
     {
     private:
@@ -51,9 +61,11 @@ private:
         bool hasItemIcon = false;
 
         sf::Text displayNameText;
+        sf::Text categoryText;
         sf::Text qualityText;
         sf::Text priceText;
         sf::Text statsText;
+        sf::Text descriptionText;
         sf::Text stateText;
         sf::Text hintText;
 
@@ -92,14 +104,19 @@ private:
     sf::Vector2i itemsMargin;
     sf::Vector2f cellSize;
 
-    sf::Text titleText;
+        sf::Text titleText;
     sf::Text goldText;
+    sf::Text tabHintText;
+    sf::Text upgradesTabText;
+    sf::Text weaponsTabText;
+    sf::RectangleShape upgradesTabPlate;
+    sf::RectangleShape weaponsTabPlate;
 
     // Items storage
-    std::vector<std::pair<sf::Sprite,std::unique_ptr<Item>>> items;
-
-    // Items selection iterator
-    std::vector<std::pair<sf::Sprite,std::unique_ptr<Item>>>::iterator itemsIt;
+    std::vector<ShopEntry> upgradeItems;
+    std::vector<ShopEntry> weaponItems;
+    ShopTab activeTab_ = ShopTab::Upgrades;
+    std::size_t selectedIndex_ = 0;
 
     // Shop bools
     bool isOpened;
@@ -111,6 +128,13 @@ private:
     void updateBackgroundLayout(const sf::Vector2f& pos);
     void updateHeaderTexts();
     void updateItemFrameStates();
+    std::vector<ShopEntry>& getActiveItems();
+    const std::vector<ShopEntry>& getActiveItems() const;
+    ShopEntry* getSelectedEntry();
+    const ShopEntry* getSelectedEntry() const;
+    void setActiveTab(ShopTab tab);
+    void switchTab(int direction);
+    void clampSelection();
     
     // Items aligning
     void alignItemsOnGrid();

@@ -1,194 +1,502 @@
 [
     {
+        "Category": "Upgrade",
         "IconName": "Item_01.png",
         "ItemName": "Trail Map",
+        "Description": "A burial route chart stitched with silver thread. Your bolts linger farther before the dark swallows them.",
         "Quality": 0,
         "Price": 35,
-        "Stats":
-        {
-            "BulletSpeed" : 0,
+        "Stats": {
+            "BulletSpeed": 0,
             "BulletDistance": 70,
             "ShootSpeedCooldownReduction": 0,
             "InitialSpeed": 0,
             "MaxSpeed": 0,
             "Health": 0,
-            "Damage": 0
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
+        "Category": "Upgrade",
         "IconName": "Item_03.png",
         "ItemName": "Quick Spur",
+        "Description": "A rider's spur blessed for short bursts of speed through old grave roads.",
         "Quality": 0,
         "Price": 55,
-        "Stats":
-        {
-            "BulletSpeed" : 0,
+        "Stats": {
+            "BulletSpeed": 0,
             "BulletDistance": 0,
             "ShootSpeedCooldownReduction": 0,
             "InitialSpeed": 6,
             "MaxSpeed": 4,
             "Health": 0,
-            "Damage": 0
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
+        "Category": "Upgrade",
         "IconName": "Item_04.png",
         "ItemName": "Iron Charm",
+        "Description": "Heavy and old, but warded. It lets your body endure a few more bad prophecies.",
         "Quality": 0,
         "Price": 75,
-        "Stats":
-        {
-            "BulletSpeed" : 0,
+        "Stats": {
+            "BulletSpeed": 0,
             "BulletDistance": 0,
             "ShootSpeedCooldownReduction": 0,
             "InitialSpeed": 0,
             "MaxSpeed": 0,
             "Health": 90,
-            "Damage": 0
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
+        "Category": "Upgrade",
         "IconName": "Item_06.png",
         "ItemName": "Ember Ink",
+        "Description": "A black-red pigment that turns simple bolts into burning sigils on impact.",
         "Quality": 1,
         "Price": 95,
-        "Stats":
-        {
-            "BulletSpeed" : 1,
+        "Stats": {
+            "BulletSpeed": 1,
             "BulletDistance": 0,
             "ShootSpeedCooldownReduction": 0,
             "InitialSpeed": 0,
             "MaxSpeed": 0,
             "Health": 0,
-            "Damage": 12
+            "Damage": 12,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
+        "Category": "Upgrade",
         "IconName": "Item_08.png",
         "ItemName": "Falcon Feather",
+        "Description": "Still light enough to twitch in dead air. Movement feels sharper and more certain.",
         "Quality": 1,
         "Price": 115,
-        "Stats":
-        {
-            "BulletSpeed" : 0,
+        "Stats": {
+            "BulletSpeed": 0,
             "BulletDistance": 0,
             "ShootSpeedCooldownReduction": 0,
             "InitialSpeed": 10,
             "MaxSpeed": 8,
             "Health": 0,
-            "Damage": 0
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
+        "Category": "Upgrade",
         "IconName": "Item_12.png",
         "ItemName": "Hunter Lens",
+        "Description": "Ground crystal through which even a witch-hunter could measure distance in one glance.",
         "Quality": 1,
         "Price": 140,
-        "Stats":
-        {
-            "BulletSpeed" : 1,
+        "Stats": {
+            "BulletSpeed": 1,
             "BulletDistance": 130,
             "ShootSpeedCooldownReduction": 0,
             "InitialSpeed": 0,
             "MaxSpeed": 0,
             "Health": 0,
-            "Damage": 0
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
+        "Category": "Upgrade",
         "IconName": "Item_13.png",
         "ItemName": "Gale Manual",
+        "Description": "A thin codex on how to loose a shot before fear fully settles in your hands.",
         "Quality": 2,
         "Price": 170,
-        "Stats":
-        {
-            "BulletSpeed" : 1,
+        "Stats": {
+            "BulletSpeed": 1,
             "BulletDistance": 0,
             "ShootSpeedCooldownReduction": 10,
             "InitialSpeed": 4,
             "MaxSpeed": 0,
             "Health": 0,
-            "Damage": 0
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
+        "Category": "Upgrade",
         "IconName": "Item_14.png",
         "ItemName": "Thorn Grimoire",
+        "Description": "Margins packed with cruel notes. Every projectile lands with a nastier spite.",
         "Quality": 2,
         "Price": 210,
-        "Stats":
-        {
-            "BulletSpeed" : 0,
+        "Stats": {
+            "BulletSpeed": 0,
             "BulletDistance": 60,
             "ShootSpeedCooldownReduction": 0,
             "InitialSpeed": 0,
             "MaxSpeed": 0,
             "Health": 0,
-            "Damage": 18
+            "Damage": 18,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
+        "Category": "Upgrade",
         "IconName": "Item_15.png",
         "ItemName": "Warden Seal",
+        "Description": "A cold seal from a forgotten crypt warden. It hardens flesh and steadies stride.",
         "Quality": 2,
         "Price": 250,
-        "Stats":
-        {
-            "BulletSpeed" : 0,
+        "Stats": {
+            "BulletSpeed": 0,
             "BulletDistance": 0,
             "ShootSpeedCooldownReduction": 0,
             "InitialSpeed": 0,
             "MaxSpeed": 6,
             "Health": 170,
-            "Damage": 0
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
-        "IconName": "Item_16.png",
-        "ItemName": "Sun Reliquary",
-        "Quality": 3,
-        "Price": 300,
-        "Stats":
-        {
-            "BulletSpeed" : 0,
+        "Category": "Upgrade",
+        "IconName": "Item_05.png",
+        "ItemName": "Shadow Spurs",
+        "Description": "Spurs worn by riders who learned to dash between tombstones before the moon could see them.",
+        "Quality": 1,
+        "Price": 240,
+        "Stats": {
+            "BulletSpeed": 0,
             "BulletDistance": 0,
-            "ShootSpeedCooldownReduction": 8,
-            "InitialSpeed": 0,
-            "MaxSpeed": 0,
-            "Health": 120,
-            "Damage": 16
-        }
-    },
-    {
-        "IconName": "Item_27.png",
-        "ItemName": "Storm Crown",
-        "Quality": 3,
-        "Price": 360,
-        "Stats":
-        {
-            "BulletSpeed" : 2,
-            "BulletDistance": 170,
             "ShootSpeedCooldownReduction": 0,
-            "InitialSpeed": 8,
+            "InitialSpeed": 0,
             "MaxSpeed": 0,
             "Health": 0,
-            "Damage": 0
+            "Damage": 0,
+            "DashForce": 12,
+            "DashCooldownReduction": 120,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
         }
     },
     {
-        "IconName": "Item_36.png",
-        "ItemName": "King's Blade",
-        "Quality": 3,
-        "Price": 420,
-        "Stats":
-        {
-            "BulletSpeed" : 0,
+        "Category": "Upgrade",
+        "IconName": "Item_11.png",
+        "ItemName": "Moon Tendon",
+        "Description": "Elastic silver sinew that lets your leap bite a little higher into the night.",
+        "Quality": 1,
+        "Price": 220,
+        "Stats": {
+            "BulletSpeed": 0,
             "BulletDistance": 0,
             "ShootSpeedCooldownReduction": 0,
             "InitialSpeed": 0,
-            "MaxSpeed": 10,
-            "Health": 140,
-            "Damage": 24
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 7,
+            "SlowFallPercent": 0
+        }
+    },
+    {
+        "Category": "Upgrade",
+        "IconName": "Item_20.png",
+        "ItemName": "Moth Cloak",
+        "Description": "Stitched from ash moth wings. Falls stop feeling like surrender and start feeling deliberate.",
+        "Quality": 1,
+        "Price": 260,
+        "Stats": {
+            "BulletSpeed": 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 30
+        }
+    },
+    {
+        "Category": "Upgrade",
+        "IconName": "Item_17.png",
+        "ItemName": "Twin-Fang Anklet",
+        "Description": "A ritual anklet that answers panic with one more jump when the first should have been your last.",
+        "Quality": 2,
+        "Price": 480,
+        "Stats": {
+            "BulletSpeed": 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 1,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
+        }
+    },
+    {
+        "Category": "Upgrade",
+        "IconName": "Item_18.png",
+        "ItemName": "Abyssal Spur",
+        "Description": "A blackened spur from a rider buried still trying to outrun prophecy.",
+        "Quality": 2,
+        "Price": 430,
+        "Stats": {
+            "BulletSpeed": 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 20,
+            "DashCooldownReduction": 220,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
+        }
+    },
+    {
+        "Category": "Upgrade",
+        "IconName": "Item_21.png",
+        "ItemName": "Cathedral Springs",
+        "Description": "Tension-wound relics from a bell tower machine. They grant one more leap and a cleaner rise.",
+        "Quality": 3,
+        "Price": 760,
+        "Stats": {
+            "BulletSpeed": 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 1,
+            "JumpPower": 10,
+            "SlowFallPercent": 0
+        }
+    },
+    {
+        "Category": "Weapon",
+        "IconName": "Item_07.png",
+        "ItemName": "Gravepiercer Pike",
+        "Description": "A bone-white rite that drills through one enemy and keeps going. Fast, cold and merciless.",
+        "Quality": 1,
+        "Price": 650,
+        "Stats": {
+            "BulletSpeed": 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
+        },
+        "Weapon": {
+            "Kind": "Gravepiercer",
+            "DamageBonus": 18,
+            "CooldownMs": 230,
+            "EnergyCost": 90,
+            "ProjectileSpeed": 2,
+            "ProjectileRange": 120,
+            "ProjectileCount": 1,
+            "PierceCount": 3,
+            "SplashRadius": 0,
+            "Spread": 0
+        }
+    },
+    {
+        "Category": "Weapon",
+        "IconName": "Item_19.png",
+        "ItemName": "Pyre Orb Scepter",
+        "Description": "It spits a slow ember sphere that bursts on contact and scorches nearby bones in a fiery bloom.",
+        "Quality": 2,
+        "Price": 980,
+        "Stats": {
+            "BulletSpeed": 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
+        },
+        "Weapon": {
+            "Kind": "PyreOrb",
+            "DamageBonus": 32,
+            "CooldownMs": 320,
+            "EnergyCost": 125,
+            "ProjectileSpeed": 1,
+            "ProjectileRange": 90,
+            "ProjectileCount": 1,
+            "PierceCount": 0,
+            "SplashRadius": 120,
+            "Spread": 0
+        }
+    },
+    {
+        "Category": "Weapon",
+        "IconName": "Item_22.png",
+        "ItemName": "Storm Needler",
+        "Description": "Three shard-bolts in one breath. It feels viciously quick and paints the screen with electric streaks.",
+        "Quality": 2,
+        "Price": 1450,
+        "Stats": {
+            "BulletSpeed": 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
+        },
+        "Weapon": {
+            "Kind": "StormNeedler",
+            "DamageBonus": 14,
+            "CooldownMs": 145,
+            "EnergyCost": 72,
+            "ProjectileSpeed": 3,
+            "ProjectileRange": 120,
+            "ProjectileCount": 3,
+            "PierceCount": 0,
+            "SplashRadius": 0,
+            "Spread": 0
+        }
+    },
+    {
+        "Category": "Weapon",
+        "IconName": "Item_29.png",
+        "ItemName": "Dread Prism",
+        "Description": "A fractured ritual focus that fans bolts into a spectral wedge. It owns crowded corridors.",
+        "Quality": 3,
+        "Price": 1950,
+        "Stats": {
+            "BulletSpeed": 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
+        },
+        "Weapon": {
+            "Kind": "DreadPrism",
+            "DamageBonus": 24,
+            "CooldownMs": 240,
+            "EnergyCost": 118,
+            "ProjectileSpeed": 2,
+            "ProjectileRange": 150,
+            "ProjectileCount": 3,
+            "PierceCount": 2,
+            "SplashRadius": 0,
+            "Spread": 8
+        }
+    },
+    {
+        "Category": "Weapon",
+        "IconName": "Item_33.png",
+        "ItemName": "Nightfall Beam",
+        "Description": "A final rite for wealthy hunters only. It tears a laser scar across the room and pierces whole lines of enemies.",
+        "Quality": 3,
+        "Price": 2750,
+        "Stats": {
+            "BulletSpeed": 0,
+            "BulletDistance": 0,
+            "ShootSpeedCooldownReduction": 0,
+            "InitialSpeed": 0,
+            "MaxSpeed": 0,
+            "Health": 0,
+            "Damage": 0,
+            "DashForce": 0,
+            "DashCooldownReduction": 0,
+            "ExtraJumpCount": 0,
+            "JumpPower": 0,
+            "SlowFallPercent": 0
+        },
+        "Weapon": {
+            "Kind": "NightfallBeam",
+            "DamageBonus": 48,
+            "CooldownMs": 540,
+            "EnergyCost": 180,
+            "ProjectileSpeed": 0,
+            "ProjectileRange": 320,
+            "ProjectileCount": 1,
+            "PierceCount": 8,
+            "SplashRadius": 0,
+            "Spread": 0
         }
     }
 ]

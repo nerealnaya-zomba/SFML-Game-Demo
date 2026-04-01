@@ -272,7 +272,7 @@ void Skeleton::beginAttack(skeletonAction attackAction)
 }
 
 // ========== ОБРАБОТКА ПОПАДАНИЯ ПУЛИ ==========
-void Skeleton::onBulletHit() {
+void Skeleton::onBulletHit(const Bullet& bullet, bool splashHit) {
     isPlayingHurtAnimation = true;
     action_ = HURT;
     
@@ -286,26 +286,34 @@ void Skeleton::onBulletHit() {
     if (knockbacks) initialWalkSpeed = 0.f;
     
     // Уменьшение здоровья
-    HP_ -= player_->DMG_;
+    const int damage = splashHit
+        ? std::max(1, static_cast<int>(std::round(static_cast<float>(bullet.getDamage()) * 0.7f)))
+        : bullet.getDamage();
+    HP_ -= damage;
+
+    const sf::Color impactColor = bullet.getConfig().impactColor;
+    const sf::Color ringColor = splashHit
+        ? sf::Color(impactColor.r, impactColor.g, impactColor.b, 120)
+        : sf::Color(impactColor.r, impactColor.g, impactColor.b, 170);
 
     spawnParticleBurst(
         getCenterPosition(),
-        type_ == "yellow" ? sf::Color(255, 196, 112, 220) : sf::Color(216, 78, 74, 220),
-        type_ == "yellow" ? 7 : 6,
-        70.f,
-        165.f,
-        2.8f,
-        34.f,
-        0.45f
+        splashHit ? sf::Color(impactColor.r, impactColor.g, impactColor.b, 160) : impactColor,
+        splashHit ? 5 : 7,
+        splashHit ? 45.f : 70.f,
+        splashHit ? 120.f : 165.f,
+        splashHit ? 2.2f : 2.8f,
+        splashHit ? 18.f : 34.f,
+        splashHit ? 0.35f : 0.45f
     );
     pushRing(
         getCenterPosition(),
-        type_ == "yellow" ? sf::Color(255, 204, 138, 170) : sf::Color(217, 94, 87, 170),
-        12.f,
-        38.f,
-        3.2f,
-        2.5f,
-        170.f
+        ringColor,
+        splashHit ? 10.f : 12.f,
+        splashHit ? 28.f : 38.f,
+        splashHit ? 2.6f : 3.2f,
+        splashHit ? 2.f : 2.5f,
+        splashHit ? 120.f : 170.f
     );
 }
 
@@ -377,10 +385,33 @@ void Skeleton::checkPlatformCollision(Platform& platforms) {
 // ========== КОЛЛИЗИИ С ПУЛЯМИ ==========
 void Skeleton::checkBulletCollision(Player& player) {
     for (auto it = player_->bullets.begin(); it != player_->bullets.end(); ++it) {
-        if ((*it)->getBulletRect().getGlobalBounds().findIntersection(skeletonRect->getGlobalBounds()) 
-            && !(*it)->isSheduledToBeDestroyed) {
-            (*it)->isSheduledToBeDestroyed = true;
-            onBulletHit();
+        Bullet& bullet = *(*it);
+        if (bullet.getBulletRect().getGlobalBounds().findIntersection(skeletonRect->getGlobalBounds()) &&
+            !bullet.isSheduledToBeDestroyed &&
+            bullet.canHitTarget(this)) {
+            bullet.registerHitTarget(this);
+            onBulletHit(bullet);
+
+            if (bullet.getSplashRadius() > 0.f && enemyManager)
+            {
+                const sf::Vector2f impactCenter = bullet.getCenterPosition();
+                const float splashRadius = bullet.getSplashRadius();
+
+                for (const auto& otherSkeleton : enemyManager->getSkeletons())
+                {
+                    if (!otherSkeleton || otherSkeleton.get() == this || !otherSkeleton->isAlive)
+                    {
+                        continue;
+                    }
+
+                    const sf::Vector2f delta = otherSkeleton->getRect().getGlobalBounds().getCenter() - impactCenter;
+                    const float distance = std::sqrt(delta.x * delta.x + delta.y * delta.y);
+                    if (distance <= splashRadius)
+                    {
+                        otherSkeleton->onBulletHit(bullet, true);
+                    }
+                }
+            }
         }
     }
 }
