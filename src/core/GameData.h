@@ -1,13 +1,14 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <LoadingProgress.h>
 #include <TexturesIterHelper.h>
 #include <Mounting.h>
-#include <GameLoadingScreen.h>
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <string>
 
 // Central resource manager for textures and game data
 ////////////////////////////////////////////////////// NOTE Гайд по загрузке текстур
@@ -26,7 +27,7 @@
 class GameData
 {
 public:
-    GameData(sf::RenderWindow* window, sf::Font* font);
+    GameData(sf::Font* font, std::shared_ptr<LoadingProgress> loadingProgress = nullptr);
     ~GameData();
 
     // General font
@@ -157,11 +158,14 @@ private:
     void generateMipmapTextures(std::map<std::string, sf::Texture> &texturesArray);
     void smoothTextures(std::vector<sf::Texture>& texturesArray);
     void smoothTextures(std::map<std::string, sf::Texture> &texturesArray);
+    void beginLoadingStep(const std::string& stageLabel);
+    void finishLoadingStep();
+    [[noreturn]] void failLoadingStep(const std::string& stageLabel);
 
     // Loading system variables
     int succesedOperationsCount_m{};    // Tracks completed loading operations
     int allOperations_count_m{};        // Total operations from launchSettings.json
-    std::unique_ptr<LoadingScreen> loadingScreen_m;     // Loading screen display
+    std::shared_ptr<LoadingProgress> loadingProgress_m{}; // Shared loading progress for async UI
     nlohmann::json enemySettings_m{};
 
     // Data persistence

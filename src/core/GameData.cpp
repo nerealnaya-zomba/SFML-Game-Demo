@@ -1,305 +1,153 @@
 #include "GameData.h"
 #include <stdexcept>
 
-GameData::GameData(sf::RenderWindow* window,sf::Font* font)
+GameData::GameData(sf::Font* font, std::shared_ptr<LoadingProgress> loadingProgress)
+    : gameFont(font)
+    , loadingProgress_m(std::move(loadingProgress))
 {
-    //Loading data from launchSettings.json
     loadData();
+    if (loadingProgress_m)
+    {
+        loadingProgress_m->setTotalOperations(allOperations_count_m);
+        loadingProgress_m->setStage("Reading the sealed archive");
+    }
     loadEnemySettings();
 
-    //LoadingScreen initialization
-    loadingScreen_m = std::make_unique<LoadingScreen>(window,font,allOperations_count_m);
+    const auto loadDirectTextures = [&](const std::string& stageLabel,
+                                        std::vector<sf::Texture>& textures,
+                                        const std::vector<std::string>& paths,
+                                        bool generateMipmaps = false,
+                                        bool smooth = false) {
+        beginLoadingStep(stageLabel);
+        if (!initSatiroTextures(textures, paths))
+        {
+            failLoadingStep(stageLabel);
+        }
+        if (generateMipmaps)
+        {
+            generateMipmapTextures(textures);
+        }
+        if (smooth)
+        {
+            smoothTextures(textures);
+        }
+        finishLoadingStep();
+    };
 
-    this->gameFont = font;
+    const auto loadAnimatedTextures = [&](const std::string& stageLabel,
+                                          std::vector<sf::Texture>& textures,
+                                          const std::string& path,
+                                          texturesIterHelper& helper,
+                                          int pauseTillSwitch,
+                                          bool generateMipmaps = false,
+                                          bool smooth = false) {
+        beginLoadingStep(stageLabel);
+        if (!loadTexture(textures, path, helper, pauseTillSwitch))
+        {
+            failLoadingStep(stageLabel);
+        }
+        if (generateMipmaps)
+        {
+            generateMipmapTextures(textures);
+        }
+        if (smooth)
+        {
+            smoothTextures(textures);
+        }
+        finishLoadingStep();
+    };
 
-    //Textures
-        //Satiro initialization
-    if(initSatiroTextures(idleTextures,idleTexturesPaths)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    if(initSatiroTextures(runningTextures,runningTexturesPaths)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    if(initSatiroTextures(fallingTextures,fallingTexturesPaths)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    // Player bullet textures
-    if(loadTexture(bulletTextures, bulletTexturesPath_, satiro_bullet_helper, 7)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(bulletTextures);
-    
-    // Player animation textures
-    if(loadTexture(satiro_dieTextures, satiro_diePath_, satiro_die_helper, 20)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(satiro_dieTextures);
-    
-    if(loadTexture(satiro_dashTextures, satiro_dashPath_, satiro_dash_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(satiro_dashTextures);
-    
-    if(loadTexture(satiro_hurtTextures, satiro_hurtPath_, satiro_hurt_helper, 15)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(satiro_hurtTextures);
-    
-    if(loadTexture(satiro_slideTextures, satiro_slidePath_, satiro_slide_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(satiro_slideTextures);
+    const auto loadStaticTextures = [&](const std::string& stageLabel,
+                                        std::map<std::string, sf::Texture>& textures,
+                                        const std::string& path,
+                                        bool clearOnReuse,
+                                        bool generateMipmaps = false,
+                                        bool smooth = false) {
+        beginLoadingStep(stageLabel);
+        if (!loadTexture(textures, path, clearOnReuse))
+        {
+            failLoadingStep(stageLabel);
+        }
+        if (generateMipmaps)
+        {
+            generateMipmapTextures(textures);
+        }
+        if (smooth)
+        {
+            smoothTextures(textures);
+        }
+        finishLoadingStep();
+    };
 
-    if(loadTexture(satiro_jumpTextures, satiro_jumpPath_, satiro_jump_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(satiro_jumpTextures);
+    loadDirectTextures("Tracing idle stances", idleTextures, idleTexturesPaths);
+    loadDirectTextures("Forging running stances", runningTextures, runningTexturesPaths);
+    loadDirectTextures("Reading falling stances", fallingTextures, fallingTexturesPaths);
 
-    if(loadTexture(satiro_landingTextures, satiro_landingPath_, satiro_landing_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(satiro_landingTextures);
+    loadAnimatedTextures("Tempering ember bolts", bulletTextures, bulletTexturesPath_, satiro_bullet_helper, 7, true);
+    loadAnimatedTextures("Binding the death rite", satiro_dieTextures, satiro_diePath_, satiro_die_helper, 20, true);
+    loadAnimatedTextures("Sharpening dash afterimages", satiro_dashTextures, satiro_dashPath_, satiro_dash_helper, 9, true);
+    loadAnimatedTextures("Carving pain echoes", satiro_hurtTextures, satiro_hurtPath_, satiro_hurt_helper, 15, true);
+    loadAnimatedTextures("Cutting the slide path", satiro_slideTextures, satiro_slidePath_, satiro_slide_helper, 9, true);
+    loadAnimatedTextures("Drawing leap arcs", satiro_jumpTextures, satiro_jumpPath_, satiro_jump_helper, 9, true);
+    loadAnimatedTextures("Sealing landing stances", satiro_landingTextures, satiro_landingPath_, satiro_landing_helper, 9, true);
 
-    // White skeleton textures
-    if(loadTexture(skeletonWhite_idleTextures_, skeletonWhite_idlePath_, skeletonWhite_idle_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonWhite_idleTextures_);
+    loadAnimatedTextures("Summoning pale skeleton idles", skeletonWhite_idleTextures_, skeletonWhite_idlePath_, skeletonWhite_idle_helper, 9, true);
+    loadAnimatedTextures("Summoning pale skeleton march", skeletonWhite_walkTextures, skeletonWhite_walkPath_, skeletonWhite_walk_helper, 9, true);
+    loadAnimatedTextures("Summoning pale skeleton wounds", skeletonWhite_hurtTextures, skeletonWhite_hurtPath_, skeletonWhite_hurt_helper, 9, true);
+    loadAnimatedTextures("Summoning pale skeleton death", skeletonWhite_dieTextures, skeletonWhite_diePath_, skeletonWhite_die_helper, 9, true);
+    loadAnimatedTextures("Summoning pale skeleton strike I", skeletonWhite_attack1Textures, skeletonWhite_attack1Path_, skeletonWhite_attack1_helper, 6, true);
+    loadAnimatedTextures("Summoning pale skeleton strike II", skeletonWhite_attack2Textures, skeletonWhite_attack2Path_, skeletonWhite_attack2_helper, 6, true);
 
-    if(loadTexture(skeletonWhite_walkTextures, skeletonWhite_walkPath_, skeletonWhite_walk_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonWhite_walkTextures);
+    loadAnimatedTextures("Calling yellow skeleton idles", skeletonYellow_idleTextures, skeletonYellow_idlePath_, skeletonYellow_idle_helper, 9, true);
+    loadAnimatedTextures("Calling yellow skeleton march", skeletonYellow_walkTextures, skeletonYellow_walkPath_, skeletonYellow_walk_helper, 6, true);
+    loadAnimatedTextures("Calling yellow skeleton wounds", skeletonYellow_hurtTextures, skeletonYellow_hurtPath_, skeletonYellow_hurt_helper, 9, true);
+    loadAnimatedTextures("Calling yellow skeleton death", skeletonYellow_dieTextures, skeletonYellow_diePath_, skeletonYellow_die_helper, 9, true);
+    loadAnimatedTextures("Calling yellow skeleton strike I", skeletonYellow_attack1Textures, skeletonYellow_attack1Path_, skeletonYellow_attack1_helper, 4, true);
+    loadAnimatedTextures("Calling yellow skeleton strike II", skeletonYellow_attack2Textures, skeletonYellow_attack2Path_, skeletonYellow_attack2_helper, 4, true);
 
-    if(loadTexture(skeletonWhite_hurtTextures, skeletonWhite_hurtPath_, skeletonWhite_hurt_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonWhite_hurtTextures);
+    loadAnimatedTextures("Lighting the trader's lantern", trader_idleTextures, traderPath, trader_idle_helper, 25, true);
 
-    if(loadTexture(skeletonWhite_dieTextures, skeletonWhite_diePath_, skeletonWhite_die_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonWhite_dieTextures);
+    loadAnimatedTextures("Growing grave moss I", plant1Textures, plant1Path, plant1, 8, true, true);
+    loadAnimatedTextures("Growing grave moss II", plant2Textures, plant2Path, plant2, 8, true, true);
+    loadAnimatedTextures("Growing grave moss III", plant3Textures, plant3Path, plant3, 8, true, true);
+    loadAnimatedTextures("Growing grave moss IV", plant4Textures, plant4Path, plant4, 6, true, true);
+    loadAnimatedTextures("Growing grave moss V", plant5Textures, plant5Path, plant5, 9, true, true);
+    loadAnimatedTextures("Growing grave moss VI", plant6Textures, plant6Path, plant6, 9, true, true);
+    loadAnimatedTextures("Growing grave moss VII", plant7Textures, plant7Path, plant7, 9, true, true);
+    loadAnimatedTextures("Waking the sleeping cat", cat1Textures, cat1Path, catHelper, 72, true);
+    loadAnimatedTextures("Awakening the jump bloom", jumpPlantTextures, jumpPlantPath, jumpPlant, 5, true, true);
+    loadAnimatedTextures("Opening the green portal", portalGreenTextures, portalGreenPath, portalGreen, 5, true, true);
 
-    if(loadTexture(skeletonWhite_attack1Textures, skeletonWhite_attack1Path_, skeletonWhite_attack1_helper, 6)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonWhite_attack1Textures);
+    constexpr int portalBluePauseTillSwitch = 2;
+    loadAnimatedTextures("Charging blue portal I", portalBlue1Textures, PortalBlue1Path, portalBlue1Helper, portalBluePauseTillSwitch, true, true);
+    loadAnimatedTextures("Charging blue portal II", portalBlue2Textures, PortalBlue2Path, portalBlue2Helper, portalBluePauseTillSwitch, true, true);
+    loadAnimatedTextures("Charging blue portal III", portalBlue3Textures, PortalBlue3Path, portalBlue3Helper, portalBluePauseTillSwitch, true, true);
+    loadAnimatedTextures("Charging blue portal IV", portalBlue4Textures, PortalBlue4Path, portalBlue4Helper, portalBluePauseTillSwitch, true, true);
+    loadAnimatedTextures("Charging blue portal V", portalBlue5Textures, PortalBlue5Path, portalBlue5Helper, portalBluePauseTillSwitch, true, true);
+    loadAnimatedTextures("Charging blue portal VI", portalBlue6Textures, PortalBlue6Path, portalBlue6Helper, portalBluePauseTillSwitch, true, true);
+    loadAnimatedTextures("Charging blue portal VII", portalBlue7Textures, PortalBlue7Path, portalBlue7Helper, portalBluePauseTillSwitch, true, true);
+    loadAnimatedTextures("Charging blue portal VIII", portalBlue8Textures, PortalBlue8Path, portalBlue8Helper, portalBluePauseTillSwitch, true, true);
 
-    if(loadTexture(skeletonWhite_attack2Textures, skeletonWhite_attack2Path_, skeletonWhite_attack2_helper, 6)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonWhite_attack2Textures);
+    loadStaticTextures("Dressing mossy backdrops", allStaticTextures, MossyBackgroundDecorationsPath, false);
+    loadStaticTextures("Sharpening mossy hazards", allStaticTextures, MossyDecorationsHazardsPath, false);
+    loadStaticTextures("Hanging creeping roots", allStaticTextures, MossyHangingPlantsPath, false);
+    loadStaticTextures("Raising distant hills", allStaticTextures, MossyHillsPath, false);
+    loadStaticTextures("Stacking mossy stones", allStaticTextures, MossyTileSetPath, false, true, true);
 
-    // Yellow skeleton textures
-    if(loadTexture(skeletonYellow_idleTextures, skeletonYellow_idlePath_, skeletonYellow_idle_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonYellow_idleTextures);
+    loadStaticTextures("Forging ground tiles", TileSetGreenTextures, groundTileSetGreenPath, true, true, true);
+    loadStaticTextures("Layering haunted skies", backgroundTextures, backgroundPath, true, true, true);
+    loadStaticTextures("Scattering relic items", itemsTextures, itemsPath, true);
+    loadStaticTextures("Sealing interface glyphs", guiTextures, guiPath, true);
 
-    if(loadTexture(skeletonYellow_walkTextures, skeletonYellow_walkPath_, skeletonYellow_walk_helper, 6)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonYellow_walkTextures);
-
-    if(loadTexture(skeletonYellow_hurtTextures, skeletonYellow_hurtPath_, skeletonYellow_hurt_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonYellow_hurtTextures);
-
-    if(loadTexture(skeletonYellow_dieTextures, skeletonYellow_diePath_, skeletonYellow_die_helper, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonYellow_dieTextures);
-
-    if(loadTexture(skeletonYellow_attack1Textures, skeletonYellow_attack1Path_, skeletonYellow_attack1_helper, 4)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonYellow_attack1Textures);
-
-    if(loadTexture(skeletonYellow_attack2Textures, skeletonYellow_attack2Path_, skeletonYellow_attack2_helper, 4)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(skeletonYellow_attack2Textures);
-    
-    // Trader textures
-    if(loadTexture(trader_idleTextures, traderPath, trader_idle_helper, 25)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(trader_idleTextures);
-
-    // Plants textures
-    if(loadTexture(plant1Textures, plant1Path, plant1, 8)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(plant1Textures);
-    smoothTextures(plant1Textures);
-
-    if(loadTexture(plant2Textures, plant2Path, plant2, 8)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(plant2Textures);
-    smoothTextures(plant2Textures);
-
-    if(loadTexture(plant3Textures, plant3Path, plant3, 8)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(plant3Textures);
-    smoothTextures(plant3Textures);
-
-    if(loadTexture(plant4Textures, plant4Path, plant4, 6)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(plant4Textures);
-    smoothTextures(plant4Textures);
-
-    if(loadTexture(plant5Textures, plant5Path, plant5, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(plant5Textures);
-    smoothTextures(plant5Textures);
-
-    if(loadTexture(plant6Textures, plant6Path, plant6, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(plant6Textures);
-    smoothTextures(plant6Textures);
-
-    if(loadTexture(plant7Textures, plant7Path, plant7, 9)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(plant7Textures);
-    smoothTextures(plant7Textures);
-    
-    // Cat decoration
-    if(loadTexture(cat1Textures, cat1Path, catHelper, 72)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(cat1Textures);
-
-    // Jump plant
-    if(loadTexture(jumpPlantTextures, jumpPlantPath, jumpPlant, 5)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(jumpPlantTextures);
-    smoothTextures(jumpPlantTextures);
-    
-    // Portal green
-    if(loadTexture(portalGreenTextures, portalGreenPath, portalGreen, 5)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(portalGreenTextures);
-    smoothTextures(portalGreenTextures);
-
-    //PortalBlue
-    int portalBluePauseTillSwitch = 2;
-    if(loadTexture(portalBlue1Textures, PortalBlue1Path, portalBlue1Helper, portalBluePauseTillSwitch)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(portalBlue1Textures);
-    smoothTextures(portalBlue1Textures);
-
-    if(loadTexture(portalBlue2Textures, PortalBlue2Path, portalBlue2Helper, portalBluePauseTillSwitch)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(portalBlue2Textures);
-    smoothTextures(portalBlue2Textures);
-
-    if(loadTexture(portalBlue3Textures, PortalBlue3Path, portalBlue3Helper, portalBluePauseTillSwitch)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(portalBlue3Textures);
-    smoothTextures(portalBlue3Textures);
-
-    if(loadTexture(portalBlue4Textures, PortalBlue4Path, portalBlue4Helper, portalBluePauseTillSwitch)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(portalBlue4Textures);
-    smoothTextures(portalBlue4Textures);
-
-    if(loadTexture(portalBlue5Textures, PortalBlue5Path, portalBlue5Helper, portalBluePauseTillSwitch)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(portalBlue5Textures);
-    smoothTextures(portalBlue5Textures);
-
-    if(loadTexture(portalBlue6Textures, PortalBlue6Path, portalBlue6Helper, portalBluePauseTillSwitch)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(portalBlue6Textures);
-    smoothTextures(portalBlue6Textures);
-
-    if(loadTexture(portalBlue7Textures, PortalBlue7Path, portalBlue7Helper, portalBluePauseTillSwitch)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(portalBlue7Textures);
-    smoothTextures(portalBlue7Textures);
-
-    if(loadTexture(portalBlue8Textures, PortalBlue8Path, portalBlue8Helper, portalBluePauseTillSwitch)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(portalBlue8Textures);
-    smoothTextures(portalBlue8Textures);
-
-    //Static-textures
-        //Mossy
-    if(loadTexture(allStaticTextures,MossyBackgroundDecorationsPath, false)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-
-    if(loadTexture(allStaticTextures,MossyDecorationsHazardsPath, false)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-
-    if(loadTexture(allStaticTextures,MossyHangingPlantsPath, false)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-
-    if(loadTexture(allStaticTextures,MossyHillsPath, false)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-
-    if(loadTexture(allStaticTextures,MossyTileSetPath, false)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(allStaticTextures);
-    smoothTextures(allStaticTextures);
-
-    // Ground initialization
-        // TileSetGreen
-    if(loadTexture(TileSetGreenTextures,groundTileSetGreenPath, true)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(TileSetGreenTextures);
-    smoothTextures(TileSetGreenTextures);
-
-    //Background initialization
-    if(loadTexture(backgroundTextures,backgroundPath, true)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    generateMipmapTextures(backgroundTextures);
-    smoothTextures(backgroundTextures);
-
-    // Items initialization
-    if(loadTexture(itemsTextures,itemsPath, true)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    // generateMipmapTextures(itemsTextures);
-    // smoothTextures(itemsTextures);
-
-    // GUI initialization
-    if(loadTexture(guiTextures,guiPath, true)) succesedOperationsCount_m++;
-    loadingScreen_m->update(succesedOperationsCount_m);
-    loadingScreen_m->draw();
-    // generateMipmapTextures(guiTextures);
-    // smoothTextures(guiTextures);
-
-    //Save load info
-    if(succesedOperationsCount_m!=allOperations_count_m)
+    if (succesedOperationsCount_m != allOperations_count_m)
     {
         saveOperationsData();
     }
 
+    if (loadingProgress_m)
+    {
+        loadingProgress_m->finish("The gate yields");
+    }
 }
 
 GameData::~GameData()
@@ -413,6 +261,33 @@ void GameData::smoothTextures(std::map<std::string, sf::Texture> &texturesArray)
     {
         i.second.setSmooth(true);
     }
+}
+
+void GameData::beginLoadingStep(const std::string& stageLabel)
+{
+    if (loadingProgress_m)
+    {
+        loadingProgress_m->setStage(stageLabel);
+    }
+}
+
+void GameData::finishLoadingStep()
+{
+    ++succesedOperationsCount_m;
+    if (loadingProgress_m)
+    {
+        loadingProgress_m->advance();
+    }
+}
+
+[[noreturn]] void GameData::failLoadingStep(const std::string& stageLabel)
+{
+    const std::string errorMessage = "Failed while " + stageLabel;
+    if (loadingProgress_m)
+    {
+        loadingProgress_m->fail(errorMessage);
+    }
+    throw std::runtime_error(errorMessage);
 }
 
 //

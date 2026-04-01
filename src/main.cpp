@@ -6,6 +6,8 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
+#include <future>
 #include <string>
 
 namespace
@@ -46,7 +48,80 @@ int main()
         return 0;
     }
 
-    GameData gameData(&window, &font);
+    auto loadingProgress = std::make_shared<LoadingProgress>();
+    LoadingScreen loadingScreen(window, font);
+    auto gameDataFuture = std::async(std::launch::async, [&font, loadingProgress]() {
+        try
+        {
+            sf::Context loadingContext;
+            return std::make_unique<GameData>(&font, loadingProgress);
+        }
+        catch (const std::exception& exception)
+        {
+            loadingProgress->fail(exception.what());
+            throw;
+        }
+        catch (...)
+        {
+            loadingProgress->fail("Unknown error while opening the gate");
+            throw;
+        }
+    });
+
+    sf::Clock loadingFrameClock;
+    sf::Clock loadingSceneClock;
+    const sf::Time minimumLoadingSceneTime = sf::milliseconds(750);
+    std::unique_ptr<GameData> gameData{};
+    bool loadingTaskCompleted = false;
+
+    while (window.isOpen())
+    {
+        while (const std::optional event = window.pollEvent())
+        {
+            if (event->is<sf::Event::Closed>())
+            {
+                window.close();
+            }
+        }
+
+        const float deltaTime = std::min(loadingFrameClock.restart().asSeconds(), 0.05f);
+        loadingScreen.update(deltaTime, loadingProgress->snapshot());
+        loadingScreen.draw();
+
+        if (!loadingTaskCompleted &&
+            gameDataFuture.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
+        {
+            continue;
+        }
+
+        if (!loadingTaskCompleted)
+        {
+            try
+            {
+                gameData = gameDataFuture.get();
+                loadingTaskCompleted = true;
+            }
+            catch (const std::exception& exception)
+            {
+                std::cerr << "Loading error: " << exception.what() << std::endl;
+                return 1;
+            }
+        }
+
+        if (
+            loadingSceneClock.getElapsedTime() >= minimumLoadingSceneTime &&
+            loadingScreen.isReadyToClose()
+        )
+        {
+            break;
+        }
+    }
+
+    if (!window.isOpen())
+    {
+        return 0;
+    }
+
     sf::View view({0, 0}, {WINDOW_WIDTH, WINDOW_HEIGHT});
     const sf::Color gameBackGroundColor({0, 0, 0, 255});
 
@@ -56,24 +131,24 @@ int main()
     menu.connectTGUIFont(tguiFont);
 
     GameCamera camera(view);
-    GameLevelManager levelManager(gameData, camera, window, kLevelFolder);
-    Player player(gameData, levelManager, camera, window);
-    PlayerUI playerUI(player, camera, gameData);
+    GameLevelManager levelManager(*gameData, camera, window, kLevelFolder);
+    Player player(*gameData, levelManager, camera, window);
+    PlayerUI playerUI(player, camera, *gameData);
 
     playerUI.addCooldownRect(
         player.getDashClock(),
         player.getDashCooldown(),
-        gameData.satiro_dashTextures[0]
+        gameData->satiro_dashTextures[0]
     );
     playerUI.addCooldownRect(
         player.getShootClock(),
         player.getShootCooldown(),
-        gameData.bulletTextures[0]
+        gameData->bulletTextures[0]
     );
     playerUI.addCooldownRect(
         player.getPortalClock(),
         player.getPortalCooldown(),
-        gameData.portalBlue8Textures[0]
+        gameData->portalBlue8Textures[0]
     );
 
     levelManager.attachPlayer(player);
@@ -83,7 +158,7 @@ int main()
     camera.attachPlayer(player);
 
     sf::Vector2f traderPosition = {800.f, 940.f};
-    Trader trader(gameData, player, traderPosition);
+    Trader trader(*gameData, player, traderPosition);
 
     bool hasActiveRun = false;
     DeathFlowState deathFlowState = DeathFlowState::Inactive;
