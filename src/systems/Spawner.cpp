@@ -56,19 +56,35 @@ void Spawner::spawnCountOfEnemies()
 {   
     if(isEmpty) return;
 
+    const auto spawnEnemyAt = [&](const sf::Vector2f& randomPos) {
+        if(enemyName == "SkeletonWhite")
+        {
+            manager->addSkeleton(*data,*window,*ground,*platform,*player,"white",randomPos);
+        }
+        else if(enemyName == "SkeletonYellow")
+        {
+            manager->addSkeleton(*data,*window,*ground,*platform,*player,"yellow",randomPos);
+        }
+        else if(enemyName == "WraithBat")
+        {
+            manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "wraith-bat", randomPos);
+        }
+        else if(enemyName == "VoidSlime")
+        {
+            manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "void-slime", randomPos);
+        }
+        else if(enemyName == "DreadScorpion")
+        {
+            manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "dread-scorpion", randomPos);
+        }
+    };
+
     // Спавним пачку и отнимаем значение пачки от общего кол-ва оставшихся противников
     if((enemyAmount-enemyPerSpawn)>=0){
         for (unsigned int i = 0; i < enemyPerSpawn; i++) 
         {
             sf::Vector2f randomPos = {random(spawnArea[0].x,spawnArea[0].y),random(spawnArea[1].x,spawnArea[1].y)};
-            if(enemyName == "SkeletonWhite")
-            {
-                manager->addSkeleton(*data,*window,*ground,*platform,*player,"white",randomPos);
-            }
-            else if(enemyName == "SkeletonYellow")
-            {
-                manager->addSkeleton(*data,*window,*ground,*platform,*player,"yellow",randomPos);
-            }
+            spawnEnemyAt(randomPos);
         }
         // Уменьшаем кол-во противников после спавна
         enemyAmount-=enemyPerSpawn;
@@ -78,14 +94,7 @@ void Spawner::spawnCountOfEnemies()
         for (unsigned int i = 0; i < enemyAmount; i++) 
         {
             sf::Vector2f randomPos = {random(spawnArea[0].x,spawnArea[0].y),random(spawnArea[1].x,spawnArea[1].y)};
-            if(enemyName == "SkeletonWhite")
-            {
-                manager->addSkeleton(*data,*window,*ground,*platform,*player,"white",randomPos);
-            }
-            else if(enemyName == "SkeletonYellow")
-            {
-                manager->addSkeleton(*data,*window,*ground,*platform,*player,"yellow",randomPos);
-            }
+            spawnEnemyAt(randomPos);
         }
         // Уменьшаем кол-во противников до нуля после спавна
         enemyAmount = 0;

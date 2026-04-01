@@ -82,6 +82,20 @@ public:
     std::vector<sf::Texture> skeletonYellow_attack2Textures{};
     texturesIterHelper skeletonYellow_attack2_helper;
 
+    // Bestiary enemy textures
+    std::vector<sf::Texture> wraithBat_flyTextures{};
+    texturesIterHelper wraithBat_fly_helper;
+    std::vector<sf::Texture> wraithBat_attackTextures{};
+    texturesIterHelper wraithBat_attack_helper;
+    std::vector<sf::Texture> voidSlime_idleTextures{};
+    texturesIterHelper voidSlime_idle_helper;
+    std::vector<sf::Texture> voidSlime_leapTextures{};
+    texturesIterHelper voidSlime_leap_helper;
+    std::vector<sf::Texture> dreadScorpion_walkTextures{};
+    texturesIterHelper dreadScorpion_walk_helper;
+    std::vector<sf::Texture> dreadScorpion_stabTextures{};
+    texturesIterHelper dreadScorpion_stab_helper;
+
     // Trader textures
     std::vector<sf::Texture> trader_idleTextures{};
     texturesIterHelper trader_idle_helper;
@@ -224,6 +238,14 @@ private:
     std::string skeletonYellow_diePath_{"images/creatures/enemies/skeleton_yellow/die/Skeleton_Yellow_Die_"};
     std::string skeletonYellow_attack1Path_{"images/creatures/enemies/skeleton_yellow/attack1/Skeleton_Yellow_Attack1_"};
     std::string skeletonYellow_attack2Path_{"images/creatures/enemies/skeleton_yellow/attack2/Skeleton_Yellow_Attack2_"};
+
+    // Bestiary enemy texture paths
+    std::string wraithBat_flyPath_{"images/creatures/enemies/wraith_bat/fly/Wraith_Bat_Fly_"};
+    std::string wraithBat_attackPath_{"images/creatures/enemies/wraith_bat/attack/Wraith_Bat_Attack_"};
+    std::string voidSlime_idlePath_{"images/creatures/enemies/void_slime/idle/Void_Slime_Idle_"};
+    std::string voidSlime_leapPath_{"images/creatures/enemies/void_slime/leap/Void_Slime_Leap_"};
+    std::string dreadScorpion_walkPath_{"images/creatures/enemies/dread_scorpion/walk/Dread_Scorpion_Walk_"};
+    std::string dreadScorpion_stabPath_{"images/creatures/enemies/dread_scorpion/stab/Dread_Scorpion_Stab_"};
 
     // Trader texture path
     std::string traderPath{"images/creatures/neutral/trader/trader_"};

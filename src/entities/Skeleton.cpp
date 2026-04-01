@@ -390,27 +390,16 @@ void Skeleton::checkBulletCollision(Player& player) {
             !bullet.isSheduledToBeDestroyed &&
             bullet.canHitTarget(this)) {
             bullet.registerHitTarget(this);
-            onBulletHit(bullet);
+            receiveBulletHit(bullet);
 
             if (bullet.getSplashRadius() > 0.f && enemyManager)
             {
-                const sf::Vector2f impactCenter = bullet.getCenterPosition();
-                const float splashRadius = bullet.getSplashRadius();
-
-                for (const auto& otherSkeleton : enemyManager->getSkeletons())
-                {
-                    if (!otherSkeleton || otherSkeleton.get() == this || !otherSkeleton->isAlive)
-                    {
-                        continue;
-                    }
-
-                    const sf::Vector2f delta = otherSkeleton->getRect().getGlobalBounds().getCenter() - impactCenter;
-                    const float distance = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-                    if (distance <= splashRadius)
-                    {
-                        otherSkeleton->onBulletHit(bullet, true);
-                    }
-                }
+                enemyManager->applySplashDamage(
+                    bullet.getCenterPosition(),
+                    bullet.getSplashRadius(),
+                    bullet,
+                    this
+                );
             }
         }
     }
@@ -1204,6 +1193,11 @@ int Skeleton::getHP() {
 sf::Vector2f Skeleton::getPosition()
 {
     return this->skeletonRect->getPosition();
+}
+
+void Skeleton::receiveBulletHit(const Bullet& bullet, bool splashHit)
+{
+    onBulletHit(bullet, splashHit);
 }
 
 void Skeleton::attachPlayer(Player &p)

@@ -1,8 +1,11 @@
 #include "EnemyManager.h"
 #include<Spawner.h>
 #include<Skeleton.h>
+#include<BestiaryEnemy.h>
+#include<Bullet.h>
 #include<enemyPortal.h>
 #include<GameLevel.h>
+#include<cmath>
 
 void EnemyManager::updateSpawner()
 {
@@ -21,6 +24,14 @@ void EnemyManager::removeIfNotAlive()
                 return !enemy->isAlive;
             }),
         skeletons.end()
+    );
+
+    bestiaryEnemies.erase(
+        std::remove_if(bestiaryEnemies.begin(), bestiaryEnemies.end(),
+            [](auto& enemy) {
+                return !enemy->isAlive;
+            }),
+        bestiaryEnemies.end()
     );
 }
 
@@ -82,12 +93,41 @@ void EnemyManager::addSkeleton(GameData& data,sf::RenderWindow& window,Ground& g
     skeletons.push_back(std::make_shared<Skeleton>(data,*this,*this->gameLevel,window,ground,platform,player,type,pos)); 
 }   
 
+void EnemyManager::addBestiaryEnemy(GameData& data, sf::RenderWindow& window, Ground& ground, Platform& platform, Player& player, std::string type, sf::Vector2f pos)
+{
+    bestiaryEnemies.push_back(std::make_shared<BestiaryEnemy>(data, *this, *this->gameLevel, window, ground, platform, player, type, pos));
+}
+
 void EnemyManager::dropGold(const sf::Vector2f &position, const std::string& enemyType)
 {
-    const bool isYellow = enemyType == "yellow";
-    const int coinCount = isYellow ? random(4, 6) : random(3, 5);
-    const int minValue = isYellow ? 6 : 4;
-    const int maxValue = isYellow ? 10 : 7;
+    int coinCount = random(3, 5);
+    int minValue = 4;
+    int maxValue = 7;
+
+    if (enemyType == "yellow")
+    {
+        coinCount = random(4, 6);
+        minValue = 6;
+        maxValue = 10;
+    }
+    else if (enemyType == "wraith-bat")
+    {
+        coinCount = random(4, 5);
+        minValue = 6;
+        maxValue = 9;
+    }
+    else if (enemyType == "void-slime")
+    {
+        coinCount = random(4, 6);
+        minValue = 7;
+        maxValue = 11;
+    }
+    else if (enemyType == "dread-scorpion")
+    {
+        coinCount = random(5, 7);
+        minValue = 8;
+        maxValue = 12;
+    }
 
     for (int index = 0; index < coinCount; ++index)
     {
@@ -99,9 +139,46 @@ void EnemyManager::dropGold(const sf::Vector2f &position, const std::string& ene
     }
 }
 
+void EnemyManager::applySplashDamage(const sf::Vector2f& impactCenter, float splashRadius, const Bullet& bullet, const void* ignoredTarget)
+{
+    for (const auto& otherSkeleton : skeletons)
+    {
+        if (!otherSkeleton || !otherSkeleton->isAlive || otherSkeleton.get() == ignoredTarget)
+        {
+            continue;
+        }
+
+        const sf::Vector2f delta = otherSkeleton->getRect().getGlobalBounds().getCenter() - impactCenter;
+        const float distance = std::sqrt(delta.x * delta.x + delta.y * delta.y);
+        if (distance <= splashRadius)
+        {
+            otherSkeleton->receiveBulletHit(bullet, true);
+        }
+    }
+
+    for (const auto& bestiaryEnemy : bestiaryEnemies)
+    {
+        if (!bestiaryEnemy || !bestiaryEnemy->isAlive || bestiaryEnemy.get() == ignoredTarget)
+        {
+            continue;
+        }
+
+        const sf::Vector2f delta = bestiaryEnemy->getRect().getGlobalBounds().getCenter() - impactCenter;
+        const float distance = std::sqrt(delta.x * delta.x + delta.y * delta.y);
+        if (distance <= splashRadius)
+        {
+            bestiaryEnemy->receiveBulletHit(bullet, true);
+        }
+    }
+}
+
 void EnemyManager::updateAI_all()
 {
     for (auto &&enemy : skeletons) {
+        enemy->updateAI();
+    }
+
+    for (auto&& enemy : bestiaryEnemies) {
         enemy->updateAI();
     }
 }
@@ -111,11 +188,19 @@ void EnemyManager::updateControls_all()
     for (auto &&enemy : skeletons) {
         enemy->updateControl();
     }
+
+    for (auto&& enemy : bestiaryEnemies) {
+        enemy->updateControl();
+    }
 }
 
 void EnemyManager::updatePhysics_all()
 {
     for (auto &&enemy : skeletons) {
+        enemy->updatePhysics();
+    }
+
+    for (auto&& enemy : bestiaryEnemies) {
         enemy->updatePhysics();
     }
 
@@ -127,6 +212,11 @@ void EnemyManager::updateTextures_all()
     for (auto &&enemy : skeletons) {
         enemy->updateTextures();
     }
+
+    for (auto&& enemy : bestiaryEnemies) {
+        enemy->updateTextures();
+    }
+
     this->removeIfNotAlive();
 }
 
@@ -145,6 +235,10 @@ void EnemyManager::draw_all()
         enemy->draw();
     }
 
+    for (auto&& enemy : bestiaryEnemies) {
+        enemy->draw();
+    }
+
     for (auto&& coin : coins)
     {
         coin.draw(*window);
@@ -154,6 +248,7 @@ void EnemyManager::draw_all()
 void EnemyManager::clearEnemies()
 {
     skeletons.clear();
+    bestiaryEnemies.clear();
     spawners.clear();
     coins.clear();
 }
@@ -189,10 +284,20 @@ void EnemyManager::attachPlayer(Player &p)
     {
         skeleton->attachPlayer(p);
     }
+
+    for (auto&& enemy : bestiaryEnemies)
+    {
+        enemy->attachPlayer(p);
+    }
     
 }
 
 const std::vector<std::shared_ptr<Skeleton>>& EnemyManager::getSkeletons() const
 {
     return skeletons;
+}
+
+const std::vector<std::shared_ptr<BestiaryEnemy>>& EnemyManager::getBestiaryEnemies() const
+{
+    return bestiaryEnemies;
 }

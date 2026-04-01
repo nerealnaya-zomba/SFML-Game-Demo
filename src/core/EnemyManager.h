@@ -14,7 +14,9 @@
 
 class Spawner;
 class Skeleton;
+class BestiaryEnemy;
 class GameLevel;
+class Bullet;
 
 //NOTE Класс для управления противниками. Должен отвечать за спавн, обновление и удаление убитых.
 //NOTE Если хочешь добавить еще один класс противника - в конце .cpp файла добавь template class EnemyManager<Твой противник>. Также и со Spawner.
@@ -44,6 +46,7 @@ private:
     // Arrays
     ////////////////////////
     std::vector<std::shared_ptr<Skeleton>> skeletons;
+    std::vector<std::shared_ptr<BestiaryEnemy>> bestiaryEnemies;
     std::vector<Spawner> spawners;
     std::vector<GoldCoin> coins;
 
@@ -89,7 +92,9 @@ public:
         Add enemy
     */
     void addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos);
+    void addBestiaryEnemy(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos);
     void dropGold(const sf::Vector2f& position, const std::string& enemyType);
+    void applySplashDamage(const sf::Vector2f& impactCenter, float splashRadius, const Bullet& bullet, const void* ignoredTarget);
     void addFlyingEnemy();   // IMPLEMENTME Добавь че нить
 
     /*
@@ -111,4 +116,5 @@ public:
     //Setters
     void attachPlayer(Player& p);
     const std::vector<std::shared_ptr<Skeleton>>& getSkeletons() const;
+    const std::vector<std::shared_ptr<BestiaryEnemy>>& getBestiaryEnemies() const;
 };

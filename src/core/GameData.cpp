@@ -105,6 +105,13 @@ GameData::GameData(sf::Font* font, std::shared_ptr<LoadingProgress> loadingProgr
     loadAnimatedTextures("Calling yellow skeleton strike I", skeletonYellow_attack1Textures, skeletonYellow_attack1Path_, skeletonYellow_attack1_helper, 4, true);
     loadAnimatedTextures("Calling yellow skeleton strike II", skeletonYellow_attack2Textures, skeletonYellow_attack2Path_, skeletonYellow_attack2_helper, 4, true);
 
+    loadAnimatedTextures("Unfurling the wraith bat wings", wraithBat_flyTextures, wraithBat_flyPath_, wraithBat_fly_helper, 5, true);
+    loadAnimatedTextures("Sharpening the wraith bat dive", wraithBat_attackTextures, wraithBat_attackPath_, wraithBat_attack_helper, 4, true);
+    loadAnimatedTextures("Breathing life into void slime", voidSlime_idleTextures, voidSlime_idlePath_, voidSlime_idle_helper, 12, true);
+    loadAnimatedTextures("Stretching void slime leaps", voidSlime_leapTextures, voidSlime_leapPath_, voidSlime_leap_helper, 5, true);
+    loadAnimatedTextures("Marching the dread scorpion", dreadScorpion_walkTextures, dreadScorpion_walkPath_, dreadScorpion_walk_helper, 4, true);
+    loadAnimatedTextures("Forging the dread scorpion stab", dreadScorpion_stabTextures, dreadScorpion_stabPath_, dreadScorpion_stab_helper, 4, true);
+
     loadAnimatedTextures("Lighting the trader's lantern", trader_idleTextures, traderPath, trader_idle_helper, 25, true);
 
     loadAnimatedTextures("Growing grave moss I", plant1Textures, plant1Path, plant1, 8, true, true);

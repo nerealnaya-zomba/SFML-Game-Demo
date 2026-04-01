@@ -268,6 +268,7 @@ public:
     sf::RectangleShape& getRect();
     int getHP();
     sf::Vector2f getPosition();
+    void receiveBulletHit(const Bullet& bullet, bool splashHit = false);
 
     //Setters
     void attachPlayer(Player& p);

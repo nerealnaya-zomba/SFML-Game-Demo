@@ -302,11 +302,25 @@
       "SpawnArea": [[2850, 4550], [500, 860]]
     },
     {
+      "EnemyName": "VoidSlime",
+      "EnemyAmount": 2,
+      "SpawnCooldown": 5200,
+      "EnemyPerSpawn": 1,
+      "SpawnArea": [[2150, 3650], [640, 860]]
+    },
+    {
       "EnemyName": "SkeletonYellow",
       "EnemyAmount": 2,
       "SpawnCooldown": 6200,
       "EnemyPerSpawn": 1,
       "SpawnArea": [[5050, 6900], [460, 840]]
+    },
+    {
+      "EnemyName": "WraithBat",
+      "EnemyAmount": 2,
+      "SpawnCooldown": 6800,
+      "EnemyPerSpawn": 1,
+      "SpawnArea": [[5200, 6700], [320, 640]]
     }
   ]
 }

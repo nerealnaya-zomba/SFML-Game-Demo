@@ -187,6 +187,20 @@
       "SpawnCooldown": 6000,
       "EnemyPerSpawn": 1,
       "SpawnArea": [[2000, 3000], [700, 850]]
+    },
+    {
+      "EnemyName": "VoidSlime",
+      "EnemyAmount": 3,
+      "SpawnCooldown": 5600,
+      "EnemyPerSpawn": 1,
+      "SpawnArea": [[900, 2600], [660, 860]]
+    },
+    {
+      "EnemyName": "WraithBat",
+      "EnemyAmount": 3,
+      "SpawnCooldown": 6100,
+      "EnemyPerSpawn": 1,
+      "SpawnArea": [[3300, 5200], [240, 620]]
     }
   ]
 }

@@ -243,6 +243,20 @@
       "SpawnCooldown": 5000,
       "EnemyPerSpawn": 2,
       "SpawnArea": [[2500, 4000], [600, 850]]
+    },
+    {
+      "EnemyName": "DreadScorpion",
+      "EnemyAmount": 4,
+      "SpawnCooldown": 5400,
+      "EnemyPerSpawn": 1,
+      "SpawnArea": [[1200, 3200], [660, 860]]
+    },
+    {
+      "EnemyName": "WraithBat",
+      "EnemyAmount": 4,
+      "SpawnCooldown": 6000,
+      "EnemyPerSpawn": 2,
+      "SpawnArea": [[4600, 7200], [220, 620]]
     }
   ]
 }
