@@ -4,6 +4,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <string_view>
 #include <utility>
 
 namespace
@@ -63,12 +65,90 @@ struct MenuTheme
     sf::Color childBorder;
     sf::Color childTitleBar;
     sf::Color childTitleText;
+    sf::Color infoCardFill;
+    sf::Color infoCardBorder;
+    sf::Color infoCardGlow;
 };
 
-constexpr float kMainPanelWidth = 680.f;
-constexpr float kMainPanelHeight = 640.f;
-constexpr float kPausePanelWidth = 560.f;
-constexpr float kPausePanelHeight = 520.f;
+constexpr float kMainPanelWidth = 820.f;
+constexpr float kMainPanelHeight = 684.f;
+constexpr float kPausePanelWidth = 700.f;
+constexpr float kPausePanelHeight = 662.f;
+
+std::string getLevelTitle(const std::string& levelName)
+{
+    if (levelName == "level1.json")
+    {
+        return "Ashwake Causeway";
+    }
+    if (levelName == "level2.json")
+    {
+        return "Obsidian Rookery";
+    }
+    if (levelName == "level3.json")
+    {
+        return "Crimson Nave";
+    }
+    if (levelName == "level4.json")
+    {
+        return "Bone Reliquary";
+    }
+    if (levelName == "level5.json")
+    {
+        return "Trial of Embers";
+    }
+    if (levelName == "level6.json")
+    {
+        return "The Returning Veil";
+    }
+
+    return levelName;
+}
+
+std::string getLevelFlavor(const std::string& levelName)
+{
+    if (levelName == "level1.json")
+    {
+        return "A broad first descent of ruined ledges and tired ash.";
+    }
+    if (levelName == "level2.json")
+    {
+        return "Cold runes, narrow spans and a harsher vertical climb.";
+    }
+    if (levelName == "level3.json")
+    {
+        return "The red nave: heavier bridges, altars and broken ceremony.";
+    }
+    if (levelName == "level4.json")
+    {
+        return "A pale crypt of pillars and bone arches under dead light.";
+    }
+    if (levelName == "level5.json")
+    {
+        return "A compact trial room built for short brutal checks.";
+    }
+    if (levelName == "level6.json")
+    {
+        return "The loop closes with a second pass through altered ruins.";
+    }
+
+    return "No omen is written for this gate yet.";
+}
+
+std::string getAshDensityLabel(int particleCount)
+{
+    return particleCount <= 120 ? "Low" : "High";
+}
+
+sf::Color brighten(const sf::Color& color, int amount, std::uint8_t alpha = 255)
+{
+    return sf::Color(
+        static_cast<std::uint8_t>(std::clamp(static_cast<int>(color.r) + amount, 0, 255)),
+        static_cast<std::uint8_t>(std::clamp(static_cast<int>(color.g) + amount, 0, 255)),
+        static_cast<std::uint8_t>(std::clamp(static_cast<int>(color.b) + amount, 0, 255)),
+        alpha
+    );
+}
 
 MenuTheme getMenuTheme(MenuMode mode)
 {
@@ -129,6 +209,9 @@ MenuTheme getMenuTheme(MenuMode mode)
         theme.childBorder = sf::Color(100, 115, 129, 255);
         theme.childTitleBar = sf::Color(21, 29, 37, 250);
         theme.childTitleText = sf::Color(228, 218, 205, 255);
+        theme.infoCardFill = sf::Color(14, 19, 26, 214);
+        theme.infoCardBorder = sf::Color(78, 96, 114, 210);
+        theme.infoCardGlow = sf::Color(120, 144, 168, 54);
         return theme;
     }
 
@@ -185,6 +268,9 @@ MenuTheme getMenuTheme(MenuMode mode)
     theme.childBorder = sf::Color(136, 97, 72, 255);
     theme.childTitleBar = sf::Color(48, 12, 14, 252);
     theme.childTitleText = sf::Color(240, 226, 206, 255);
+    theme.infoCardFill = sf::Color(18, 10, 11, 214);
+    theme.infoCardBorder = sf::Color(150, 105, 77, 214);
+    theme.infoCardGlow = sf::Color(206, 114, 78, 58);
     return theme;
 }
 
@@ -280,6 +366,18 @@ void Menu::styleLabel(const tgui::Label::Ptr& label, bool isTitle) const
     label->setHorizontalAlignment(tgui::HorizontalAlignment::Center);
 }
 
+void Menu::styleInfoLabel(const tgui::Label::Ptr& label) const
+{
+    const MenuTheme theme = getMenuTheme(mode_);
+    auto* renderer = label->getRenderer();
+    renderer->setBackgroundColor(tgui::Color::Transparent);
+    renderer->setTextColor(theme.subtitleText);
+    renderer->setTextOutlineColor(sf::Color(0, 0, 0, 150));
+    renderer->setTextOutlineThickness(1.f);
+    label->setHorizontalAlignment(tgui::HorizontalAlignment::Left);
+    label->setVerticalAlignment(tgui::VerticalAlignment::Top);
+}
+
 void Menu::styleSelector() const
 {
     const MenuTheme theme = getMenuTheme(mode_);
@@ -356,7 +454,34 @@ void Menu::setupMainWidgets()
     footerLabel->setTextSize(17);
     gui.add(footerLabel);
 
+    selectionInfoLabel = tgui::Label::create();
+    selectionInfoLabel->setTextSize(17);
+    gui.add(selectionInfoLabel);
+
+    systemInfoLabel = tgui::Label::create();
+    systemInfoLabel->setTextSize(17);
+    gui.add(systemInfoLabel);
+
+    shortcutInfoLabel = tgui::Label::create();
+    shortcutInfoLabel->setTextSize(16);
+    gui.add(shortcutInfoLabel);
+
     initializeLevelSelector();
+
+    levelPrevButton = tgui::Button::create("<");
+    levelPrevButton->setTextSize(22);
+    levelPrevButton->onClick([this]() { selectAdjacentLevel(-1); });
+    gui.add(levelPrevButton);
+
+    levelNextButton = tgui::Button::create(">");
+    levelNextButton->setTextSize(22);
+    levelNextButton->onClick([this]() { selectAdjacentLevel(1); });
+    gui.add(levelNextButton);
+
+    randomLevelButton = tgui::Button::create(BASE_RANDOM_LEVEL_BUTTON_TEXT);
+    randomLevelButton->setTextSize(20);
+    randomLevelButton->onClick([this]() { selectRandomLevel(); });
+    gui.add(randomLevelButton);
 
     continueButton = createMenuButton(BASE_PLAY_BUTTON_TEXT, 0.f);
     continueButton->onClick([this]() { resumeButtonOnClick(); });
@@ -581,6 +706,105 @@ void Menu::refreshLevelSelector()
     }
 }
 
+void Menu::selectAdjacentLevel(int direction)
+{
+    if (state_.availableLevels.empty() || direction == 0)
+    {
+        return;
+    }
+
+    auto currentIt = std::find(state_.availableLevels.begin(), state_.availableLevels.end(), state_.selectedLevelName);
+    std::size_t currentIndex = 0u;
+    if (currentIt != state_.availableLevels.end())
+    {
+        currentIndex = static_cast<std::size_t>(std::distance(state_.availableLevels.begin(), currentIt));
+    }
+
+    const std::size_t count = state_.availableLevels.size();
+    const int normalizedDirection = direction > 0 ? 1 : -1;
+    const std::size_t nextIndex = static_cast<std::size_t>(
+        (static_cast<int>(currentIndex) + normalizedDirection + static_cast<int>(count)) % static_cast<int>(count)
+    );
+
+    state_.selectedLevelName = state_.availableLevels[nextIndex];
+    if (levelSelector && levelSelector->isVisible())
+    {
+        levelSelector->setSelectedItem(state_.selectedLevelName);
+    }
+    refreshMenuContext();
+}
+
+void Menu::selectRandomLevel()
+{
+    if (state_.availableLevels.empty())
+    {
+        return;
+    }
+
+    const std::size_t nextIndex = static_cast<std::size_t>(std::rand() % state_.availableLevels.size());
+    state_.selectedLevelName = state_.availableLevels[nextIndex];
+    if (levelSelector && levelSelector->isVisible())
+    {
+        levelSelector->setSelectedItem(state_.selectedLevelName);
+    }
+    refreshMenuContext();
+}
+
+std::string Menu::buildSelectionInfoText() const
+{
+    const std::string selectedLevel = state_.selectedLevelName.empty() ? "None" : state_.selectedLevelName;
+    const std::string currentLevel = state_.currentLevelName.empty() ? "Dormant" : state_.currentLevelName;
+
+    if (mode_ == MenuMode::Pause)
+    {
+        return std::string("Current Realm\n") +
+            getLevelTitle(currentLevel) +
+            "\n" + getLevelFlavor(currentLevel);
+    }
+
+    return std::string("Selected Gate\n") +
+        getLevelTitle(selectedLevel) +
+        "\n" + getLevelFlavor(selectedLevel);
+}
+
+std::string Menu::buildSystemInfoText() const
+{
+    const std::string currentLevel = state_.currentLevelName.empty() ? "Dormant" : state_.currentLevelName;
+    const std::string runState = state_.canContinue ? "Active" : "Dormant";
+    const std::string selectedLevel = state_.selectedLevelName.empty() ? "None" : state_.selectedLevelName;
+
+    if (mode_ == MenuMode::Pause)
+    {
+        return std::string("Session   ") +
+            "State: " + runState +
+            "   VSync: " + std::string(vsyncEnabled ? "ON" : "OFF") +
+            "   Ash: " + getAshDensityLabel(menuParticleCount);
+    }
+
+    return std::string("Session\n") +
+        "Current run: " + currentLevel + "\n" +
+        "Selected file: " + selectedLevel + "\n" +
+        "Known gates: " + std::to_string(state_.availableLevels.size()) + "\n" +
+        "Continue: " + std::string(state_.canContinue ? "Ready" : "No active run");
+}
+
+std::string Menu::buildShortcutInfoText() const
+{
+    if (mode_ == MenuMode::Pause)
+    {
+        return std::string("Quick Rites   Enter Resume   T Restart   M Main menu\n") +
+            "S / C Popups   V / P Toggles   Esc Close";
+    }
+
+    return std::string("Quick Rites\n") +
+        "Left / Right  Change gate\n" +
+        "R             Random omen\n" +
+        "Enter         Start selected\n" +
+        "Space         Continue run\n" +
+        "S / C         Popups\n" +
+        "V / P         Toggles";
+}
+
 void Menu::refreshMenuContext()
 {
     if (vsyncToggleButton)
@@ -602,10 +826,10 @@ void Menu::refreshMenuContext()
         }
         else
         {
-            subtitleLabel->setText("The world waits on: " + state_.currentLevelName);
+            subtitleLabel->setText("The world waits on: " + getLevelTitle(state_.currentLevelName));
         }
 
-        footerLabel->setText("Press Esc again to return to the world");
+        footerLabel->setText("Choose a rite, then return to the world");
     }
     else
     {
@@ -622,17 +846,29 @@ void Menu::refreshMenuContext()
         else
         {
             subtitleLabel->setText(
-                std::string("Current level: ") + state_.currentLevelName +
-                "\nSelected start: " + state_.selectedLevelName
+                std::string("Current level: ") + getLevelTitle(state_.currentLevelName) +
+                "\nSelected start: " + getLevelTitle(state_.selectedLevelName)
             );
         }
 
         footerLabel->setText(state_.canContinue
-            ? "Resume the fallen path or choose a fresh descent"
-            : "A crimson path opens only when you choose a level");
+            ? "Resume the fallen path, change the gate, or let the omen choose"
+            : "A crimson path opens when you choose a gate");
     }
 
     continueButton->setText(mode_ == MenuMode::Pause ? BASE_RESUME_BUTTON_TEXT : BASE_PLAY_BUTTON_TEXT);
+    if (selectionInfoLabel)
+    {
+        selectionInfoLabel->setText(buildSelectionInfoText());
+    }
+    if (systemInfoLabel)
+    {
+        systemInfoLabel->setText(buildSystemInfoText());
+    }
+    if (shortcutInfoLabel)
+    {
+        shortcutInfoLabel->setText(buildShortcutInfoText());
+    }
 
     if (levelSelector->isVisible() && !state_.selectedLevelName.empty() && levelSelector->getSelectedItem().empty())
     {
@@ -644,65 +880,132 @@ void Menu::refreshMenuContext()
 
 void Menu::applyModeLayout()
 {
+    refreshMenuContext();
+    updateWidgetLayout();
+    applyModeTheme();
+    updateDecorativeLayout();
+}
+
+void Menu::updateWidgetLayout()
+{
     const bool isMainMenu = mode_ == MenuMode::Main;
     const float panelWidth = getPanelWidth(mode_);
     const float panelHeight = getPanelHeight(mode_);
     const float centerX = window_m->getSize().x * 0.5f;
-    const float panelTop = isMainMenu ? window_m->getSize().y * 0.14f : window_m->getSize().y * 0.18f;
+    const float panelTopBase = isMainMenu ? window_m->getSize().y * 0.12f : window_m->getSize().y * 0.16f;
+    const float reveal = 1.f - std::pow(1.f - std::clamp(menuReveal_, 0.f, 1.f), 3.f);
+    const float revealOffsetY = (1.f - reveal) * 34.f;
+    const float panelTop = panelTopBase + revealOffsetY;
 
     const float titleWidth = panelWidth - 92.f;
     const float subtitleWidth = panelWidth - 116.f;
     const float footerWidth = panelWidth - 132.f;
 
-    titleLabel->setSize({titleWidth, isMainMenu ? 84.f : 72.f});
-    titleLabel->setPosition({centerX - titleWidth / 2.f, panelTop + 10.f});
-    titleLabel->setTextSize(isMainMenu ? 54 : 40);
+    titleLabel->setSize({titleWidth, isMainMenu ? 84.f : 58.f});
+    titleLabel->setPosition({centerX - titleWidth / 2.f, panelTop + (isMainMenu ? 10.f : 8.f)});
+    titleLabel->setTextSize(isMainMenu ? 54 : 38);
 
-    subtitleLabel->setSize({subtitleWidth, isMainMenu ? 76.f : 56.f});
-    subtitleLabel->setPosition({centerX - subtitleWidth / 2.f, panelTop + (isMainMenu ? 82.f : 76.f)});
-    subtitleLabel->setTextSize(isMainMenu ? 18 : 17);
+    subtitleLabel->setSize({subtitleWidth, isMainMenu ? 74.f : 34.f});
+    subtitleLabel->setPosition({centerX - subtitleWidth / 2.f, panelTop + (isMainMenu ? 80.f : 56.f)});
+    subtitleLabel->setTextSize(isMainMenu ? 18 : 15);
 
     footerLabel->setSize({footerWidth, 22.f});
-    footerLabel->setPosition({centerX - footerWidth / 2.f, panelTop + panelHeight - (isMainMenu ? 32.f : 30.f)});
-    footerLabel->setTextSize(isMainMenu ? 14 : 13);
+    footerLabel->setPosition({centerX - footerWidth / 2.f, panelTop + panelHeight - (isMainMenu ? 34.f : 40.f)});
+    footerLabel->setTextSize(isMainMenu ? 14 : 12);
 
-    continueButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
-    startLevelButton->setSize(392.f, 54.f);
-    restartLevelButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
-    mainMenuButton->setSize(344.f, 50.f);
-    settingsButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
-    controlsButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
-    exitButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
+    const float panelLeft = centerX - panelWidth / 2.f;
 
     if (isMainMenu)
     {
-        levelSelector->setPosition({centerX - 200.f, panelTop + 166.f});
-        levelSelector->setSize({400.f, 42.f});
+        const float leftColumnX = panelLeft + 52.f;
+        const float leftColumnWidth = 238.f;
+        const float rightColumnX = panelLeft + 348.f;
+        const float rightColumnWidth = 426.f;
+        const float cardTop = panelTop + 178.f;
 
-        continueButton->setPosition({centerX - 196.f, panelTop + 232.f});
-        startLevelButton->setPosition({centerX - 196.f, panelTop + 292.f});
-        restartLevelButton->setPosition({centerX - 196.f, panelTop + 352.f});
-        settingsButton->setPosition({centerX - 196.f, panelTop + 412.f});
-        controlsButton->setPosition({centerX - 196.f, panelTop + 472.f});
-        exitButton->setPosition({centerX - 196.f, panelTop + 532.f});
+        selectionInfoLabel->setMaximumTextWidth(leftColumnWidth);
+        selectionInfoLabel->setPosition({leftColumnX + 12.f, cardTop + 10.f});
+        selectionInfoLabel->setTextSize(18);
+
+        systemInfoLabel->setMaximumTextWidth(leftColumnWidth);
+        systemInfoLabel->setPosition({leftColumnX + 12.f, cardTop + 142.f});
+        systemInfoLabel->setTextSize(16);
+
+        shortcutInfoLabel->setMaximumTextWidth(leftColumnWidth);
+        shortcutInfoLabel->setPosition({leftColumnX + 12.f, cardTop + 252.f});
+        shortcutInfoLabel->setTextSize(14);
+
+        levelPrevButton->setVisible(true);
+        levelNextButton->setVisible(true);
+        randomLevelButton->setVisible(true);
+        levelSelector->setVisible(true);
+        startLevelButton->setVisible(true);
+        mainMenuButton->setVisible(false);
+
+        levelPrevButton->setSize({46.f, 44.f});
+        levelPrevButton->setPosition({rightColumnX, cardTop});
+        levelSelector->setSize({260.f, 44.f});
+        levelSelector->setPosition({rightColumnX + 56.f, cardTop});
+        levelNextButton->setSize({46.f, 44.f});
+        levelNextButton->setPosition({rightColumnX + 324.f, cardTop});
+        randomLevelButton->setSize({140.f, 44.f});
+        randomLevelButton->setPosition({rightColumnX + 56.f, cardTop + 56.f});
+
+        continueButton->setSize({rightColumnWidth, 50.f});
+        startLevelButton->setSize({rightColumnWidth, 50.f});
+        restartLevelButton->setSize({rightColumnWidth, 50.f});
+        settingsButton->setSize({rightColumnWidth, 50.f});
+        controlsButton->setSize({rightColumnWidth, 50.f});
+        exitButton->setSize({rightColumnWidth, 50.f});
+
+        continueButton->setPosition({rightColumnX, cardTop + 104.f});
+        startLevelButton->setPosition({rightColumnX, cardTop + 160.f});
+        restartLevelButton->setPosition({rightColumnX, cardTop + 216.f});
+        settingsButton->setPosition({rightColumnX, cardTop + 272.f});
+        controlsButton->setPosition({rightColumnX, cardTop + 328.f});
+        exitButton->setPosition({rightColumnX, cardTop + 384.f});
     }
     else
     {
-        continueButton->setPosition({centerX - 172.f, panelTop + 148.f});
-        restartLevelButton->setPosition({centerX - 172.f, panelTop + 204.f});
-        mainMenuButton->setPosition({centerX - 172.f, panelTop + 260.f});
-        settingsButton->setPosition({centerX - 172.f, panelTop + 316.f});
-        controlsButton->setPosition({centerX - 172.f, panelTop + 372.f});
-        exitButton->setPosition({centerX - 172.f, panelTop + 428.f});
+        const float contentLeft = panelLeft + 44.f;
+        const float contentWidth = panelWidth - 88.f;
+        const float infoTop = panelTop + 108.f;
+        const float infoWidth = contentWidth - 28.f;
+        const float buttonsX = centerX - 202.f;
+
+        selectionInfoLabel->setMaximumTextWidth(infoWidth);
+        selectionInfoLabel->setPosition({contentLeft + 14.f, infoTop});
+        selectionInfoLabel->setTextSize(16);
+
+        systemInfoLabel->setMaximumTextWidth(infoWidth);
+        systemInfoLabel->setPosition({contentLeft + 14.f, infoTop + 76.f});
+        systemInfoLabel->setTextSize(13);
+
+        shortcutInfoLabel->setMaximumTextWidth(infoWidth);
+        shortcutInfoLabel->setPosition({contentLeft + 14.f, infoTop + 110.f});
+        shortcutInfoLabel->setTextSize(12);
+
+        levelPrevButton->setVisible(false);
+        levelNextButton->setVisible(false);
+        randomLevelButton->setVisible(false);
+        levelSelector->setVisible(false);
+        startLevelButton->setVisible(false);
+        mainMenuButton->setVisible(true);
+
+        continueButton->setSize({404.f, 46.f});
+        restartLevelButton->setSize({404.f, 46.f});
+        mainMenuButton->setSize({404.f, 46.f});
+        settingsButton->setSize({404.f, 46.f});
+        controlsButton->setSize({404.f, 46.f});
+        exitButton->setSize({404.f, 46.f});
+
+        continueButton->setPosition({buttonsX, panelTop + 288.f});
+        restartLevelButton->setPosition({buttonsX, panelTop + 340.f});
+        mainMenuButton->setPosition({buttonsX, panelTop + 392.f});
+        settingsButton->setPosition({buttonsX, panelTop + 444.f});
+        controlsButton->setPosition({buttonsX, panelTop + 496.f});
+        exitButton->setPosition({buttonsX, panelTop + 548.f});
     }
-
-    levelSelector->setVisible(isMainMenu);
-    startLevelButton->setVisible(isMainMenu);
-    mainMenuButton->setVisible(!isMainMenu);
-
-    applyModeTheme();
-    updateDecorativeLayout();
-    refreshMenuContext();
 }
 
 void Menu::applyModeTheme()
@@ -724,8 +1027,14 @@ void Menu::applyModeTheme()
     styleButton(settingsButton, ButtonStyleRole::Secondary);
     styleButton(controlsButton, ButtonStyleRole::Secondary);
     styleButton(exitButton, ButtonStyleRole::Danger);
+    styleButton(levelPrevButton, ButtonStyleRole::Secondary);
+    styleButton(levelNextButton, ButtonStyleRole::Secondary);
+    styleButton(randomLevelButton, ButtonStyleRole::Secondary);
     styleButton(vsyncToggleButton, ButtonStyleRole::Secondary);
     styleButton(particleToggleButton, ButtonStyleRole::Secondary);
+    styleInfoLabel(selectionInfoLabel);
+    styleInfoLabel(systemInfoLabel);
+    styleInfoLabel(shortcutInfoLabel);
 
     if (settingsWindow)
     {
@@ -778,6 +1087,9 @@ void Menu::syncPopupInteractivity()
     settingsButton->setEnabled(!popupOpen);
     controlsButton->setEnabled(!popupOpen);
     exitButton->setEnabled(!popupOpen);
+    levelPrevButton->setEnabled(!popupOpen && !state_.availableLevels.empty() && levelPrevButton->isVisible());
+    levelNextButton->setEnabled(!popupOpen && !state_.availableLevels.empty() && levelNextButton->isVisible());
+    randomLevelButton->setEnabled(!popupOpen && !state_.availableLevels.empty() && randomLevelButton->isVisible());
 
     if (levelSelector)
     {
@@ -791,9 +1103,11 @@ void Menu::updateDecorativeLayout()
     const float panelWidth = getPanelWidth(mode_);
     const float panelHeight = getPanelHeight(mode_);
     const float centerX = window_m->getSize().x * 0.5f;
-    const float panelTop = (mode_ == MenuMode::Main)
-        ? window_m->getSize().y * 0.14f
-        : window_m->getSize().y * 0.18f;
+    const float reveal = 1.f - std::pow(1.f - std::clamp(menuReveal_, 0.f, 1.f), 3.f);
+    const float panelTopBase = (mode_ == MenuMode::Main)
+        ? window_m->getSize().y * 0.12f
+        : window_m->getSize().y * 0.16f;
+    const float panelTop = panelTopBase + (1.f - reveal) * 34.f;
     const float centerY = panelTop + panelHeight * 0.5f;
     const float pulse = 0.5f + 0.5f * std::sin(menuVisualTime_ * (mode_ == MenuMode::Main ? 1.3f : 0.65f));
 
@@ -821,17 +1135,64 @@ void Menu::updateDecorativeLayout()
     titleBand_.setPosition({centerX, centerY - panelHeight * 0.35f});
     titleBand_.setFillColor(theme.titleBand);
     titleBand_.setOutlineThickness(1.5f);
-    titleBand_.setOutlineColor(theme.panelBorder);
+    titleBand_.setOutlineColor(brighten(theme.panelBorder, static_cast<int>(pulse * 16.f), theme.panelBorder.a));
 
     dividerLine_.setSize({panelWidth - 154.f, 2.f});
     dividerLine_.setOrigin({dividerLine_.getSize().x / 2.f, dividerLine_.getSize().y / 2.f});
     dividerLine_.setPosition({centerX, centerY - panelHeight * 0.2f});
     dividerLine_.setFillColor(theme.divider);
 
-    footerBand_.setSize({panelWidth - 126.f, mode_ == MenuMode::Main ? 24.f : 22.f});
+    footerBand_.setSize({panelWidth - 126.f, mode_ == MenuMode::Main ? 24.f : 18.f});
     footerBand_.setOrigin({footerBand_.getSize().x / 2.f, footerBand_.getSize().y / 2.f});
-    footerBand_.setPosition({centerX, panelTop + panelHeight - 20.f});
+    footerBand_.setPosition({centerX, panelTop + panelHeight - 16.f});
     footerBand_.setFillColor(sf::Color(theme.titleBand.r, theme.titleBand.g, theme.titleBand.b, 140));
+
+    verticalDivider_.setSize({2.f, 446.f});
+    verticalDivider_.setOrigin({verticalDivider_.getSize().x / 2.f, verticalDivider_.getSize().y / 2.f});
+    verticalDivider_.setPosition({centerX - 104.f, centerY + 48.f});
+    verticalDivider_.setFillColor(sf::Color(theme.ornament.r, theme.ornament.g, theme.ornament.b, 126));
+
+    if (levelSelector && levelSelector->isVisible())
+    {
+        const tgui::Vector2f selectorPos = levelSelector->getPosition();
+        const tgui::Vector2f selectorSize = levelSelector->getSize();
+        selectorBand_.setSize({selectorSize.x + 110.f, selectorSize.y + 18.f});
+        selectorBand_.setOrigin({selectorBand_.getSize().x / 2.f, selectorBand_.getSize().y / 2.f});
+        selectorBand_.setPosition({
+            selectorPos.x + selectorSize.x * 0.5f + 24.f,
+            selectorPos.y + selectorSize.y * 0.5f + 24.f
+        });
+        selectorBand_.setFillColor(sf::Color(theme.infoCardGlow.r, theme.infoCardGlow.g, theme.infoCardGlow.b,
+            static_cast<std::uint8_t>(34 + pulse * 24.f)));
+    }
+
+    const std::array<tgui::Label::Ptr, 3> infoLabels{
+        selectionInfoLabel,
+        systemInfoLabel,
+        shortcutInfoLabel
+    };
+    for (std::size_t i = 0; i < infoLabels.size(); ++i)
+    {
+        const auto& label = infoLabels[i];
+        const tgui::Vector2f labelPos = label->getPosition();
+        const tgui::Vector2f labelSize = label->getSize();
+
+        infoCardGlows_[i].setSize({labelSize.x + 44.f, labelSize.y + 36.f});
+        infoCardGlows_[i].setOrigin({infoCardGlows_[i].getSize().x / 2.f, infoCardGlows_[i].getSize().y / 2.f});
+        infoCardGlows_[i].setPosition({
+            labelPos.x + labelSize.x * 0.5f,
+            labelPos.y + labelSize.y * 0.5f + std::sin(menuVisualTime_ * 0.8f + static_cast<float>(i)) * 2.f
+        });
+        infoCardGlows_[i].setFillColor(sf::Color(theme.infoCardGlow.r, theme.infoCardGlow.g, theme.infoCardGlow.b,
+            static_cast<std::uint8_t>(28 + pulse * 18.f)));
+
+        infoCards_[i].setSize({labelSize.x + 28.f, labelSize.y + 20.f});
+        infoCards_[i].setOrigin({infoCards_[i].getSize().x / 2.f, infoCards_[i].getSize().y / 2.f});
+        infoCards_[i].setPosition({labelPos.x + labelSize.x * 0.5f, labelPos.y + labelSize.y * 0.5f});
+        infoCards_[i].setFillColor(theme.infoCardFill);
+        infoCards_[i].setOutlineThickness(1.5f);
+        infoCards_[i].setOutlineColor(brighten(theme.infoCardBorder, static_cast<int>(pulse * 10.f), theme.infoCardBorder.a));
+    }
 
     for (std::size_t i = 0; i < ornamentLines_.size(); ++i)
     {
@@ -876,6 +1237,24 @@ void Menu::updateDecorativeLayout()
     sigilHorizontalBar_.setPosition(sigilOuterRing_.getPosition());
     sigilHorizontalBar_.setRotation(sf::degrees(menuVisualTime_ * (mode_ == MenuMode::Main ? 7.f : 1.4f)));
     sigilHorizontalBar_.setFillColor(theme.sigilSoft);
+
+    for (std::size_t i = 0; i < emberNodes_.size(); ++i)
+    {
+        auto& ember = emberNodes_[i];
+        ember.setRadius(mode_ == MenuMode::Main ? 10.f : 8.f);
+        ember.setPointCount(32u);
+        ember.setOrigin({ember.getRadius(), ember.getRadius()});
+        ember.setPosition({
+            centerX + (i == 0 ? -panelWidth * 0.34f : panelWidth * 0.34f),
+            panelTop + 68.f + std::sin(menuVisualTime_ * 1.2f + static_cast<float>(i)) * 5.f
+        });
+        ember.setFillColor(sf::Color(
+            theme.primaryButtonBorder.r,
+            theme.primaryButtonBorder.g,
+            theme.primaryButtonBorder.b,
+            static_cast<std::uint8_t>(120 + pulse * 64.f)
+        ));
+    }
 }
 
 void Menu::drawDecorativeLayout(sf::RenderWindow& window)
@@ -889,9 +1268,29 @@ void Menu::drawDecorativeLayout(sf::RenderWindow& window)
     window.draw(panelInset_);
     window.draw(titleBand_);
     window.draw(dividerLine_);
+    if (mode_ == MenuMode::Main && levelSelector->isVisible())
+    {
+        window.draw(selectorBand_);
+    }
+    if (mode_ == MenuMode::Main)
+    {
+        window.draw(verticalDivider_);
+    }
     for (auto& line : ornamentLines_)
     {
         window.draw(line);
+    }
+    for (auto& glow : infoCardGlows_)
+    {
+        window.draw(glow);
+    }
+    for (auto& card : infoCards_)
+    {
+        window.draw(card);
+    }
+    for (auto& ember : emberNodes_)
+    {
+        window.draw(ember);
     }
     window.draw(footerBand_);
 }
@@ -1009,6 +1408,7 @@ void Menu::openMainMenu()
     closePopups();
     menuAnimationClock.restart();
     menuVisualTime_ = 0.f;
+    menuReveal_ = 0.f;
     applyModeLayout();
 }
 
@@ -1019,6 +1419,7 @@ void Menu::openPauseMenu()
     closePopups();
     menuAnimationClock.restart();
     menuVisualTime_ = 0.f;
+    menuReveal_ = 0.f;
     applyModeLayout();
 }
 
@@ -1027,6 +1428,7 @@ void Menu::close()
     isOpen_ = false;
     closePopups();
     menuAnimationClock.restart();
+    menuReveal_ = 0.f;
 }
 
 bool Menu::isOpen() const
@@ -1058,7 +1460,9 @@ void Menu::menuDraw(sf::RenderWindow& window)
     }
 
     menuVisualTime_ += deltaTime;
+    menuReveal_ = std::min(1.f, menuReveal_ + deltaTime * 4.8f);
     refreshMenuContext();
+    updateWidgetLayout();
     background.update(deltaTime);
     updateDecorativeLayout();
 
@@ -1097,6 +1501,79 @@ void Menu::menuHandleEvents(const sf::Event& ev)
             {
                 close();
                 return;
+            }
+        }
+
+        if (!isBlockingPopupOpen())
+        {
+            const sf::Keyboard::Scancode code = keyPressed->scancode;
+
+            if (code == sf::Keyboard::Scancode::S)
+            {
+                settingsButtonOnClick();
+                return;
+            }
+            if (code == sf::Keyboard::Scancode::C)
+            {
+                controlsButtonOnClick();
+                return;
+            }
+            if (code == sf::Keyboard::Scancode::V)
+            {
+                toggleVsync();
+                return;
+            }
+            if (code == sf::Keyboard::Scancode::P)
+            {
+                toggleMenuParticles();
+                return;
+            }
+
+            if (isMainMenu())
+            {
+                if (code == sf::Keyboard::Scancode::Left || code == sf::Keyboard::Scancode::A || code == sf::Keyboard::Scancode::Q)
+                {
+                    selectAdjacentLevel(-1);
+                    return;
+                }
+                if (code == sf::Keyboard::Scancode::Right || code == sf::Keyboard::Scancode::D || code == sf::Keyboard::Scancode::W)
+                {
+                    selectAdjacentLevel(1);
+                    return;
+                }
+                if (code == sf::Keyboard::Scancode::R)
+                {
+                    selectRandomLevel();
+                    return;
+                }
+                if (code == sf::Keyboard::Scancode::Enter)
+                {
+                    startSelectedLevelOnClick();
+                    return;
+                }
+                if (code == sf::Keyboard::Scancode::Space)
+                {
+                    resumeButtonOnClick();
+                    return;
+                }
+            }
+            else if (isPauseMenu())
+            {
+                if (code == sf::Keyboard::Scancode::Enter)
+                {
+                    resumeButtonOnClick();
+                    return;
+                }
+                if (code == sf::Keyboard::Scancode::T)
+                {
+                    restartCurrentLevelOnClick();
+                    return;
+                }
+                if (code == sf::Keyboard::Scancode::M)
+                {
+                    returnToMainMenuOnClick();
+                    return;
+                }
             }
         }
     }

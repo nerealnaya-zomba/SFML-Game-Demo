@@ -24,6 +24,7 @@ inline const tgui::String BASE_RETURN_TO_MAIN_MENU_BUTTON_TEXT = "Main Menu";
 inline const tgui::String BASE_CONTROLS_BUTTON_TEXT = "Controls";
 inline const tgui::String BASE_EXIT_BUTTON_TEXT = "Exit";
 inline const tgui::String BASE_SETTINGS_BUTTON_TEXT = "Settings";
+inline const tgui::String BASE_RANDOM_LEVEL_BUTTON_TEXT = "Omen Pick";
 inline constexpr unsigned int BASE_MENU_BUTTONS_CHARACTER_SIZE = 25;
 
 enum class MenuMode
@@ -100,10 +101,16 @@ private:
     tgui::Button::Ptr settingsButton;
     tgui::Button::Ptr controlsButton;
     tgui::Button::Ptr exitButton;
+    tgui::Button::Ptr levelPrevButton;
+    tgui::Button::Ptr levelNextButton;
+    tgui::Button::Ptr randomLevelButton;
     tgui::ComboBox::Ptr levelSelector;
     tgui::Label::Ptr titleLabel;
     tgui::Label::Ptr subtitleLabel;
     tgui::Label::Ptr footerLabel;
+    tgui::Label::Ptr selectionInfoLabel;
+    tgui::Label::Ptr systemInfoLabel;
+    tgui::Label::Ptr shortcutInfoLabel;
     tgui::ChildWindow::Ptr settingsWindow;
     tgui::ChildWindow::Ptr controlsWindow;
     tgui::Button::Ptr vsyncToggleButton;
@@ -119,20 +126,27 @@ private:
     sf::RectangleShape panelInset_;
     sf::RectangleShape titleBand_;
     sf::RectangleShape dividerLine_;
+    sf::RectangleShape verticalDivider_;
     sf::RectangleShape footerBand_;
+    sf::RectangleShape selectorBand_;
+    std::array<sf::RectangleShape, 3> infoCards_;
+    std::array<sf::RectangleShape, 3> infoCardGlows_;
     std::array<sf::RectangleShape, 2> ornamentLines_;
     sf::CircleShape sigilOuterRing_;
     sf::CircleShape sigilInnerRing_;
     sf::RectangleShape sigilVerticalBar_;
     sf::RectangleShape sigilHorizontalBar_;
+    std::array<sf::CircleShape, 2> emberNodes_;
 
     bool vsyncEnabled = false;
     int menuParticleCount = 200;
+    float menuReveal_ = 1.f;
 
     void setupMainWidgets();
     tgui::Button::Ptr createMenuButton(const tgui::String& text, float y);
     void styleButton(const tgui::Button::Ptr& button, ButtonStyleRole role) const;
     void styleLabel(const tgui::Label::Ptr& label, bool isTitle) const;
+    void styleInfoLabel(const tgui::Label::Ptr& label) const;
     void styleSelector() const;
     void styleChildWindow(const tgui::ChildWindow::Ptr& childWindow) const;
     void initializeLevelSelector();
@@ -142,11 +156,17 @@ private:
     void refreshMenuContext();
     void applyModeLayout();
     void applyModeTheme();
+    void updateWidgetLayout();
     bool isBlockingPopupOpen() const;
     void syncPopupInteractivity();
     void updateDecorativeLayout();
     void drawDecorativeLayout(sf::RenderWindow& window);
     void closePopups();
+    void selectAdjacentLevel(int direction);
+    void selectRandomLevel();
+    std::string buildSelectionInfoText() const;
+    std::string buildSystemInfoText() const;
+    std::string buildShortcutInfoText() const;
 
     void resumeButtonOnClick();
     void startSelectedLevelOnClick();
