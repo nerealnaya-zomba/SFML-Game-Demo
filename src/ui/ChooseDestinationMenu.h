@@ -1,191 +1,152 @@
 #pragma once
-#include "GameCamera.h"
-#include "GameData.h"
-#include "GameLevel.h"
-#include<SFML/Graphics.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Text.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <utility>
+
+#include <SFML/Graphics.hpp>
+#include <optional>
+#include <string>
 #include <vector>
 
+class GameCamera;
+class GameData;
+class GameLevel;
 class GameLevelManager;
+class Player;
 
-//LevelRect
-const sf::Vector2i BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN = {15,15};
-const sf::Vector2f BASE_DESTINATION_ICON_SIZE                = {30,30};
+const sf::Vector2i BASE_DESTINATION_ICON_TOPDOWNRIGHT_MARGIN = {18, 18};
+const sf::Vector2f BASE_DESTINATION_ICON_SIZE = {140.f, 82.f};
 
-//SelectionRect
-const sf::Color BASE_SELECTION_COLOR = sf::Color::Blue;
-const float     BASE_SELECTION_SIZE  = 2.f;
+const sf::Color BASE_SELECTION_COLOR = sf::Color(228, 194, 142, 255);
+const float BASE_SELECTION_SIZE = 3.f;
 
-//CurrentLevelMarkRect
-const sf::Color BASE_LEVELMARK_COLOR = sf::Color::Red;
-const float     BASE_LEVELMARK_SIZE  = 2.f;
+const sf::Color BASE_LEVELMARK_COLOR = sf::Color(190, 82, 64, 255);
+const float BASE_LEVELMARK_SIZE = 2.f;
 
-//Background
-const float BASE_DESTINATION_BACKGROUND_TOPMARGIN = 30.f;
-const float BASE_DESTINATION_NAME_OFFSET_Y = 300.f;
-
-////////////////////////
-/// Представляет собой меню для выбора места назначения телепорта
-////////////////////////
+const float BASE_DESTINATION_BACKGROUND_TOPMARGIN = 42.f;
 
 class ChooseDestinationMenu
 {
 private:
-	////////////////////////////
-	// Внешние ссылки на объекты
-	////////////////////////////
-		GameData*   		data;
-		GameCamera* 		camera;
-		GameLevelManager* 	manager;
-		Player*				player;
-	////////////////////////////
+    GameData* data = nullptr;
+    GameCamera* camera = nullptr;
+    GameLevelManager* manager = nullptr;
+    Player* player = nullptr;
 
-	///////
-	// Main 
-	///////
-		/// Bools ///
-			bool isOpened = false;
-			std::optional<std::string> desiredDestination;
-		/// Keys  ///
-			sf::Keyboard::Scan  moveLeftKey;
-			sf::Keyboard::Scan moveRightKey;
-			sf::Keyboard::Scan    selectKey;
+    bool isOpened = false;
+    std::optional<std::string> desiredDestination{};
 
-	//////////////////////////////////
-	// Menu box general representation
-	//////////////////////////////////
+    sf::Keyboard::Scan moveLeftKey;
+    sf::Keyboard::Scan moveRightKey;
+    sf::Keyboard::Scan selectKey;
+    sf::Keyboard::Scan closeKey;
+
 public:
-		
+    struct LevelDestination
+    {
+        bool isOpened = true;
+        bool isVisible = true;
+        bool isSelected = false;
+        bool isChoosed = false;
+        bool isPlayerThere = false;
 
-		//////////////////////////////////////////////////////////////////////////////////
-		// Представляет собой отдельный элемент уровня в контейнере, содержащий: параметры отображения, иконку, квадрат выделения
-		//////////////////////////////////////////////////////////////////////////////////
-			struct LevelDestination
-			{
-				bool isOpened 		=  true;
-				bool isVisible 		=  true;
-				bool isSelected 	= false;
-				bool isChoosed		= false;
-				bool isPlayerThere 	= false;
+        const GameLevel* level = nullptr;
+    };
 
-				const GameLevel* level;
-			};
+    struct LevelDestinationRect
+    {
+        explicit LevelDestinationRect(const sf::Texture& iconTexture)
+            : icon(iconTexture)
+        {
+        }
 
-			struct LevelDestinationRect
-			{
-				LevelDestinationRect(sf::Texture& iconTexture) : icon(iconTexture){};
-				LevelDestinationRect(const sf::Texture& iconTexture) : icon(iconTexture){};
+        LevelDestination leveldestination{};
+        sf::Sprite icon;
+        sf::RectangleShape selectionRect;
+        sf::RectangleShape currentLevelMarkRect;
 
-				LevelDestination 	leveldestination;
+        void draw(sf::RenderWindow& w) const;
+    };
 
-				sf::Sprite  		icon;
-
-				sf::RectangleShape 	selectionRect;
-
-				sf::RectangleShape 	currentLevelMarkRect;
-				
-				void draw(sf::RenderWindow& w);
-			};
-
-		//////////////////////////////////////////////////////////////////////////////////
 private:
-		///////////
-		// Elements
-		///////////
-			sf::Sprite background;
-			sf::Text displayingLevelName;
-			std::vector<LevelDestinationRect> levels;
+    sf::RectangleShape overlayVeil;
+    sf::RectangleShape panelShadow;
+    sf::RectangleShape panelFrame;
+    sf::RectangleShape panelInset;
+    sf::RectangleShape titleBand;
+    sf::RectangleShape footerBand;
+    sf::RectangleShape previewFrame;
+    sf::RectangleShape previewInset;
+    sf::RectangleShape previewVeil;
 
-		// Points to element
-			std::vector<LevelDestinationRect>::iterator levelIt;
-		// Utils to manipulate it
-			void moveLevelItLeft();
-			void moveLevelItRight();
+    sf::Text titleText;
+    sf::Text subtitleText;
+    sf::Text displayingLevelName;
+    sf::Text destinationStateText;
+    sf::Text destinationDescriptionText;
+    sf::Text legendText;
 
-		///////////
-		//////////////////////////////
-		// Element positioning methods
-		//////////////////////////////
-			void positioningLevelDestinations();
-				void positioningLevelDestinationsBackground();
-				void positioningLevelDestinationsLevels();
-				void positioningLevelDestinationsText();
-		//////////////////////////////
+    std::vector<LevelDestinationRect> levels;
+    std::vector<LevelDestinationRect>::iterator levelIt;
 
-		//////////////////////////////
-		// Update methods
-		//////////////////////////////
-			void checkWherePlayer();
-		//////////////////////////////
+    sf::Vector2f panelPosition{0.f, 0.f};
+    sf::Vector2f panelSize{1120.f, 408.f};
+    sf::Vector2f previewPosition{0.f, 0.f};
+    sf::Vector2f previewSize{420.f, 176.f};
+    float animationTime = 0.f;
 
-		//////////////////////////
-		/// Draw methods
-		//////////////////////////
-			void drawLevelDestinations(sf::RenderWindow& window);
-				void drawLevelDestinationsBackground(sf::RenderWindow& window);
-				void drawLevelDestinationsLevels(sf::RenderWindow& window);
-				void drawLevelDestinationsText(sf::RenderWindow& window);		// IMPLEMENTME
-		//////////////////////////
+    void moveLevelItLeft();
+    void moveLevelItRight();
 
-		//////////////////
-		/// Action methods
-		//////////////////
-			void currentSelectedElementToDesiredDestination();
-			/// Returns level name
-			std::string getCurrentLevelName();
-			// Mount selection rect to its icon's parametrs
-			void mountSelectionRect(sf::RectangleShape &sr, sf::Sprite& icon);	
-			void mountCurrentLevelMarkRect(sf::RectangleShape &sr, sf::Sprite& icon);	
-				// 
-				void setDisplayingLevelNameString(std::string str);
-				void applyIconScale(sf::Sprite& icon);
-		//////////////////
+    void positioningLevelDestinations();
+    void positioningLevelDestinationsBackground();
+    void positioningLevelDestinationsLevels();
+    void positioningLevelDestinationsText();
 
-		//////////////////////////
-		/// Initialization methods
-		//////////////////////////
-			void initializeIsChoosed();	//init isChoosed based on isPlayerThere
-		//////////////////////////
+    void checkWherePlayer();
+    void updateDisplayedTexts();
 
-	//////////////////////////////////
+    void drawLevelDestinations(sf::RenderWindow& window);
+    void drawLevelDestinationsBackground(sf::RenderWindow& window);
+    void drawLevelDestinationsLevels(sf::RenderWindow& window);
+    void drawLevelDestinationsText(sf::RenderWindow& window);
+    void drawControlHints(sf::RenderWindow& window);
 
-		// Events handling
-			void handleMoveEvents(const sf::Event& ev);
-			void handleActivateEvent(const sf::Event& ev);
+    void currentSelectedElementToDesiredDestination();
+    std::string getCurrentLevelName();
+    void mountSelectionRect(sf::RectangleShape& sr, const sf::FloatRect& bounds);
+    void mountCurrentLevelMarkRect(sf::RectangleShape& sr, const sf::FloatRect& bounds);
+    void setDisplayingLevelNameString(const std::string& str);
+    void applyIconScale(sf::Sprite& icon);
+    void initializeIsChoosed();
+
+    void handleMoveEvents(const sf::Event& ev);
+    void handleActivateEvent(const sf::Event& ev);
+    void handleCloseEvent(const sf::Event& ev);
 
 public:
-	ChooseDestinationMenu(const ChooseDestinationMenu &) 			= default;
-	ChooseDestinationMenu(ChooseDestinationMenu &&) 				= delete;
-	ChooseDestinationMenu &operator=(const ChooseDestinationMenu &) = default;
-	ChooseDestinationMenu &operator=(ChooseDestinationMenu &&) 		= delete;
-	ChooseDestinationMenu(GameData &d, GameCamera &c, GameLevelManager &lm, Player& p, sf::Keyboard::Scan moveLeftKey, sf::Keyboard::Scan moveRightKey, sf::Keyboard::Scan selectKey);
-	~ChooseDestinationMenu() = default;
+    ChooseDestinationMenu(const ChooseDestinationMenu&) = default;
+    ChooseDestinationMenu(ChooseDestinationMenu&&) = delete;
+    ChooseDestinationMenu& operator=(const ChooseDestinationMenu&) = default;
+    ChooseDestinationMenu& operator=(ChooseDestinationMenu&&) = delete;
+    ChooseDestinationMenu(
+        GameData& d,
+        GameCamera& c,
+        GameLevelManager& lm,
+        Player& p,
+        sf::Keyboard::Scan moveLeftKey,
+        sf::Keyboard::Scan moveRightKey,
+        sf::Keyboard::Scan selectKey,
+        sf::Keyboard::Scan closeKey
+    );
+    ~ChooseDestinationMenu() = default;
 
-	/////////////////////////////////
-	// Основные методы взаимодействия
-	/////////////////////////////////
-		void addLevelInVector(const GameLevel& level, sf::Texture& icon);
-		void addLevelInVector(const GameLevel& level, const sf::Texture& icon);
-		void open();
-		void close();
-	/////////////////////////////////
+    void addLevelInVector(const GameLevel& level, sf::Texture& icon);
+    void addLevelInVector(const GameLevel& level, const sf::Texture& icon);
+    void open();
+    void close();
 
-	////////////////////////////
-	// Основые методы в mainLoop
-	////////////////////////////
-		void handleEvents(const sf::Event& ev);
-		void update();
-		void draw(sf::RenderWindow& w);
-	////////////////////////
+    void handleEvents(const sf::Event& ev);
+    void update();
+    void draw(sf::RenderWindow& w);
 
-	//Getters
-		bool getIsOpened();
-		//Returns only filename: level1.json
-		std::optional<std::string> getSelectedLevel();
-
+    bool getIsOpened();
+    std::optional<std::string> getSelectedLevel();
 };

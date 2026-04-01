@@ -6,7 +6,16 @@
 using namespace gameUtils;
 Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w)
     : 
-    CDMenu(gameTextures,c,m,*this,BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY,BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY,BASE_CHOOSEDESTINATIONMENU_SELECT_KEY)
+    CDMenu(
+        gameTextures,
+        c,
+        m,
+        *this,
+        BASE_CHOOSEDESTINATIONMENU_MOVELEFT_KEY,
+        BASE_CHOOSEDESTINATIONMENU_MOVERIGHT_KEY,
+        BASE_CHOOSEDESTINATIONMENU_SELECT_KEY,
+        BASE_CHOOSEDESTINATIONMENU_OPEN_CLOSE_KEY
+    )
 {
     this->gameTextures = &gameTextures;
     this->levelManager = &m;
