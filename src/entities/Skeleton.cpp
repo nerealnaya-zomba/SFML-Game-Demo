@@ -175,6 +175,76 @@ void Skeleton::resetAllThatHeKnows()
     explorationState           = ExplorationState::EXPLORE_NONE;
 }
 
+void Skeleton::clearAggroState()
+{
+    hasDetectedPlayer = false;
+    hasLastKnownPlayerPos = false;
+    awarenessState_ = SkeletonAwarenessState::Patrol;
+    action_ = IDLE;
+    initialWalkSpeed = 0.f;
+    isPlayerOutOfReach = true;
+}
+
+bool Skeleton::isPlayerBeyondBlockedChaseBoundary(float playerX) const
+{
+    if (hasBlockedChaseLeft_ && playerX <= blockedChaseLeftX_ - BLOCKED_CHASE_RELEASE_MARGIN) {
+        return true;
+    }
+    if (hasBlockedChaseRight_ && playerX >= blockedChaseRightX_ + BLOCKED_CHASE_RELEASE_MARGIN) {
+        return true;
+    }
+
+    return false;
+}
+
+void Skeleton::updateBlockedChaseBoundaries(float playerX)
+{
+    if (hasBlockedChaseLeft_ && playerX >= blockedChaseLeftX_ + BLOCKED_CHASE_RELEASE_MARGIN) {
+        hasBlockedChaseLeft_ = false;
+        blockedChaseLeftX_ = 0.f;
+    }
+
+    if (hasBlockedChaseRight_ && playerX <= blockedChaseRightX_ - BLOCKED_CHASE_RELEASE_MARGIN) {
+        hasBlockedChaseRight_ = false;
+        blockedChaseRightX_ = 0.f;
+    }
+}
+
+void Skeleton::registerBlockedChaseBoundary(bool blockedLeft)
+{
+    const float deadEndX = getCenterPosition().x;
+
+    if (blockedLeft) {
+        hasBlockedChaseLeft_ = true;
+        blockedChaseLeftX_ = deadEndX;
+    } else {
+        hasBlockedChaseRight_ = true;
+        blockedChaseRightX_ = deadEndX;
+    }
+
+    pushRing(
+        getCenterPosition(),
+        sf::Color(104, 138, 154, 140),
+        12.f,
+        46.f,
+        2.6f,
+        2.2f,
+        140.f
+    );
+    spawnParticleBurst(
+        {getCenterPosition().x, getCenterPosition().y + 6.f},
+        sf::Color(124, 150, 164, 140),
+        5,
+        24.f,
+        86.f,
+        2.2f,
+        -10.f,
+        0.46f
+    );
+
+    clearAggroState();
+}
+
 // ========== АТАКА ИГРОКА ==========
 void Skeleton::tryAttackPlayer() {
     sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
@@ -276,6 +346,12 @@ void Skeleton::checkPlatformCollision(Platform& platforms) {
                     skeletonRect->setPosition({platformBounds.position.x - skeletonBounds.size.x, skeletonBounds.position.y});
                 } else {
                     skeletonRect->setPosition({platformBounds.position.x + platformBounds.size.x, skeletonBounds.position.y});
+                }
+
+                const bool blockedWhileChasingRight = hasDetectedPlayer && action_ == WALKRIGHT && fromLeft;
+                const bool blockedWhileChasingLeft = hasDetectedPlayer && action_ == WALKLEFT && !fromLeft;
+                if (blockedWhileChasingRight || blockedWhileChasingLeft) {
+                    registerBlockedChaseBoundary(blockedWhileChasingLeft);
                 }
             } 
             // Вертикальные коллизии
@@ -756,9 +832,19 @@ void Skeleton::updateAI() {
     const sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
     const float distanceX = std::abs(skeletonPos.x - playerPos.x);
     const float distanceY = std::abs(skeletonPos.y - playerPos.y);
+    updateBlockedChaseBoundaries(playerPos.x);
 
-    const bool canNoticePlayer = distanceX <= alertDistance_ && distanceY <= verticalAlertTolerance_;
-    const bool canAttackPlayer = distanceX <= distanceToMakeAttack && distanceY <= verticalAttackTolerance_;
+    const bool playerBeyondBlockedBoundary = isPlayerBeyondBlockedChaseBoundary(playerPos.x);
+    const bool canNoticePlayer = distanceX <= alertDistance_ &&
+        distanceY <= verticalAlertTolerance_ &&
+        !playerBeyondBlockedBoundary;
+    const bool canAttackPlayer = distanceX <= distanceToMakeAttack &&
+        distanceY <= verticalAttackTolerance_ &&
+        !playerBeyondBlockedBoundary;
+
+    if (playerBeyondBlockedBoundary && hasDetectedPlayer) {
+        clearAggroState();
+    }
 
     if (canNoticePlayer) {
         lastKnownPlayerPos = playerPos;
@@ -800,10 +886,7 @@ void Skeleton::updateAI() {
             awarenessState_ = SkeletonAwarenessState::Search;
             chasePlayer(skeletonPos, lastKnownPlayerPos);
         } else {
-            hasDetectedPlayer = false;
-            hasLastKnownPlayerPos = false;
-            awarenessState_ = SkeletonAwarenessState::Patrol;
-            action_ = IDLE;
+            clearAggroState();
             makeRandomPatrolVariables();
         }
     }

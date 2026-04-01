@@ -74,6 +74,8 @@ private:
     bool attackDamageApplied = false;
     bool deathEffectPlayed = false;
     bool isPatrolPaused = false;
+    bool hasBlockedChaseLeft_ = false;
+    bool hasBlockedChaseRight_ = false;
     
     skeletonAction action_ = IDLE;
     skeletonAction pendingPatrolAction_ = WALKRIGHT;
@@ -94,6 +96,8 @@ private:
     bool knockbacks;
     sf::Vector2f enemyPos;
     sf::Vector2f lastKnownPlayerPos{};
+    float blockedChaseLeftX_ = 0.f;
+    float blockedChaseRightX_ = 0.f;
 
     // Визуальные эффекты
     std::vector<Particle> effectParticles_;
@@ -141,6 +145,10 @@ private:
     void patrol();
     void makeRandomPatrolVariables();
     void resetAllThatHeKnows();
+    void clearAggroState();
+    void registerBlockedChaseBoundary(bool blockedLeft);
+    void updateBlockedChaseBoundaries(float playerX);
+    bool isPlayerBeyondBlockedChaseBoundary(float playerX) const;
     
     // Система патрулирования
     enum PatrolState { PATROL_EXPLORING_LEFT, PATROL_EXPLORING_RIGHT, PATROL_PATROLLING };
@@ -189,6 +197,7 @@ private:
     const float ATTACK_COOLDOWN_MS          = 1050.f;
     const float AGGRO_MEMORY_MS             = 2600.f;
     const float PATROL_EFFECT_INTERVAL_MS   = 180.f;
+    const float BLOCKED_CHASE_RELEASE_MARGIN = 28.f;
 
     float alertDistance_                    = 0.f;
     float loseAggroDistance_                = 0.f;
