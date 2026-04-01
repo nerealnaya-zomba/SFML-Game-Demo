@@ -158,6 +158,77 @@ int Player::getGold() const
     return gold_;
 }
 
+int Player::getDamageValue() const
+{
+    return DMG_;
+}
+
+int Player::getShootCostValue() const
+{
+    return shootCost;
+}
+
+int Player::getShootCooldownValue() const
+{
+    return ButtonRepeat_shootCooldown;
+}
+
+int Player::getEnergyGainValue() const
+{
+    return energyGain;
+}
+
+float Player::getBulletSpeedValue() const
+{
+    return bulletSpeed;
+}
+
+float Player::getBulletRangeValue() const
+{
+    return bulletMaxDistance_;
+}
+
+float Player::getAccelerationValue() const
+{
+    return speed;
+}
+
+float Player::getMaxWalkSpeedValue() const
+{
+    return maxWalkSpeed;
+}
+
+float Player::getDashForceValue() const
+{
+    return dashForce;
+}
+
+int Player::getDashCooldownValue() const
+{
+    return dashCooldown;
+}
+
+float Player::getJumpPowerValue() const
+{
+    return jumpImpulse_;
+}
+
+int Player::getExtraJumpCountValue() const
+{
+    return maxAirJumps_;
+}
+
+int Player::getSlowFallPercentValue() const
+{
+    if (baseGravity_ <= 0.0001f)
+    {
+        return 0;
+    }
+
+    const float normalizedGravity = std::clamp(gravity_ / baseGravity_, 0.f, 1.f);
+    return static_cast<int>(std::round((1.f - normalizedGravity) * 100.f));
+}
+
 bool Player::canAfford(int amount) const
 {
     return amount <= gold_;

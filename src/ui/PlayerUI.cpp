@@ -4,6 +4,8 @@
 
 #include<algorithm>
 #include<cmath>
+#include<iomanip>
+#include<sstream>
 
 namespace
 {
@@ -27,6 +29,16 @@ const sf::Color kCooldownReadyAccent(214, 173, 120, 255);
 const sf::Color kCooldownChargeAccent(125, 90, 64, 255);
 const sf::Color kCooldownFrameReady(183, 140, 98, 255);
 const sf::Color kCooldownFrameInactive(102, 75, 60, 220);
+const sf::Color kStatsPanelInset(12, 10, 14, 226);
+const sf::Color kStatsPanelAccent(176, 61, 77, 255);
+const sf::Color kStatsLineFill(22, 18, 22, 216);
+
+std::string formatFloatValue(float value, int precision = 1)
+{
+    std::ostringstream stream;
+    stream << std::fixed << std::setprecision(precision) << value;
+    return stream.str();
+}
 
 sf::Color getInventoryQualityColor(Item::Quality quality)
 {
@@ -339,6 +351,125 @@ void PlayerUI::updateEnergyText()
     });
 }
 
+void PlayerUI::rebuildStatLines()
+{
+    struct StatData
+    {
+        std::string label;
+        std::string value;
+        sf::Color accentColor;
+    };
+
+    const std::vector<StatData> stats = {
+        {"Vitality", std::to_string(player->getMaxHP()), sf::Color(194, 72, 72)},
+        {"Energy max", std::to_string(player->getMaxEnergy()), sf::Color(92, 171, 214)},
+        {"Energy gain", std::to_string(player->getEnergyGainValue()), sf::Color(118, 212, 230)},
+        {"Damage", std::to_string(player->getDamageValue()), sf::Color(232, 169, 94)},
+        {"Shot CD", std::to_string(player->getShootCooldownValue()) + " ms", sf::Color(196, 145, 94)},
+        {"Shot cost", std::to_string(player->getShootCostValue()), sf::Color(226, 196, 102)},
+        {"Bolt speed", formatFloatValue(player->getBulletSpeedValue(), 1), sf::Color(121, 212, 202)},
+        {"Range", formatFloatValue(player->getBulletRangeValue(), 0), sf::Color(118, 185, 164)},
+        {"Agility", formatFloatValue(player->getAccelerationValue(), 2), sf::Color(168, 185, 210)},
+        {"Run speed", formatFloatValue(player->getMaxWalkSpeedValue(), 1), sf::Color(198, 213, 228)},
+        {"Dash force", formatFloatValue(player->getDashForceValue(), 1), sf::Color(210, 115, 126)},
+        {"Dash CD", std::to_string(player->getDashCooldownValue()) + " ms", sf::Color(186, 88, 100)},
+        {"Jump power", formatFloatValue(player->getJumpPowerValue(), 1), sf::Color(176, 148, 222)},
+        {"Air jumps", std::to_string(player->getExtraJumpCountValue()), sf::Color(156, 128, 214)},
+        {"Slow fall", std::to_string(player->getSlowFallPercentValue()) + "%", sf::Color(176, 204, 190)}
+    };
+
+    statLines.clear();
+    statLines.reserve(stats.size());
+
+    for (const auto& stat : stats)
+    {
+        statLines.emplace_back(*data->gameFont);
+        StatLineVisual& line = statLines.back();
+        line.plate.setFillColor(kStatsLineFill);
+        line.plate.setOutlineThickness(1.f);
+        line.plate.setOutlineColor(sf::Color(stat.accentColor.r, stat.accentColor.g, stat.accentColor.b, 70));
+
+        line.accent.setFillColor(stat.accentColor);
+
+        styleHudText(line.label, 12, kHudTextSecondary);
+        styleHudText(line.value, 13, kHudTextPrimary);
+        line.label.setString(stat.label);
+        line.value.setString(stat.value);
+        line.value.setFillColor(stat.accentColor);
+    }
+}
+
+void PlayerUI::updateStatsPanel()
+{
+    rebuildStatLines();
+
+    const sf::Vector2f screenViewPos = camera->getScreenViewPos();
+    const float elapsed = uiAnimationClock.getElapsedTime().asSeconds();
+    const float pulse = 0.85f + std::sin(elapsed * 2.8f + 0.35f) * 0.1f;
+    const float panelWidth = BASE_STATS_PANEL_SIZE.x;
+    const float linesHeight = statLines.empty()
+        ? 0.f
+        : static_cast<float>(statLines.size()) * BASE_STATS_LINE_HEIGHT
+            + static_cast<float>(statLines.size() - 1) * BASE_STATS_LINE_GAP;
+    const float panelHeight = 72.f + linesHeight + BASE_STATS_PANEL_PADDING;
+
+    const sf::Vector2f panelPos = {
+        screenViewPos.x + BASE_STATS_PANEL_OFFSET.x,
+        screenViewPos.y + BASE_STATS_PANEL_OFFSET.y
+    };
+
+    statsPanelShadow.setSize({panelWidth, panelHeight});
+    statsPanelShadow.setPosition({panelPos.x + 6.f, panelPos.y + 8.f});
+
+    statsPanelBack.setSize({panelWidth, panelHeight});
+    statsPanelBack.setPosition(panelPos);
+
+    statsHeaderAccent.setSize({panelWidth, 6.f});
+    statsHeaderAccent.setPosition(panelPos);
+    statsHeaderAccent.setFillColor(sf::Color(
+        kStatsPanelAccent.r,
+        kStatsPanelAccent.g,
+        kStatsPanelAccent.b,
+        static_cast<std::uint8_t>(220.f + 28.f * pulse)
+    ));
+
+    statsSideSigil.setSize({4.f, panelHeight - 18.f});
+    statsSideSigil.setPosition({panelPos.x + 10.f, panelPos.y + 10.f});
+    statsSideSigil.setFillColor(sf::Color(92, 38, 45, 218));
+
+    statsTitleText.setPosition({panelPos.x + 20.f, panelPos.y + 12.f});
+    statsWeaponText.setString(player->getCurrentWeaponName());
+    statsWeaponText.setFillColor(getInventoryQualityColor(player->getCurrentWeaponQuality()));
+    statsWeaponText.setPosition({panelPos.x + 20.f, panelPos.y + 34.f});
+
+    statsDivider.setSize({panelWidth - 32.f, 2.f});
+    statsDivider.setPosition({panelPos.x + 16.f, panelPos.y + 54.f});
+
+    float currentY = panelPos.y + 62.f;
+    const float plateWidth = panelWidth - 30.f;
+    for (std::size_t index = 0; index < statLines.size(); ++index)
+    {
+        StatLineVisual& line = statLines[index];
+        const sf::Color plateColor = (index % 2 == 0)
+            ? sf::Color(23, 18, 23, 216)
+            : sf::Color(17, 14, 18, 216);
+        line.plate.setFillColor(plateColor);
+        line.plate.setSize({plateWidth, BASE_STATS_LINE_HEIGHT});
+        line.plate.setPosition({panelPos.x + 16.f, currentY});
+
+        line.accent.setSize({5.f, BASE_STATS_LINE_HEIGHT});
+        line.accent.setPosition(line.plate.getPosition());
+
+        line.label.setPosition({line.plate.getPosition().x + 12.f, currentY + 1.f});
+        line.value.setPosition({
+            line.plate.getPosition().x + plateWidth - line.value.getLocalBounds().size.x - 12.f,
+            currentY + 1.f
+        });
+
+        currentY += BASE_STATS_LINE_HEIGHT + BASE_STATS_LINE_GAP;
+    }
+}
+
 void PlayerUI::syncInventoryIcons()
 {
     inventorySlots.clear();
@@ -470,6 +601,8 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
     , hpText(*d.gameFont)
     , energyTextInfo(*d.gameFont)
     , energyText(*d.gameFont)
+    , statsTitleText(*d.gameFont)
+    , statsWeaponText(*d.gameFont)
     , inventoryTitleText(*d.gameFont)
     , inventoryGoldText(*d.gameFont)
     , inventoryWeaponText(*d.gameFont)
@@ -531,6 +664,27 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
 
     styleHudText(energyText, 20, kHudTextSecondary);
     energyText.setString("ENERGY");
+
+    statsPanelShadow.setFillColor(sf::Color(0, 0, 0, 116));
+
+    statsPanelBack.setFillColor(kStatsPanelInset);
+    statsPanelBack.setOutlineThickness(2.f);
+    statsPanelBack.setOutlineColor(sf::Color(96, 64, 52, 255));
+
+    statsHeaderAccent.setFillColor(kStatsPanelAccent);
+    statsSideSigil.setFillColor(sf::Color(92, 38, 45, 218));
+    statsDivider.setFillColor(sf::Color(78, 56, 46, 255));
+
+    statsTitleText.setCharacterSize(18);
+    statsTitleText.setFillColor(sf::Color(245, 238, 226));
+    statsTitleText.setOutlineThickness(1.5f);
+    statsTitleText.setOutlineColor(sf::Color(0, 0, 0, 180));
+    statsTitleText.setString("Covenant stats");
+
+    statsWeaponText.setCharacterSize(13);
+    statsWeaponText.setFillColor(sf::Color(220, 203, 188));
+    statsWeaponText.setOutlineThickness(1.2f);
+    statsWeaponText.setOutlineColor(sf::Color(0, 0, 0, 180));
 
     inventoryPanelShadow.setFillColor(sf::Color(0, 0, 0, 115));
 
@@ -618,6 +772,22 @@ void PlayerUI::draw(sf::RenderWindow &window)
     window.draw(energyTextInfo);
     window.draw(energyText);
 
+    // Stats panel
+    window.draw(statsPanelShadow);
+    window.draw(statsPanelBack);
+    window.draw(statsHeaderAccent);
+    window.draw(statsSideSigil);
+    window.draw(statsDivider);
+    window.draw(statsTitleText);
+    window.draw(statsWeaponText);
+    for (auto& line : statLines)
+    {
+        window.draw(line.plate);
+        window.draw(line.accent);
+        window.draw(line.label);
+        window.draw(line.value);
+    }
+
     // Inventory panel
     window.draw(inventoryPanelShadow);
     window.draw(inventoryPanelBack);
@@ -656,5 +826,6 @@ void PlayerUI::update()
     updateCooldownRects();
     updateHP();
     updateEnergy();
+    updateStatsPanel();
     updateInventoryPanel();
 }

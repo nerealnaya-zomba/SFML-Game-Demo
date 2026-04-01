@@ -409,6 +409,8 @@ void Menu::initializeSettingsWindow()
         window_m->getSize().x / 2.f - 210.f,
         window_m->getSize().y / 2.f - 160.f
     });
+    settingsWindow->setResizable(false);
+    settingsWindow->setTitleButtons(tgui::ChildWindow::TitleButton::None);
     settingsWindow->setVisible(false);
 
     auto settingsLabel = tgui::Label::create("Tune the veil of this session");
@@ -439,7 +441,10 @@ void Menu::initializeSettingsWindow()
     closeButton->setPosition({14.f, 156.f});
     closeButton->setText("Close");
     closeButton->setTextSize(22);
-    closeButton->onClick([this]() { settingsWindow->setVisible(false); });
+    closeButton->onClick([this]() {
+        settingsWindow->setVisible(false);
+        syncPopupInteractivity();
+    });
     settingsWindow->add(closeButton);
 
     gui.add(settingsWindow);
@@ -454,6 +459,8 @@ void Menu::initializeControlsWindow()
         window_m->getSize().x / 2.f - 235.f,
         window_m->getSize().y / 2.f - 205.f
     });
+    controlsWindow->setResizable(false);
+    controlsWindow->setTitleButtons(tgui::ChildWindow::TitleButton::None);
     controlsWindow->setVisible(false);
 
     auto controlsLabel = tgui::Label::create(
@@ -481,7 +488,10 @@ void Menu::initializeControlsWindow()
     closeButton->setPosition({18.f, 302.f});
     closeButton->setText("Close");
     closeButton->setTextSize(22);
-    closeButton->onClick([this]() { controlsWindow->setVisible(false); });
+    closeButton->onClick([this]() {
+        controlsWindow->setVisible(false);
+        syncPopupInteractivity();
+    });
     controlsWindow->add(closeButton);
 
     gui.add(controlsWindow);
@@ -623,14 +633,13 @@ void Menu::refreshMenuContext()
     }
 
     continueButton->setText(mode_ == MenuMode::Pause ? BASE_RESUME_BUTTON_TEXT : BASE_PLAY_BUTTON_TEXT);
-    continueButton->setEnabled(state_.canContinue);
-    startLevelButton->setEnabled(!state_.availableLevels.empty());
-    restartLevelButton->setEnabled(state_.canRestartLevel);
 
     if (levelSelector->isVisible() && !state_.selectedLevelName.empty() && levelSelector->getSelectedItem().empty())
     {
         levelSelector->setSelectedItem(state_.selectedLevelName);
     }
+
+    syncPopupInteractivity();
 }
 
 void Menu::applyModeLayout()
@@ -641,45 +650,50 @@ void Menu::applyModeLayout()
     const float centerX = window_m->getSize().x * 0.5f;
     const float panelTop = isMainMenu ? window_m->getSize().y * 0.14f : window_m->getSize().y * 0.18f;
 
-    titleLabel->setSize({panelWidth - 70.f, 64.f});
-    titleLabel->setPosition({centerX - (panelWidth - 70.f) / 2.f, panelTop + 18.f});
-    titleLabel->setTextSize(isMainMenu ? 56 : 42);
+    const float titleWidth = panelWidth - 92.f;
+    const float subtitleWidth = panelWidth - 116.f;
+    const float footerWidth = panelWidth - 132.f;
 
-    subtitleLabel->setSize({panelWidth - 100.f, isMainMenu ? 74.f : 58.f});
-    subtitleLabel->setPosition({centerX - (panelWidth - 100.f) / 2.f, panelTop + 90.f});
-    subtitleLabel->setTextSize(isMainMenu ? 19 : 18);
+    titleLabel->setSize({titleWidth, isMainMenu ? 84.f : 72.f});
+    titleLabel->setPosition({centerX - titleWidth / 2.f, panelTop + 10.f});
+    titleLabel->setTextSize(isMainMenu ? 54 : 40);
 
-    footerLabel->setSize({panelWidth - 120.f, 26.f});
-    footerLabel->setPosition({centerX - (panelWidth - 120.f) / 2.f, panelTop + panelHeight - 52.f});
+    subtitleLabel->setSize({subtitleWidth, isMainMenu ? 76.f : 56.f});
+    subtitleLabel->setPosition({centerX - subtitleWidth / 2.f, panelTop + (isMainMenu ? 82.f : 76.f)});
+    subtitleLabel->setTextSize(isMainMenu ? 18 : 17);
 
-    continueButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 56.f : 52.f);
-    startLevelButton->setSize(392.f, 56.f);
-    restartLevelButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 56.f : 52.f);
-    mainMenuButton->setSize(344.f, 52.f);
-    settingsButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 56.f : 52.f);
-    controlsButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 56.f : 52.f);
-    exitButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 56.f : 52.f);
+    footerLabel->setSize({footerWidth, 22.f});
+    footerLabel->setPosition({centerX - footerWidth / 2.f, panelTop + panelHeight - (isMainMenu ? 32.f : 30.f)});
+    footerLabel->setTextSize(isMainMenu ? 14 : 13);
+
+    continueButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
+    startLevelButton->setSize(392.f, 54.f);
+    restartLevelButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
+    mainMenuButton->setSize(344.f, 50.f);
+    settingsButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
+    controlsButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
+    exitButton->setSize(isMainMenu ? 392.f : 344.f, isMainMenu ? 54.f : 50.f);
 
     if (isMainMenu)
     {
-        levelSelector->setPosition({centerX - 200.f, panelTop + 176.f});
+        levelSelector->setPosition({centerX - 200.f, panelTop + 166.f});
         levelSelector->setSize({400.f, 42.f});
 
-        continueButton->setPosition({centerX - 196.f, panelTop + 252.f});
-        startLevelButton->setPosition({centerX - 196.f, panelTop + 316.f});
-        restartLevelButton->setPosition({centerX - 196.f, panelTop + 380.f});
-        settingsButton->setPosition({centerX - 196.f, panelTop + 444.f});
-        controlsButton->setPosition({centerX - 196.f, panelTop + 508.f});
-        exitButton->setPosition({centerX - 196.f, panelTop + 572.f});
+        continueButton->setPosition({centerX - 196.f, panelTop + 232.f});
+        startLevelButton->setPosition({centerX - 196.f, panelTop + 292.f});
+        restartLevelButton->setPosition({centerX - 196.f, panelTop + 352.f});
+        settingsButton->setPosition({centerX - 196.f, panelTop + 412.f});
+        controlsButton->setPosition({centerX - 196.f, panelTop + 472.f});
+        exitButton->setPosition({centerX - 196.f, panelTop + 532.f});
     }
     else
     {
-        continueButton->setPosition({centerX - 172.f, panelTop + 164.f});
-        restartLevelButton->setPosition({centerX - 172.f, panelTop + 224.f});
-        mainMenuButton->setPosition({centerX - 172.f, panelTop + 284.f});
-        settingsButton->setPosition({centerX - 172.f, panelTop + 344.f});
-        controlsButton->setPosition({centerX - 172.f, panelTop + 404.f});
-        exitButton->setPosition({centerX - 172.f, panelTop + 464.f});
+        continueButton->setPosition({centerX - 172.f, panelTop + 148.f});
+        restartLevelButton->setPosition({centerX - 172.f, panelTop + 204.f});
+        mainMenuButton->setPosition({centerX - 172.f, panelTop + 260.f});
+        settingsButton->setPosition({centerX - 172.f, panelTop + 316.f});
+        controlsButton->setPosition({centerX - 172.f, panelTop + 372.f});
+        exitButton->setPosition({centerX - 172.f, panelTop + 428.f});
     }
 
     levelSelector->setVisible(isMainMenu);
@@ -746,15 +760,41 @@ void Menu::applyModeTheme()
     styleSelector();
 }
 
+bool Menu::isBlockingPopupOpen() const
+{
+    return (exitDialogue && exitDialogue->isOpen())
+        || (settingsWindow && settingsWindow->isVisible())
+        || (controlsWindow && controlsWindow->isVisible());
+}
+
+void Menu::syncPopupInteractivity()
+{
+    const bool popupOpen = isBlockingPopupOpen();
+
+    continueButton->setEnabled(!popupOpen && state_.canContinue);
+    startLevelButton->setEnabled(!popupOpen && !state_.availableLevels.empty());
+    restartLevelButton->setEnabled(!popupOpen && state_.canRestartLevel);
+    mainMenuButton->setEnabled(!popupOpen);
+    settingsButton->setEnabled(!popupOpen);
+    controlsButton->setEnabled(!popupOpen);
+    exitButton->setEnabled(!popupOpen);
+
+    if (levelSelector)
+    {
+        levelSelector->setEnabled(!popupOpen && !state_.availableLevels.empty());
+    }
+}
+
 void Menu::updateDecorativeLayout()
 {
     const MenuTheme theme = getMenuTheme(mode_);
     const float panelWidth = getPanelWidth(mode_);
     const float panelHeight = getPanelHeight(mode_);
     const float centerX = window_m->getSize().x * 0.5f;
-    const float centerY = (mode_ == MenuMode::Main)
-        ? window_m->getSize().y * 0.14f + panelHeight * 0.5f
-        : window_m->getSize().y * 0.18f + panelHeight * 0.5f;
+    const float panelTop = (mode_ == MenuMode::Main)
+        ? window_m->getSize().y * 0.14f
+        : window_m->getSize().y * 0.18f;
+    const float centerY = panelTop + panelHeight * 0.5f;
     const float pulse = 0.5f + 0.5f * std::sin(menuVisualTime_ * (mode_ == MenuMode::Main ? 1.3f : 0.65f));
 
     panelShadow_.setSize({panelWidth + 38.f, panelHeight + 46.f});
@@ -788,9 +828,9 @@ void Menu::updateDecorativeLayout()
     dividerLine_.setPosition({centerX, centerY - panelHeight * 0.2f});
     dividerLine_.setFillColor(theme.divider);
 
-    footerBand_.setSize({panelWidth - 110.f, 36.f});
+    footerBand_.setSize({panelWidth - 126.f, mode_ == MenuMode::Main ? 24.f : 22.f});
     footerBand_.setOrigin({footerBand_.getSize().x / 2.f, footerBand_.getSize().y / 2.f});
-    footerBand_.setPosition({centerX, centerY + panelHeight * 0.42f});
+    footerBand_.setPosition({centerX, panelTop + panelHeight - 20.f});
     footerBand_.setFillColor(sf::Color(theme.titleBand.r, theme.titleBand.g, theme.titleBand.b, 140));
 
     for (std::size_t i = 0; i < ornamentLines_.size(); ++i)
@@ -870,6 +910,8 @@ void Menu::closePopups()
     {
         exitDialogue->close();
     }
+
+    syncPopupInteractivity();
 }
 
 void Menu::resumeButtonOnClick()
@@ -926,6 +968,7 @@ void Menu::settingsButtonOnClick()
         controlsWindow->setVisible(false);
     }
     settingsWindow->setVisible(true);
+    syncPopupInteractivity();
 }
 
 void Menu::controlsButtonOnClick()
@@ -935,6 +978,7 @@ void Menu::controlsButtonOnClick()
         settingsWindow->setVisible(false);
     }
     controlsWindow->setVisible(true);
+    syncPopupInteractivity();
 }
 
 void Menu::toggleVsync()
@@ -955,6 +999,7 @@ void Menu::toggleMenuParticles()
 void Menu::exitButtonOnClick()
 {
     exitDialogue->open();
+    syncPopupInteractivity();
 }
 
 void Menu::openMainMenu()
@@ -1033,16 +1078,19 @@ void Menu::menuHandleEvents(const sf::Event& ev)
             if (exitDialogue->isOpen())
             {
                 exitDialogue->close();
+                syncPopupInteractivity();
                 return;
             }
             if (settingsWindow->isVisible())
             {
                 settingsWindow->setVisible(false);
+                syncPopupInteractivity();
                 return;
             }
             if (controlsWindow->isVisible())
             {
                 controlsWindow->setVisible(false);
+                syncPopupInteractivity();
                 return;
             }
             if (isPauseMenu())
@@ -1053,6 +1101,17 @@ void Menu::menuHandleEvents(const sf::Event& ev)
         }
     }
 
+    if (exitDialogue->isOpen())
+    {
+        exitDialogue->handleEvent(ev);
+        return;
+    }
+
+    if ((settingsWindow && settingsWindow->isVisible()) || (controlsWindow && controlsWindow->isVisible()))
+    {
+        gui.handleEvent(ev);
+        return;
+    }
+
     gui.handleEvent(ev);
-    exitDialogue->handleEvent(ev);
 }

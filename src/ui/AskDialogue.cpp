@@ -90,6 +90,11 @@ void AskDialogue::draw(sf::RenderWindow& window)
 
 void AskDialogue::handleEvent(const sf::Event& ev)
 {
+    if (!isCalled)
+    {
+        return;
+    }
+
     gui.handleEvent(ev);
 }
 

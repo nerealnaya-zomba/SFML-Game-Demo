@@ -24,6 +24,11 @@ const sf::Vector2f BASE_INVENTORY_PANEL_SIZE                = {320.f,0.f};
 const sf::Vector2f BASE_INVENTORY_SLOT_SIZE                 = {48.f,48.f};
 const sf::Vector2f BASE_INVENTORY_SLOT_GAP                  = {10.f,10.f};
 const unsigned int BASE_INVENTORY_COLUMNS                   = 4;
+const sf::Vector2f BASE_STATS_PANEL_OFFSET                  = {18.f,152.f};
+const sf::Vector2f BASE_STATS_PANEL_SIZE                    = {264.f,0.f};
+const float BASE_STATS_LINE_HEIGHT                          = 19.f;
+const float BASE_STATS_LINE_GAP                             = 5.f;
+const float BASE_STATS_PANEL_PADDING                        = 12.f;
 
 class GameData;
 class GameCamera;
@@ -90,6 +95,35 @@ private:
     void updateEnergy();
     void updateEnergyInterpolation();
     void updateEnergyText();
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ХАРАКТЕРИСТИКИ
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    struct StatLineVisual
+    {
+        sf::RectangleShape plate;
+        sf::RectangleShape accent;
+        sf::Text label;
+        sf::Text value;
+
+        explicit StatLineVisual(sf::Font& font)
+            : label(font)
+            , value(font)
+        {
+        }
+    };
+
+    sf::RectangleShape statsPanelShadow;
+    sf::RectangleShape statsPanelBack;
+    sf::RectangleShape statsHeaderAccent;
+    sf::RectangleShape statsSideSigil;
+    sf::RectangleShape statsDivider;
+    sf::Text statsTitleText;
+    sf::Text statsWeaponText;
+    std::vector<StatLineVisual> statLines;
+
+    void updateStatsPanel();
+    void rebuildStatLines();
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ИНВЕНТАРЬ И ЗОЛОТО

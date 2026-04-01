@@ -142,6 +142,8 @@ private:
     void refreshMenuContext();
     void applyModeLayout();
     void applyModeTheme();
+    bool isBlockingPopupOpen() const;
+    void syncPopupInteractivity();
     void updateDecorativeLayout();
     void drawDecorativeLayout(sf::RenderWindow& window);
     void closePopups();
