@@ -23,6 +23,60 @@ sf::Vector2f normalizeOrZero(const sf::Vector2f& vector)
 
     return vector / length;
 }
+
+float clamp01(float value)
+{
+    return std::clamp(value, 0.f, 1.f);
+}
+
+float smoothStep(float edge0, float edge1, float value)
+{
+    if (std::abs(edge1 - edge0) <= 0.0001f)
+    {
+        return value < edge0 ? 0.f : 1.f;
+    }
+
+    const float t = clamp01((value - edge0) / (edge1 - edge0));
+    return t * t * (3.f - 2.f * t);
+}
+
+sf::Color withScaledAlpha(const sf::Color& color, float alphaScale)
+{
+    const float scaledAlpha = std::clamp(static_cast<float>(color.a) * alphaScale, 0.f, 255.f);
+    return sf::Color(color.r, color.g, color.b, static_cast<std::uint8_t>(scaledAlpha));
+}
+
+void drawCapsule(sf::RenderWindow& window, const sf::Vector2f& center, float length, float thickness, const sf::Color& color)
+{
+    if (length <= 0.f || thickness <= 0.f || color.a == 0)
+    {
+        return;
+    }
+
+    const float radius = thickness / 2.f;
+    const float bodyWidth = std::max(0.f, length - thickness);
+
+    if (bodyWidth > 0.f)
+    {
+        sf::RectangleShape body({bodyWidth, thickness});
+        body.setOrigin({bodyWidth / 2.f, thickness / 2.f});
+        body.setPosition(center);
+        body.setFillColor(color);
+        window.draw(body);
+    }
+
+    sf::CircleShape leftCap(radius);
+    leftCap.setOrigin({radius, radius});
+    leftCap.setPosition({center.x - bodyWidth / 2.f, center.y});
+    leftCap.setFillColor(color);
+    window.draw(leftCap);
+
+    sf::CircleShape rightCap(radius);
+    rightCap.setOrigin({radius, radius});
+    rightCap.setPosition({center.x + bodyWidth / 2.f, center.y});
+    rightCap.setFillColor(color);
+    window.draw(rightCap);
+}
 }
 
 void Bullet::colorReduction(sf::Color& color, int reduction)
@@ -310,6 +364,7 @@ void Bullet::makeDeathParticles()
 {
     const sf::Vector2f bulletCenter = getCenterPosition();
     const int particleCount = std::max(8, config_.deathParticleCount);
+    const sf::FloatRect bounds = bulletRect_->getGlobalBounds();
 
     for (int i = 0; i < particleCount; i++)
     {
@@ -321,10 +376,15 @@ void Bullet::makeDeathParticles()
         );
 
         particles.emplace_back(
-            sf::Vector2f(
-                bulletCenter.x + random(-bulletRect_->getSize().x * 0.35f, bulletRect_->getSize().x * 0.35f),
-                bulletCenter.y + random(-bulletRect_->getSize().y * 0.35f, bulletRect_->getSize().y * 0.35f)
-            ),
+            config_.beamLike
+                ? sf::Vector2f(
+                    random(bounds.position.x, bounds.position.x + bounds.size.x),
+                    random(bounds.position.y + bounds.size.y * 0.18f, bounds.position.y + bounds.size.y * 0.82f)
+                )
+                : sf::Vector2f(
+                    bulletCenter.x + random(-bulletRect_->getSize().x * 0.35f, bulletRect_->getSize().x * 0.35f),
+                    bulletCenter.y + random(-bulletRect_->getSize().y * 0.35f, bulletRect_->getSize().y * 0.35f)
+                ),
             velocity,
             sf::Vector2f(random(-28.f, 28.f), random(-28.f, 28.f)),
             config_.impactColor,
@@ -351,17 +411,6 @@ void Bullet::updateParticles()
 
 void Bullet::draw(sf::RenderWindow &window)
 {
-    if (config_.beamLike)
-    {
-        const sf::Vector2f center = getCenterPosition();
-        sf::RectangleShape beamGlow(bulletRect_->getSize());
-        beamGlow.setOrigin({beamGlow.getSize().x / 2.f, beamGlow.getSize().y / 2.f});
-        beamGlow.setPosition(center);
-        beamGlow.setRotation(bulletSprite_->getRotation());
-        beamGlow.setFillColor(sf::Color(config_.impactColor.r, config_.impactColor.g, config_.impactColor.b, 72));
-        window.draw(beamGlow);
-    }
-
     if(isSheduledToBeDestroyed)
     {
         sf::Color color = bulletSprite_->getColor();
@@ -369,7 +418,79 @@ void Bullet::draw(sf::RenderWindow &window)
         bulletSprite_->setColor(color);
     }
 
-    window.draw(*bulletSprite_);
+    if (config_.beamLike)
+    {
+        const sf::FloatRect bounds = bulletRect_->getGlobalBounds();
+        const float beamLifetime = std::max(0.001f, config_.beamLifetime);
+        const float elapsed = lifeClock_.getElapsedTime().asSeconds();
+        const float lifeProgress = clamp01(elapsed / beamLifetime);
+        const float fadeIn = smoothStep(0.f, 0.15f, lifeProgress);
+        const float fadeOut = 1.f - smoothStep(0.62f, 1.f, lifeProgress);
+        const float destructionFade = static_cast<float>(bulletSprite_->getColor().a) / 255.f;
+        const float visibility = clamp01(fadeIn * fadeOut * destructionFade);
+
+        if (visibility > 0.01f)
+        {
+            const bool facesLeft = bulletSprite_->getScale().x < 0.f;
+            const float pulse = 0.95f + std::sin(elapsed * 92.f) * 0.08f;
+            const float centerY = bounds.position.y + bounds.size.y / 2.f;
+            const float centerX = bounds.position.x + bounds.size.x / 2.f;
+            const float startX = facesLeft ? bounds.position.x + bounds.size.x : bounds.position.x;
+            const float endX = facesLeft ? bounds.position.x : bounds.position.x + bounds.size.x;
+            const sf::Vector2f beamCenter = {centerX, centerY};
+
+            drawCapsule(
+                window,
+                beamCenter,
+                bounds.size.x,
+                bounds.size.y * 1.9f * pulse,
+                withScaledAlpha(config_.impactColor, visibility * 0.18f)
+            );
+            drawCapsule(
+                window,
+                beamCenter,
+                bounds.size.x,
+                bounds.size.y * 1.15f * pulse,
+                withScaledAlpha(config_.trailColor, visibility * 0.46f)
+            );
+            drawCapsule(
+                window,
+                beamCenter,
+                bounds.size.x,
+                std::max(6.f, bounds.size.y * 0.56f * pulse),
+                withScaledAlpha(sf::Color(255, 235, 247, 255), visibility * 0.95f)
+            );
+
+            sf::CircleShape sourceGlow(bounds.size.y * 0.92f * pulse);
+            sourceGlow.setOrigin({sourceGlow.getRadius(), sourceGlow.getRadius()});
+            sourceGlow.setPosition({startX, centerY});
+            sourceGlow.setFillColor(withScaledAlpha(config_.impactColor, visibility * 0.44f));
+            window.draw(sourceGlow);
+
+            sf::CircleShape sourceCore(bounds.size.y * 0.46f * pulse);
+            sourceCore.setOrigin({sourceCore.getRadius(), sourceCore.getRadius()});
+            sourceCore.setPosition({startX, centerY});
+            sourceCore.setFillColor(withScaledAlpha(sf::Color(255, 240, 248, 255), visibility));
+            window.draw(sourceCore);
+
+            sf::CircleShape tipGlow(bounds.size.y * 0.62f * pulse);
+            tipGlow.setOrigin({tipGlow.getRadius(), tipGlow.getRadius()});
+            tipGlow.setPosition({endX, centerY});
+            tipGlow.setFillColor(withScaledAlpha(config_.trailColor, visibility * 0.34f));
+            window.draw(tipGlow);
+
+            sf::CircleShape tipCore(bounds.size.y * 0.18f * pulse);
+            tipCore.setOrigin({tipCore.getRadius(), tipCore.getRadius()});
+            tipCore.setPosition({endX, centerY});
+            tipCore.setFillColor(withScaledAlpha(sf::Color(255, 238, 244, 255), visibility * 0.92f));
+            window.draw(tipCore);
+        }
+    }
+    else
+    {
+        window.draw(*bulletSprite_);
+    }
+
     for (auto& particle : particles)
     {
         particle.draw(window);
