@@ -50,6 +50,12 @@ private:
     sf::Time pointTargetDuration = sf::Time::Zero;
     bool useTimedPointTarget = false;
 
+    sf::Vector2f impactOffset = {0.f, 0.f};
+    sf::Vector2f impactVelocity = {0.f, 0.f};
+    float shakeTrauma = 0.f;
+    float zoomPunch = 0.f;
+    float shakeTime = 0.f;
+
     Player* player = nullptr;                       // Указатель на игрока для управления
     GameLevelManager* levelManager = nullptr;       // Указатель на менеджер, для получения данных о рамках уровня
     sf::View* view = nullptr;                       // Указатель на вид для управления
@@ -60,6 +66,8 @@ private:
     void movementUpdate(float deltatime, unsigned int levelWidth, unsigned int levelHeight);
     sf::Vector2f clampToLevelBounds(sf::Vector2f pos, unsigned int levelWidth, unsigned int levelHeight) const;
     sf::Vector2f calculateFollowTarget(float deltatime, unsigned int levelWidth, unsigned int levelHeight);
+    void updateScreenEffects(float deltaTime, unsigned int levelWidth, unsigned int levelHeight);
+    sf::Vector2f calculateShakeOffset() const;
     float smoothDamp(float current, float target, float& currentVelocity, float smoothTime, float maxSpeedValue, float deltaTime);
     void resetMotionState();
 
@@ -85,6 +93,8 @@ public:
     void attachGameLevelManager(GameLevelManager& m);
     void attachPlayer(Player& player);
     void setCenterPosition(sf::Vector2f pos);
+    void addImpact(const sf::Vector2f& direction, float impulseStrength, float trauma, float zoomPunchAmount = 0.02f);
+    void clearEffects();
 
     // Getters
     float getZoom()                     const;

@@ -1,9 +1,18 @@
 #include<Player.h>
 #include<ScreenTransition.h>
+#include<GameCamera.h>
+#include<VisualEffects.h>
 
 #include <algorithm>
+#include <cmath>
 
 using namespace gameUtils;
+
+namespace
+{
+constexpr float kPi = 3.14159265f;
+}
+
 Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w)
     : 
     CDMenu(
@@ -19,6 +28,7 @@ Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::R
 {
     this->gameTextures = &gameTextures;
     this->levelManager = &m;
+    this->camera = &c;
     //Loading data from GameData.json
     loadData();
 
@@ -55,6 +65,11 @@ Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::R
     portal = new LevelPortal({0.0,0.0},BASE_PORTAL_SPEED_OF_OPENING,BASE_PORTAL_SPEED_OF_CLOSING,portalExistTime,*playerSprite,*playerRectangle_,gameTextures,m,*transition);
     portalCallCloseCooldownClock.reset();
     portalCallOpenCooldownClock.reset();
+
+    runEffectClock_.restart();
+    teleportEffectClock_.restart();
+    criticalEffectClock_.restart();
+    landingEffectClock_.restart();
 }
 
 void Player::switchToNextFallingSprite()
@@ -171,6 +186,258 @@ sf::Vector2f Player::getFeetPosition() const
     };
 }
 
+float Player::getFacingDirection() const
+{
+    return playerSprite->getScale().x >= 0.f ? 1.f : -1.f;
+}
+
+void Player::triggerCameraImpact(const sf::Vector2f& direction, float impulseStrength, float trauma, float zoomPunch)
+{
+    if (camera)
+    {
+        camera->addImpact(direction, impulseStrength, trauma, zoomPunch);
+    }
+}
+
+void Player::pushRing(
+    const sf::Vector2f& position,
+    const sf::Color& color,
+    float radius,
+    float maxRadius,
+    float growth,
+    float thickness,
+    float alpha
+)
+{
+    effectRings_.push_back(VisualRing{
+        .position = position,
+        .color = color,
+        .radius = radius,
+        .maxRadius = maxRadius,
+        .growth = growth,
+        .thickness = thickness,
+        .alpha = alpha
+    });
+}
+
+void Player::spawnParticleBurst(
+    const sf::Vector2f& origin,
+    const sf::Color& color,
+    int count,
+    float minSpeed,
+    float maxSpeed,
+    float radius,
+    float gravity,
+    float lifetime
+)
+{
+    for (int index = 0; index < count; ++index)
+    {
+        const float angle = random(0.f, 360.f) * kPi / 180.f;
+        const float speedValue = random(minSpeed, maxSpeed);
+        const sf::Vector2f velocity = {
+            std::cos(angle) * speedValue,
+            std::sin(angle) * speedValue
+        };
+
+        particles.emplace_back(
+            origin,
+            velocity,
+            sf::Vector2f{random(-55.f, 55.f), random(-45.f, 45.f)},
+            color,
+            radius,
+            gravity,
+            0.88f,
+            lifetime
+        );
+    }
+}
+
+void Player::spawnRunEffect()
+{
+    const sf::Vector2f feet = getFeetPosition();
+    const sf::Color ashColor = std::abs(initialWalkSpeed) > maxWalkSpeed * 0.8f
+        ? sf::Color(168, 110, 102, 95)
+        : sf::Color(110, 122, 134, 78);
+
+    spawnParticleBurst(
+        {feet.x + random(-10.f, 10.f), feet.y - 4.f},
+        ashColor,
+        2,
+        12.f,
+        44.f,
+        1.9f,
+        -12.f,
+        0.55f
+    );
+}
+
+void Player::spawnJumpEffect()
+{
+    const sf::Vector2f feet = getFeetPosition();
+    pushRing(feet, sf::Color(156, 88, 76, 148), 8.f, 52.f, 3.5f, 2.4f, 148.f);
+    spawnParticleBurst(
+        {feet.x, feet.y - 6.f},
+        sf::Color(204, 114, 92, 190),
+        10,
+        50.f,
+        150.f,
+        2.3f,
+        18.f,
+        0.58f
+    );
+}
+
+void Player::spawnLandingEffect(float impactStrength)
+{
+    if (landingEffectClock_.getElapsedTime().asMilliseconds() < LANDING_EFFECT_COOLDOWN_MS)
+    {
+        return;
+    }
+
+    landingEffectClock_.restart();
+
+    const sf::Vector2f feet = getFeetPosition();
+    const float clampedImpact = std::clamp(impactStrength, 1.5f, 8.f);
+    pushRing(
+        feet,
+        sf::Color(188, 94, 82, 156),
+        12.f,
+        62.f + clampedImpact * 4.f,
+        4.1f,
+        2.5f,
+        156.f
+    );
+    spawnParticleBurst(
+        {feet.x, feet.y - 4.f},
+        sf::Color(112, 92, 86, 170),
+        static_cast<int>(6 + clampedImpact),
+        28.f,
+        120.f + clampedImpact * 16.f,
+        2.4f,
+        54.f,
+        0.8f
+    );
+    triggerCameraImpact({0.f, -0.45f}, 26.f + clampedImpact * 3.f, 0.12f + clampedImpact * 0.015f, 0.018f);
+}
+
+void Player::spawnShootEffect(bool direction)
+{
+    const float facingDirection = direction ? 1.f : -1.f;
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Vector2f muzzleOrigin = {
+        center.x + facingDirection * 24.f,
+        center.y - 4.f
+    };
+
+    pushRing(
+        muzzleOrigin,
+        sf::Color(242, 184, 112, 178),
+        7.f,
+        36.f,
+        3.6f,
+        2.f,
+        178.f
+    );
+    spawnParticleBurst(
+        muzzleOrigin,
+        sf::Color(255, 210, 148, 220),
+        7,
+        70.f,
+        188.f,
+        2.1f,
+        14.f,
+        0.42f
+    );
+    triggerCameraImpact({direction ? -1.f : 1.f, 0.f}, 18.f, 0.08f, 0.014f);
+}
+
+void Player::spawnDashBurst()
+{
+    const float direction = getFacingDirection();
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Vector2f origin = {center.x - direction * 18.f, center.y + 10.f};
+
+    pushRing(origin, sf::Color(180, 66, 72, 170), 10.f, 68.f, 4.3f, 3.f, 170.f);
+    spawnParticleBurst(
+        origin,
+        sf::Color(210, 82, 88, 205),
+        14,
+        80.f,
+        220.f,
+        2.7f,
+        12.f,
+        0.62f
+    );
+    triggerCameraImpact({direction, -0.08f}, 32.f, 0.16f, 0.025f);
+}
+
+void Player::spawnTeleportEffect(bool enteringPortal)
+{
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Color portalColor = enteringPortal
+        ? sf::Color(112, 210, 240, 215)
+        : sf::Color(92, 170, 214, 170);
+
+    pushRing(center, portalColor, enteringPortal ? 10.f : 6.f, enteringPortal ? 64.f : 42.f, 3.8f, 2.4f, enteringPortal ? 185.f : 140.f);
+    spawnParticleBurst(
+        {center.x + random(-12.f, 12.f), center.y + random(-18.f, 18.f)},
+        portalColor,
+        enteringPortal ? 10 : 4,
+        34.f,
+        enteringPortal ? 148.f : 92.f,
+        2.2f,
+        -36.f,
+        enteringPortal ? 0.72f : 0.52f
+    );
+}
+
+void Player::spawnDeathEffect()
+{
+    const sf::Vector2f center = getCenterPosition();
+    pushRing(center, sf::Color(224, 84, 76, 215), 12.f, 86.f, 5.f, 3.4f, 215.f);
+    pushRing(center, sf::Color(255, 226, 180, 130), 8.f, 44.f, 3.f, 2.f, 130.f);
+    spawnParticleBurst(center, sf::Color(226, 70, 76, 220), 20, 90.f, 240.f, 3.3f, 48.f, 0.95f);
+    spawnParticleBurst(center, sf::Color(32, 10, 14, 220), 12, 34.f, 112.f, 4.4f, -16.f, 1.15f);
+}
+
+void Player::spawnCriticalHealthEffect()
+{
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Vector2f emberOrigin = {
+        center.x + random(-10.f, 10.f),
+        center.y + random(-22.f, 10.f)
+    };
+
+    spawnParticleBurst(
+        emberOrigin,
+        sf::Color(144, 30, 42, 150),
+        3,
+        12.f,
+        54.f,
+        1.8f,
+        -10.f,
+        0.7f
+    );
+    pushRing(center, sf::Color(86, 22, 28, 75), 10.f, 32.f, 1.9f, 1.4f, 75.f);
+}
+
+void Player::updateRingEffects()
+{
+    for (auto& ring : effectRings_)
+    {
+        ring.radius += ring.growth;
+        ring.alpha = std::max(0.f, ring.alpha - ring.growth * 3.4f);
+    }
+
+    effectRings_.erase(
+        std::remove_if(effectRings_.begin(), effectRings_.end(), [](const VisualRing& ring) {
+            return ring.radius >= ring.maxRadius || ring.alpha <= 2.f;
+        }),
+        effectRings_.end()
+    );
+}
+
 int Player::takeAllGold()
 {
     const int lostGold = gold_;
@@ -245,6 +512,7 @@ void Player::respawnAt(sf::Vector2f pos)
 
     bullets.clear();
     particles.clear();
+    effectRings_.clear();
 
     shootTimer.reset();
     shootTimer.stop();
@@ -260,16 +528,28 @@ void Player::respawnAt(sf::Vector2f pos)
     portalCooldownClock.stop();
     portalCallOpenCooldownClock.reset();
     portalCallCloseCooldownClock.reset();
+    runEffectClock_.restart();
+    teleportEffectClock_.restart();
+    criticalEffectClock_.restart();
+    landingEffectClock_.restart();
+    deathEffectPlayed_ = false;
+    wasInTeleportArea_ = false;
 
     if (portal)
     {
         portal->resetState();
     }
 
+    if (camera)
+    {
+        camera->clearEffects();
+    }
+
     CDMenu.close();
     setPosition(pos);
     playerSprite->setTexture(idleTextures->at(0), true);
     playerSprite->setScale({std::abs(playerSprite->getScale().x), playerSprite->getScale().y});
+    trail->clearTrailArray();
 }
 
 bool Player::tryPurchaseItem(const Item &item)
@@ -306,6 +586,13 @@ void Player::updateTextures()
 
     if(isPlayingDieAnimation)
     {
+        if (!deathEffectPlayed_)
+        {
+            spawnDeathEffect();
+            deathEffectPlayed_ = true;
+        }
+
+        pulseSprite(*playerSprite, sf::Color(230, 78, 82, 255), 2.2f, sf::seconds(0.35f));
         if(!switchToNextSprite(this->playerSprite,*this->satiro_dieTextures,satiro_die_helper,switchSprite_SwitchOption::Single))
         {
             isAlive = false;
@@ -316,6 +603,7 @@ void Player::updateTextures()
 
     if(isPlayingHurtAnimation)
     {
+        pulseSprite(*playerSprite, sf::Color(255, 96, 92, 255), 1.8f, sf::seconds(0.24f));
         if(!switchToNextSprite(this->playerSprite,*this->satiro_hurtTextures,satiro_hurt_helper,switchSprite_SwitchOption::Single))
         {
             isPlayingHurtAnimation = false;
@@ -361,6 +649,7 @@ void Player::updateTextures()
 
     if(isPlayingDashAnimation)
     {
+        pulseSprite(*playerSprite, sf::Color(198, 90, 100, 255), 2.4f, sf::seconds(0.2f));
         if(!switchToNextSprite(this->playerSprite,*this->satiro_dashTextures,satiro_dash_helper,switchSprite_SwitchOption::Single))
         {
             isPlayingDashAnimation= false;
@@ -654,6 +943,8 @@ void Player::checkPlatformRectCollision(std::vector<std::shared_ptr<sf::Rectangl
             {
                 if (fromTop) {
                     // Сверху
+                    const float landingSpeed = fallingSpeed;
+                    const bool hardLanding = isFalling && landingSpeed > 1.6f;
                     isFalling = false;
                     if(fallingSpeed>0.f)
                     {
@@ -665,6 +956,11 @@ void Player::checkPlatformRectCollision(std::vector<std::shared_ptr<sf::Rectangl
                         {
                             playerRectangle_->setPosition({playerBounds.position.x,playerBounds.position.y-2.f});
                         }
+                    }
+
+                    if (hardLanding)
+                    {
+                        spawnLandingEffect(landingSpeed);
                     }
                 } else {
                     // Снизу
@@ -684,9 +980,16 @@ void Player::checkGroundCollision(sf::RectangleShape& groundRect)
 
     if(playerY>=groundY)
     {
+        const float landingSpeed = fallingSpeed;
+        const bool hardLanding = isFalling && landingSpeed > 1.6f;
         isFalling = false;
         fallingSpeed = 0.f;
         playerRectangle_->setPosition({playerX,groundY-playerRectangle_->getSize().y});
+
+        if (hardLanding)
+        {
+            spawnLandingEffect(landingSpeed);
+        }
     }
 }
 
@@ -713,6 +1016,8 @@ void Player::updateParticles()
             [](const Particle& p) { return !p.getIsAlive(); }),
         particles.end()
     );
+
+    updateRingEffects();
 }
 
 void Player::updateEnergy()
@@ -751,6 +1056,8 @@ void Player::jump()
 
     playerRectangle_->setPosition({playerRectangle_->getPosition().x,playerRectangle_->getPosition().y-1.f});
     fallingSpeed = -5.5f;
+    spawnJumpEffect();
+    triggerCameraImpact({0.f, -1.f}, 16.f, 0.08f, 0.015f);
 }
 
 void Player::fallDown()
@@ -780,6 +1087,8 @@ void Player::dash()
         } else{
             initialWalkSpeed = -dashForce;
         }
+
+        spawnDashBurst();
     }
 }
 
@@ -810,6 +1119,7 @@ bool Player::shoot(bool direction)
     }
 
     bullets.push_back(std::move(bulletPtr));
+    spawnShootEffect(direction);
 
     energy-=shootCost;
     if(energy<0) energy = 0;
@@ -818,40 +1128,27 @@ bool Player::shoot(bool direction)
 }
 void Player::dashParticles()
 {
-    sf::Vector2f playerPos = this->playerRectangle_->getGlobalBounds().getCenter();
-        
-    for (int i = 0; i < 40; i++) {
-        sf::Color particleColor = sf::Color(150,150,150);
-        float playerRectDownSide = playerPos.y+(playerRectangle_->getSize().y/2);
-        float particleSpeed = random(-150,150);
-        float particleSize = 1.f;
-        float particleGravity = 0.f;
-        float accelerationDamping = 0.8f;
-        float particleLifeTime = 0.2f;
+    const float direction = getFacingDirection();
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Vector2f origin = {
+        center.x - direction * random(4.f, 18.f),
+        playerRectangle_->getPosition().y + playerRectangle_->getSize().y - random(2.f, 10.f)
+    };
 
-        if(playerSprite->getScale().x > 0){
-            particles.emplace_back(
-            sf::Vector2f(playerPos.x,playerRectDownSide),
-            sf::Vector2f(particleSpeed, 0.f),
-            sf::Vector2f(random(-60,60), random(-60,60)),
-            sf::Color(particleColor),
-            particleSize,
-            particleGravity,
-            accelerationDamping,
-            particleLifeTime
-            );
-        } else{
-            particles.emplace_back(
-            sf::Vector2f(playerPos.x,playerRectDownSide),
-            sf::Vector2f(particleSpeed, 0.f),
-            sf::Vector2f(random(-60,60), random(-60,60)),
-            sf::Color(particleColor),
-            particleSize,
-            particleGravity,
-            accelerationDamping,
-            particleLifeTime 
-            );
-        } 
+    spawnParticleBurst(
+        origin,
+        sf::Color(126, 76, 86, 135),
+        6,
+        30.f,
+        120.f,
+        1.8f,
+        -12.f,
+        0.32f
+    );
+
+    if (random(0.f, 1.f) > 0.68f)
+    {
+        pushRing(origin, sf::Color(154, 78, 88, 78), 4.f, 18.f, 1.8f, 1.4f, 78.f);
     }
 }
 /*
@@ -889,6 +1186,18 @@ bool Player::takeDMG(int count, sf::Vector2f knockback, bool side)
 
         //Blood
         bloodExplode();
+        pushRing(getCenterPosition(), sf::Color(210, 64, 70, 165), 10.f, 48.f, 4.f, 2.2f, 165.f);
+        spawnParticleBurst(
+            getCenterPosition(),
+            sf::Color(212, 72, 78, 215),
+            8,
+            70.f,
+            180.f,
+            2.4f,
+            28.f,
+            0.48f
+        );
+        triggerCameraImpact({side ? -1.f : 1.f, -0.16f}, 72.f, 0.5f, 0.065f);
 
         //Cooldown
         takeDMG_isOnCooldown = true;
@@ -897,6 +1206,12 @@ bool Player::takeDMG(int count, sf::Vector2f knockback, bool side)
         if (HP_ <= 0)
         {
             CDMenu.close();
+            if (!deathEffectPlayed_)
+            {
+                spawnDeathEffect();
+                deathEffectPlayed_ = true;
+            }
+            triggerCameraImpact({0.f, -0.65f}, 110.f, 0.75f, 0.11f);
         }
         return true;
     }
@@ -993,7 +1308,36 @@ void Player::updatePhysics()
 
     updateParticles();
 
-    if(this->HP_<=0) isPlayingDieAnimation = true;
+    if(this->HP_<=0)
+    {
+        isPlayingDieAnimation = true;
+        if (!deathEffectPlayed_)
+        {
+            spawnDeathEffect();
+            deathEffectPlayed_ = true;
+            triggerCameraImpact({0.f, -0.65f}, 110.f, 0.75f, 0.11f);
+        }
+    }
+
+    if (portal->getIsInAreaOfTeleportation())
+    {
+        if (!wasInTeleportArea_)
+        {
+            wasInTeleportArea_ = true;
+            teleportEffectClock_.restart();
+            spawnTeleportEffect(true);
+            triggerCameraImpact({0.f, -0.2f}, 18.f, 0.1f, 0.02f);
+        }
+        else if (teleportEffectClock_.getElapsedTime().asMilliseconds() >= TELEPORT_EFFECT_INTERVAL_MS)
+        {
+            teleportEffectClock_.restart();
+            spawnTeleportEffect(false);
+        }
+    }
+    else
+    {
+        wasInTeleportArea_ = false;
+    }
 
     if(isPlayingDieAnimation || !isAlive)
     {
@@ -1005,6 +1349,23 @@ void Player::updatePhysics()
     applyFriction(initialWalkSpeed,this->frictionForce);
 
     updateEnergy();
+
+    if (HP_ > 0 &&
+        HP_ <= static_cast<int>(std::ceil(maxHP * CRITICAL_HP_RATIO)) &&
+        criticalEffectClock_.getElapsedTime().asMilliseconds() >= CRITICAL_EFFECT_INTERVAL_MS)
+    {
+        criticalEffectClock_.restart();
+        spawnCriticalHealthEffect();
+    }
+
+    if (!isFalling &&
+        !isPlayingDashAnimation &&
+        std::abs(initialWalkSpeed) > maxWalkSpeed * 0.45f &&
+        runEffectClock_.getElapsedTime().asMilliseconds() >= RUN_EFFECT_INTERVAL_MS)
+    {
+        runEffectClock_.restart();
+        spawnRunEffect();
+    }
 
     if(fallingSpeed<0)
     {
@@ -1043,7 +1404,6 @@ void Player::updatePhysics()
 
     //Level border collision (left and right)
     float levelWidth = static_cast<float>(levelManager->getCurrentLevelSize().x);
-    float levelHeight = static_cast<float>(levelManager->getCurrentLevelSize().y);
     if(playerRectangle_->getPosition().x+playerRectangle_->getSize().x>=levelWidth)
     {
         playerRectangle_->setPosition({levelWidth-playerRectangle_->getSize().x,playerRectangle_->getPosition().y});
@@ -1119,6 +1479,17 @@ void Player::draw(sf::RenderWindow& window)
 
 void Player::drawParticles(sf::RenderWindow &window)
 {
+    for (const auto& ring : effectRings_)
+    {
+        sf::CircleShape circle(ring.radius);
+        circle.setOrigin({circle.getRadius(), circle.getRadius()});
+        circle.setPosition(ring.position);
+        circle.setFillColor(sf::Color::Transparent);
+        circle.setOutlineThickness(ring.thickness);
+        circle.setOutlineColor(sf::Color(ring.color.r, ring.color.g, ring.color.b, static_cast<std::uint8_t>(ring.alpha)));
+        window.draw(circle);
+    }
+
     for (auto& particle : particles) {
         particle.draw(window);
     }
@@ -1126,16 +1497,27 @@ void Player::drawParticles(sf::RenderWindow &window)
 
 void Player::drawPlayerTrail(sf::RenderWindow& window)
 {
-    //trail->trailColor = sf::Color(0,255,255,80);
-    trail->speedOfTrailDisappearing = 5;
-    trail->trailColor = sf::Color(0,0,0,80);
-    // Трейл только когда игрок ДВИГАЕТСЯ
-    if(std::abs(initialWalkSpeed) > 0.1f) {
-        if(std::abs(initialWalkSpeed) > maxWalkSpeed*1.5) {
-            trail->trailColor = sf::Color(0,0,0,180); // Обычная скорость
-            trail->generateTrail(window);
-        }
+    trail->speedOfTrailDisappearing = 14;
+    trail->trailColor = sf::Color(14, 12, 16, 82);
+
+    if (portal->getIsInAreaOfTeleportation())
+    {
+        trail->speedOfTrailDisappearing = 10;
+        trail->trailColor = sf::Color(54, 132, 166, 96);
+        trail->generateTrail(window);
     }
+    else if (isPlayingDashAnimation)
+    {
+        trail->speedOfTrailDisappearing = 9;
+        trail->trailColor = sf::Color(110, 24, 30, 155);
+        trail->generateTrail(window);
+    }
+    else if (!isFalling && std::abs(initialWalkSpeed) > maxWalkSpeed * 0.6f)
+    {
+        trail->trailColor = sf::Color(22, 18, 22, 92);
+        trail->generateTrail(window);
+    }
+
     trail->makeTrailDisappear();
     trail->drawTrail(window);
 }

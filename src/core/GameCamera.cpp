@@ -5,11 +5,29 @@
 
 namespace
 {
+constexpr float kCameraTraumaDecay = 1.85f;
+constexpr float kCameraImpactDamping = 11.5f;
+constexpr float kCameraOffsetDamping = 14.0f;
+constexpr float kCameraZoomRecovery = 4.8f;
+constexpr float kCameraMaxZoomPunch = 0.13f;
+constexpr sf::Vector2f kCameraShakeAmplitude = {28.f, 18.f};
+
 sf::Vector2f clampVectorMagnitude(sf::Vector2f value, sf::Vector2f maxMagnitude)
 {
     value.x = std::clamp(value.x, -maxMagnitude.x, maxMagnitude.x);
     value.y = std::clamp(value.y, -maxMagnitude.y, maxMagnitude.y);
     return value;
+}
+
+sf::Vector2f normalizeOrFallback(sf::Vector2f value, sf::Vector2f fallback = {0.f, -1.f})
+{
+    const float length = std::sqrt(value.x * value.x + value.y * value.y);
+    if (length <= 0.0001f)
+    {
+        return fallback;
+    }
+
+    return value / length;
 }
 
 float expSmoothingFactor(float sharpness, float deltaTime)
@@ -95,6 +113,36 @@ sf::Vector2f GameCamera::calculateFollowTarget(float deltatime, unsigned int lev
     );
 
     return clampToLevelBounds(playerPos + lookAheadOffset, levelWidth, levelHeight);
+}
+
+sf::Vector2f GameCamera::calculateShakeOffset() const
+{
+    const float shakeStrength = shakeTrauma * shakeTrauma;
+    return {
+        std::sin(shakeTime * 47.f) * kCameraShakeAmplitude.x * shakeStrength,
+        std::cos(shakeTime * 63.f + 0.8f) * kCameraShakeAmplitude.y * shakeStrength
+    };
+}
+
+void GameCamera::updateScreenEffects(float deltaTime, unsigned int levelWidth, unsigned int levelHeight)
+{
+    shakeTime += deltaTime;
+    shakeTrauma = std::max(0.f, shakeTrauma - kCameraTraumaDecay * deltaTime);
+    zoomPunch = std::max(0.f, zoomPunch - kCameraZoomRecovery * deltaTime);
+
+    impactVelocity *= std::exp(-kCameraImpactDamping * deltaTime);
+    impactOffset += impactVelocity * deltaTime;
+    impactOffset *= std::exp(-kCameraOffsetDamping * deltaTime);
+
+    const sf::Vector2f finalCenter = clampToLevelBounds(
+        cameraPos + impactOffset + calculateShakeOffset(),
+        levelWidth,
+        levelHeight
+    );
+    const float zoomFactor = std::clamp(1.f - zoomPunch, 0.82f, 1.06f);
+
+    view->setSize({WINDOW_WIDTH * ZOOM_SCALE * zoomFactor, WINDOW_HEIGHT * ZOOM_SCALE * zoomFactor});
+    view->setCenter(finalCenter);
 }
 
 float GameCamera::smoothDamp(
@@ -193,8 +241,11 @@ void GameCamera::update()
         static_cast<unsigned int>(std::max(0, levelSize.y))
     );
 
-    view->setSize({WINDOW_WIDTH * ZOOM_SCALE, WINDOW_HEIGHT * ZOOM_SCALE});
-    view->setCenter(cameraPos);
+    updateScreenEffects(
+        dt,
+        static_cast<unsigned int>(std::max(0, levelSize.x)),
+        static_cast<unsigned int>(std::max(0, levelSize.y))
+    );
 }
 
 void GameCamera::pointCameraAt(sf::Vector2f pos, std::function<bool()> condition)
@@ -269,6 +320,30 @@ void GameCamera::setCenterPosition(sf::Vector2f pos)
     }
 }
 
+void GameCamera::addImpact(const sf::Vector2f& direction, float impulseStrength, float trauma, float zoomPunchAmount)
+{
+    const sf::Vector2f normalizedDirection = normalizeOrFallback(direction);
+    impactVelocity += normalizedDirection * impulseStrength;
+    impactOffset += normalizedDirection * std::min(impulseStrength * 0.08f, 18.f);
+    shakeTrauma = std::clamp(shakeTrauma + trauma, 0.f, 1.f);
+    zoomPunch = std::clamp(std::max(zoomPunch, zoomPunchAmount), 0.f, kCameraMaxZoomPunch);
+}
+
+void GameCamera::clearEffects()
+{
+    impactOffset = {0.f, 0.f};
+    impactVelocity = {0.f, 0.f};
+    shakeTrauma = 0.f;
+    zoomPunch = 0.f;
+    shakeTime = 0.f;
+
+    if (view)
+    {
+        view->setSize({WINDOW_WIDTH * ZOOM_SCALE, WINDOW_HEIGHT * ZOOM_SCALE});
+        view->setCenter(cameraPos);
+    }
+}
+
 float GameCamera::getZoom() const
 {
     return ZOOM_SCALE;
@@ -276,6 +351,11 @@ float GameCamera::getZoom() const
 
 sf::Vector2f GameCamera::getScreenViewSize() const
 {
+    if (view)
+    {
+        return view->getSize();
+    }
+
     return {WINDOW_WIDTH * ZOOM_SCALE, WINDOW_HEIGHT * ZOOM_SCALE};
 }
 

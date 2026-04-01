@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <VisualEffects.h>
+#include <Particle.h>
 #include <SFML/System.hpp>
 #include <HealthBar.h>
 #include <math.h>
@@ -25,8 +26,26 @@ enum skeletonAction {
     ATTACK2,
 };
 
+enum class SkeletonAwarenessState
+{
+    Patrol,
+    Alert,
+    Search
+};
+
 class Skeleton : public Enemy {
 private:
+    struct VisualRing
+    {
+        sf::Vector2f position{};
+        sf::Color color{255, 255, 255, 255};
+        float radius = 8.f;
+        float maxRadius = 48.f;
+        float growth = 2.f;
+        float thickness = 2.f;
+        float alpha = 180.f;
+    };
+
     // Внешние ссылки
     sf::RenderWindow* window;
     Ground* ground_;
@@ -50,14 +69,22 @@ private:
     bool isPlayingDieAnimation = false;
     bool isPlayerOutOfReach = false;
     bool hasDroppedGold = false;
+    bool hasDetectedPlayer = false;
+    bool hasLastKnownPlayerPos = false;
+    bool attackDamageApplied = false;
+    bool deathEffectPlayed = false;
+    bool isPatrolPaused = false;
     
     skeletonAction action_ = IDLE;
+    skeletonAction pendingPatrolAction_ = WALKRIGHT;
+    SkeletonAwarenessState awarenessState_ = SkeletonAwarenessState::Patrol;
 
     // Физические параметры
     float fallingSpeed = 0.f;
     float initialWalkSpeed = 0.f;
     float speed;
     float maxWalkSpeed;
+    float baseMaxWalkSpeed = 0.f;
     float frictionForce;
     int HP_;
     int DMG_;
@@ -66,6 +93,11 @@ private:
     float distanceToHit_byAttack;
     bool knockbacks;
     sf::Vector2f enemyPos;
+    sf::Vector2f lastKnownPlayerPos{};
+
+    // Визуальные эффекты
+    std::vector<Particle> effectParticles_;
+    std::vector<VisualRing> effectRings_;
 
     // Графика
     sf::Vector2f enemyScale_;
@@ -117,9 +149,15 @@ private:
     ExplorationState explorationState = EXPLORE_NONE;
     sf::Clock deadEndCheckTimer;
     sf::Clock directionSwitchTimer;
+    sf::Clock patrolPauseTimer;
     sf::Clock AFKTimeTimer;                     // Отсчитывает время, сколько скелет находится в AFK
     sf::Clock AFKPastPosUpdateTimer;            // Нужен для обновления прошлой позиции скелета
     sf::Clock blackoutTimer;                    // Таймер для амнезии
+    sf::Clock aggroMemoryClock;
+    sf::Clock attackCooldownClock;
+    sf::Clock patrolEffectClock;
+    sf::Clock deathSmokeClock;
+    sf::Clock alertPulseClock;
     
     float exploreStartPos           = 0.0f;
     float leftBound                 = 0.0f;
@@ -141,10 +179,21 @@ private:
     const float DIRECTION_SWITCH_COOLDOWN   = 300.0f;
     const float DIRECTION_SWITCH_OFFSET     = 100.0f;
     const float PATROL_SWITCH_DELAY         = 1000.0f;
+    const float PATROL_EDGE_PAUSE           = 420.0f;
 
     const float MAX_AFK_TIME                = 1400.0f;
     const float AFK_BEFORE_UPDATE_TIME      = 200.f;
     const float timeToResetALLThatHeKnows   = 10000.f;  // Стереть все, что знает скелет через это время. Нужно чтобы скелет не контролировал маленький участок территории всю жизнь
+
+    const float ALERT_SPEED_MULTIPLIER      = 1.22f;
+    const float ATTACK_COOLDOWN_MS          = 1050.f;
+    const float AGGRO_MEMORY_MS             = 2600.f;
+    const float PATROL_EFFECT_INTERVAL_MS   = 180.f;
+
+    float alertDistance_                    = 0.f;
+    float loseAggroDistance_                = 0.f;
+    float verticalAlertTolerance_           = 0.f;
+    float verticalAttackTolerance_          = 0.f;
 
     // Таймеры
     sf::Clock isPlayerOutOfReachClock;
@@ -152,6 +201,36 @@ private:
     // Атака
     void tryAttackPlayer();
     void onBulletHit();
+    void beginAttack(skeletonAction attackAction);
+    void updateVisualEffects();
+    void drawVisualEffects();
+    void drawAttackTelegraph();
+    void spawnPatrolEffect();
+    void spawnNoticeEffect();
+    void spawnAttackEffect(bool heavyAttack);
+    void spawnAttackImpactEffect();
+    void spawnDeathEffect();
+    void spawnParticleBurst(
+        const sf::Vector2f& origin,
+        const sf::Color& color,
+        int count,
+        float minSpeed,
+        float maxSpeed,
+        float radius,
+        float gravity,
+        float lifetime
+    );
+    void pushRing(
+        const sf::Vector2f& position,
+        const sf::Color& color,
+        float radius,
+        float maxRadius,
+        float growth,
+        float thickness,
+        float alpha
+    );
+    sf::Vector2f getCenterPosition() const;
+    float getFacingDirection() const;
 
     // Физика и коллизии
     void checkGroundCollision(Ground& ground);

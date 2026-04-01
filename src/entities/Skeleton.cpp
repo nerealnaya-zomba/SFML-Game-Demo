@@ -4,6 +4,12 @@
 #include "Player.h"
 #include <EnemyManager.h>
 #include<GameLevel.h>
+
+namespace
+{
+constexpr float kPi = 3.14159265f;
+}
+
 using namespace gameUtils;
 
 // ========== ДВИЖЕНИЕ ==========
@@ -19,7 +25,9 @@ void Skeleton::walkRight() {
 
 // ========== ПРЕСЛЕДОВАНИЕ ИГРОКА ==========
 void Skeleton::chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos) {
-    if (skeletonPos.x < playerPos.x) {
+    if (std::abs(skeletonPos.x - playerPos.x) < 8.f) {
+        action_ = IDLE;
+    } else if (skeletonPos.x < playerPos.x) {
         action_ = WALKRIGHT;
     } else if (skeletonPos.x > playerPos.x) {
         action_ = WALKLEFT;
@@ -88,16 +96,47 @@ void Skeleton::patrol() {
     } 
     // Фаза патрулирования между границами
     else {
+        if (isPatrolPaused) {
+            action_ = IDLE;
+            if (patrolPauseTimer.getElapsedTime().asMilliseconds() >= PATROL_EDGE_PAUSE) {
+                isPatrolPaused = false;
+                action_ = pendingPatrolAction_;
+                directionSwitchTimer.restart();
+                recentlySwitchedDirection = true;
+            }
+            return;
+        }
+
         if (!recentlySwitchedDirection) {
             // Проверка достижения границ
             if (action_ == WALKLEFT && currentSkeletonPos <= leftBound + DIRECTION_SWITCH_OFFSET) {
-                action_ = WALKRIGHT;
-                recentlySwitchedDirection = true;
-                directionSwitchTimer.restart();
+                pendingPatrolAction_ = WALKRIGHT;
+                isPatrolPaused = true;
+                patrolPauseTimer.restart();
+                pushRing(
+                    getCenterPosition(),
+                    sf::Color(136, 162, 176, 110),
+                    14.f,
+                    42.f,
+                    2.1f,
+                    2.f,
+                    110.f
+                );
+                return;
             } else if (action_ == WALKRIGHT && currentSkeletonPos >= rightBound - DIRECTION_SWITCH_OFFSET) {
-                action_ = WALKLEFT;
-                recentlySwitchedDirection = true;
-                directionSwitchTimer.restart();
+                pendingPatrolAction_ = WALKLEFT;
+                isPatrolPaused = true;
+                patrolPauseTimer.restart();
+                pushRing(
+                    getCenterPosition(),
+                    sf::Color(136, 162, 176, 110),
+                    14.f,
+                    42.f,
+                    2.1f,
+                    2.f,
+                    110.f
+                );
+                return;
             }
         }
         
@@ -114,6 +153,7 @@ void Skeleton::makeRandomPatrolVariables() {
     if (makeRandomStart != isPlayerOutOfReach) {
         makeRandomStart = isPlayerOutOfReach;
         isFirstEnter = true;
+        isPatrolPaused = false;
         explorationState = EXPLORE_NONE;
         leftExplored = false;
         rightExplored = false;
@@ -128,6 +168,7 @@ void Skeleton::resetAllThatHeKnows()
     rightExplored              = false;
     recentlySwitchedDirection  = false;
     isFirstEnter               = true;
+    isPatrolPaused             = false;
     makeRandomStart            = false;
     leftBound                  = 0.0f;
     rightBound                 = 0.0f;
@@ -147,6 +188,19 @@ void Skeleton::tryAttackPlayer() {
     }
 }
 
+void Skeleton::beginAttack(skeletonAction attackAction)
+{
+    action_ = attackAction;
+    attackDamageApplied = false;
+
+    texturesIterHelper* helper = attackAction == ATTACK1 ? &skeleton_attack1_helper : &skeleton_attack2_helper;
+    helper->ptrToTexture = 0;
+    helper->iterationCounter = 0;
+    helper->goForward = true;
+
+    spawnAttackEffect(attackAction == ATTACK2);
+}
+
 // ========== ОБРАБОТКА ПОПАДАНИЯ ПУЛИ ==========
 void Skeleton::onBulletHit() {
     isPlayingHurtAnimation = true;
@@ -163,6 +217,26 @@ void Skeleton::onBulletHit() {
     
     // Уменьшение здоровья
     HP_ -= player_->DMG_;
+
+    spawnParticleBurst(
+        getCenterPosition(),
+        type_ == "yellow" ? sf::Color(255, 196, 112, 220) : sf::Color(216, 78, 74, 220),
+        type_ == "yellow" ? 7 : 6,
+        70.f,
+        165.f,
+        2.8f,
+        34.f,
+        0.45f
+    );
+    pushRing(
+        getCenterPosition(),
+        type_ == "yellow" ? sf::Color(255, 204, 138, 170) : sf::Color(217, 94, 87, 170),
+        12.f,
+        38.f,
+        3.2f,
+        2.5f,
+        170.f
+    );
 }
 
 // ========== КОЛЛИЗИИ С ЗЕМЛЕЙ ==========
@@ -273,6 +347,319 @@ void Skeleton::loadData() {
         knockback_ = {j["skeleton-yellow"]["KnockbackX"], j["skeleton-white"]["KnockbackY"]};
         knockbacks = j["skeleton-yellow"]["knockbacks"];
     }
+
+    baseMaxWalkSpeed = maxWalkSpeed;
+    alertDistance_ = distanceToMakeAttack * 3.0f;
+    loseAggroDistance_ = alertDistance_ * 1.45f;
+    verticalAlertTolerance_ = std::max(145.f, distanceToMakeAttack * 1.35f);
+    verticalAttackTolerance_ = std::max(skeletonRect ? skeletonRect->getSize().y * 1.1f : 62.f, 68.f);
+}
+
+sf::Vector2f Skeleton::getCenterPosition() const
+{
+    return skeletonRect ? skeletonRect->getGlobalBounds().getCenter() : enemyPos;
+}
+
+float Skeleton::getFacingDirection() const
+{
+    return (!skeletonSprite || skeletonSprite->getScale().x >= 0.f) ? 1.f : -1.f;
+}
+
+void Skeleton::pushRing(
+    const sf::Vector2f& position,
+    const sf::Color& color,
+    float radius,
+    float maxRadius,
+    float growth,
+    float thickness,
+    float alpha
+)
+{
+    effectRings_.push_back(VisualRing{
+        .position = position,
+        .color = color,
+        .radius = radius,
+        .maxRadius = maxRadius,
+        .growth = growth,
+        .thickness = thickness,
+        .alpha = alpha
+    });
+}
+
+void Skeleton::spawnParticleBurst(
+    const sf::Vector2f& origin,
+    const sf::Color& color,
+    int count,
+    float minSpeed,
+    float maxSpeed,
+    float radius,
+    float gravity,
+    float lifetime
+)
+{
+    for (int index = 0; index < count; ++index)
+    {
+        const float angle = random(0.f, 360.f) * kPi / 180.f;
+        const float speed = random(minSpeed, maxSpeed);
+        const sf::Vector2f velocity = {
+            std::cos(angle) * speed,
+            std::sin(angle) * speed
+        };
+
+        effectParticles_.emplace_back(
+            origin,
+            velocity,
+            sf::Vector2f{random(-50.f, 50.f), random(-35.f, 35.f)},
+            color,
+            radius,
+            gravity,
+            0.88f,
+            lifetime
+        );
+    }
+}
+
+void Skeleton::spawnPatrolEffect()
+{
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Vector2f footOrigin = {
+        center.x + random(-8.f, 8.f),
+        skeletonRect->getPosition().y + skeletonRect->getSize().y - 3.f
+    };
+
+    spawnParticleBurst(
+        footOrigin,
+        sf::Color(134, 154, 170, 95),
+        2,
+        18.f,
+        42.f,
+        2.1f,
+        -8.f,
+        0.6f
+    );
+}
+
+void Skeleton::spawnNoticeEffect()
+{
+    const sf::Vector2f center = getCenterPosition();
+
+    pushRing(
+        {center.x, center.y - 12.f},
+        type_ == "yellow" ? sf::Color(255, 208, 146, 210) : sf::Color(220, 100, 86, 210),
+        12.f,
+        56.f,
+        3.8f,
+        3.f,
+        210.f
+    );
+    pushRing(
+        {center.x, center.y - 20.f},
+        sf::Color(255, 232, 194, 155),
+        4.f,
+        28.f,
+        2.6f,
+        2.f,
+        155.f
+    );
+    spawnParticleBurst(
+        {center.x, center.y - 14.f},
+        type_ == "yellow" ? sf::Color(255, 210, 126, 215) : sf::Color(234, 96, 83, 215),
+        type_ == "yellow" ? 10 : 8,
+        65.f,
+        160.f,
+        2.6f,
+        22.f,
+        0.55f
+    );
+    alertPulseClock.restart();
+}
+
+void Skeleton::spawnAttackEffect(bool heavyAttack)
+{
+    const sf::Vector2f center = getCenterPosition();
+    const float direction = player_->playerRectangle_->getGlobalBounds().getCenter().x >= center.x ? 1.f : -1.f;
+    const sf::Vector2f swingOrigin = {center.x + direction * 18.f, center.y - 12.f};
+    const sf::Color effectColor = heavyAttack
+        ? sf::Color(255, 198, 108, 215)
+        : sf::Color(220, 88, 74, 210);
+
+    pushRing(
+        swingOrigin,
+        effectColor,
+        10.f,
+        heavyAttack ? 64.f : 50.f,
+        heavyAttack ? 4.f : 3.2f,
+        heavyAttack ? 3.f : 2.4f,
+        185.f
+    );
+    spawnParticleBurst(
+        swingOrigin,
+        effectColor,
+        heavyAttack ? 10 : 7,
+        90.f,
+        heavyAttack ? 210.f : 165.f,
+        heavyAttack ? 3.1f : 2.5f,
+        18.f,
+        heavyAttack ? 0.65f : 0.5f
+    );
+}
+
+void Skeleton::spawnAttackImpactEffect()
+{
+    const sf::Vector2f center = getCenterPosition();
+    const float direction = getFacingDirection();
+    const sf::Vector2f impactPoint = {
+        center.x + direction * (26.f + enemyScale_.x * 8.f),
+        center.y - 8.f
+    };
+
+    pushRing(
+        impactPoint,
+        sf::Color(255, 220, 164, 175),
+        8.f,
+        42.f,
+        3.8f,
+        2.f,
+        175.f
+    );
+    spawnParticleBurst(
+        impactPoint,
+        type_ == "yellow" ? sf::Color(255, 222, 155, 225) : sf::Color(245, 128, 102, 220),
+        8,
+        85.f,
+        205.f,
+        2.4f,
+        26.f,
+        0.42f
+    );
+}
+
+void Skeleton::spawnDeathEffect()
+{
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Color mainColor = type_ == "yellow"
+        ? sf::Color(255, 195, 116, 230)
+        : sf::Color(196, 60, 67, 230);
+
+    pushRing(center, mainColor, 12.f, 74.f, 4.5f, 3.5f, 220.f);
+    pushRing(center, sf::Color(255, 236, 188, 150), 6.f, 36.f, 2.8f, 2.f, 150.f);
+    spawnParticleBurst(center, mainColor, type_ == "yellow" ? 18 : 14, 90.f, 220.f, 3.3f, 32.f, 0.9f);
+    spawnParticleBurst(center, sf::Color(54, 18, 22, 215), 10, 48.f, 132.f, 4.4f, -9.f, 1.1f);
+    deathSmokeClock.restart();
+}
+
+void Skeleton::updateVisualEffects()
+{
+    for (auto& particle : effectParticles_)
+    {
+        particle.update();
+    }
+
+    effectParticles_.erase(
+        std::remove_if(effectParticles_.begin(), effectParticles_.end(), [](const Particle& particle) {
+            return !particle.getIsAlive();
+        }),
+        effectParticles_.end()
+    );
+
+    for (auto& ring : effectRings_)
+    {
+        ring.radius += ring.growth;
+        ring.alpha = std::max(0.f, ring.alpha - ring.growth * 3.6f);
+    }
+
+    effectRings_.erase(
+        std::remove_if(effectRings_.begin(), effectRings_.end(), [](const VisualRing& ring) {
+            return ring.radius >= ring.maxRadius || ring.alpha <= 3.f;
+        }),
+        effectRings_.end()
+    );
+}
+
+void Skeleton::drawAttackTelegraph()
+{
+    if (action_ != ATTACK1 && action_ != ATTACK2)
+    {
+        return;
+    }
+
+    const texturesIterHelper& helper = action_ == ATTACK1 ? skeleton_attack1_helper : skeleton_attack2_helper;
+    const int textureCount = std::max(1, helper.countOfTextures + 1);
+    const float progress = static_cast<float>(helper.ptrToTexture) / static_cast<float>(textureCount);
+    const float intensity = std::sin(std::clamp(progress, 0.f, 1.f) * kPi);
+    if (intensity <= 0.04f)
+    {
+        return;
+    }
+
+    const float direction = getFacingDirection();
+    const sf::Vector2f center = getCenterPosition();
+    const sf::Color slashColor = type_ == "yellow"
+        ? sf::Color(255, 212, 130, static_cast<std::uint8_t>(90.f + intensity * 85.f))
+        : sf::Color(214, 88, 74, static_cast<std::uint8_t>(78.f + intensity * 92.f));
+
+    sf::RectangleShape slashGlow({52.f + intensity * 34.f, 18.f + intensity * 7.f});
+    slashGlow.setOrigin({slashGlow.getSize().x * 0.25f, slashGlow.getSize().y / 2.f});
+    slashGlow.setPosition({center.x + direction * (24.f + intensity * 10.f), center.y - 10.f});
+    slashGlow.setRotation(sf::degrees(direction > 0.f ? -18.f : 198.f));
+    slashGlow.setFillColor(sf::Color(slashColor.r, slashColor.g, slashColor.b, static_cast<std::uint8_t>(slashColor.a * 0.45f)));
+    window->draw(slashGlow);
+
+    sf::RectangleShape slashCore({36.f + intensity * 22.f, 7.f + intensity * 4.f});
+    slashCore.setOrigin({slashCore.getSize().x * 0.22f, slashCore.getSize().y / 2.f});
+    slashCore.setPosition(slashGlow.getPosition());
+    slashCore.setRotation(slashGlow.getRotation());
+    slashCore.setFillColor(slashColor);
+    window->draw(slashCore);
+}
+
+void Skeleton::drawVisualEffects()
+{
+    const sf::Vector2f center = getCenterPosition();
+
+    if (!isPlayingDieAnimation)
+    {
+        const bool patrolWalking = awarenessState_ == SkeletonAwarenessState::Patrol &&
+            (action_ == WALKLEFT || action_ == WALKRIGHT);
+        const bool alerted = awarenessState_ == SkeletonAwarenessState::Alert || awarenessState_ == SkeletonAwarenessState::Search;
+
+        if (patrolWalking || alerted)
+        {
+            sf::CircleShape aura(alerted ? 20.f : 16.f);
+            aura.setOrigin({aura.getRadius(), aura.getRadius()});
+            aura.setScale({alerted ? 1.9f : 1.45f, alerted ? 0.78f : 0.62f});
+            aura.setPosition({center.x, skeletonRect->getPosition().y + skeletonRect->getSize().y - 4.f});
+
+            const float pulse = 0.78f + std::sin(alertPulseClock.getElapsedTime().asSeconds() * (alerted ? 9.f : 4.5f)) * 0.22f;
+            aura.setFillColor(alerted
+                ? sf::Color(
+                    type_ == "yellow" ? 255 : 184,
+                    type_ == "yellow" ? 194 : 74,
+                    type_ == "yellow" ? 110 : 64,
+                    static_cast<std::uint8_t>(52.f + pulse * 44.f)
+                )
+                : sf::Color(116, 136, 152, static_cast<std::uint8_t>(24.f + pulse * 24.f)));
+            window->draw(aura);
+        }
+    }
+
+    for (const auto& ring : effectRings_)
+    {
+        sf::CircleShape circle(ring.radius);
+        circle.setOrigin({circle.getRadius(), circle.getRadius()});
+        circle.setPosition(ring.position);
+        circle.setFillColor(sf::Color::Transparent);
+        circle.setOutlineThickness(ring.thickness);
+        circle.setOutlineColor(sf::Color(ring.color.r, ring.color.g, ring.color.b, static_cast<std::uint8_t>(ring.alpha)));
+        window->draw(circle);
+    }
+
+    for (const auto& particle : effectParticles_)
+    {
+        particle.draw(*window);
+    }
+
+    drawAttackTelegraph();
 }
 
 // ========== КОНСТРУКТОР ==========
@@ -339,6 +726,7 @@ Skeleton::Skeleton(GameData &gameData, EnemyManager& em, GameLevel& gl, sf::Rend
     skeletonRect->setSize({sizeX, sizeY});
     skeletonRect->setFillColor(sf::Color::Red);
     skeletonRect->setPosition(enemyPos);
+    verticalAttackTolerance_ = std::max(skeletonRect->getSize().y * 1.15f, 72.f);
     
     sf::Vector2f rectCenter = skeletonRect->getGlobalBounds().getCenter();
     skeletonSprite->setPosition({rectCenter.x, rectCenter.y - 15.f});
@@ -347,6 +735,12 @@ Skeleton::Skeleton(GameData &gameData, EnemyManager& em, GameLevel& gl, sf::Rend
     // Полоска здоровья
     healthbar = std::make_unique<HealthBar>(skeletonRect.get(), window, sf::Color::Red, sf::Color::Green,
                              sf::Vector2f{50.f, 5.f}, HP_, sf::Vector2f{0.f, -50.f});
+
+    attackCooldownClock.restart();
+    aggroMemoryClock.restart();
+    patrolEffectClock.restart();
+    deathSmokeClock.restart();
+    alertPulseClock.restart();
 }
 
 // ========== ДЕСТРУКТОР ==========
@@ -354,97 +748,110 @@ Skeleton::~Skeleton() = default;
 
 // ========== ОБНОВЛЕНИЕ ИИ ==========
 void Skeleton::updateAI() {
-    if (!isAlive) return;
-    if(!portal->getIsHalfPassed()) return;
-    
-    sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
-    sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
-    float distanceX = std::abs(skeletonPos.x - playerPos.x);
-    float distanceY = std::abs(skeletonPos.y - playerPos.y);
-    
-    //Player center to check if he passes left or right bound
-    float playerCenterX = this->player_->playerRectangle_->getGlobalBounds().getCenter().x;
-    // Атака при близости игрока
-    if (distanceX < distanceToMakeAttack && distanceY < distanceToMakeAttack) {
-        if (action_ != ATTACK1 && action_ != ATTACK2) {
-            action_ = (rand() % 2 == 0) ? ATTACK1 : ATTACK2;
-        }
-    } else if (!isPlayerOutOfReach) {
-        chasePlayer(skeletonPos, playerPos);
+    if (!isAlive || !portal->getIsHalfPassed()) {
+        return;
     }
-    // Перезапуск таймеров проверки тупика и смены направления если скелет атакует
-    if(action_ == ATTACK1 || action_ == ATTACK2){
+
+    const sf::Vector2f skeletonPos = getCenterPosition();
+    const sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
+    const float distanceX = std::abs(skeletonPos.x - playerPos.x);
+    const float distanceY = std::abs(skeletonPos.y - playerPos.y);
+
+    const bool canNoticePlayer = distanceX <= alertDistance_ && distanceY <= verticalAlertTolerance_;
+    const bool canAttackPlayer = distanceX <= distanceToMakeAttack && distanceY <= verticalAttackTolerance_;
+
+    if (canNoticePlayer) {
+        lastKnownPlayerPos = playerPos;
+        hasLastKnownPlayerPos = true;
+        aggroMemoryClock.restart();
+
+        if (!hasDetectedPlayer) {
+            hasDetectedPlayer = true;
+            awarenessState_ = SkeletonAwarenessState::Alert;
+            spawnNoticeEffect();
+        }
+    }
+
+    maxWalkSpeed = hasDetectedPlayer ? baseMaxWalkSpeed * ALERT_SPEED_MULTIPLIER : baseMaxWalkSpeed;
+
+    if (isPlayingDieAnimation || isPlayingHurtAnimation) {
+        return;
+    }
+
+    if (action_ == ATTACK1 || action_ == ATTACK2) {
         deadEndCheckTimer.restart();
         directionSwitchTimer.restart();
-    } 
-    
-    // Проверка досягаемости игрока по вертикали
-    float skeletonTopY = skeletonRect->getGlobalBounds().getCenter().y - (skeletonRect->getSize().y / 2);
-    float skeletonBotY = skeletonRect->getGlobalBounds().getCenter().y + (skeletonRect->getSize().y / 2);
-    float playerBottomY = player_->playerRectangle_->getGlobalBounds().getCenter().y + (player_->playerRectangle_->getSize().y / 2);
-    float playerTopY = player_->playerRectangle_->getGlobalBounds().getCenter().y - (player_->playerRectangle_->getSize().y / 2);
-    
-    bool isPlayerUnreachable = (playerBottomY < skeletonTopY || playerTopY > skeletonBotY) 
-                            && !(playerCenterX > leftBound && playerCenterX < rightBound);
+        blackoutTimer.restart();
+        return;
+    }
 
-    // Проверка, находится ли игрок в зоне преследования (внутри границ патрулирования)
-    bool isPlayerInPatrolZone = (playerCenterX > leftBound && playerCenterX < rightBound);
+    const bool hasAggroMemory = hasLastKnownPlayerPos &&
+        aggroMemoryClock.getElapsedTime().asMilliseconds() < AGGRO_MEMORY_MS;
+    const bool lostPlayerCompletely = distanceX > loseAggroDistance_ || distanceY > verticalAlertTolerance_ * 1.6f;
 
-    // Проверка вертикальной досягаемости игрока
-    bool isPlayerVerticallyReachable = !(playerBottomY < skeletonTopY || playerTopY > skeletonBotY);
-
-    // Игрок достижим только если он и внутри зоны патрулирования, и на одном уровне
-    bool isPlayerReachable = isPlayerInPatrolZone && isPlayerVerticallyReachable;
-
-    if (!isPlayerReachable) {
-        // Игрок недосягаем - запускаем/продолжаем таймер
-        if (!isPlayerOutOfReachClock.isRunning()) {
-            isPlayerOutOfReachClock.restart();
+    if (hasDetectedPlayer) {
+        if (canAttackPlayer &&
+            attackCooldownClock.getElapsedTime().asMilliseconds() >= ATTACK_COOLDOWN_MS) {
+            beginAttack((rand() % 2 == 0) ? ATTACK1 : ATTACK2);
+        } else if (canNoticePlayer) {
+            awarenessState_ = SkeletonAwarenessState::Alert;
+            chasePlayer(skeletonPos, playerPos);
+        } else if (hasAggroMemory && !lostPlayerCompletely) {
+            awarenessState_ = SkeletonAwarenessState::Search;
+            chasePlayer(skeletonPos, lastKnownPlayerPos);
+        } else {
+            hasDetectedPlayer = false;
+            hasLastKnownPlayerPos = false;
+            awarenessState_ = SkeletonAwarenessState::Patrol;
+            action_ = IDLE;
+            makeRandomPatrolVariables();
         }
-        
-        if (isPlayerOutOfReachClock.getElapsedTime().asMilliseconds() >= PATROL_SWITCH_DELAY) {
-            isPlayerOutOfReach = true;
-        }
+    }
+
+    if (!hasDetectedPlayer) {
+        awarenessState_ = SkeletonAwarenessState::Patrol;
+        isPlayerOutOfReach = true;
+        makeRandomPatrolVariables();
+        patrol();
     } else {
-        // Игрок достижим - сбрасываем таймер и выходим из режима патрулирования
-        isPlayerOutOfReachClock.restart();
         isPlayerOutOfReach = false;
     }
 
-    // Переключение в патрулирование только если игрок недосягаем
-    if (isPlayerOutOfReach) {
-        makeRandomPatrolVariables();
-        patrol();
+    if (awarenessState_ == SkeletonAwarenessState::Patrol &&
+        (action_ == WALKLEFT || action_ == WALKRIGHT) &&
+        !isPatrolPaused &&
+        patrolEffectClock.getElapsedTime().asMilliseconds() >= PATROL_EFFECT_INTERVAL_MS) {
+        patrolEffectClock.restart();
+        spawnPatrolEffect();
     }
 
-    // Регистрирование что скелет "завис" и слишком долго АФК
-    if(action_ == ATTACK1 || action_ == ATTACK2 || leftExplored == false || rightExplored == false){    // Сбрасываем АФК таймеры, если выполняются действия
+    if (action_ == ATTACK1 || action_ == ATTACK2 || leftExplored == false || rightExplored == false || hasDetectedPlayer) {
         AFKPastPosUpdateTimer.restart();
         AFKTimeTimer.reset();
-    } 
+    }
+
     afk_current_pos = skeletonRect->getGlobalBounds().getCenter().x;
-    if(checkInterval(AFKPastPosUpdateTimer,AFK_BEFORE_UPDATE_TIME) || !AFKPastPosUpdateTimer.isRunning())
+    if (checkInterval(AFKPastPosUpdateTimer, AFK_BEFORE_UPDATE_TIME) || !AFKPastPosUpdateTimer.isRunning())
     {
         AFKPastPosUpdateTimer.restart();
         afk_past_pos = skeletonRect->getGlobalBounds().getCenter().x;
     }
-    if(abs(afk_current_pos - afk_past_pos) < afk_detect_difference) {       // Если выполняется - скелет в АФК
+
+    if (std::abs(afk_current_pos - afk_past_pos) < afk_detect_difference && awarenessState_ == SkeletonAwarenessState::Patrol) {
         AFKTimeTimer.start();
-        if(AFKTimeTimer.getElapsedTime().asMilliseconds() > MAX_AFK_TIME){  // Сбрасываем переменные, если он был слишком долго афк
+        if (AFKTimeTimer.getElapsedTime().asMilliseconds() > MAX_AFK_TIME) {
             resetAllThatHeKnows();
         }
     } else {
         AFKTimeTimer.reset();
     }
 
-    // Таймер амнезии
-    if(action_ == ATTACK1 || action_ == ATTACK2 || leftExplored == false || rightExplored == false){    // Обновить таймер если он еще не исследовал границы или атакует
+    if (action_ == ATTACK1 || action_ == ATTACK2 || leftExplored == false || rightExplored == false || hasDetectedPlayer) {
         blackoutTimer.restart();
     }
-    if(checkInterval(blackoutTimer,timeToResetALLThatHeKnows)){                                         // Если его время вышло, забыть все.
+    if (checkInterval(blackoutTimer, timeToResetALLThatHeKnows)) {
         resetAllThatHeKnows();
     }
-
 }
 
 // ========== УПРАВЛЕНИЕ ==========
@@ -465,6 +872,7 @@ void Skeleton::updateControl() {
 // ========== ФИЗИКА ==========
 void Skeleton::updatePhysics() {
     portal->update();
+    updateVisualEffects();
     if(!portal->getIsHalfPassed()) return;
 
     applyFriction(initialWalkSpeed, frictionForce);
@@ -500,6 +908,20 @@ void Skeleton::updatePhysics() {
         isPlayingDieAnimation = true;
     }
 
+    if (isPlayingDieAnimation && deathSmokeClock.getElapsedTime().asMilliseconds() >= 130.f) {
+        deathSmokeClock.restart();
+        spawnParticleBurst(
+            {getCenterPosition().x + random(-8.f, 8.f), getCenterPosition().y - random(6.f, 14.f)},
+            type_ == "yellow" ? sf::Color(255, 196, 120, 150) : sf::Color(98, 22, 26, 170),
+            2,
+            18.f,
+            56.f,
+            type_ == "yellow" ? 3.2f : 4.2f,
+            -14.f,
+            0.65f
+        );
+    }
+
     // Коллизии (всегда в конце)
     checkGroundCollision(*ground_);
     checkPlatformCollision(*platform_);
@@ -516,7 +938,7 @@ void Skeleton::updateTextures() {
 
     // Анимация получения урона
     if (isPlayingHurtAnimation && HP_ > 0) {
-        pulseSprite(*skeletonSprite, sf::Color(255, 0, 0, 255), 1.f, sf::seconds(0.2f));
+        pulseSprite(*skeletonSprite, sf::Color(255, 82, 76, 255), 1.8f, sf::seconds(0.2f));
         if (!switchToNextSprite(skeletonSprite.get(), *skeleton_hurtTextures, 
             skeleton_hurt_helper, switchSprite_SwitchOption::Single)) {
             isPlayingHurtAnimation = false;
@@ -531,7 +953,17 @@ void Skeleton::updateTextures() {
     
     // Анимация смерти
     if (isPlayingDieAnimation) {   
-        skeletonSprite->setColor(sf::Color::Red);
+        if (!deathEffectPlayed) {
+            spawnDeathEffect();
+            deathEffectPlayed = true;
+        }
+
+        pulseSprite(
+            *skeletonSprite,
+            type_ == "yellow" ? sf::Color(255, 196, 124, 255) : sf::Color(214, 62, 70, 255),
+            2.2f,
+            sf::seconds(0.35f)
+        );
         if (!switchToNextSprite(skeletonSprite.get(), *skeleton_dieTextures, 
             skeleton_die_helper, switchSprite_SwitchOption::Single)) {
             if(!hasDroppedGold && enemyManager)
@@ -564,7 +996,9 @@ void Skeleton::updateTextures() {
                             skeleton_attack1_helper, switchSprite_SwitchOption::Single);
             
             // Нанесение урона в середине анимации
-            if (skeleton_attack1_helper.ptrToTexture == 5) {
+            if (!attackDamageApplied && skeleton_attack1_helper.ptrToTexture >= 5) {
+                attackDamageApplied = true;
+                spawnAttackImpactEffect();
                 tryAttackPlayer();
             }
         } else { 
@@ -572,14 +1006,29 @@ void Skeleton::updateTextures() {
                             skeleton_attack2_helper, switchSprite_SwitchOption::Single);
             
             // Нанесение урона в середине анимации
-            if (skeleton_attack2_helper.ptrToTexture == 4) {
+            if (!attackDamageApplied && skeleton_attack2_helper.ptrToTexture >= 4) {
+                attackDamageApplied = true;
+                spawnAttackImpactEffect();
                 tryAttackPlayer();
             }
         }
+
+        pulseSprite(
+            *skeletonSprite,
+            type_ == "yellow" ? sf::Color(255, 212, 132, 255) : sf::Color(208, 84, 70, 255),
+            1.2f,
+            sf::seconds(0.28f)
+        );
         
         // Возврат в состояние покоя
         if (attackFinished) {
             action_ = IDLE;
+            attackCooldownClock.restart();
+            attackDamageApplied = false;
+            skeleton_attack1_helper.ptrToTexture = 0;
+            skeleton_attack1_helper.iterationCounter = 0;
+            skeleton_attack2_helper.ptrToTexture = 0;
+            skeleton_attack2_helper.iterationCounter = 0;
         }
         
         sf::Vector2f rectCenter = skeletonRect->getGlobalBounds().getCenter();
@@ -587,7 +1036,10 @@ void Skeleton::updateTextures() {
         return;
     } else{
         skeleton_attack1_helper.ptrToTexture = 0;
+        skeleton_attack1_helper.iterationCounter = 0;
         skeleton_attack2_helper.ptrToTexture = 0;
+        skeleton_attack2_helper.iterationCounter = 0;
+        attackDamageApplied = false;
     }
 
     // Обычные анимации
@@ -618,6 +1070,9 @@ void Skeleton::updateTextures() {
 // ========== ОТРИСОВКА ==========
 void Skeleton::draw() {
     // window->draw(*skeletonRect); // Для отладки хитбокса
+    if (portal->getIsHalfPassed()) {
+        drawVisualEffects();
+    }
     if(portal->getIsHalfPassed()) window->draw(*skeletonSprite);
     if(portal->getIsHalfPassed()) healthbar->draw(!(this->isPlayingDieAnimation));
     if(portal->getIsExist()) portal->draw(*window);

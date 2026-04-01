@@ -20,7 +20,8 @@
 
 class GameLevelManager;
 class LevelPortal;
-class ScreenTransition;  
+class ScreenTransition;
+class GameCamera;
 
 const sf::Vector2f BASE_PORTAL_SPEED_OF_OPENING = {0.01f,0.01f};
 const sf::Vector2f BASE_PORTAL_SPEED_OF_CLOSING = {0.01f,0.01f};
@@ -196,6 +197,16 @@ public:
     void blockControls();
     void unblockControls();
 private:
+    struct VisualRing {
+        sf::Vector2f position{};
+        sf::Color color{255, 255, 255, 255};
+        float radius = 10.f;
+        float maxRadius = 56.f;
+        float growth = 2.f;
+        float thickness = 2.f;
+        float alpha = 180.f;
+    };
+
     // Texture arrays
     std::vector<sf::Texture>* idleTextures;     // Idle animation frames
     std::vector<sf::Texture>* runningTextures;  // Running animation frames  
@@ -208,6 +219,7 @@ private:
 
     ////////////////////////////////////////////////////////////////
     // Used objects
+    GameCamera* camera = nullptr;
     sf::Sprite* playerSprite;               // Main player sprite
         // Movement trail effect
         Trail* trail;                           
@@ -218,6 +230,52 @@ private:
         // Screen transition effect on level change
         std::shared_ptr<ScreenTransition> transition;
     ////////////////////////////////////////////////////////////////
+
+    std::vector<VisualRing> effectRings_;
+    bool deathEffectPlayed_ = false;
+    bool wasInTeleportArea_ = false;
+
+    sf::Clock runEffectClock_;
+    sf::Clock teleportEffectClock_;
+    sf::Clock criticalEffectClock_;
+    sf::Clock landingEffectClock_;
+
+    const float RUN_EFFECT_INTERVAL_MS = 145.f;
+    const float TELEPORT_EFFECT_INTERVAL_MS = 90.f;
+    const float CRITICAL_EFFECT_INTERVAL_MS = 240.f;
+    const float LANDING_EFFECT_COOLDOWN_MS = 140.f;
+    const float CRITICAL_HP_RATIO = 0.35f;
+
+    void pushRing(
+        const sf::Vector2f& position,
+        const sf::Color& color,
+        float radius,
+        float maxRadius,
+        float growth,
+        float thickness,
+        float alpha
+    );
+    void spawnParticleBurst(
+        const sf::Vector2f& origin,
+        const sf::Color& color,
+        int count,
+        float minSpeed,
+        float maxSpeed,
+        float radius,
+        float gravity,
+        float lifetime
+    );
+    void spawnRunEffect();
+    void spawnJumpEffect();
+    void spawnLandingEffect(float impactStrength);
+    void spawnShootEffect(bool direction);
+    void spawnDashBurst();
+    void spawnTeleportEffect(bool enteringPortal);
+    void spawnDeathEffect();
+    void spawnCriticalHealthEffect();
+    void updateRingEffects();
+    void triggerCameraImpact(const sf::Vector2f& direction, float impulseStrength, float trauma, float zoomPunch = 0.02f);
+    float getFacingDirection() const;
 
     ////////////////////////////////////////////////////////////
     // LevelPortal methods and fields  
