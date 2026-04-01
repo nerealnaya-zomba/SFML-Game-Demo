@@ -1,52 +1,75 @@
 #pragma once
-#include<SFML/Graphics.hpp>
-#include<iostream>
-#include<Defines.h>
-#include<Mounting.h>
-#include<GameData.h>
 
-const float BASE_GROUND_OFFSET = 8.f;
+#include <Defines.h>
+#include <GameData.h>
+#include <Mounting.h>
+#include <SFML/Graphics.hpp>
+#include <string>
+#include <vector>
 
-class GameLevel; // NOTE Нужен для избежания ошибки зависимостей
+inline constexpr float BASE_GROUND_OFFSET = 8.f;
 
-//////////////////////////////////////////////////
-// Пол должен иметь точку начала и точку конца.
-// 
-// Должна указываться высота, на которой будет стоять пол.
-// 
-// Если существо презается в пол сбоку, то он не должен проходить насквозь. Должна работать коллизия по бокам.
-// 
-// Должна иметься возможность выбирать текстуру пола.
-////////////////////////////////////////////////// REMINDER СУПЕР ВАЖНО! После того как закончишь с менеджером уровней поменяй WINDOW_WIDTH WINDOW_HEIGHT на levelSize
+class GameLevel;
+
 class Ground
 {
-private:
-    sf::RectangleShape* ground1Rect_m;
-    sf::Texture* ground1Texture_m;
-    sf::Sprite* ground1Sprite_m;
-
-    unsigned int point_begin, point_end;                // Точка начала и конца пола.
-    float height;                                       // Высота пола
-    unsigned int yPos;                                  // Позиция пола по Y коорд. 
-    float offset;                                       // Коллизия по Y координате + offset. Чем больше offset - тем ниже проваливается игрок, прежде чем сработает коллизия
-    
-    sf::Vector2u tilesetsize;                           // Размер текстуры в пикселях
-    float offSet;
 public:
-    //////////////////////////////////////////////////
-    // groundFileName - Имя файла из images\Ground\TileSetGreen
-    //////////////////////////////////////////////////
-    Ground(GameData& gameTextures, GameLevel& level, std::string groundFileName, unsigned int point_begin, unsigned int point_end, unsigned int yPos = 0u, float offSet = BASE_GROUND_OFFSET);
-    ~Ground();
+    Ground(GameData& gameTextures,
+           GameLevel& level,
+           std::string groundFileName,
+           unsigned int point_begin,
+           unsigned int point_end,
+           unsigned int yPos = 0u,
+           float offSet = BASE_GROUND_OFFSET);
+    ~Ground() = default;
 
     void draw(sf::RenderWindow& window);
-    
     void clearGround();
 
-    // Getters 
     sf::RectangleShape& getRect();
+    const sf::RectangleShape& getRect() const;
 
-    // Setters
     void setOffset(float offset);
+    void setSpan(unsigned int pointBegin, unsigned int pointEnd);
+    void setYPos(unsigned int yPos);
+    void setVisualDepthRows(unsigned int rows);
+    bool setStyle(const std::string& styleName);
 
+    float getSurfaceY() const;
+    sf::FloatRect getSurfaceBounds() const;
+    bool containsX(float x) const;
+    std::string getStyleName() const;
+
+private:
+    sf::RectangleShape groundRect_{};
+    std::string groundFileName_{};
+    std::string styleName_{};
+
+    unsigned int pointBegin_{};
+    unsigned int pointEnd_{};
+    unsigned int yPos_{};
+    unsigned int visualDepthRows_{};
+    unsigned int levelWidth_{};
+    unsigned int levelHeight_{};
+    unsigned int accentStride_{5u};
+
+    float offset_{BASE_GROUND_OFFSET};
+
+    std::map<std::string, sf::Texture>* groundTextures_{};
+    std::vector<const sf::Texture*> surfaceTextures_{};
+    std::vector<const sf::Texture*> fillTextures_{};
+    std::vector<const sf::Texture*> accentTextures_{};
+
+    sf::Color surfaceTint_{34, 16, 20, 220};
+    sf::Color supportTint_{74, 32, 38, 170};
+    sf::Color glowTint_{180, 78, 60, 54};
+
+    const sf::Texture* findTexture(const std::string& textureName) const;
+    void rebuildCollisionRect();
+    void rebuildVisualSet();
+    unsigned int resolveVisualDepthRows(float tileHeight) const;
+    void drawTile(sf::RenderWindow& window,
+                  const sf::Texture& texture,
+                  const sf::Vector2f& position,
+                  sf::Color color = sf::Color::White) const;
 };

@@ -1,36 +1,41 @@
 #pragma once
-#include<SFML/Graphics.hpp>
-#include<Mounting.h>
-#include<vector>
-#include<iostream>
+
+#include <Mounting.h>
+#include <SFML/Graphics.hpp>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 class Platform
 {
-    public:
-    
-    void draw(sf::RenderWindow& window);
-
-    //Single-angled
-    //Single-flat
-    //Single-square
-    //Double-horizontal-1
-    //Double-horizontal-2
-    //Double-vertical
-    //Triple
-    //Quadruple
-    void addPlatform(sf::Vector2f position, std::string name);
-
-    //Returns array with raw pointers to rectangles-hitboxes (DO NOT DELETE MANUALLY)
-    std::vector<std::shared_ptr<sf::RectangleShape>>& getRects();
-
-    void clearPlatforms();
+public:
+    struct TypeDefinition
+    {
+        std::string texturePath;
+        sf::Vector2f hitboxSize;
+        sf::Vector2f spriteScale;
+        sf::Vector2f spriteOffset;
+        sf::Color tint;
+    };
 
     Platform();
     ~Platform();
 
-    private:
+    void draw(sf::RenderWindow& window);
+    void addPlatform(sf::Vector2f position, std::string name);
+
+    std::vector<std::shared_ptr<sf::RectangleShape>>& getRects();
+    void clearPlatforms();
+
+    static bool hasType(const std::string& name);
+    static std::vector<std::string> getAvailableTypes();
+
+private:
     std::vector<std::unique_ptr<sf::Sprite>> sprites;
     std::vector<std::shared_ptr<sf::RectangleShape>> rects;
-    const std::vector<sf::Texture>* textures{};
+    const std::unordered_map<std::string, sf::Texture>* textures{};
 
-    static const std::vector<sf::Texture>& getSharedTextures();
+    static const std::unordered_map<std::string, TypeDefinition>& getTypeDefinitions();
+    static const std::unordered_map<std::string, sf::Texture>& getSharedTextures();
 };

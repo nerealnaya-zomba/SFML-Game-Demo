@@ -7,35 +7,35 @@
   },
   "Platforms": [
     {
-      "Type": "Single-angled",
+      "Type": "Thorn-ramp",
       "Position": [1620, 980]
     },
     {
-      "Type": "Single-square",
+      "Type": "Bone-dais",
       "Position": [1520, 880]
     },
     {
-      "Type": "Single-flat",
+      "Type": "Runed-ledge",
       "Position": [1420, 800]
     },
     {
-      "Type": "Double-horizontal-1",
+      "Type": "Obsidian-span",
       "Position": [1220, 700]
     },
     {
-      "Type": "Double-horizontal-2",
+      "Type": "Cathedral-span",
       "Position": [1020, 600]
     },
     {
-      "Type": "Double-vertical",
+      "Type": "Crypt-pillar",
       "Position": [870, 500]
     },
     {
-      "Type": "Triple",
+      "Type": "Ritual-bridge",
       "Position": [620, 400]
     },
     {
-      "Type": "Quadruple",
+      "Type": "Fallen-arcade",
       "Position": [520, 280]
     }
   ],
@@ -181,9 +181,12 @@
   ],
   "Ground": [
     {
-      "GroundName": "TileSetGreen_02.png",
+      "GroundStyle": "ObsidianRunes",
+      "GroundName": "TileSetGreen_27.png",
       "Points": [0, 6000],
-      "YPos": 1048
+      "YPos": 1048,
+      "DepthRows": 3,
+      "Offset": 8.0
     }
   ],
   "Spawners": [

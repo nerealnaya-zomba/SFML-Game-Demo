@@ -7,35 +7,35 @@
   },
   "Platforms": [
     {
-      "Type": "Single-flat",
+      "Type": "Runed-ledge",
       "Position": [400, 950]
     },
     {
-      "Type": "Single-square",
+      "Type": "Bone-dais",
       "Position": [1200, 880]
     },
     {
-      "Type": "Single-angled",
+      "Type": "Thorn-ramp",
       "Position": [2000, 820]
     },
     {
-      "Type": "Double-horizontal-1",
+      "Type": "Cathedral-span",
       "Position": [2800, 750]
     },
     {
-      "Type": "Double-vertical",
+      "Type": "Crypt-pillar",
       "Position": [3600, 680]
     },
     {
-      "Type": "Triple",
+      "Type": "Ritual-bridge",
       "Position": [4400, 600]
     },
     {
-      "Type": "Quadruple",
+      "Type": "Fallen-arcade",
       "Position": [5200, 500]
     },
     {
-      "Type": "Single-flat",
+      "Type": "Runed-ledge",
       "Position": [6000, 700]
     }
   ],
@@ -175,9 +175,12 @@
   ],
   "Ground": [
     {
-      "GroundName": "TileSetGreen_02.png",
+      "GroundStyle": "CrimsonSanctum",
+      "GroundName": "TileSetGreen_31.png",
       "Points": [0, 7000],
-      "YPos": 1048
+      "YPos": 1048,
+      "DepthRows": 3,
+      "Offset": 8.0
     }
   ],
   "Spawners": [

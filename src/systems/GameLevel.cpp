@@ -573,6 +573,13 @@ void GameLevel::initializeGround(const nlohmann::json& data)
         const std::string groundName = groundData["GroundName"];
         const sf::Vector2u position = {groundData["Points"][0], groundData["Points"][1]};
         const unsigned int yPos = groundData["YPos"];
+        const float offset = groundData.contains("Offset")
+            ? groundData["Offset"].get<float>()
+            : BASE_GROUND_OFFSET;
+        const unsigned int depthRows = groundData.contains("DepthRows")
+            ? groundData["DepthRows"].get<unsigned int>()
+            : 0u;
+        const std::string groundStyle = groundData.value("GroundStyle", std::string{});
 
         ground = std::make_shared<Ground>(
             *this->data,
@@ -580,8 +587,15 @@ void GameLevel::initializeGround(const nlohmann::json& data)
             groundName,
             position.x,
             position.y,
-            yPos
+            yPos,
+            offset
         );
+
+        ground->setVisualDepthRows(depthRows);
+        if (!groundStyle.empty())
+        {
+            ground->setStyle(groundStyle);
+        }
     }
 }
 

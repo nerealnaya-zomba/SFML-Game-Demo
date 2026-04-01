@@ -7,7 +7,7 @@
   },
   "Platforms": [
     {
-      "Type": "Single-angled",
+      "Type": "Thorn-ramp",
       "Position": [960, 540]
     }
   ],
@@ -107,9 +107,12 @@
   ],
   "Ground": [
     {
-      "GroundName": "TileSetGreen_02.png",
+      "GroundStyle": "CrimsonSanctum",
+      "GroundName": "TileSetGreen_31.png",
       "Points": [0, 1920],
-      "YPos": 1048
+      "YPos": 1048,
+      "DepthRows": 3,
+      "Offset": 8.0
     }
   ],
   "Spawners": [

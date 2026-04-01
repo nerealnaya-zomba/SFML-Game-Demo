@@ -10,6 +10,12 @@ namespace
 {
 constexpr float kPi = 3.14159265f;
 
+void setTextOriginToTopCenter(sf::Text& text)
+{
+    const auto bounds = text.getLocalBounds();
+    text.setOrigin({bounds.position.x + bounds.size.x / 2.f, bounds.position.y});
+}
+
 std::string wrapTextToWidth(const sf::Text& prototype, const std::string& source, float maxWidth)
 {
     if (source.empty())
@@ -225,12 +231,12 @@ void LoadingScreen::updateTexts()
     if (failed_m && !errorMessage_m.empty())
     {
         loreText_.setFillColor(sf::Color(235, 150, 140, 240));
-        loreText_.setString(wrapTextToWidth(loreText_, loreSource, 560.f));
+        loreText_.setString(wrapTextToWidth(loreText_, loreSource, 680.f));
     }
     else
     {
         loreText_.setFillColor(sf::Color(174, 159, 147, 228));
-        loreText_.setString(wrapTextToWidth(loreText_, loreSource, 560.f));
+        loreText_.setString(wrapTextToWidth(loreText_, loreSource, 680.f));
     }
 }
 
@@ -467,8 +473,8 @@ void LoadingScreen::drawProgressPanel()
     window_m->draw(counterText_);
 
     const bool loreWrapped = loreText_.getString().find('\n') != std::string::npos;
-    loreText_.setPosition({panelCenter.x, panelCenter.y + (loreWrapped ? 100.f : 110.f)});
-    setTextOriginToMiddle(loreText_);
+    loreText_.setPosition({panelCenter.x, panelCenter.y + (loreWrapped ? 84.f : 96.f)});
+    setTextOriginToTopCenter(loreText_);
     window_m->draw(loreText_);
 }
 

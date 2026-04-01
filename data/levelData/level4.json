@@ -7,43 +7,43 @@
   },
   "Platforms": [
     {
-      "Type": "Single-flat",
+      "Type": "Runed-ledge",
       "Position": [300, 950]
     },
     {
-      "Type": "Single-square",
+      "Type": "Bone-dais",
       "Position": [1000, 900]
     },
     {
-      "Type": "Double-horizontal-1",
+      "Type": "Obsidian-span",
       "Position": [1800, 830]
     },
     {
-      "Type": "Single-angled",
+      "Type": "Thorn-ramp",
       "Position": [2700, 770]
     },
     {
-      "Type": "Double-vertical",
+      "Type": "Crypt-pillar",
       "Position": [3600, 700]
     },
     {
-      "Type": "Triple",
+      "Type": "Ritual-bridge",
       "Position": [4500, 620]
     },
     {
-      "Type": "Quadruple",
+      "Type": "Fallen-arcade",
       "Position": [5400, 540]
     },
     {
-      "Type": "Double-horizontal-2",
+      "Type": "Cathedral-span",
       "Position": [6300, 650]
     },
     {
-      "Type": "Single-flat",
+      "Type": "Runed-ledge",
       "Position": [7200, 750]
     },
     {
-      "Type": "Single-square",
+      "Type": "Bone-dais",
       "Position": [8000, 820]
     }
   ],
@@ -231,9 +231,12 @@
   ],
   "Ground": [
     {
-      "GroundName": "TileSetGreen_02.png",
+      "GroundStyle": "BoneCrypt",
+      "GroundName": "TileSetGreen_35.png",
       "Points": [0, 9000],
-      "YPos": 1048
+      "YPos": 1048,
+      "DepthRows": 3,
+      "Offset": 8.0
     }
   ],
   "Spawners": [
