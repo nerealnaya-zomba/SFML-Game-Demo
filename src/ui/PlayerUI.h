@@ -26,6 +26,9 @@ const sf::Vector2f BASE_INVENTORY_SLOT_GAP                  = {10.f,10.f};
 const unsigned int BASE_INVENTORY_COLUMNS                   = 4;
 const sf::Vector2f BASE_STATS_PANEL_OFFSET                  = {18.f,152.f};
 const sf::Vector2f BASE_STATS_PANEL_SIZE                    = {264.f,0.f};
+const sf::Vector2f BASE_OBJECTIVE_PANEL_SIZE                = {560.f,162.f};
+const sf::Vector2f BASE_OBJECTIVE_PANEL_TOP_OFFSET          = {0.f,18.f};
+const sf::Vector2f BASE_OBJECTIVE_TOAST_SIZE                = {420.f,64.f};
 const float BASE_STATS_LINE_HEIGHT                          = 19.f;
 const float BASE_STATS_LINE_GAP                             = 5.f;
 const float BASE_STATS_PANEL_PADDING                        = 12.f;
@@ -124,6 +127,37 @@ private:
 
     void updateStatsPanel();
     void rebuildStatLines();
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // СЮЖЕТ И ЦЕЛЬ
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    sf::RectangleShape objectivePanelShadow;
+    sf::RectangleShape objectivePanelBack;
+    sf::RectangleShape objectiveHeaderAccent;
+    sf::RectangleShape objectiveDivider;
+    sf::RectangleShape objectiveProgressBack;
+    sf::RectangleShape objectiveProgressFront;
+    sf::RectangleShape objectiveProgressGlow;
+    sf::CircleShape objectiveSigilGlow;
+    sf::CircleShape objectiveSigilCore;
+    sf::Text objectiveTitleText;
+    sf::Text objectiveChapterText;
+    sf::Text objectiveNarrativeText;
+    sf::Text objectiveTaskText;
+    sf::Text objectiveProgressText;
+    sf::Text objectiveRewardText;
+    sf::RectangleShape objectiveToastShadow;
+    sf::RectangleShape objectiveToastBack;
+    sf::RectangleShape objectiveToastAccent;
+    sf::Text objectiveToastTitleText;
+    sf::Text objectiveToastBodyText;
+    sf::Clock objectiveToastClock;
+    std::string previousObjectiveChapter_;
+    std::string previousObjectiveTask_;
+    bool objectiveToastVisible_ = false;
+    bool objectiveStateInitialized_ = false;
+
+    void updateObjectivePanel();
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ИНВЕНТАРЬ И ЗОЛОТО

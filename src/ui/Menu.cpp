@@ -1,4 +1,5 @@
 #include <Menu.h>
+#include <CampaignProgress.h>
 
 #include <TGUI/Renderers/ListBoxRenderer.hpp>
 
@@ -77,62 +78,16 @@ constexpr float kPausePanelHeight = 662.f;
 
 std::string getLevelTitle(const std::string& levelName)
 {
-    if (levelName == "level1.json")
-    {
-        return "Ashwake Causeway";
-    }
-    if (levelName == "level2.json")
-    {
-        return "Obsidian Rookery";
-    }
-    if (levelName == "level3.json")
-    {
-        return "Crimson Nave";
-    }
-    if (levelName == "level4.json")
-    {
-        return "Bone Reliquary";
-    }
-    if (levelName == "level5.json")
-    {
-        return "Trial of Embers";
-    }
-    if (levelName == "level6.json")
-    {
-        return "The Returning Veil";
-    }
-
-    return levelName;
+    const CampaignLevelInfo& levelInfo = CampaignProgress::getLevelInfo(levelName);
+    return levelInfo.levelName == "unknown" ? levelName : levelInfo.title;
 }
 
 std::string getLevelFlavor(const std::string& levelName)
 {
-    if (levelName == "level1.json")
-    {
-        return "A broad first descent of ruined ledges and tired ash.";
-    }
-    if (levelName == "level2.json")
-    {
-        return "Cold runes, narrow spans and a harsher vertical climb.";
-    }
-    if (levelName == "level3.json")
-    {
-        return "The red nave: heavier bridges, altars and broken ceremony.";
-    }
-    if (levelName == "level4.json")
-    {
-        return "A pale crypt of pillars and bone arches under dead light.";
-    }
-    if (levelName == "level5.json")
-    {
-        return "A compact trial room built for short brutal checks.";
-    }
-    if (levelName == "level6.json")
-    {
-        return "The loop closes with a second pass through altered ruins.";
-    }
-
-    return "No omen is written for this gate yet.";
+    const CampaignLevelInfo& levelInfo = CampaignProgress::getLevelInfo(levelName);
+    return levelInfo.levelName == "unknown"
+        ? "No omen is written for this gate yet."
+        : levelInfo.flavor;
 }
 
 std::string getAshDensityLabel(int particleCount)
@@ -852,8 +807,8 @@ void Menu::refreshMenuContext()
         }
 
         footerLabel->setText(state_.canContinue
-            ? "Resume the fallen path, change the gate, or let the omen choose"
-            : "A crimson path opens when you choose a gate");
+            ? "Resume the hunt, switch gates, or keep feeding the Heart Lantern"
+            : "Farm grave-gold, buy relics and choose which gate to reopen first");
     }
 
     continueButton->setText(mode_ == MenuMode::Pause ? BASE_RESUME_BUTTON_TEXT : BASE_PLAY_BUTTON_TEXT);

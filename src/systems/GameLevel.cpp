@@ -16,6 +16,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <Player.h>
+
 void GameLevelManager::initializeLevels(const std::string& levelsFolder)
 {
     const std::filesystem::path levelsPath(levelsFolder);
@@ -77,6 +79,11 @@ bool GameLevelManager::goToLevel(std::optional<std::string> levelName)
         return false;
     }
 
+    if (player && !player->isLevelUnlocked(*levelName))
+    {
+        return false;
+    }
+
     if (levelIt != levels.end())
     {
         levelIt->second->saveLevelData();
@@ -90,6 +97,7 @@ bool GameLevelManager::goToLevel(std::optional<std::string> levelName)
     {
         const sf::Vector2f spawnPos = levelIt->second->getPlayerSpawnPos();
         player->setPosition(spawnPos);
+        player->notifyLevelEntered(levelIt->first);
         camera->setCenterPosition(spawnPos);
     }
 
@@ -111,6 +119,7 @@ bool GameLevelManager::restartCurrentLevel()
     {
         const sf::Vector2f spawnPos = levelIt->second->getPlayerSpawnPos();
         player->respawnAt(spawnPos);
+        player->notifyLevelEntered(levelIt->first);
         camera->setCenterPosition(spawnPos);
     }
 
@@ -289,6 +298,11 @@ void GameLevelManager::attachPlayer(Player& p)
     for (auto& [_, level] : levels)
     {
         level->attachPlayer(p);
+    }
+
+    if (levelIt != levels.end())
+    {
+        player->notifyLevelEntered(levelIt->first);
     }
 }
 

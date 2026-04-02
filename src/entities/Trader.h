@@ -27,6 +27,12 @@ private:
     texturesIterHelper trader_helper;
 
     sf::Clock time;
+    sf::RectangleShape dialogueShadow;
+    sf::RectangleShape dialogueBack;
+    sf::RectangleShape dialogueAccent;
+    sf::Text dialogueTitleText;
+    sf::Text dialogueBodyText;
+    bool shouldDrawDialogue_ = false;
 
     void updateTextures();
 
@@ -35,6 +41,7 @@ private:
     void lookAtPlayerSide();
 
     void ySmoothFloating();
+    void updateDialogue();
 
 public:
     Trader(GameData& data, Player& p, sf::Vector2f& pos);

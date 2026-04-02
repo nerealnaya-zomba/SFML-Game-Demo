@@ -204,7 +204,7 @@ void ChooseDestinationMenu::handleCloseEvent(const sf::Event& ev)
 {
     if (const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
     {
-        if (keyPressed->scancode == sf::Keyboard::Scan::Escape)
+        if (keyPressed->scancode == closeKey || keyPressed->scancode == sf::Keyboard::Scan::Escape)
         {
             close();
         }
@@ -247,13 +247,13 @@ ChooseDestinationMenu::ChooseDestinationMenu(
     titleText.setString("CHOOSE DESTINATION");
 
     configureText(subtitleText, 18, sf::Color(182, 149, 118, 235), 1.16f);
-    subtitleText.setString("Attune the summoned gate before you cast it.");
+    subtitleText.setString("Farm grave-gold, forge relics, then reopen deeper hunting grounds.");
 
     configureText(displayingLevelName, 34, sf::Color(244, 230, 210, 255), 1.02f);
     displayingLevelName.setStyle(sf::Text::Bold);
 
-    configureText(destinationStateText, 22, sf::Color(196, 173, 153, 245), 1.02f);
-    configureText(destinationDescriptionText, 20, sf::Color(154, 138, 128, 232), 1.01f);
+    configureText(destinationStateText, 20, sf::Color(196, 173, 153, 245), 1.02f);
+    configureText(destinationDescriptionText, 18, sf::Color(154, 138, 128, 232), 1.01f);
     destinationDescriptionText.setString("Choose where the red gate will answer your call.");
 
     configureText(legendText, 17, sf::Color(148, 132, 123, 224), 1.02f);
@@ -264,6 +264,7 @@ ChooseDestinationMenu::ChooseDestinationMenu(
 void ChooseDestinationMenu::open()
 {
     isOpened = true;
+    syncUnlockedStates();
     checkWherePlayer();
 
     for (auto& level : levels)
@@ -317,7 +318,7 @@ void ChooseDestinationMenu::addLevelInVector(const GameLevel& level, const sf::T
 {
     LevelDestinationRect destination(icon);
     destination.leveldestination.level = &level;
-    destination.leveldestination.isOpened = false;
+    destination.leveldestination.isOpened = player->isLevelUnlocked(level.levelName);
     destination.leveldestination.isVisible = true;
     applyIconScale(destination.icon);
 
@@ -370,13 +371,19 @@ void ChooseDestinationMenu::drawLevelDestinationsBackground(sf::RenderWindow& wi
             (previewSize.y - 18.f) / textureSize.y
         );
         preview.setScale({previewScale, previewScale});
-        preview.setColor(sf::Color(228, 218, 210, 255));
+        preview.setColor(levelIt->leveldestination.isOpened
+            ? sf::Color(228, 218, 210, 255)
+            : sf::Color(126, 118, 116, 210));
         setSpriteOriginToMiddle(preview);
         preview.setPosition({
             previewPosition.x + previewSize.x / 2.f,
             previewPosition.y + previewSize.y / 2.f
         });
         window.draw(preview);
+
+        previewVeil.setFillColor(levelIt->leveldestination.isOpened
+            ? sf::Color(32, 10, 12, 76)
+            : sf::Color(8, 8, 12, 132));
     }
 
     window.draw(previewVeil);
@@ -433,6 +440,7 @@ void ChooseDestinationMenu::update()
     }
 
     animationTime += 1.f / static_cast<float>(WINDOW_FPS);
+    syncUnlockedStates();
     positioningLevelDestinations();
     checkWherePlayer();
     updateDisplayedTexts();
@@ -490,7 +498,14 @@ void ChooseDestinationMenu::LevelDestinationRect::draw(sf::RenderWindow& w) cons
 
     sf::RectangleShape veil(cardSize);
     veil.setPosition(cardPosition);
-    veil.setFillColor(leveldestination.isSelected ? sf::Color(60, 22, 18, 40) : sf::Color(6, 5, 7, 92));
+    if (leveldestination.isOpened)
+    {
+        veil.setFillColor(leveldestination.isSelected ? sf::Color(60, 22, 18, 40) : sf::Color(6, 5, 7, 92));
+    }
+    else
+    {
+        veil.setFillColor(leveldestination.isSelected ? sf::Color(20, 17, 21, 126) : sf::Color(10, 10, 14, 168));
+    }
     w.draw(veil);
 
     if (leveldestination.isChoosed)
@@ -524,6 +539,20 @@ void ChooseDestinationMenu::LevelDestinationRect::draw(sf::RenderWindow& w) cons
         attunedMark.setOutlineColor(sf::Color(123, 39, 30, 225));
         w.draw(attunedMark);
     }
+
+    if (!leveldestination.isOpened)
+    {
+        sf::RectangleShape chainBar({cardSize.x - 24.f, 5.f});
+        chainBar.setOrigin({chainBar.getSize().x / 2.f, chainBar.getSize().y / 2.f});
+        chainBar.setPosition({cardPosition.x + cardSize.x / 2.f, cardPosition.y + cardSize.y / 2.f});
+        chainBar.setFillColor(sf::Color(182, 162, 132, 210));
+        chainBar.setRotation(sf::degrees(-18.f));
+        w.draw(chainBar);
+
+        sf::RectangleShape chainBarMirror(chainBar);
+        chainBarMirror.setRotation(sf::degrees(18.f));
+        w.draw(chainBarMirror);
+    }
 }
 
 void ChooseDestinationMenu::currentSelectedElementToDesiredDestination()
@@ -531,6 +560,12 @@ void ChooseDestinationMenu::currentSelectedElementToDesiredDestination()
     if (levels.empty() || levelIt == levels.end())
     {
         desiredDestination = std::nullopt;
+        return;
+    }
+
+    if (!levelIt->leveldestination.isOpened)
+    {
+        updateDisplayedTexts();
         return;
     }
 
@@ -757,9 +792,18 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
             cardPosition.x + cardWidth / 2.f,
             cardPosition.y + cardHeight / 2.f - 4.f
         });
-        level.icon.setColor(level.leveldestination.isSelected
-            ? sf::Color(255, 255, 255, 255)
-            : sf::Color(212, 205, 196, 238));
+        if (!level.leveldestination.isOpened)
+        {
+            level.icon.setColor(level.leveldestination.isSelected
+                ? sf::Color(166, 160, 156, 228)
+                : sf::Color(108, 104, 110, 212));
+        }
+        else
+        {
+            level.icon.setColor(level.leveldestination.isSelected
+                ? sf::Color(255, 255, 255, 255)
+                : sf::Color(212, 205, 196, 238));
+        }
     }
 }
 
@@ -775,6 +819,28 @@ void ChooseDestinationMenu::positioningLevelDestinationsText()
         displayingLevelName.getPosition().y + 94.f
     });
     legendText.setPosition({panelPosition.x + 28.f, panelPosition.y + panelSize.y - 58.f});
+}
+
+void ChooseDestinationMenu::syncUnlockedStates()
+{
+    for (auto& level : levels)
+    {
+        if (!level.leveldestination.level)
+        {
+            continue;
+        }
+
+        level.leveldestination.isOpened = player->isLevelUnlocked(level.leveldestination.level->levelName);
+        if (!level.leveldestination.isOpened)
+        {
+            level.leveldestination.isChoosed = false;
+        }
+    }
+
+    if (desiredDestination.has_value() && !player->isLevelUnlocked(*desiredDestination))
+    {
+        desiredDestination = std::nullopt;
+    }
 }
 
 void ChooseDestinationMenu::checkWherePlayer()
@@ -793,33 +859,44 @@ void ChooseDestinationMenu::updateDisplayedTexts()
     {
         setDisplayingLevelNameString("No destinations revealed");
         destinationStateText.setString("The gate has nowhere to answer.");
+        destinationDescriptionText.setString("Reclaim the farm and deeper routes will reveal themselves here.");
         legendText.setString("Open a route in the world before you can bind the portal.");
         return;
     }
 
     const auto& destination = levelIt->leveldestination;
-    setDisplayingLevelNameString(formatLevelDisplayName(destination.level->levelName));
+    const CampaignLevelInfo& levelInfo = CampaignProgress::getLevelInfo(destination.level->levelName);
+    setDisplayingLevelNameString(levelInfo.title);
 
     std::string stateText;
-    if (destination.isPlayerThere && destination.isChoosed)
+    if (!destination.isOpened)
+    {
+        stateText = "Sealed route  •  the covenant still rejects this gate";
+        destinationDescriptionText.setString(levelInfo.description + "\n" + player->getLevelUnlockHint(destination.level->levelName));
+    }
+    else if (destination.isPlayerThere && destination.isChoosed)
     {
         stateText = "Current ground  •  portal already attuned";
+        destinationDescriptionText.setString(levelInfo.description + "\n" + levelInfo.farmingFocus);
     }
     else if (destination.isPlayerThere)
     {
         stateText = "Current ground";
+        destinationDescriptionText.setString(levelInfo.description + "\n" + levelInfo.farmingFocus);
     }
     else if (destination.isChoosed)
     {
         stateText = "Portal attuned to this destination";
+        destinationDescriptionText.setString(levelInfo.description + "\n" + levelInfo.farmingFocus);
     }
     else
     {
         stateText = "Unbound destination";
+        destinationDescriptionText.setString(levelInfo.description + "\n" + levelInfo.farmingFocus);
     }
 
     destinationStateText.setString(stateText);
-    legendText.setString("Ash mark: current ground   •   Ember mark: portal binding");
+    legendText.setString("Ash mark: current ground   •   Ember mark: portal binding   •   Sealed cards: story-locked");
 }
 
 void ChooseDestinationMenu::drawLevelDestinationsText(sf::RenderWindow& window)

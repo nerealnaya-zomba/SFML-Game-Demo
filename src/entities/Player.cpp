@@ -5,12 +5,167 @@
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 
 using namespace gameUtils;
 
 namespace
 {
 constexpr float kPi = 3.14159265f;
+const char* kPlayerProgressPath = "data/playerProgress.json";
+
+std::string categoryToString(Item::Category category)
+{
+    return category == Item::Category::Weapon ? "Weapon" : "Upgrade";
+}
+
+Item::Category categoryFromString(const std::string& value)
+{
+    return value == "Weapon" ? Item::Category::Weapon : Item::Category::Upgrade;
+}
+
+std::string weaponKindToString(Item::WeaponKind kind)
+{
+    switch (kind)
+    {
+    case Item::WeaponKind::AshenBolt:
+        return "AshenBolt";
+    case Item::WeaponKind::Gravepiercer:
+        return "Gravepiercer";
+    case Item::WeaponKind::PyreOrb:
+        return "PyreOrb";
+    case Item::WeaponKind::StormNeedler:
+        return "StormNeedler";
+    case Item::WeaponKind::DreadPrism:
+        return "DreadPrism";
+    case Item::WeaponKind::NightfallBeam:
+        return "NightfallBeam";
+    }
+
+    return "AshenBolt";
+}
+
+Item::WeaponKind weaponKindFromString(const std::string& value)
+{
+    if (value == "Gravepiercer")
+    {
+        return Item::WeaponKind::Gravepiercer;
+    }
+    if (value == "PyreOrb")
+    {
+        return Item::WeaponKind::PyreOrb;
+    }
+    if (value == "StormNeedler")
+    {
+        return Item::WeaponKind::StormNeedler;
+    }
+    if (value == "DreadPrism")
+    {
+        return Item::WeaponKind::DreadPrism;
+    }
+    if (value == "NightfallBeam")
+    {
+        return Item::WeaponKind::NightfallBeam;
+    }
+
+    return Item::WeaponKind::AshenBolt;
+}
+
+nlohmann::json statsToJson(const Item::Stats& stats)
+{
+    return nlohmann::json{
+        {"bulletSpeed", stats.bulletSpeed},
+        {"bulletDistance", stats.bulletDistance},
+        {"shootSpeedCooldownReduction", stats.shootSpeedCooldownReduction},
+        {"initialSpeed", stats.initialSpeed},
+        {"maxSpeed", stats.maxSpeed},
+        {"health", stats.health},
+        {"damage", stats.damage},
+        {"dashForce", stats.dashForce},
+        {"dashCooldownReduction", stats.dashCooldownReduction},
+        {"extraJumpCount", stats.extraJumpCount},
+        {"jumpPower", stats.jumpPower},
+        {"slowFallPercent", stats.slowFallPercent}
+    };
+}
+
+Item::Stats statsFromJson(const nlohmann::json& data)
+{
+    Item::Stats stats;
+    stats.bulletSpeed = data.value("bulletSpeed", 0);
+    stats.bulletDistance = data.value("bulletDistance", 0);
+    stats.shootSpeedCooldownReduction = data.value("shootSpeedCooldownReduction", 0);
+    stats.initialSpeed = data.value("initialSpeed", 0);
+    stats.maxSpeed = data.value("maxSpeed", 0);
+    stats.health = data.value("health", 0);
+    stats.damage = data.value("damage", 0);
+    stats.dashForce = data.value("dashForce", 0);
+    stats.dashCooldownReduction = data.value("dashCooldownReduction", 0);
+    stats.extraJumpCount = data.value("extraJumpCount", 0);
+    stats.jumpPower = data.value("jumpPower", 0);
+    stats.slowFallPercent = data.value("slowFallPercent", 0);
+    return stats;
+}
+
+nlohmann::json weaponStatsToJson(const Item::WeaponStats& stats)
+{
+    return nlohmann::json{
+        {"kind", weaponKindToString(stats.kind)},
+        {"damageBonus", stats.damageBonus},
+        {"cooldownMs", stats.cooldownMs},
+        {"energyCost", stats.energyCost},
+        {"projectileSpeed", stats.projectileSpeed},
+        {"projectileRange", stats.projectileRange},
+        {"projectileCount", stats.projectileCount},
+        {"pierceCount", stats.pierceCount},
+        {"splashRadius", stats.splashRadius},
+        {"spread", stats.spread}
+    };
+}
+
+Item::WeaponStats weaponStatsFromJson(const nlohmann::json& data)
+{
+    Item::WeaponStats stats;
+    stats.kind = weaponKindFromString(data.value("kind", "AshenBolt"));
+    stats.damageBonus = data.value("damageBonus", 0);
+    stats.cooldownMs = data.value("cooldownMs", 0);
+    stats.energyCost = data.value("energyCost", 0);
+    stats.projectileSpeed = data.value("projectileSpeed", 0);
+    stats.projectileRange = data.value("projectileRange", 0);
+    stats.projectileCount = data.value("projectileCount", 1);
+    stats.pierceCount = data.value("pierceCount", 0);
+    stats.splashRadius = data.value("splashRadius", 0);
+    stats.spread = data.value("spread", 0);
+    return stats;
+}
+
+nlohmann::json ownedItemToJson(const Player::OwnedItem& item)
+{
+    return nlohmann::json{
+        {"iconName", item.iconName},
+        {"displayName", item.displayName},
+        {"quality", item.quality},
+        {"category", categoryToString(item.category)},
+        {"price", item.price},
+        {"description", item.description},
+        {"stats", statsToJson(item.stats)},
+        {"weaponStats", weaponStatsToJson(item.weaponStats)}
+    };
+}
+
+Player::OwnedItem ownedItemFromJson(const nlohmann::json& data)
+{
+    Player::OwnedItem item;
+    item.iconName = data.value("iconName", "");
+    item.displayName = data.value("displayName", item.iconName);
+    item.quality = static_cast<Item::Quality>(data.value("quality", static_cast<int>(Item::COMMON)));
+    item.category = categoryFromString(data.value("category", "Upgrade"));
+    item.price = data.value("price", 0);
+    item.description = data.value("description", "");
+    item.stats = statsFromJson(data.value("stats", nlohmann::json::object()));
+    item.weaponStats = weaponStatsFromJson(data.value("weaponStats", nlohmann::json::object()));
+    return item;
+}
 }
 
 Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::RenderWindow& w)
@@ -29,9 +184,10 @@ Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::R
     this->gameTextures = &gameTextures;
     this->levelManager = &m;
     this->camera = &c;
-    //Loading data from GameData.json
+    // Loading default config, then restoring live progress if it exists
     loadData();
     initializeDefaultWeapon();
+    loadProgressData();
     recalculateStatsFromInventory();
 
     // Attaching levels to ChooseDestinationMenu
@@ -643,6 +799,36 @@ const std::vector<Player::OwnedItem>& Player::getWeapons() const
     return arsenal_;
 }
 
+CampaignObjectiveSnapshot Player::getCampaignSnapshot() const
+{
+    return campaignProgress_.buildSnapshot();
+}
+
+const CampaignProgress& Player::getCampaignProgress() const
+{
+    return campaignProgress_;
+}
+
+std::string Player::getCampaignBoonTitle() const
+{
+    return campaignProgress_.getActiveBoonState().title;
+}
+
+bool Player::isLevelUnlocked(const std::string& levelName) const
+{
+    return campaignProgress_.isLevelUnlocked(levelName);
+}
+
+std::vector<std::string> Player::getUnlockedLevelNames(const std::vector<std::string>& levelNames) const
+{
+    return campaignProgress_.filterUnlockedLevels(levelNames);
+}
+
+std::string Player::getLevelUnlockHint(const std::string& levelName) const
+{
+    return campaignProgress_.getLevelUnlockHint(levelName);
+}
+
 void Player::switchWeapon(int direction)
 {
     if (arsenal_.size() <= 1)
@@ -666,15 +852,18 @@ void Player::switchWeapon(int direction)
 void Player::applyCurrentWeaponStats()
 {
     const OwnedItem& weapon = getCurrentWeapon();
+    const CampaignBoonState campaignBoons = campaignProgress_.getActiveBoonState();
 
     shootCost = std::max(5, weapon.weaponStats.energyCost);
     ButtonRepeat_shootCooldown = std::max(
         20,
-        weapon.weaponStats.cooldownMs - inventoryStatsBonus_.shootSpeedCooldownReduction
+        weapon.weaponStats.cooldownMs - inventoryStatsBonus_.shootSpeedCooldownReduction - campaignBoons.shootCooldownReduction
     );
-    DMG_ = baseDMG_ + inventoryStatsBonus_.damage + weapon.weaponStats.damageBonus;
+    DMG_ = baseDMG_ + inventoryStatsBonus_.damage + campaignBoons.damageBonus + weapon.weaponStats.damageBonus;
     bulletSpeed = baseBulletSpeed_ + static_cast<float>(inventoryStatsBonus_.bulletSpeed + weapon.weaponStats.projectileSpeed);
-    bulletMaxDistance_ = baseBulletMaxDistance_ + static_cast<float>(inventoryStatsBonus_.bulletDistance + weapon.weaponStats.projectileRange);
+    bulletMaxDistance_ = baseBulletMaxDistance_ + static_cast<float>(
+        inventoryStatsBonus_.bulletDistance + campaignBoons.bulletRangeBonus + weapon.weaponStats.projectileRange
+    );
 }
 
 bool Player::canPerformJump() const
@@ -723,7 +912,13 @@ void Player::addGold(int amount)
         return;
     }
 
+    const std::size_t previousStageIndex = campaignProgress_.getCurrentStageIndex();
     gold_ += amount;
+    campaignProgress_.onGoldCollected(amount);
+    if (campaignProgress_.getCurrentStageIndex() != previousStageIndex)
+    {
+        recalculateStatsFromInventory();
+    }
 }
 
 bool Player::spendGold(int amount)
@@ -734,6 +929,7 @@ bool Player::spendGold(int amount)
     }
 
     gold_ -= amount;
+    campaignProgress_.onGoldSpent(amount);
     return true;
 }
 
@@ -831,12 +1027,23 @@ bool Player::tryPurchaseItem(const Item &item)
         currentWeaponIndex_ = arsenal_.size() - 1;
     }
 
+    campaignProgress_.onItemPurchased(item.category);
     recalculateStatsFromInventory();
     if (item.category == Item::Category::Weapon)
     {
         spawnWeaponSwitchEffect();
     }
     return true;
+}
+
+void Player::notifyLevelEntered(const std::string& levelName)
+{
+    const std::size_t previousStageIndex = campaignProgress_.getCurrentStageIndex();
+    campaignProgress_.onLevelEntered(levelName);
+    if (campaignProgress_.getCurrentStageIndex() != previousStageIndex)
+    {
+        recalculateStatsFromInventory();
+    }
 }
 
 void Player::updateTextures()
@@ -952,8 +1159,7 @@ void Player::drawBullets(sf::RenderWindow& window)
 
 Player::~Player()
 {
-    
-    
+    saveData();
 }
 
 void Player::portalUpdate()
@@ -1091,11 +1297,37 @@ void Player::applyFriction(float &walkSpeed, float friction)
 
 void Player::saveData()
 {
-    std::ifstream f("data/GameData.json");
-    nlohmann::json data = nlohmann::json::parse(f);
+    try
+    {
+        nlohmann::json inventoryData = nlohmann::json::array();
+        for (const auto& item : inventory_)
+        {
+            inventoryData.push_back(ownedItemToJson(item));
+        }
 
+        const CampaignSaveState campaignSave = campaignProgress_.buildSaveState();
+        nlohmann::json saveData = {
+            {"version", 1},
+            {"player", {
+                {"gold", gold_},
+                {"currentWeaponIconName", getCurrentWeaponIconName()},
+                {"inventory", inventoryData}
+            }},
+            {"campaign", {
+                {"totalGoldCollected", campaignSave.totalGoldCollected},
+                {"totalGoldSpent", campaignSave.totalGoldSpent},
+                {"relicsPurchased", campaignSave.relicsPurchased},
+                {"weaponsPurchased", campaignSave.weaponsPurchased},
+                {"visitedLevels", campaignSave.visitedLevels}
+            }}
+        };
 
-    
+        std::ofstream output(kPlayerProgressPath);
+        output << saveData.dump(4);
+    }
+    catch (const std::exception&)
+    {
+    }
 }
 
 void Player::loadData()
@@ -1145,8 +1377,76 @@ void Player::loadData()
     inventoryStatsBonus_ = {};
 }
 
+void Player::loadProgressData()
+{
+    std::ifstream progressFile(kPlayerProgressPath);
+    if (!progressFile.is_open())
+    {
+        return;
+    }
+
+    try
+    {
+        const nlohmann::json progressData = nlohmann::json::parse(progressFile);
+        const nlohmann::json playerData = progressData.value("player", nlohmann::json::object());
+        const nlohmann::json inventoryData = playerData.value("inventory", nlohmann::json::array());
+
+        gold_ = std::max(0, playerData.value("gold", gold_));
+        inventory_.clear();
+        arsenal_.clear();
+        initializeDefaultWeapon();
+
+        for (const auto& itemData : inventoryData)
+        {
+            restoreOwnedItem(ownedItemFromJson(itemData));
+        }
+
+        const std::string currentWeaponIcon = playerData.value("currentWeaponIconName", getCurrentWeaponIconName());
+        const auto equippedWeaponIt = std::find_if(
+            arsenal_.begin(),
+            arsenal_.end(),
+            [&](const OwnedItem& weapon) {
+                return weapon.iconName == currentWeaponIcon;
+            }
+        );
+        currentWeaponIndex_ = equippedWeaponIt != arsenal_.end()
+            ? static_cast<std::size_t>(std::distance(arsenal_.begin(), equippedWeaponIt))
+            : 0u;
+
+        const nlohmann::json campaignData = progressData.value("campaign", nlohmann::json::object());
+        CampaignSaveState campaignSave;
+        campaignSave.totalGoldCollected = campaignData.value("totalGoldCollected", 0);
+        campaignSave.totalGoldSpent = campaignData.value("totalGoldSpent", 0);
+        campaignSave.relicsPurchased = campaignData.value("relicsPurchased", 0);
+        campaignSave.weaponsPurchased = campaignData.value("weaponsPurchased", 0);
+        campaignSave.visitedLevels = campaignData.value("visitedLevels", std::vector<std::string>{});
+        campaignProgress_.loadSaveState(campaignSave);
+    }
+    catch (const std::exception&)
+    {
+        inventory_.clear();
+        arsenal_.clear();
+        initializeDefaultWeapon();
+    }
+}
+
+void Player::restoreOwnedItem(const OwnedItem& itemData)
+{
+    if (itemData.iconName.empty() || ownsItem(itemData.iconName))
+    {
+        return;
+    }
+
+    inventory_.push_back(itemData);
+    if (itemData.category == Item::Category::Weapon)
+    {
+        arsenal_.push_back(itemData);
+    }
+}
+
 void Player::recalculateStatsFromInventory()
 {
+    const CampaignBoonState campaignBoons = campaignProgress_.getActiveBoonState();
     inventoryStatsBonus_ = {};
     for (const auto& item : inventory_)
     {
@@ -1166,10 +1466,10 @@ void Player::recalculateStatsFromInventory()
 
     const int previousMaxHP = maxHP;
 
-    maxHP = baseHP_ + inventoryStatsBonus_.health;
+    maxHP = baseHP_ + inventoryStatsBonus_.health + campaignBoons.healthBonus;
     HP_ = std::min(HP_ + std::max(0, maxHP - previousMaxHP), maxHP);
-    maxEnergy = baseMaxEnergy_;
-    energyGain = baseEnergyGain_;
+    maxEnergy = baseMaxEnergy_ + campaignBoons.maxEnergyBonus;
+    energyGain = baseEnergyGain_ + campaignBoons.energyGainBonus;
     shootCost = baseShootCost_;
 
     speed = baseAcceleration_ + static_cast<float>(inventoryStatsBonus_.initialSpeed) / 100.f;

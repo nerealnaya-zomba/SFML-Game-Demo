@@ -15,7 +15,7 @@
 #include <fstream>
 #include <Particle.h>
 #include <LevelPortal.h>
-#include <PlayerUI.h>
+#include <CampaignProgress.h>
 #include <ChooseDestinationMenu.h>
 
 class GameLevelManager;
@@ -178,6 +178,12 @@ public:
     std::string getCurrentWeaponIconName() const;
     Item::Quality getCurrentWeaponQuality() const;
     const std::vector<OwnedItem>& getWeapons() const;
+    CampaignObjectiveSnapshot getCampaignSnapshot() const;
+    const CampaignProgress& getCampaignProgress() const;
+    std::string getCampaignBoonTitle() const;
+    bool isLevelUnlocked(const std::string& levelName) const;
+    std::vector<std::string> getUnlockedLevelNames(const std::vector<std::string>& levelNames) const;
+    std::string getLevelUnlockHint(const std::string& levelName) const;
 
         // Setters
     void attachGameLevelManager(GameLevelManager& m);
@@ -186,6 +192,7 @@ public:
     bool spendGold(int amount);
     bool tryPurchaseItem(const Item& item);
     void respawnAt(sf::Vector2f pos);
+    void notifyLevelEntered(const std::string& levelName);
 
         // Control methods
     void updateControls();                  // Process player input
@@ -355,7 +362,9 @@ private:
     // Data persistence
     void saveData();                        // Save player data to file
     void loadData();                        // Load player data from file
+    void loadProgressData();
     void recalculateStatsFromInventory();
+    void restoreOwnedItem(const OwnedItem& itemData);
 
     int gold_ = 0;
     int baseHP_ = 0;
@@ -380,4 +389,5 @@ private:
     std::vector<OwnedItem> inventory_;
     std::vector<OwnedItem> arsenal_;
     std::size_t currentWeaponIndex_ = 0;
+    CampaignProgress campaignProgress_{};
 };

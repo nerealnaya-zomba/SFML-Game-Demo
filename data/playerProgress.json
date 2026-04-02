@@ -1,0 +1,53 @@
+{
+    "campaign": {
+        "relicsPurchased": 1,
+        "totalGoldCollected": 61,
+        "totalGoldSpent": 35,
+        "visitedLevels": [
+            "level1.json",
+            "level2.json"
+        ],
+        "weaponsPurchased": 0
+    },
+    "player": {
+        "currentWeaponIconName": "Item_02.png",
+        "gold": 26,
+        "inventory": [
+            {
+                "category": "Upgrade",
+                "description": "A burial route chart stitched with silver thread. Your bolts linger farther before the dark swallows them.",
+                "displayName": "Trail Map",
+                "iconName": "Item_01.png",
+                "price": 35,
+                "quality": 0,
+                "stats": {
+                    "bulletDistance": 70,
+                    "bulletSpeed": 0,
+                    "damage": 0,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 0,
+                    "health": 0,
+                    "initialSpeed": 0,
+                    "jumpPower": 0,
+                    "maxSpeed": 0,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 0,
+                    "damageBonus": 0,
+                    "energyCost": 0,
+                    "kind": "AshenBolt",
+                    "pierceCount": 0,
+                    "projectileCount": 1,
+                    "projectileRange": 0,
+                    "projectileSpeed": 0,
+                    "splashRadius": 0,
+                    "spread": 0
+                }
+            }
+        ]
+    },
+    "version": 1
+}

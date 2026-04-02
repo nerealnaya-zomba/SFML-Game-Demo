@@ -10,6 +10,44 @@
 
 namespace
 {
+std::string wrapTextByWords(const std::string& text, std::size_t maxLineLength)
+{
+    if (text.empty() || maxLineLength == 0)
+    {
+        return text;
+    }
+
+    std::istringstream words(text);
+    std::ostringstream wrapped;
+    std::string word;
+    std::size_t currentLineLength = 0;
+
+    while (words >> word)
+    {
+        const std::size_t requiredLength = currentLineLength == 0
+            ? word.size()
+            : currentLineLength + 1 + word.size();
+
+        if (currentLineLength > 0 && requiredLength > maxLineLength)
+        {
+            wrapped << '\n' << word;
+            currentLineLength = word.size();
+            continue;
+        }
+
+        if (currentLineLength > 0)
+        {
+            wrapped << ' ';
+            ++currentLineLength;
+        }
+
+        wrapped << word;
+        currentLineLength += word.size();
+    }
+
+    return wrapped.str();
+}
+
 sf::Color getQualityColor(Item::Quality quality)
 {
     switch (quality)
@@ -357,6 +395,9 @@ void Shop::draw(sf::RenderWindow& window)
     window.draw(weaponsTabPlate);
     window.draw(titleText);
     window.draw(goldText);
+    window.draw(merchantTitleText);
+    window.draw(merchantAdviceText);
+    window.draw(routeHintText);
     window.draw(tabHintText);
     window.draw(upgradesTabText);
     window.draw(weaponsTabText);
@@ -486,6 +527,8 @@ void Shop::updateHeaderTexts()
         BASE_SHOP_FRAME_INSET_RATIO_X,
         BASE_SHOP_FRAME_INSET_RATIO_Y
     );
+    const CampaignProgress& campaign = player->getCampaignProgress();
+    const CampaignLevelInfo& recommendedLevel = campaign.getRecommendedLevelInfo();
 
     titleText.setString(activeTab_ == ShopTab::Weapons ? "Arsenal of rites" : "Merchant's stock");
     titleText.setPosition({contentBounds.position.x, contentBounds.position.y});
@@ -496,11 +539,20 @@ void Shop::updateHeaderTexts()
         contentBounds.position.y
     });
 
+    merchantTitleText.setString(campaign.getMerchantGreeting());
+    merchantTitleText.setPosition({contentBounds.position.x, contentBounds.position.y + 34.f});
+
+    merchantAdviceText.setString(wrapTextByWords(campaign.getMerchantAdvice(), 62));
+    merchantAdviceText.setPosition({contentBounds.position.x, contentBounds.position.y + 56.f});
+
+    routeHintText.setString("Best next farm: " + recommendedLevel.title);
+    routeHintText.setPosition({contentBounds.position.x, contentBounds.position.y + 96.f});
+
     upgradesTabText.setString("Relics");
     weaponsTabText.setString("Weapons");
     tabHintText.setString("Q/W - Tabs");
 
-    const sf::Vector2f tabsOrigin = {contentBounds.position.x, contentBounds.position.y + 34.f};
+    const sf::Vector2f tabsOrigin = {contentBounds.position.x, contentBounds.position.y + 120.f};
     const sf::Vector2f tabSize = {124.f, 28.f};
     const bool upgradesActive = activeTab_ == ShopTab::Upgrades;
 
@@ -791,6 +843,9 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
     , titleText(*d.gameFont)
     , goldText(*d.gameFont)
     , tabHintText(*d.gameFont)
+    , merchantTitleText(*d.gameFont)
+    , merchantAdviceText(*d.gameFont)
+    , routeHintText(*d.gameFont)
     , upgradesTabText(*d.gameFont)
     , weaponsTabText(*d.gameFont)
     , isOpened(false)
@@ -804,6 +859,16 @@ Shop::Shop(GameData &d, Player &p, sf::Vector2f pos)
 
     tabHintText.setCharacterSize(15);
     tabHintText.setFillColor(sf::Color(188, 195, 212));
+
+    merchantTitleText.setCharacterSize(15);
+    merchantTitleText.setFillColor(sf::Color(255, 205, 130));
+
+    merchantAdviceText.setCharacterSize(14);
+    merchantAdviceText.setFillColor(sf::Color(215, 220, 232));
+    merchantAdviceText.setLineSpacing(1.05f);
+
+    routeHintText.setCharacterSize(13);
+    routeHintText.setFillColor(sf::Color(151, 190, 229));
 
     upgradesTabText.setCharacterSize(17);
     upgradesTabText.setFillColor(sf::Color(242, 237, 226));

@@ -1,5 +1,6 @@
 #include <Defines.h>
 #include <DeathScreen.h>
+#include <PlayerUI.h>
 #include <ScreenTransition.h>
 #include <nlohmann/json.hpp>
 #include <sfml-headers.h>
@@ -165,7 +166,7 @@ int main()
 
     auto syncMenuState = [&]() {
         MenuState state;
-        state.availableLevels = levelManager.getLevelNames();
+        state.availableLevels = player.getUnlockedLevelNames(levelManager.getLevelNames());
         state.currentLevelName = levelManager.getCurrentLevelName();
         state.selectedLevelName = menu.getSelectedLevelName().empty()
             ? levelManager.getCurrentLevelName()

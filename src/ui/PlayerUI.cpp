@@ -32,6 +32,16 @@ const sf::Color kCooldownFrameInactive(102, 75, 60, 220);
 const sf::Color kStatsPanelInset(12, 10, 14, 226);
 const sf::Color kStatsPanelAccent(176, 61, 77, 255);
 const sf::Color kStatsLineFill(22, 18, 22, 216);
+const sf::Color kObjectivePanelFill(13, 16, 24, 228);
+const sf::Color kObjectivePanelBorder(77, 103, 134, 255);
+const sf::Color kObjectiveAccent(232, 162, 88, 255);
+const sf::Color kObjectiveProgressBack(33, 42, 57, 230);
+const sf::Color kObjectiveProgressFill(221, 132, 64, 255);
+const sf::Color kObjectiveProgressGlow(255, 226, 164, 190);
+const sf::Color kObjectiveSigilCore(255, 206, 116, 255);
+const sf::Color kObjectiveSigilGlow(255, 190, 118, 62);
+const sf::Color kObjectiveToastFill(18, 12, 18, 236);
+const sf::Color kObjectiveToastBorder(188, 123, 72, 255);
 
 std::string formatFloatValue(float value, int precision = 1)
 {
@@ -361,6 +371,7 @@ void PlayerUI::rebuildStatLines()
     };
 
     const std::vector<StatData> stats = {
+        {"Sanctuary", player->getCampaignBoonTitle(), sf::Color(255, 188, 104)},
         {"Vitality", std::to_string(player->getMaxHP()), sf::Color(194, 72, 72)},
         {"Energy max", std::to_string(player->getMaxEnergy()), sf::Color(92, 171, 214)},
         {"Energy gain", std::to_string(player->getEnergyGainValue()), sf::Color(118, 212, 230)},
@@ -467,6 +478,131 @@ void PlayerUI::updateStatsPanel()
         });
 
         currentY += BASE_STATS_LINE_HEIGHT + BASE_STATS_LINE_GAP;
+    }
+}
+
+void PlayerUI::updateObjectivePanel()
+{
+    const CampaignObjectiveSnapshot snapshot = player->getCampaignSnapshot();
+    const sf::Vector2f screenViewPos = camera->getScreenViewPos();
+    const sf::Vector2f screenViewSize = camera->getScreenViewSize();
+    const float elapsed = uiAnimationClock.getElapsedTime().asSeconds();
+    const float pulse = 0.9f + std::sin(elapsed * 2.2f + 0.5f) * 0.08f;
+
+    const sf::Vector2f panelPos = {
+        screenViewPos.x + screenViewSize.x * 0.5f - BASE_OBJECTIVE_PANEL_SIZE.x * 0.5f,
+        screenViewPos.y + BASE_OBJECTIVE_PANEL_TOP_OFFSET.y
+    };
+
+    if (!objectiveStateInitialized_)
+    {
+        previousObjectiveChapter_ = snapshot.chapterTitle;
+        previousObjectiveTask_ = snapshot.objective;
+        objectiveStateInitialized_ = true;
+    }
+    else if (snapshot.chapterTitle != previousObjectiveChapter_ || snapshot.objective != previousObjectiveTask_)
+    {
+        previousObjectiveChapter_ = snapshot.chapterTitle;
+        previousObjectiveTask_ = snapshot.objective;
+        objectiveToastVisible_ = true;
+        objectiveToastClock.restart();
+    }
+
+    objectivePanelShadow.setPosition({panelPos.x + 8.f, panelPos.y + 10.f});
+    objectivePanelBack.setPosition(panelPos);
+
+    objectiveHeaderAccent.setPosition(panelPos);
+    objectiveHeaderAccent.setFillColor(sf::Color(
+        kObjectiveAccent.r,
+        kObjectiveAccent.g,
+        kObjectiveAccent.b,
+        static_cast<std::uint8_t>(220.f + pulse * 24.f)
+    ));
+
+    objectiveSigilGlow.setPosition({panelPos.x + 28.f, panelPos.y + 28.f});
+    objectiveSigilGlow.setScale({pulse, pulse});
+    objectiveSigilCore.setPosition({panelPos.x + 28.f, panelPos.y + 28.f});
+
+    objectiveTitleText.setString(snapshot.campaignTitle);
+    objectiveChapterText.setString(snapshot.chapterTitle);
+    objectiveNarrativeText.setString(snapshot.narrative);
+    objectiveTaskText.setString(snapshot.objective);
+    objectiveProgressText.setString(snapshot.progressText);
+    objectiveRewardText.setString(snapshot.rewardText);
+
+    objectiveTitleText.setPosition({panelPos.x + 54.f, panelPos.y + 12.f});
+    objectiveChapterText.setPosition({panelPos.x + 18.f, panelPos.y + 44.f});
+    objectiveNarrativeText.setPosition({panelPos.x + 18.f, panelPos.y + 70.f});
+    objectiveTaskText.setPosition({panelPos.x + 18.f, panelPos.y + 92.f});
+
+    objectiveDivider.setPosition({panelPos.x + 18.f, panelPos.y + 116.f});
+
+    objectiveProgressBack.setPosition({panelPos.x + 18.f, panelPos.y + 126.f});
+    objectiveProgressFront.setPosition(objectiveProgressBack.getPosition());
+    objectiveProgressGlow.setPosition({
+        objectiveProgressBack.getPosition().x + 3.f,
+        objectiveProgressBack.getPosition().y + 2.f
+    });
+
+    const float progressWidth = objectiveProgressBack.getSize().x * std::clamp(snapshot.progressRatio, 0.f, 1.f);
+    objectiveProgressFront.setSize({progressWidth, objectiveProgressFront.getSize().y});
+    objectiveProgressGlow.setSize({std::max(0.f, progressWidth - 6.f), objectiveProgressGlow.getSize().y});
+
+    objectiveProgressText.setPosition({
+        panelPos.x + BASE_OBJECTIVE_PANEL_SIZE.x - objectiveProgressText.getLocalBounds().size.x - 18.f,
+        panelPos.y + 121.f
+    });
+    objectiveRewardText.setPosition({panelPos.x + 18.f, panelPos.y + 139.f});
+
+    const float toastElapsed = objectiveToastClock.getElapsedTime().asSeconds();
+    if (objectiveToastVisible_ && toastElapsed > 4.f)
+    {
+        objectiveToastVisible_ = false;
+    }
+
+    if (objectiveToastVisible_)
+    {
+        float alphaFactor = 1.f;
+        if (toastElapsed < 0.25f)
+        {
+            alphaFactor = std::clamp(toastElapsed / 0.25f, 0.f, 1.f);
+        }
+        else if (toastElapsed > 3.2f)
+        {
+            alphaFactor = std::clamp(1.f - (toastElapsed - 3.2f) / 0.8f, 0.f, 1.f);
+        }
+
+        const sf::Vector2f toastPos = {
+            screenViewPos.x + screenViewSize.x * 0.5f - BASE_OBJECTIVE_TOAST_SIZE.x * 0.5f,
+            panelPos.y + BASE_OBJECTIVE_PANEL_SIZE.y + 10.f
+        };
+        const std::uint8_t alpha = static_cast<std::uint8_t>(std::clamp(alphaFactor * 255.f, 0.f, 255.f));
+
+        objectiveToastShadow.setPosition({toastPos.x + 6.f, toastPos.y + 8.f});
+        objectiveToastBack.setPosition(toastPos);
+        objectiveToastAccent.setPosition(toastPos);
+
+        objectiveToastShadow.setFillColor(sf::Color(0, 0, 0, static_cast<std::uint8_t>(96.f * alphaFactor)));
+        objectiveToastBack.setFillColor(sf::Color(kObjectiveToastFill.r, kObjectiveToastFill.g, kObjectiveToastFill.b, alpha));
+        objectiveToastBack.setOutlineColor(sf::Color(
+            kObjectiveToastBorder.r,
+            kObjectiveToastBorder.g,
+            kObjectiveToastBorder.b,
+            alpha
+        ));
+        objectiveToastAccent.setFillColor(sf::Color(
+            kObjectiveAccent.r,
+            kObjectiveAccent.g,
+            kObjectiveAccent.b,
+            alpha
+        ));
+
+        objectiveToastTitleText.setString("Objective Updated");
+        objectiveToastBodyText.setString(snapshot.chapterTitle + "  |  " + snapshot.objective);
+        objectiveToastTitleText.setFillColor(sf::Color(255, 223, 172, alpha));
+        objectiveToastBodyText.setFillColor(sf::Color(235, 232, 224, alpha));
+        objectiveToastTitleText.setPosition({toastPos.x + 18.f, toastPos.y + 10.f});
+        objectiveToastBodyText.setPosition({toastPos.x + 18.f, toastPos.y + 34.f});
     }
 }
 
@@ -603,6 +739,14 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
     , energyText(*d.gameFont)
     , statsTitleText(*d.gameFont)
     , statsWeaponText(*d.gameFont)
+    , objectiveTitleText(*d.gameFont)
+    , objectiveChapterText(*d.gameFont)
+    , objectiveNarrativeText(*d.gameFont)
+    , objectiveTaskText(*d.gameFont)
+    , objectiveProgressText(*d.gameFont)
+    , objectiveRewardText(*d.gameFont)
+    , objectiveToastTitleText(*d.gameFont)
+    , objectiveToastBodyText(*d.gameFont)
     , inventoryTitleText(*d.gameFont)
     , inventoryGoldText(*d.gameFont)
     , inventoryWeaponText(*d.gameFont)
@@ -685,6 +829,58 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
     statsWeaponText.setFillColor(sf::Color(220, 203, 188));
     statsWeaponText.setOutlineThickness(1.2f);
     statsWeaponText.setOutlineColor(sf::Color(0, 0, 0, 180));
+
+    objectivePanelShadow.setSize(BASE_OBJECTIVE_PANEL_SIZE);
+    objectivePanelShadow.setFillColor(sf::Color(0, 0, 0, 116));
+
+    objectivePanelBack.setSize(BASE_OBJECTIVE_PANEL_SIZE);
+    objectivePanelBack.setFillColor(kObjectivePanelFill);
+    objectivePanelBack.setOutlineThickness(2.f);
+    objectivePanelBack.setOutlineColor(kObjectivePanelBorder);
+
+    objectiveHeaderAccent.setSize({BASE_OBJECTIVE_PANEL_SIZE.x, 7.f});
+    objectiveHeaderAccent.setFillColor(kObjectiveAccent);
+
+    objectiveDivider.setSize({BASE_OBJECTIVE_PANEL_SIZE.x - 36.f, 2.f});
+    objectiveDivider.setFillColor(sf::Color(70, 84, 103, 255));
+
+    objectiveProgressBack.setSize({BASE_OBJECTIVE_PANEL_SIZE.x - 36.f, 10.f});
+    objectiveProgressBack.setFillColor(kObjectiveProgressBack);
+    objectiveProgressBack.setOutlineThickness(1.f);
+    objectiveProgressBack.setOutlineColor(sf::Color(106, 125, 151, 200));
+
+    objectiveProgressFront.setSize({0.f, 10.f});
+    objectiveProgressFront.setFillColor(kObjectiveProgressFill);
+
+    objectiveProgressGlow.setSize({0.f, 4.f});
+    objectiveProgressGlow.setFillColor(kObjectiveProgressGlow);
+
+    objectiveSigilGlow.setRadius(18.f);
+    objectiveSigilGlow.setOrigin({objectiveSigilGlow.getRadius(), objectiveSigilGlow.getRadius()});
+    objectiveSigilGlow.setFillColor(kObjectiveSigilGlow);
+
+    objectiveSigilCore.setRadius(9.f);
+    objectiveSigilCore.setOrigin({objectiveSigilCore.getRadius(), objectiveSigilCore.getRadius()});
+    objectiveSigilCore.setFillColor(kObjectiveSigilCore);
+    objectiveSigilCore.setOutlineThickness(2.f);
+    objectiveSigilCore.setOutlineColor(sf::Color(134, 82, 42, 220));
+
+    styleHudText(objectiveTitleText, 20, sf::Color(244, 231, 214));
+    objectiveTitleText.setString("Restore the Heart Lantern");
+
+    styleHudText(objectiveChapterText, 18, sf::Color(255, 208, 138));
+    styleHudText(objectiveNarrativeText, 14, sf::Color(199, 207, 220));
+    styleHudText(objectiveTaskText, 16, sf::Color(241, 233, 219));
+    styleHudText(objectiveProgressText, 14, sf::Color(236, 221, 193));
+    styleHudText(objectiveRewardText, 13, sf::Color(158, 194, 229));
+
+    objectiveToastShadow.setSize(BASE_OBJECTIVE_TOAST_SIZE);
+    objectiveToastBack.setSize(BASE_OBJECTIVE_TOAST_SIZE);
+    objectiveToastBack.setOutlineThickness(2.f);
+    objectiveToastAccent.setSize({BASE_OBJECTIVE_TOAST_SIZE.x, 5.f});
+
+    styleHudText(objectiveToastTitleText, 16, sf::Color(255, 223, 172));
+    styleHudText(objectiveToastBodyText, 14, sf::Color(235, 232, 224));
 
     inventoryPanelShadow.setFillColor(sf::Color(0, 0, 0, 115));
 
@@ -788,6 +984,32 @@ void PlayerUI::draw(sf::RenderWindow &window)
         window.draw(line.value);
     }
 
+    // Objective panel
+    window.draw(objectivePanelShadow);
+    window.draw(objectivePanelBack);
+    window.draw(objectiveHeaderAccent);
+    window.draw(objectiveSigilGlow);
+    window.draw(objectiveSigilCore);
+    window.draw(objectiveTitleText);
+    window.draw(objectiveChapterText);
+    window.draw(objectiveNarrativeText);
+    window.draw(objectiveTaskText);
+    window.draw(objectiveDivider);
+    window.draw(objectiveProgressBack);
+    window.draw(objectiveProgressFront);
+    window.draw(objectiveProgressGlow);
+    window.draw(objectiveProgressText);
+    window.draw(objectiveRewardText);
+
+    if (objectiveToastVisible_)
+    {
+        window.draw(objectiveToastShadow);
+        window.draw(objectiveToastBack);
+        window.draw(objectiveToastAccent);
+        window.draw(objectiveToastTitleText);
+        window.draw(objectiveToastBodyText);
+    }
+
     // Inventory panel
     window.draw(inventoryPanelShadow);
     window.draw(inventoryPanelBack);
@@ -827,5 +1049,6 @@ void PlayerUI::update()
     updateHP();
     updateEnergy();
     updateStatsPanel();
+    updateObjectivePanel();
     updateInventoryPanel();
 }

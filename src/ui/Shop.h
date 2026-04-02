@@ -24,7 +24,7 @@ const sf::Vector2f BASE_SHOP_CELL_SPRITE_SELECTED_SCALE     = {2.3,2.3};
 const sf::Vector2f BASE_SHOP_WIDGET_SPRITE_SCALE            = {8.5f,5.2f};
 const float BASE_SHOP_FRAME_INSET_RATIO_X                   = 0.125f;
 const float BASE_SHOP_FRAME_INSET_RATIO_Y                   = 0.125f;
-const float BASE_SHOP_HEADER_SECTION_HEIGHT                 = 54.f;
+const float BASE_SHOP_HEADER_SECTION_HEIGHT                 = 126.f;
 const float BASE_SHOP_GRID_SECTION_GAP                      = 14.f;
 const float BASE_SHOP_WIDGET_ICON_COLUMN_WIDTH              = 110.f;
 
@@ -104,9 +104,12 @@ private:
     sf::Vector2i itemsMargin;
     sf::Vector2f cellSize;
 
-        sf::Text titleText;
+    sf::Text titleText;
     sf::Text goldText;
     sf::Text tabHintText;
+    sf::Text merchantTitleText;
+    sf::Text merchantAdviceText;
+    sf::Text routeHintText;
     sf::Text upgradesTabText;
     sf::Text weaponsTabText;
     sf::RectangleShape upgradesTabPlate;

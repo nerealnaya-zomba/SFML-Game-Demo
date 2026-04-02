@@ -100,6 +100,7 @@ private:
     void positioningLevelDestinationsLevels();
     void positioningLevelDestinationsText();
 
+    void syncUnlockedStates();
     void checkWherePlayer();
     void updateDisplayedTexts();
 
