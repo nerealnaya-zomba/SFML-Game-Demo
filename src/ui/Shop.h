@@ -177,7 +177,8 @@ public:
 
     void draw(sf::RenderWindow& window)         override;
     void update()                               override;
-    void handleEvent(const sf::Event& event)    override;
+    bool handleEvent(const sf::Event& event)    override;
+    bool blocksPlayerInput() const              override;
 
     bool getIsOpened();
 };

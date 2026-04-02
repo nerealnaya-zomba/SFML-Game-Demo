@@ -210,6 +210,36 @@
       "Z": 3
     }
   ],
+  "Interactives": [
+    {
+      "Type": "EchoTablet",
+      "Texture": "MossyDecorationHazard_25.png",
+      "Position": [1180, 552],
+      "Scale": [0.27, 0.27],
+      "Color": [238, 228, 255, 255],
+      "AccentColor": [178, 148, 255, 255],
+      "InteractRadius": 122.0,
+      "RewardGold": 40,
+      "SingleUse": true,
+      "Prompt": "Enter to read midnight echo",
+      "Title": "Midnight Echo",
+      "Body": "The script warns that rain makes every misstep final. Save your strength for the long platforms and spend your gold before the storm spends you."
+    },
+    {
+      "Type": "GoldCache",
+      "Texture": "Item_18.png",
+      "Position": [4100, 822],
+      "Scale": [3.6, 3.6],
+      "Color": [255, 255, 255, 255],
+      "AccentColor": [246, 198, 112, 255],
+      "InteractRadius": 92.0,
+      "RewardGold": 125,
+      "SingleUse": true,
+      "Prompt": "Enter to recover abyssal stash",
+      "Title": "Abyssal Stash",
+      "Body": "Cold-metal trinkets and travel coin survive inside the sealed pouch. It feels like whoever hid it expected never to come back."
+    }
+  ],
   "Background": [
     {
       "BgName": "Background_47.png",

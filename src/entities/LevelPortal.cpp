@@ -151,7 +151,7 @@ void LevelPortal::update()
     
 }
 
-void LevelPortal::handleEvent(const sf::Event &event)
+bool LevelPortal::handleEvent(const sf::Event &event)
 {
     if(const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
     {
@@ -161,9 +161,12 @@ void LevelPortal::handleEvent(const sf::Event &event)
             if(keyPressed->scancode == sf::Keyboard::Scancode::Enter)
             {
                 isUsed = true;
+                return true;
             }
         }
     }
+
+    return false;
 }
 
 void LevelPortal::setPortalDestination(std::optional<std::string> levelN)

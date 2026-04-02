@@ -302,6 +302,52 @@
       "Z": 3
     }
   ],
+  "Interactives": [
+    {
+      "Type": "RestShrine",
+      "Texture": "MossyDecorationHazard_21.png",
+      "Position": [1640, 748],
+      "Scale": [0.32, 0.32],
+      "Color": [225, 255, 240, 255],
+      "AccentColor": [110, 228, 196, 255],
+      "InteractRadius": 130.0,
+      "SingleUse": true,
+      "GrantsCheckpoint": true,
+      "RestoreVitality": true,
+      "SpawnOffset": [-44.0, -126.0],
+      "Prompt": "Enter to attune shrine",
+      "Title": "Attunement Shrine",
+      "Body": "The green ember remembers this ledge. It seals your next return here and restores the strength you brought into the gravewind."
+    },
+    {
+      "Type": "EchoTablet",
+      "Texture": "MossyDecorationHazard_11.png",
+      "Position": [4520, 642],
+      "Scale": [0.28, 0.28],
+      "Color": [255, 246, 226, 255],
+      "AccentColor": [226, 174, 118, 255],
+      "InteractRadius": 120.0,
+      "RewardGold": 45,
+      "SingleUse": true,
+      "Prompt": "Enter to read echo",
+      "Title": "Weathered Tablet",
+      "Body": "A hunter scratched this warning into old stone: Take gold where the dead hoard it, then reopen only one gate at a time. The deeper roads answer greed with teeth."
+    },
+    {
+      "Type": "GoldCache",
+      "Texture": "Item_24.png",
+      "Position": [6860, 802],
+      "Scale": [3.6, 3.6],
+      "Color": [255, 255, 255, 255],
+      "AccentColor": [248, 202, 98, 255],
+      "InteractRadius": 92.0,
+      "RewardGold": 90,
+      "SingleUse": true,
+      "Prompt": "Enter to claim relic cache",
+      "Title": "Sealed Cache",
+      "Body": "Silver-bound trinkets and chipped coinage spill from the cracked reliquary. The dead kept something worth carrying."
+    }
+  ],
   "Background": [
     {
       "BgName": "Background_51.png",

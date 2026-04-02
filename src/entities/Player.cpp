@@ -933,6 +933,71 @@ bool Player::spendGold(int amount)
     return true;
 }
 
+void Player::restoreVitalResources()
+{
+    const bool wasInjured = HP_ < maxHP || energy < maxEnergy;
+
+    HP_ = maxHP;
+    energy = maxEnergy;
+    restoreAirJumps();
+
+    if (!wasInjured)
+    {
+        return;
+    }
+
+    const sf::Vector2f center = getCenterPosition();
+    pushRing(center, sf::Color(124, 224, 202, 180), 10.f, 72.f, 4.4f, 2.8f, 180.f);
+    pushRing(center, sf::Color(255, 214, 144, 132), 7.f, 46.f, 3.2f, 2.1f, 132.f);
+    spawnParticleBurst(
+        center,
+        sf::Color(138, 232, 214, 215),
+        12,
+        82.f,
+        176.f,
+        2.4f,
+        -54.f,
+        0.62f
+    );
+    triggerCameraImpact({0.f, -0.18f}, 18.f, 0.08f, 0.01f);
+}
+
+void Player::teleportToSupportPoint(const sf::Vector2f& supportPoint)
+{
+    initialWalkSpeed = 0.f;
+    fallingSpeed = 0.f;
+    isFalling = false;
+    isFliesUp = false;
+    isJumped = false;
+
+    restoreAirJumps();
+
+    setPosition({
+        supportPoint.x - playerRectangle_->getSize().x / 2.f,
+        supportPoint.y - playerRectangle_->getSize().y
+    });
+
+    const sf::Vector2f center = getCenterPosition();
+    pushRing(center, sf::Color(104, 212, 182, 166), 12.f, 74.f, 4.6f, 2.4f, 166.f);
+    pushRing(center, sf::Color(226, 196, 118, 124), 8.f, 44.f, 3.4f, 2.0f, 124.f);
+    spawnParticleBurst(
+        center,
+        sf::Color(168, 236, 214, 208),
+        10,
+        72.f,
+        142.f,
+        2.0f,
+        -36.f,
+        0.54f
+    );
+
+    if (camera)
+    {
+        camera->setCenterPosition(center);
+        camera->addImpact({0.f, -0.16f}, 10.f, 0.08f, 0.012f);
+    }
+}
+
 void Player::respawnAt(sf::Vector2f pos)
 {
     HP_ = maxHP;

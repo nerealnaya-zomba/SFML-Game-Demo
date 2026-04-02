@@ -28,7 +28,7 @@ public:
     // Виртуальные методы, которые должны быть реализованы в производных классах
     virtual void draw(sf::RenderWindow& window) = 0;
     virtual void update() = 0;
-    virtual void handleEvent(const sf::Event& event) = 0;
+    virtual bool handleEvent(const sf::Event& event) = 0;
 
     
     
@@ -78,6 +78,10 @@ public:
     
     virtual void onInteractionExit() {
         isCanInteract = false;
+    }
+
+    virtual bool blocksPlayerInput() const {
+        return false;
     }
 
 protected:

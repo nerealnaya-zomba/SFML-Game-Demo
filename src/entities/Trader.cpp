@@ -184,7 +184,7 @@ void Trader::update()
     
 }
 
-void Trader::handleEvent(const sf::Event &event)
+bool Trader::handleEvent(const sf::Event &event)
 {
     // Если подошел к торговцу
     if(isCanInteract)
@@ -192,7 +192,10 @@ void Trader::handleEvent(const sf::Event &event)
         // Event handling by shop if opened
         if(shop->getIsOpened())
         {
-            shop->handleEvent(event);
+            if (shop->handleEvent(event))
+            {
+                return true;
+            }
         }
 
         // Открыть магазин если нажал на keyToOpenShop
@@ -209,6 +212,8 @@ void Trader::handleEvent(const sf::Event &event)
                 {
                     shop->close();
                 }
+
+                return true;
             }
         }
     }
@@ -216,11 +221,18 @@ void Trader::handleEvent(const sf::Event &event)
     {
         shop->close();
     }
+
+    return false;
 }
 
 bool Trader::isShopOpened()
 {
     return this->shop->getIsOpened();
+}
+
+bool Trader::blocksPlayerInput() const
+{
+    return shop && shop->getIsOpened();
 }
 
 bool switchToNextSpritePingPong(sf::Sprite* sprite,

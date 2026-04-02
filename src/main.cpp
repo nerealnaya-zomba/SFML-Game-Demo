@@ -282,13 +282,14 @@ int main()
                 continue;
             }
 
-            levelManager.handleEvent(*event);
+            const bool levelEventConsumed = levelManager.handleEvent(*event);
+            const bool levelModalOpen = levelManager.hasBlockingInteractiveModal();
 
-            if (!player.isCDMenuOpened())
+            if (!levelEventConsumed && !levelModalOpen && !player.isCDMenuOpened())
             {
                 trader.handleEvent(*event);
             }
-            if (!trader.isShopOpened())
+            if (!levelEventConsumed && !levelModalOpen && !trader.isShopOpened())
             {
                 player.chooseDestinationMenuHandleEvents(*event);
             }
@@ -361,6 +362,7 @@ int main()
         levelManager.drawDecorations();
         levelManager.drawGrounds();
         levelManager.drawEnemyManager();
+        levelManager.drawInteractives();
 
         trader.draw(window);
 

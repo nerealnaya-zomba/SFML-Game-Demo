@@ -258,6 +258,52 @@
       "Z": 0
     }
   ],
+  "Interactives": [
+    {
+      "Type": "EchoTablet",
+      "Texture": "MossyDecorationHazard_11.png",
+      "Position": [3600, 676],
+      "Scale": [0.28, 0.28],
+      "Color": [236, 248, 226, 255],
+      "AccentColor": [196, 210, 132, 255],
+      "InteractRadius": 122.0,
+      "RewardGold": 50,
+      "SingleUse": true,
+      "Prompt": "Enter to read burial record",
+      "Title": "Burial Record",
+      "Body": "These names were crossed out one by one. The last line remains: If the crypt grows too wide, leave a shrine of your own and do not trust the quiet."
+    },
+    {
+      "Type": "RestShrine",
+      "Texture": "MossyDecorationHazard_21.png",
+      "Position": [6300, 628],
+      "Scale": [0.30, 0.30],
+      "Color": [230, 252, 228, 255],
+      "AccentColor": [138, 216, 156, 255],
+      "InteractRadius": 132.0,
+      "SingleUse": true,
+      "GrantsCheckpoint": true,
+      "RestoreVitality": true,
+      "SpawnOffset": [-44.0, -126.0],
+      "Prompt": "Enter to sanctify this crossing",
+      "Title": "Crypt-Sanctified Shrine",
+      "Body": "A patient glow settles over the stone span. The shrine remembers you here, patches your wounds and waits in silence for the next fall."
+    },
+    {
+      "Type": "GoldCache",
+      "Texture": "Item_33.png",
+      "Position": [8040, 782],
+      "Scale": [3.6, 3.6],
+      "Color": [255, 255, 255, 255],
+      "AccentColor": [255, 210, 122, 255],
+      "InteractRadius": 94.0,
+      "RewardGold": 135,
+      "SingleUse": true,
+      "Prompt": "Enter to claim beam lens",
+      "Title": "Beam Lens Cache",
+      "Body": "A brass case clicks open around a rare lens and a purse of marked coin. Whoever carried it expected to pierce armor, not vanish."
+    }
+  ],
   "Background": [
     {
       "BgName": "Background_27.png",

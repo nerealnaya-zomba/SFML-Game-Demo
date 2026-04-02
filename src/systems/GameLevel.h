@@ -18,6 +18,7 @@ class Background;
 class Decoration;
 class EnemyManager;
 class GameLevelManager;
+class InteractiveObject;
 class Player;
 
 const std::string LEVELS_FOLDER = "data/levelData/";
@@ -25,11 +26,51 @@ const std::string LEVELS_FOLDER = "data/levelData/";
 class GameLevel
 {
 private:
+    struct GeneratedMiniLocation
+    {
+        std::string title;
+        std::string entranceTexture;
+        std::string exitTexture;
+        sf::Vector2f entrancePosition{0.f, 0.f};
+        sf::Vector2f entranceDestinationSupport{0.f, 0.f};
+        sf::Vector2f exitPosition{0.f, 0.f};
+        sf::Vector2f exitDestinationSupport{0.f, 0.f};
+        sf::Color entranceColor = sf::Color::White;
+        sf::Color exitColor = sf::Color::White;
+        sf::Color accentColor = sf::Color::White;
+        float interactRadius = 120.f;
+        std::string entrancePrompt;
+        std::string exitPrompt;
+    };
+
+    struct GeneratedMiniReward
+    {
+        std::string typeName;
+        std::string textureName;
+        sf::Vector2f position{0.f, 0.f};
+        sf::Vector2f scale{1.f, 1.f};
+        sf::Color color = sf::Color::White;
+        sf::Color accentColor = sf::Color::White;
+        float interactRadius = 120.f;
+        int goldReward = 0;
+        bool singleUse = true;
+        bool grantsCheckpoint = false;
+        bool restoreVitality = false;
+        bool hasCustomSpawnOffset = false;
+        sf::Vector2f spawnOffset{0.f, 0.f};
+        std::string prompt;
+        std::string title;
+        std::string body;
+    };
+
     sf::Vector2i size{};
     std::shared_ptr<Platform> platforms;
     std::shared_ptr<Decoration> decorations;
     std::shared_ptr<Ground> ground;
     std::vector<std::shared_ptr<Background>> background;
+    std::vector<std::unique_ptr<InteractiveObject>> interactives;
+    std::vector<GeneratedMiniLocation> generatedMiniLocations;
+    std::vector<GeneratedMiniReward> generatedMiniRewards;
 
     Player* player = nullptr;
     GameData* data = nullptr;
@@ -49,7 +90,10 @@ private:
     void initializeBackground(const nlohmann::json& data);
     void initializeGround(const nlohmann::json& data);
     void initializeEnemyManager(const nlohmann::json& data);
+    void initializeInteractives(const nlohmann::json& data);
+    void generateMiniLocations();
     void tryInitializeEnemyManager();
+    void tryInitializeInteractives();
 
 public:
     GameLevel(GameData& d, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath);
@@ -63,6 +107,7 @@ public:
     void updateBackgrounds();
     void updateGrounds();
     void updateEnemyManager();
+    void updateInteractives();
 
     void draw();
     void drawPlatforms();
@@ -70,6 +115,7 @@ public:
     void drawBackgrounds();
     void drawGrounds();
     void drawEnemyManager();
+    void drawInteractives();
 
     void loadLevelData(const std::string& fileName);
     void clearLevel();
@@ -83,6 +129,9 @@ public:
     sf::RectangleShape& getGroundRect();
     sf::Vector2f getPlayerSpawnPos();
     sf::Sprite& getLevelBackgroundSprite();
+    bool handleEvent(const sf::Event& event);
+    bool hasBlockingInteractiveModal() const;
+    void setPlayerSpawnPos(const sf::Vector2f& pos);
 
     void attachPlayer(Player& p);
 };
@@ -122,6 +171,7 @@ public:
     void updateBackgrounds();
     void updateGrounds();
     void updateEnemyManager();
+    void updateInteractives();
 
     void draw();
     void drawPlatforms();
@@ -129,6 +179,7 @@ public:
     void drawBackgrounds();
     void drawGrounds();
     void drawEnemyManager();
+    void drawInteractives();
 
     sf::Vector2i getCurrentLevelSize() const;
     std::string getCurrentLevelName() const;
@@ -137,8 +188,10 @@ public:
     sf::RectangleShape& getGroundRect();
     const std::map<std::string, std::shared_ptr<GameLevel>>& getLevelsMap() const;
     std::map<std::string, std::shared_ptr<GameLevel>>::iterator& getIteratorReference();
+    bool hasBlockingInteractiveModal() const;
+    void setCurrentLevelSpawn(const sf::Vector2f& pos);
 
     void attachPlayer(Player& p);
     void registerDeathRecovery(const sf::Vector2f& position, int goldAmount);
-    void handleEvent(const sf::Event& event);
+    bool handleEvent(const sf::Event& event);
 };

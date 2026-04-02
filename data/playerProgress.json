@@ -1,8 +1,8 @@
 {
     "campaign": {
-        "relicsPurchased": 5,
-        "totalGoldCollected": 9384,
-        "totalGoldSpent": 7175,
+        "relicsPurchased": 6,
+        "totalGoldCollected": 10329,
+        "totalGoldSpent": 7935,
         "visitedLevels": [
             "level1.json",
             "level2.json",
@@ -15,7 +15,7 @@
     },
     "player": {
         "currentWeaponIconName": "Item_29.png",
-        "gold": 2209,
+        "gold": 2394,
         "inventory": [
             {
                 "category": "Upgrade",
@@ -321,6 +321,40 @@
                     "projectileSpeed": 2,
                     "splashRadius": 0,
                     "spread": 8
+                }
+            },
+            {
+                "category": "Upgrade",
+                "description": "Tension-wound relics from a bell tower machine. They grant one more leap and a cleaner rise.",
+                "displayName": "Cathedral Springs",
+                "iconName": "Item_21.png",
+                "price": 760,
+                "quality": 3,
+                "stats": {
+                    "bulletDistance": 0,
+                    "bulletSpeed": 0,
+                    "damage": 0,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 1,
+                    "health": 0,
+                    "initialSpeed": 0,
+                    "jumpPower": 10,
+                    "maxSpeed": 0,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 0,
+                    "damageBonus": 0,
+                    "energyCost": 0,
+                    "kind": "AshenBolt",
+                    "pierceCount": 0,
+                    "projectileCount": 1,
+                    "projectileRange": 0,
+                    "projectileSpeed": 0,
+                    "splashRadius": 0,
+                    "spread": 0
                 }
             }
         ]

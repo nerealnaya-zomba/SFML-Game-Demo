@@ -92,7 +92,7 @@ public:
 
     void draw(sf::RenderWindow& window)        override;
     void update()                              override;
-    void handleEvent(const sf::Event& event)   override;
+    bool handleEvent(const sf::Event& event)   override;
 
     void setPortalDestination(std::optional<std::string> levelN);
 

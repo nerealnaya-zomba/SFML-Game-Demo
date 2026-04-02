@@ -191,6 +191,8 @@ public:
     void addGold(int amount);
     bool spendGold(int amount);
     bool tryPurchaseItem(const Item& item);
+    void restoreVitalResources();
+    void teleportToSupportPoint(const sf::Vector2f& supportPoint);
     void respawnAt(sf::Vector2f pos);
     void notifyLevelEntered(const std::string& levelName);
 

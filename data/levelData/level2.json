@@ -202,6 +202,36 @@
       "Z": 3
     }
   ],
+  "Interactives": [
+    {
+      "Type": "EchoTablet",
+      "Texture": "MossyDecorationHazard_25.png",
+      "Position": [1200, 552],
+      "Scale": [0.26, 0.26],
+      "Color": [226, 230, 255, 255],
+      "AccentColor": [166, 180, 255, 255],
+      "InteractRadius": 118.0,
+      "RewardGold": 35,
+      "SingleUse": true,
+      "Prompt": "Enter to listen",
+      "Title": "Storm Echo",
+      "Body": "Rain-stiffened markings speak of beasts nesting where the path narrows. Draw them into open ground before you spend too much strength climbing."
+    },
+    {
+      "Type": "GoldCache",
+      "Texture": "Item_20.png",
+      "Position": [3560, 910],
+      "Scale": [3.5, 3.5],
+      "Color": [255, 255, 255, 255],
+      "AccentColor": [248, 202, 98, 255],
+      "InteractRadius": 90.0,
+      "RewardGold": 105,
+      "SingleUse": true,
+      "Prompt": "Enter to pry open cache",
+      "Title": "Hunter's Purse",
+      "Body": "The clasp snaps and a clutch of grave-gold drops into your palm. Whoever hid it never made the return climb."
+    }
+  ],
   "Background": [
     {
       "BgName": "Background_39.png",

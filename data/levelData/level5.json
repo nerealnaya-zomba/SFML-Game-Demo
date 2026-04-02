@@ -150,6 +150,38 @@
       "Z": 2
     }
   ],
+  "Interactives": [
+    {
+      "Type": "RestShrine",
+      "Texture": "MossyDecorationHazard_21.png",
+      "Position": [960, 482],
+      "Scale": [0.30, 0.30],
+      "Color": [232, 236, 255, 255],
+      "AccentColor": [150, 188, 255, 255],
+      "InteractRadius": 136.0,
+      "SingleUse": true,
+      "GrantsCheckpoint": true,
+      "RestoreVitality": true,
+      "SpawnOffset": [-44.0, -126.0],
+      "Prompt": "Enter to attune the rift shrine",
+      "Title": "Rift Shrine",
+      "Body": "The shrine drinks the twilight crackle and gives it back as calm. It fixes your return point and restores your strength for the next breach."
+    },
+    {
+      "Type": "GoldCache",
+      "Texture": "Item_35.png",
+      "Position": [1360, 934],
+      "Scale": [3.7, 3.7],
+      "Color": [255, 255, 255, 255],
+      "AccentColor": [255, 210, 122, 255],
+      "InteractRadius": 96.0,
+      "RewardGold": 110,
+      "SingleUse": true,
+      "Prompt": "Enter to gather night relics",
+      "Title": "Night Relic Bundle",
+      "Body": "Moon-silver fittings, old seals and a roll of survivor's coin rest in the bundle. Someone planned to buy safety and ran out of road first."
+    }
+  ],
   "Background": [
     {
       "BgName": "Background_31.png",

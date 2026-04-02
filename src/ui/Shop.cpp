@@ -335,12 +335,17 @@ void Shop::update()
     widget.update();
 }
 
-void Shop::handleEvent(const sf::Event &event)
+bool Shop::handleEvent(const sf::Event &event)
 {
+    if (!isOpened)
+    {
+        return false;
+    }
+
     if(widget.getIsOpened())
     {
         widget.handleEvent(event);
-        return;
+        return true;
     }
 
     if(const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
@@ -348,37 +353,51 @@ void Shop::handleEvent(const sf::Event &event)
         if(keyPressed->scancode == SHOP_KEY_TO_PREVIOUS_TAB)
         {
             switchTab(-1);
+            return true;
         }
         else if(keyPressed->scancode == SHOP_KEY_TO_NEXT_TAB)
         {
             switchTab(1);
+            return true;
         }
         else if(keyPressed->scancode == SHOP_KEY_TO_MOVE_RIGHT)
         {
             moveSelectionRight();
+            return true;
         }
         else if(keyPressed->scancode == SHOP_KEY_TO_MOVE_LEFT)
         {
             moveSelectionLeft();
+            return true;
         }
         else if(keyPressed->scancode == SHOP_KEY_TO_MOVE_DOWN)
         {
             moveSelectionDown();
+            return true;
         }
         else if(keyPressed->scancode == SHOP_KEY_TO_MOVE_UP)
         {
             moveSelectionUp();
+            return true;
         }
         else if(keyPressed->scancode == SHOP_KEY_TO_OPEN_ITEM_WIDGET)
         {
             openSelectedItemWidget();
+            return true;
         }
     }
+
+    return false;
 }
 
 bool Shop::getIsOpened()
 {
     return this->isOpened;
+}
+
+bool Shop::blocksPlayerInput() const
+{
+    return isOpened;
 }
 
 bool Shop::hasItems() const
