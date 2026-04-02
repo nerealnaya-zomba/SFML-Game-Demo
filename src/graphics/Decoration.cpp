@@ -1,354 +1,433 @@
 #include "Decoration.h"
 
+#include <algorithm>
+#include <cmath>
+#include <stdexcept>
+
+namespace
+{
+constexpr float kPi = 3.14159265359f;
+
+float fract(float value)
+{
+    return value - std::floor(value);
+}
+
+float seededNoise(sf::Vector2f position, int z, float salt)
+{
+    const float value = std::sin(
+        position.x * 0.01373f
+        + position.y * 0.00919f
+        + static_cast<float>(z) * 0.07131f
+        + salt * 17.0f
+    ) * 43758.5453f;
+
+    return fract(value);
+}
+
+DecorationMotionProfile makePlantMotion(float swayAmplitude,
+                                        float swaySpeed,
+                                        float tiltAmplitude,
+                                        float tiltSpeed,
+                                        float driftY,
+                                        float driftSpeed,
+                                        float pulseAmplitude = 0.0f,
+                                        float pulseSpeed = 0.0f)
+{
+    DecorationMotionProfile profile;
+    profile.driftAmplitude = {swayAmplitude * 0.18f, driftY};
+    profile.driftSpeed = driftSpeed;
+    profile.swayAmplitude = swayAmplitude;
+    profile.swaySpeed = swaySpeed;
+    profile.tiltAmplitude = tiltAmplitude;
+    profile.tiltSpeed = tiltSpeed;
+    profile.scalePulseAmplitude = pulseAmplitude;
+    profile.scalePulseSpeed = pulseSpeed;
+    return profile;
+}
+
+DecorationMotionProfile makePortalMotion(float driftX,
+                                         float driftY,
+                                         float driftSpeed,
+                                         float pulseAmplitude,
+                                         float pulseSpeed)
+{
+    DecorationMotionProfile profile;
+    profile.driftAmplitude = {driftX, driftY};
+    profile.driftSpeed = driftSpeed;
+    profile.scalePulseAmplitude = pulseAmplitude;
+    profile.scalePulseSpeed = pulseSpeed;
+    return profile;
+}
+}
+
 Decoration::Decoration(GameData& gameTextures, GameCamera& c)
-: data(&gameTextures), camera(&c)
+    : data(&gameTextures)
+    , camera(&c)
 {
-    //Plants
-    attachTexture(gameTextures.plant1Textures,      this->plant1Textures,       gameTextures.plant1,        this->plant1        );
-    attachTexture(gameTextures.plant2Textures,      this->plant2Textures,       gameTextures.plant2,        this->plant2        );
-    attachTexture(gameTextures.plant3Textures,      this->plant3Textures,       gameTextures.plant3,        this->plant3        );
-    attachTexture(gameTextures.plant4Textures,      this->plant4Textures,       gameTextures.plant4,        this->plant4        );
-    attachTexture(gameTextures.plant5Textures,      this->plant5Textures,       gameTextures.plant5,        this->plant5        );
-    attachTexture(gameTextures.plant6Textures,      this->plant6Textures,       gameTextures.plant6,        this->plant6        );
-    attachTexture(gameTextures.plant7Textures,      this->plant7Textures,       gameTextures.plant7,        this->plant7        );
-    //Cat
-    attachTexture(gameTextures.jumpPlantTextures,   this->jumpPlantTextures,    gameTextures.jumpPlant,     this->jumpPlant     );
-    //jumpPlant
-    attachTexture(gameTextures.cat1Textures,        this->cat1Textures,         gameTextures.catHelper,     this->catHelper     );
-    //portalGreen
-    attachTexture(gameTextures.portalGreenTextures, this->portalGreenTextures,  gameTextures.portalGreen,   this->portalGreen   );
-    //Static-textures
-    attachTexture(gameTextures.allStaticTextures,   this->staticTextures                                                        );
+    attachTexture(gameTextures.plant1Textures, plant1Textures, gameTextures.plant1, plant1);
+    attachTexture(gameTextures.plant2Textures, plant2Textures, gameTextures.plant2, plant2);
+    attachTexture(gameTextures.plant3Textures, plant3Textures, gameTextures.plant3, plant3);
+    attachTexture(gameTextures.plant4Textures, plant4Textures, gameTextures.plant4, plant4);
+    attachTexture(gameTextures.plant5Textures, plant5Textures, gameTextures.plant5, plant5);
+    attachTexture(gameTextures.plant6Textures, plant6Textures, gameTextures.plant6, plant6);
+    attachTexture(gameTextures.plant7Textures, plant7Textures, gameTextures.plant7, plant7);
+    attachTexture(gameTextures.jumpPlantTextures, jumpPlantTextures, gameTextures.jumpPlant, jumpPlant);
+    attachTexture(gameTextures.jumpPlant2Textures, jumpPlant2Textures, gameTextures.jumpPlant2, jumpPlant2);
+    attachTexture(gameTextures.plantWind1Textures, plantWind1Textures, gameTextures.plantWind1, plantWind1);
+    attachTexture(gameTextures.blueFlower1Textures, blueFlower1Textures, gameTextures.blueFlower1, blueFlower1);
+    attachTexture(gameTextures.blueFlower2Textures, blueFlower2Textures, gameTextures.blueFlower2, blueFlower2);
+    attachTexture(gameTextures.plant8PoisonTextures, plant8PoisonTextures, gameTextures.plant8Poison, plant8Poison);
+    attachTexture(gameTextures.cat1Textures, cat1Textures, gameTextures.catHelper, catHelper);
+    attachTexture(gameTextures.portalGreenTextures, portalGreenTextures, gameTextures.portalGreen, portalGreen);
+    attachTexture(gameTextures.portalBlue1Textures, portalBlue1Textures, gameTextures.portalBlue1Helper, portalBlue1);
+    attachTexture(gameTextures.portalBlue2Textures, portalBlue2Textures, gameTextures.portalBlue2Helper, portalBlue2);
+    attachTexture(gameTextures.portalBlue3Textures, portalBlue3Textures, gameTextures.portalBlue3Helper, portalBlue3);
+    attachTexture(gameTextures.portalBlue4Textures, portalBlue4Textures, gameTextures.portalBlue4Helper, portalBlue4);
+    attachTexture(gameTextures.portalBlue5Textures, portalBlue5Textures, gameTextures.portalBlue5Helper, portalBlue5);
+    attachTexture(gameTextures.portalBlue6Textures, portalBlue6Textures, gameTextures.portalBlue6Helper, portalBlue6);
+    attachTexture(gameTextures.portalBlue7Textures, portalBlue7Textures, gameTextures.portalBlue7Helper, portalBlue7);
+    attachTexture(gameTextures.portalBlue8Textures, portalBlue8Textures, gameTextures.portalBlue8Helper, portalBlue8);
+    attachTexture(gameTextures.allStaticTextures, staticTextures);
 
-    pushPointersOfUnorderedMultimapsToVector();
+    registerAnimatedGroup("plant1", plant1Textures, plant1, plant1Sprites, makePlantMotion(7.0f, 0.72f, 2.2f, 0.92f, 3.0f, 0.54f));
+    registerAnimatedGroup("plant2", plant2Textures, plant2, plant2Sprites, makePlantMotion(8.5f, 0.74f, 2.4f, 0.96f, 3.2f, 0.56f));
+    registerAnimatedGroup("plant3", plant3Textures, plant3, plant3Sprites, makePlantMotion(6.5f, 0.70f, 1.9f, 0.88f, 2.6f, 0.50f));
+    registerAnimatedGroup("plant4", plant4Textures, plant4, plant4Sprites, makePlantMotion(5.0f, 0.66f, 1.6f, 0.82f, 2.2f, 0.46f));
+    registerAnimatedGroup("plant5", plant5Textures, plant5, plant5Sprites, makePlantMotion(7.5f, 0.76f, 2.1f, 0.94f, 3.4f, 0.58f));
+    registerAnimatedGroup("plant6", plant6Textures, plant6, plant6Sprites, makePlantMotion(8.0f, 0.78f, 2.5f, 0.98f, 3.6f, 0.60f));
+    registerAnimatedGroup("plant7", plant7Textures, plant7, plant7Sprites, makePlantMotion(9.0f, 0.82f, 2.7f, 1.04f, 4.2f, 0.64f));
+    registerAnimatedGroup("jumpPlant", jumpPlantTextures, jumpPlant, jumpPlantSprites, makePlantMotion(4.0f, 1.10f, 1.4f, 1.18f, 5.0f, 1.20f, 0.016f, 1.25f));
+    registerAnimatedGroup("jumpPlant2", jumpPlant2Textures, jumpPlant2, jumpPlant2Sprites, makePlantMotion(4.6f, 1.16f, 1.6f, 1.24f, 5.6f, 1.28f, 0.018f, 1.34f), {"jumpBloom2"});
+    registerAnimatedGroup("windPlant1", plantWind1Textures, plantWind1, plantWind1Sprites, makePlantMotion(10.0f, 0.90f, 3.0f, 1.08f, 3.4f, 0.68f), {"windPlant", "plantWind1"});
+    registerAnimatedGroup("blueFlower1", blueFlower1Textures, blueFlower1, blueFlower1Sprites, makePlantMotion(3.0f, 0.86f, 1.2f, 0.92f, 4.8f, 0.78f, 0.022f, 1.48f), {"blueFlower"});
+    registerAnimatedGroup("blueFlower2", blueFlower2Textures, blueFlower2, blueFlower2Sprites, makePlantMotion(2.8f, 0.82f, 1.1f, 0.88f, 4.0f, 0.74f, 0.019f, 1.40f), {"blueFlowerClosed"});
+    registerAnimatedGroup("poisonPlant", plant8PoisonTextures, plant8Poison, plant8PoisonSprites, makePlantMotion(7.2f, 0.84f, 2.3f, 0.98f, 3.8f, 0.66f, 0.014f, 1.18f), {"plant8", "plant8Poison", "poisonPlant8"});
+    registerAnimatedGroup("cat", cat1Textures, catHelper, cat1Sprites, makePlantMotion(0.4f, 0.24f, 0.0f, 0.0f, 1.6f, 0.34f, 0.012f, 0.78f));
+    registerAnimatedGroup("portalGreen", portalGreenTextures, portalGreen, portalGreenSprites, makePortalMotion(2.0f, 6.0f, 0.96f, 0.030f, 1.52f));
+    registerAnimatedGroup("portalBlue1", portalBlue1Textures, portalBlue1, portal1BlueSprites, makePortalMotion(1.8f, 6.6f, 1.02f, 0.032f, 1.58f));
+    registerAnimatedGroup("portalBlue2", portalBlue2Textures, portalBlue2, portal2BlueSprites, makePortalMotion(1.8f, 6.4f, 1.04f, 0.031f, 1.60f));
+    registerAnimatedGroup("portalBlue3", portalBlue3Textures, portalBlue3, portal3BlueSprites, makePortalMotion(1.9f, 6.7f, 1.06f, 0.033f, 1.62f));
+    registerAnimatedGroup("portalBlue4", portalBlue4Textures, portalBlue4, portal4BlueSprites, makePortalMotion(1.9f, 6.9f, 1.08f, 0.034f, 1.64f));
+    registerAnimatedGroup("portalBlue5", portalBlue5Textures, portalBlue5, portal5BlueSprites, makePortalMotion(2.0f, 7.0f, 1.10f, 0.034f, 1.66f));
+    registerAnimatedGroup("portalBlue6", portalBlue6Textures, portalBlue6, portal6BlueSprites, makePortalMotion(2.0f, 7.1f, 1.12f, 0.035f, 1.68f));
+    registerAnimatedGroup("portalBlue7", portalBlue7Textures, portalBlue7, portal7BlueSprites, makePortalMotion(2.1f, 7.2f, 1.14f, 0.035f, 1.70f));
+    registerAnimatedGroup("portalBlue8", portalBlue8Textures, portalBlue8, portal8BlueSprites, makePortalMotion(2.1f, 7.3f, 1.16f, 0.036f, 1.72f));
+
+    spriteMaps.push_back(&staticSprites);
 }
 
-Decoration::~Decoration()
+Decoration::~Decoration() = default;
+
+void Decoration::registerAnimatedGroup(const std::string& name,
+                                       std::vector<sf::Texture>* textures,
+                                       texturesIterHelper& helper,
+                                       DecorationSpriteMap& sprites,
+                                       const DecorationMotionProfile& motion,
+                                       std::initializer_list<const char*> aliases)
 {
+    const std::size_t groupIndex = animatedGroups.size();
+    animatedGroups.push_back(AnimatedDecorationGroup{textures, &helper, &sprites, motion});
+    animatedGroupLookup.emplace(name, groupIndex);
+
+    for (const char* alias : aliases)
+    {
+        animatedGroupLookup.emplace(alias, groupIndex);
+    }
+
+    spriteMaps.push_back(&sprites);
 }
 
-void Decoration::addDecoration(std::string name,sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color)
+void Decoration::addDecoration(std::string name,
+                               sf::Vector2f position,
+                               sf::Vector2f scale,
+                               sf::Vector2f parallaxFactor,
+                               int z,
+                               sf::Color color)
 {
-    if(name == "plant1")
+    const auto animatedIt = animatedGroupLookup.find(name);
+    if (animatedIt != animatedGroupLookup.end())
     {
-        initDecoration(position,scale,parallaxFactor,z,color,plant1Sprites,plant1Textures);
+        initAnimatedDecoration(position, scale, parallaxFactor, z, color, animatedGroups.at(animatedIt->second));
+        return;
     }
-    else if(name == "plant2")
+
+    initStaticDecoration(name, position, scale, parallaxFactor, z, color);
+}
+
+void Decoration::initAnimatedDecoration(sf::Vector2f position,
+                                        sf::Vector2f scale,
+                                        sf::Vector2f parallaxFactor,
+                                        int z,
+                                        sf::Color color,
+                                        AnimatedDecorationGroup& group)
+{
+    if (!group.textures || group.textures->empty())
     {
-        initDecoration(position,scale,parallaxFactor,z,color,plant2Sprites,plant2Textures);
+        throw std::runtime_error("Animated decoration group has no textures");
     }
-    else if(name == "plant3")
+
+    auto sprite = std::make_unique<sf::Sprite>(group.textures->front());
+    setSpriteOriginToMiddle(*sprite);
+    sprite->setPosition(position);
+    sprite->setScale(scale);
+    sprite->setColor(color);
+
+    registerMotionState(*sprite, position, scale, z, group.motion);
+
+    all_Z.insert(z);
+    group.sprites->emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
+}
+
+void Decoration::initStaticDecoration(const std::string& name,
+                                      sf::Vector2f position,
+                                      sf::Vector2f scale,
+                                      sf::Vector2f parallaxFactor,
+                                      int z,
+                                      sf::Color color)
+{
+    if (!staticTextures)
     {
-        initDecoration(position,scale,parallaxFactor,z,color,plant3Sprites,plant3Textures);
+        throw std::runtime_error("Static decoration atlas is not available");
     }
-    else if(name == "plant4")
+
+    const auto textureIt = staticTextures->find(name);
+    if (textureIt == staticTextures->end())
     {
-        initDecoration(position,scale,parallaxFactor,z,color,plant4Sprites,plant4Textures);
+        throw std::runtime_error("Unknown decoration texture: " + name);
     }
-    else if(name == "plant5")
+
+    auto sprite = std::make_unique<sf::Sprite>(textureIt->second);
+    setSpriteOriginToMiddle(*sprite);
+    sprite->setPosition(position);
+    sprite->setScale(scale);
+    sprite->setColor(color);
+
+    registerMotionState(*sprite, position, scale, z, resolveStaticMotionProfile(name));
+
+    all_Z.insert(z);
+    staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
+}
+
+void Decoration::registerMotionState(const sf::Sprite& sprite,
+                                     sf::Vector2f position,
+                                     sf::Vector2f scale,
+                                     int z,
+                                     const DecorationMotionProfile& motion)
+{
+    if (!motion.hasMotion())
     {
-        initDecoration(position,scale,parallaxFactor,z,color,plant5Sprites,plant5Textures);
+        return;
     }
-    else if(name == "plant6")
+
+    const float phase = seededNoise(position, z, 0.13f) * kPi * 2.0f;
+    const float amplitudeMultiplier = 0.82f + seededNoise(position, z, 0.57f) * 0.42f;
+    const float speedMultiplier = 0.86f + seededNoise(position, z, 1.19f) * 0.34f;
+
+    motionStates.emplace(&sprite, DecorationMotionState{
+        motion,
+        scale,
+        phase,
+        amplitudeMultiplier,
+        speedMultiplier
+    });
+}
+
+DecorationMotionProfile Decoration::resolveStaticMotionProfile(const std::string& name) const
+{
+    if (name.rfind("MossyHangingPlants_", 0) == 0)
     {
-        initDecoration(position,scale,parallaxFactor,z,color,plant6Sprites,plant6Textures);
+        return makePlantMotion(6.0f, 0.62f, 1.4f, 0.74f, 2.0f, 0.46f);
     }
-    else if(name == "plant7")
+
+    if (name.rfind("MossyBackgroundDecoration_", 0) == 0)
     {
-        initDecoration(position,scale,parallaxFactor,z,color,plant7Sprites,plant7Textures);
+        DecorationMotionProfile profile;
+        profile.driftAmplitude = {1.4f, 2.6f};
+        profile.driftSpeed = 0.30f;
+        return profile;
     }
-    else if(name == "cat")
+
+    if (name.rfind("MossyDecorationHazard_", 0) == 0)
     {
-        initDecoration(position,scale,parallaxFactor,z,color,cat1Sprites,cat1Textures);
+        DecorationMotionProfile profile;
+        profile.driftAmplitude = {1.0f, 1.8f};
+        profile.driftSpeed = 0.54f;
+        profile.scalePulseAmplitude = 0.010f;
+        profile.scalePulseSpeed = 1.10f;
+        return profile;
     }
-    else if(name == "jumpPlant")
+
+    return {};
+}
+
+void Decoration::switchToNextSprite(DecorationSpriteMap& spritesArray,
+                                    std::vector<sf::Texture>& texturesArray,
+                                    texturesIterHelper& iterHelper)
+{
+    if (spritesArray.empty() || texturesArray.empty())
     {
-        initDecoration(position,scale,parallaxFactor,z,color,jumpPlantSprites,jumpPlantTextures);
+        return;
     }
-    else if(name == "portalGreen")
+
+    if (texturesArray.size() == 1)
     {
-        initDecoration(position,scale,parallaxFactor,z,color,portalGreenSprites,portalGreenTextures);
-    }
-    //Static-textures assertion
-    else{
-        try{
-            initDecoration(name,position,scale,parallaxFactor,z,color,staticSprites,staticTextures);
+        for (auto& entry : spritesArray)
+        {
+            entry.second->setTexture(texturesArray.front(), true);
         }
-        catch(std::out_of_range& ex){
-            std::cout << ex.what() << std::endl;
-            
-            exit(1);
-        }
+        return;
     }
-    
-    
-}
 
-void Decoration::pushPointersOfUnorderedMultimapsToVector()
-{
-    multimap_pointers.push_back(&this->plant1Sprites);
-    multimap_pointers.push_back(&this->plant2Sprites);   
-    multimap_pointers.push_back(&this->plant3Sprites);   
-    multimap_pointers.push_back(&this->plant4Sprites);   
-    multimap_pointers.push_back(&this->plant5Sprites);   
-    multimap_pointers.push_back(&this->plant6Sprites);   
-    multimap_pointers.push_back(&this->plant7Sprites);   
-    multimap_pointers.push_back(&this->staticSprites);   
-    multimap_pointers.push_back(&this->jumpPlantSprites);
-    multimap_pointers.push_back(&this->cat1Sprites);   
-    multimap_pointers.push_back(&this->portalGreenSprites);      
-}
-
-void Decoration::switchToNextSprite(std::vector<std::unique_ptr<sf::Sprite>> &spritesArray, std::vector<sf::Texture> &texturesArray, texturesIterHelper &iterHelper)
-{
-    
-    if(iterHelper.iterationCounter<iterHelper.iterationsTillSwitch)
+    if (iterHelper.iterationCounter < iterHelper.iterationsTillSwitch)
     {
-        iterHelper.iterationCounter++;
+        ++iterHelper.iterationCounter;
+        return;
     }
-    else
+
+    iterHelper.iterationCounter = 0;
+
+    const int lastIndex = static_cast<int>(texturesArray.size()) - 1;
+    iterHelper.ptrToTexture = std::clamp(iterHelper.ptrToTexture, 0, lastIndex);
+
+    for (auto& entry : spritesArray)
     {
-        //Forward-backward logic
-        if(iterHelper.ptrToTexture == iterHelper.countOfTextures)
+        entry.second->setTexture(texturesArray.at(static_cast<std::size_t>(iterHelper.ptrToTexture)), true);
+    }
+
+    if (iterHelper.goForward)
+    {
+        if (iterHelper.ptrToTexture >= lastIndex)
         {
             iterHelper.goForward = false;
-        }
-        else if(iterHelper.ptrToTexture == 0)
-        {
-            iterHelper.goForward = true;
-        }
-
-        //Switch sprites
-        for (auto &i : spritesArray)
-        {
-            i->setTexture(texturesArray.at(iterHelper.ptrToTexture));
-        }
-
-        //Forward-backward logic
-        if(iterHelper.goForward)
-        {
-            iterHelper.ptrToTexture++;
+            --iterHelper.ptrToTexture;
         }
         else
         {
-            iterHelper.ptrToTexture--;
+            ++iterHelper.ptrToTexture;
         }
-
-        //reset iteration counter after all switches
-        iterHelper.iterationCounter = 0;
-    }
-}
-
-void Decoration::switchToNextSprite(std::unordered_multimap<
-        Vector2fPairWithZ,
-        std::unique_ptr<sf::Sprite>,Vector2fPairWithZHash,Vector2fPairWithZEqual>& spritesArray, 
-        std::vector<sf::Texture>& texturesArray, 
-        texturesIterHelper& iterHelper)
-{
-    if(iterHelper.iterationCounter<iterHelper.iterationsTillSwitch)
-    {
-        iterHelper.iterationCounter++;
     }
     else
     {
-        //Forward-backward logic
-        if(iterHelper.ptrToTexture == iterHelper.countOfTextures)
-        {
-            iterHelper.goForward = false;
-        }
-        else if(iterHelper.ptrToTexture == 0)
+        if (iterHelper.ptrToTexture <= 0)
         {
             iterHelper.goForward = true;
-        }
-
-        //Switch sprites
-        for (auto &&i : spritesArray)
-        {
-            i.second->setTexture(texturesArray.at(iterHelper.ptrToTexture));
-        }
-
-        //Forward-backward logic
-        if(iterHelper.goForward)
-        {
-            iterHelper.ptrToTexture++;
+            ++iterHelper.ptrToTexture;
         }
         else
         {
-            iterHelper.ptrToTexture--;
+            --iterHelper.ptrToTexture;
         }
-
-        //reset iteration counter after all switches
-        iterHelper.iterationCounter = 0;
     }
 }
 
 void Decoration::updateParallax()
 {
-    for (auto &i : plant1Sprites)
+    for (DecorationSpriteMap* spriteMap : spriteMaps)
     {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &i : plant2Sprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &i : plant3Sprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &i : plant4Sprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &i : plant5Sprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &i : plant6Sprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &i : plant7Sprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &i : cat1Sprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &i : jumpPlantSprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &&i : portalGreenSprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
-    }
-    for (auto &&i : staticSprites)
-    {
-        applyParalaxes(i.first.posData,i.second);
+        for (auto& entry : *spriteMap)
+        {
+            applyParalaxes(entry.first.posData, entry.second);
+        }
     }
 }
 
-void Decoration::applyParalaxes(
-        const std::pair<sf::Vector2f, sf::Vector2f>& vectorPair ,   // for std::pair : first - parallaxFactor, second - baseObjectPos  
-        const std::unique_ptr<sf::Sprite>& sprite                   // second arg. in std::unordered_map
-) {
+void Decoration::applyParalaxes(const std::pair<sf::Vector2f, sf::Vector2f>& vectorPair,
+                                const std::unique_ptr<sf::Sprite>& sprite)
+{
+    if (!sprite)
+    {
+        return;
+    }
+
     const sf::Vector2f baseObjectPos = vectorPair.second;
     const sf::Vector2f parallaxFactor = vectorPair.first;
     const sf::Vector2f cameraOffset = camera->getCameraCenterPos() - BASE_CAMERAPOS;
+    const sf::Vector2f basePosition = {
+        baseObjectPos.x + cameraOffset.x * parallaxFactor.x,
+        baseObjectPos.y + cameraOffset.y * parallaxFactor.y
+    };
 
-    if (sprite.get())
+    sprite->setPosition(basePosition);
+
+    const auto motionIt = motionStates.find(sprite.get());
+    if (motionIt == motionStates.end())
     {
-        sprite.get()->setPosition({
-            baseObjectPos.x + cameraOffset.x * parallaxFactor.x,
-            baseObjectPos.y + cameraOffset.y * parallaxFactor.y
-        });
+        return;
     }
-}
 
-void Decoration::initDecoration(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color,
-    std::unordered_multimap<Vector2fPairWithZ, std::unique_ptr<sf::Sprite>, Vector2fPairWithZHash, Vector2fPairWithZEqual>& sprites,
-    std::vector<sf::Texture>* textures)
-{
-        auto sprite = std::make_unique<sf::Sprite>(textures->at(0));
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(position);
-        sprite->setScale(scale);
-        sprite->setColor(color);
-        all_Z.insert(z);
-        sprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
-}
+    const DecorationMotionState& state = motionIt->second;
+    const float time = ambientClock.getElapsedTime().asSeconds() * state.speedMultiplier;
 
-void Decoration::initDecoration(std::string& name, sf::Vector2f position, sf::Vector2f scale, sf::Vector2f parallaxFactor, int z, sf::Color color, std::unordered_multimap<Vector2fPairWithZ, std::unique_ptr<sf::Sprite>, Vector2fPairWithZHash, Vector2fPairWithZEqual> &sprites, std::map<std::string, sf::Texture> *textures)
-{
-            auto sprite = std::make_unique<sf::Sprite>(staticTextures->at(name));
-            sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-            sprite->setPosition(position);
-            sprite->setScale(scale);
-            sprite->setColor(color);
-            all_Z.insert(z);
-            staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor,position),z),std::move(sprite));
-}
+    sf::Vector2f motionOffset = {
+        std::sin(time * state.profile.swaySpeed + state.phase) * state.profile.swayAmplitude,
+        std::cos(time * state.profile.driftSpeed + state.phase * 0.89f) * state.profile.driftAmplitude.y
+    };
 
-void Decoration::generateMipmapTextures(std::vector<sf::Texture> &texturesArray)
-{
-    for (auto &i : texturesArray)
-    {
-        if(i.generateMipmap())
-        {
-            std::cout << "Mipmap generated\n"; 
-        }
-        else
-        {
-            std::cout << "Error while generating mipmap\n";
-        }
-    }
-    
-}
+    motionOffset.x += std::sin(time * state.profile.driftSpeed * 0.76f + state.phase * 1.33f)
+        * state.profile.driftAmplitude.x;
 
-void Decoration::smoothTextures(std::vector<sf::Texture> &texturesArray)
-{
-    for (auto &i : texturesArray)
-    {
-        i.setSmooth(true);
-    }
-    
+    motionOffset *= state.amplitudeMultiplier;
+
+    const float rotation = std::sin(time * state.profile.tiltSpeed + state.phase * 0.71f)
+        * state.profile.tiltAmplitude
+        * state.amplitudeMultiplier;
+
+    const float pulseX = 1.0f + std::sin(time * state.profile.scalePulseSpeed + state.phase * 1.47f)
+        * state.profile.scalePulseAmplitude
+        * state.amplitudeMultiplier;
+    const float pulseY = 1.0f + std::cos(time * state.profile.scalePulseSpeed * 0.82f + state.phase * 0.93f)
+        * state.profile.scalePulseAmplitude
+        * 0.55f
+        * state.amplitudeMultiplier;
+
+    sprite->setPosition(basePosition + motionOffset);
+    sprite->setRotation(sf::degrees(rotation));
+    sprite->setScale({state.baseScale.x * pulseX, state.baseScale.y * pulseY});
 }
 
 void Decoration::updateTextures()
 {
-
-    switchToNextSprite(plant1Sprites,*plant1Textures,plant1);
-    switchToNextSprite(plant2Sprites,*plant2Textures,plant2);
-    switchToNextSprite(plant3Sprites,*plant3Textures,plant3);
-
-
-
-    switchToNextSprite(plant4Sprites,*plant4Textures,plant4);
-    switchToNextSprite(plant5Sprites,*plant5Textures,plant5);
-    switchToNextSprite(plant6Sprites,*plant6Textures,plant6);
-    switchToNextSprite(plant7Sprites,*plant7Textures,plant7);
-
-
-
-    switchToNextSprite(cat1Sprites,*cat1Textures,catHelper);
-
-    switchToNextSprite(jumpPlantSprites,*jumpPlantTextures,jumpPlant);
-
-    switchToNextSprite(portalGreenSprites,*portalGreenTextures,portalGreen);
+    for (AnimatedDecorationGroup& group : animatedGroups)
+    {
+        if (group.textures && group.helper && group.sprites)
+        {
+            switchToNextSprite(*group.sprites, *group.textures, *group.helper);
+        }
+    }
 
     updateParallax();
 }
 
 void Decoration::drawByZOrder(sf::RenderWindow& window)
 {
-    for (int z : all_Z) {
-        // 3. Проходим по всем картам
-        for (auto* spriteMap : multimap_pointers) {
-            // 4. Проходим по всем элементам в текущей карте
-            for (const auto& pair : *spriteMap) {
-                // 5. Если Z совпадает - рисуем
-                if (pair.first.z == z) {
-                    if (pair.second) {  // Проверка на nullptr
-                        window.draw(*pair.second);
-                    }
+    for (int z : all_Z)
+    {
+        for (DecorationSpriteMap* spriteMap : spriteMaps)
+        {
+            for (const auto& entry : *spriteMap)
+            {
+                if (entry.first.z == z && entry.second)
+                {
+                    window.draw(*entry.second);
                 }
             }
         }
     }
-    
 }
 
-void Decoration::draw(sf::RenderWindow &window)
+void Decoration::draw(sf::RenderWindow& window)
 {
     drawByZOrder(window);
 }
 
 void Decoration::clearDecorations()
 {
-    for (auto &&i : multimap_pointers)
+    for (DecorationSpriteMap* spriteMap : spriteMaps)
     {
-        i->clear();
+        spriteMap->clear();
     }
+
+    motionStates.clear();
+    all_Z.clear();
 }

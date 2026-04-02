@@ -1,7 +1,7 @@
 {
     "campaign": {
         "relicsPurchased": 5,
-        "totalGoldCollected": 9108,
+        "totalGoldCollected": 9384,
         "totalGoldSpent": 7175,
         "visitedLevels": [
             "level1.json",
@@ -15,7 +15,7 @@
     },
     "player": {
         "currentWeaponIconName": "Item_29.png",
-        "gold": 1933,
+        "gold": 2209,
         "inventory": [
             {
                 "category": "Upgrade",

@@ -84,6 +84,70 @@
       "Color": [255, 255, 255, 255],
       "ParallaxFactor": [0.68, 0.68],
       "Z": 2
+    },
+    {
+      "Name": "portalBlue8",
+      "Position": [960, 720],
+      "Scale": [0.78, 0.78],
+      "Color": [180, 220, 255, 220],
+      "ParallaxFactor": [0.42, 0.40],
+      "Z": 0
+    },
+    {
+      "Name": "windPlant1",
+      "Position": [280, 992],
+      "Scale": [0.40, 0.40],
+      "Color": [235, 235, 255, 220],
+      "ParallaxFactor": [0.70, 0.70],
+      "Z": 2
+    },
+    {
+      "Name": "blueFlower1",
+      "Position": [540, 994],
+      "Scale": [0.24, 0.24],
+      "Color": [210, 235, 255, 245],
+      "ParallaxFactor": [0.72, 0.72],
+      "Z": 3
+    },
+    {
+      "Name": "jumpPlant",
+      "Position": [700, 985],
+      "Scale": [0.40, 0.40],
+      "Color": [255, 255, 255, 235],
+      "ParallaxFactor": [0.68, 0.68],
+      "Z": 2
+    },
+    {
+      "Name": "cat",
+      "Position": [900, 960],
+      "Scale": [3.20, 3.20],
+      "Color": [255, 255, 255, 255],
+      "ParallaxFactor": [0.70, 0.70],
+      "Z": 3
+    },
+    {
+      "Name": "jumpPlant2",
+      "Position": [1220, 985],
+      "Scale": [0.40, 0.40],
+      "Color": [225, 245, 255, 235],
+      "ParallaxFactor": [0.68, 0.68],
+      "Z": 2
+    },
+    {
+      "Name": "blueFlower2",
+      "Position": [1380, 994],
+      "Scale": [0.24, 0.24],
+      "Color": [215, 240, 255, 245],
+      "ParallaxFactor": [0.72, 0.72],
+      "Z": 3
+    },
+    {
+      "Name": "poisonPlant",
+      "Position": [1640, 992],
+      "Scale": [0.38, 0.38],
+      "Color": [225, 195, 255, 235],
+      "ParallaxFactor": [0.70, 0.70],
+      "Z": 2
     }
   ],
   "Background": [

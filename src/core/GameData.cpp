@@ -123,6 +123,11 @@ GameData::GameData(sf::Font* font, std::shared_ptr<LoadingProgress> loadingProgr
     loadAnimatedTextures("Growing grave moss VII", plant7Textures, plant7Path, plant7, 9, true, true);
     loadAnimatedTextures("Waking the sleeping cat", cat1Textures, cat1Path, catHelper, 72, true);
     loadAnimatedTextures("Awakening the jump bloom", jumpPlantTextures, jumpPlantPath, jumpPlant, 5, true, true);
+    loadAnimatedTextures("Unfurling the second jump bloom", jumpPlant2Textures, jumpPlant2Path, jumpPlant2, 5, true, true);
+    loadAnimatedTextures("Letting the grave reeds sway", plantWind1Textures, plantWind1Path, plantWind1, 4, true, true);
+    loadAnimatedTextures("Opening the moonlit flower", blueFlower1Textures, blueFlower1Path, blueFlower1, 2, true, true);
+    loadAnimatedTextures("Breathing through the closed flower", blueFlower2Textures, blueFlower2Path, blueFlower2, 2, true, true);
+    loadAnimatedTextures("Stirring the poison bloom", plant8PoisonTextures, plant8PoisonPath, plant8Poison, 4, true, true);
     loadAnimatedTextures("Opening the green portal", portalGreenTextures, portalGreenPath, portalGreen, 5, true, true);
 
     constexpr int portalBluePauseTillSwitch = 2;

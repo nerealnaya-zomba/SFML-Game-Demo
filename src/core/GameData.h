@@ -117,6 +117,16 @@ public:
     texturesIterHelper plant7;
     std::vector<sf::Texture> jumpPlantTextures;
     texturesIterHelper jumpPlant;
+    std::vector<sf::Texture> jumpPlant2Textures;
+    texturesIterHelper jumpPlant2;
+    std::vector<sf::Texture> plantWind1Textures;
+    texturesIterHelper plantWind1;
+    std::vector<sf::Texture> blueFlower1Textures;
+    texturesIterHelper blueFlower1;
+    std::vector<sf::Texture> blueFlower2Textures;
+    texturesIterHelper blueFlower2;
+    std::vector<sf::Texture> plant8PoisonTextures;
+    texturesIterHelper plant8Poison;
 
     // Decoration textures - PortalBlue
     std::vector<sf::Texture> portalBlue1Textures;
@@ -259,6 +269,11 @@ private:
     std::string plant6Path{"images/decoration/Plant_6/Plant6_"};
     std::string plant7Path{"images/decoration/Plant_7/Plant7_"};
     std::string jumpPlantPath{"images/decoration/PlantJump/JumpPlant_"};
+    std::string jumpPlant2Path{"images/decoration/PlantJump2/JumpPlant 2_"};
+    std::string plantWind1Path{"images/decoration/Plant Wind 1/Plant Wind 1_"};
+    std::string blueFlower1Path{"images/decoration/BlueFlower1/BlueFlower_"};
+    std::string blueFlower2Path{"images/decoration/BlueFlower2/BluePlantClosed_"};
+    std::string plant8PoisonPath{"images/decoration/Plant_8_Poison/PlantPosion_"};
     std::string cat1Path{"images/decoration/sleepingCat/cat/RetroCatsFree_"};
     std::string groundTileSetGreenPath{"images/Ground/TileSetGreen/TileSetGreen_"};
     std::string portalGreenPath{"images/decoration/PortalGreen/portal_green_"};
