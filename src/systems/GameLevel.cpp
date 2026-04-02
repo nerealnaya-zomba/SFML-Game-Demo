@@ -14,6 +14,8 @@
 #include <TGUI/TGUI.hpp>
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
@@ -75,6 +77,48 @@ const T& pickRandom(const std::vector<T>& values)
 {
     std::uniform_int_distribution<std::size_t> dist(0u, values.size() - 1u);
     return values[dist(miniLocationRng())];
+}
+
+std::uint8_t clampToByte(float value)
+{
+    return static_cast<std::uint8_t>(std::clamp(value, 0.f, 255.f));
+}
+
+sf::Color withAlpha(const sf::Color& color, float alpha)
+{
+    return sf::Color(color.r, color.g, color.b, clampToByte(alpha));
+}
+
+sf::Color brighten(const sf::Color& color, float factor)
+{
+    const float clampedFactor = std::clamp(factor, 0.f, 1.f);
+    const auto brightenChannel = [&](std::uint8_t channel) {
+        return clampToByte(static_cast<float>(channel) + (255.f - static_cast<float>(channel)) * clampedFactor);
+    };
+
+    return sf::Color(
+        brightenChannel(color.r),
+        brightenChannel(color.g),
+        brightenChannel(color.b),
+        color.a
+    );
+}
+
+float fract(float value)
+{
+    return value - std::floor(value);
+}
+
+float seededNoise(sf::Vector2f position, int saltA, float saltB)
+{
+    const float value = std::sin(
+        position.x * 0.01373f
+        + position.y * 0.00919f
+        + static_cast<float>(saltA) * 0.07131f
+        + saltB * 17.0f
+    ) * 43758.5453f;
+
+    return fract(value);
 }
 
 const std::vector<MiniLocationTheme>& getMiniLocationThemes()
@@ -187,6 +231,17 @@ bool hasEntranceClearance(
     }
 
     return true;
+}
+
+void addMiniLocationSeal(Platform& platforms, const float x, const float topY, const float bottomY)
+{
+    const float startY = std::min(topY, bottomY);
+    const float endY = std::max(topY, bottomY);
+
+    for (float currentY = startY; currentY <= endY; currentY += 170.f)
+    {
+        platforms.addPlatform({x, currentY}, "Invisible-wall");
+    }
 }
 }
 
@@ -436,6 +491,16 @@ sf::Vector2i GameLevelManager::getCurrentLevelSize() const
     return levelIt != levels.end() ? levelIt->second->getLevelSize() : sf::Vector2i{};
 }
 
+sf::FloatRect GameLevelManager::getCurrentCameraBoundsForPosition(const sf::Vector2f& position) const
+{
+    if (levelIt == levels.end() || !levelIt->second)
+    {
+        return sf::FloatRect({0.f, 0.f}, sf::Vector2f{0.f, 0.f});
+    }
+
+    return levelIt->second->getCameraBoundsForPosition(position);
+}
+
 std::string GameLevelManager::getCurrentLevelName() const
 {
     return levelIt != levels.end() ? levelIt->second->levelName : std::string{};
@@ -507,6 +572,11 @@ void GameLevelManager::attachPlayer(Player& p)
     {
         player->notifyLevelEntered(levelIt->first);
     }
+}
+
+void GameLevelManager::clearDeathRecoveries()
+{
+    deathRecoveries.clear();
 }
 
 void GameLevelManager::registerDeathRecovery(const sf::Vector2f& position, int goldAmount)
@@ -684,6 +754,7 @@ void GameLevel::update()
     updateBackgrounds();
     updateGrounds();
     updateInteractives();
+    updateMiniLocationHazards();
 }
 
 void GameLevel::drawPlatforms()
@@ -692,6 +763,8 @@ void GameLevel::drawPlatforms()
     {
         platforms->draw(*window);
     }
+
+    drawMiniLocationBarriers();
 }
 
 void GameLevel::drawDecorations()
@@ -716,6 +789,8 @@ void GameLevel::drawGrounds()
     {
         ground->draw(*window);
     }
+
+    drawMiniLocationHazards();
 }
 
 void GameLevel::drawEnemyManager()
@@ -731,6 +806,190 @@ void GameLevel::drawInteractives()
     for (auto& interactive : interactives)
     {
         interactive->draw(*window);
+    }
+}
+
+void GameLevel::updateMiniLocationHazards()
+{
+    if (!player || !player->isAlive || player->isPlayingDieAnimation)
+    {
+        return;
+    }
+
+    const sf::Vector2f feet = player->getFeetPosition();
+
+    for (const auto& generatedLocation : generatedMiniLocations)
+    {
+        if (feet.x < generatedLocation.activeLeftX || feet.x > generatedLocation.activeRightX)
+        {
+            continue;
+        }
+
+        if (feet.y >= generatedLocation.deathY)
+        {
+            player->forceKill();
+            return;
+        }
+    }
+}
+
+void GameLevel::drawMiniLocationBarriers()
+{
+    if (!window)
+    {
+        return;
+    }
+
+    const float time = miniLocationEffectsClock.getElapsedTime().asSeconds();
+
+    for (const auto& barrier : generatedMiniBarriers)
+    {
+        const float height = barrier.bottomY - barrier.topY;
+        if (height <= 0.f)
+        {
+            continue;
+        }
+
+        const float pulse = 0.5f + 0.5f * std::sin(time * 3.1f + barrier.phase);
+
+        sf::RectangleShape outerGlow({barrier.width * 4.8f, height});
+        outerGlow.setOrigin({outerGlow.getSize().x / 2.f, 0.f});
+        outerGlow.setPosition({barrier.x, barrier.topY});
+        outerGlow.setFillColor(withAlpha(barrier.glowColor, 34.f + 34.f * pulse));
+        window->draw(outerGlow);
+
+        sf::RectangleShape innerGlow({barrier.width * 2.4f, height});
+        innerGlow.setOrigin({innerGlow.getSize().x / 2.f, 0.f});
+        innerGlow.setPosition({barrier.x, barrier.topY});
+        innerGlow.setFillColor(withAlpha(brighten(barrier.coreColor, 0.25f), 82.f + 48.f * pulse));
+        window->draw(innerGlow);
+
+        sf::RectangleShape core({barrier.width, height});
+        core.setOrigin({core.getSize().x / 2.f, 0.f});
+        core.setPosition({barrier.x, barrier.topY});
+        core.setFillColor(withAlpha(brighten(barrier.coreColor, 0.42f), 176.f + 48.f * pulse));
+        window->draw(core);
+
+        for (int segmentIndex = 0; segmentIndex < 10; ++segmentIndex)
+        {
+            const float ratio = static_cast<float>(segmentIndex) / 9.f;
+            const float y = barrier.topY
+                + ratio * height
+                + std::sin(time * 4.6f + barrier.phase + ratio * 9.f) * 9.f;
+            const float segmentWidth = barrier.width * (
+                1.18f + 0.32f * std::sin(time * 6.4f + barrier.phase * 0.7f + static_cast<float>(segmentIndex))
+            );
+
+            sf::RectangleShape segment({segmentWidth, 4.f});
+            segment.setOrigin({segmentWidth / 2.f, 2.f});
+            segment.setPosition({
+                barrier.x + std::sin(time * 2.7f + barrier.phase + ratio * 11.f) * 7.f,
+                y
+            });
+            segment.setFillColor(withAlpha(brighten(barrier.coreColor, 0.55f), 210.f));
+            window->draw(segment);
+        }
+
+        for (const float side : std::array<float, 2>{-1.f, 1.f})
+        {
+            for (int sparkIndex = 0; sparkIndex < 6; ++sparkIndex)
+            {
+                const float ratio = static_cast<float>(sparkIndex) / 5.f;
+                const float y = barrier.topY
+                    + ratio * height
+                    + std::sin(time * 2.2f + barrier.phase + side * 0.7f + ratio * 10.f) * 13.f;
+                const float radius = 2.6f + 1.7f * (0.5f + 0.5f * std::sin(time * 5.8f + barrier.phase + sparkIndex));
+
+                sf::CircleShape spark(radius);
+                spark.setOrigin({radius, radius});
+                spark.setPosition({
+                    barrier.x + side * (barrier.width * 0.9f + 8.f + 5.f * std::sin(time * 3.4f + ratio * 9.f)),
+                    y
+                });
+                spark.setFillColor(withAlpha(brighten(barrier.glowColor, 0.38f), 180.f));
+                window->draw(spark);
+            }
+        }
+    }
+}
+
+void GameLevel::drawMiniLocationHazards()
+{
+    if (!window)
+    {
+        return;
+    }
+
+    const float time = miniLocationEffectsClock.getElapsedTime().asSeconds();
+
+    for (const auto& hazard : generatedMiniHazards)
+    {
+        const float width = hazard.rightX - hazard.leftX;
+        const float height = hazard.bottomY - hazard.topY;
+        if (width <= 0.f || height <= 0.f)
+        {
+            continue;
+        }
+
+        const float pulse = 0.5f + 0.5f * std::sin(time * 2.6f + hazard.phase);
+
+        sf::RectangleShape glow({width + 96.f, height + 40.f});
+        glow.setPosition({hazard.leftX - 48.f, hazard.topY - 14.f});
+        glow.setFillColor(withAlpha(hazard.glowColor, 30.f + 24.f * pulse));
+        window->draw(glow);
+
+        sf::RectangleShape abyss({width, height});
+        abyss.setPosition({hazard.leftX, hazard.topY});
+        abyss.setFillColor(sf::Color(34, 7, 5, 220));
+        window->draw(abyss);
+
+        sf::RectangleShape moltenBand({width, std::min(44.f, height * 0.32f)});
+        moltenBand.setPosition({hazard.leftX, hazard.topY});
+        moltenBand.setFillColor(withAlpha(hazard.coreColor, 132.f + 38.f * pulse));
+        window->draw(moltenBand);
+
+        for (int bubbleIndex = 0; bubbleIndex < 16; ++bubbleIndex)
+        {
+            const float ratio = static_cast<float>(bubbleIndex) / 15.f;
+            const float x = hazard.leftX
+                + ratio * width
+                + std::sin(time * 2.0f + hazard.phase + ratio * 8.4f) * 13.f;
+            const float y = hazard.topY + 6.f + std::sin(time * 5.1f + hazard.phase + ratio * 10.2f) * 5.f;
+            const float radius = 8.f + 5.f * (0.5f + 0.5f * std::sin(time * 6.0f + hazard.phase + bubbleIndex));
+
+            sf::CircleShape bubble(radius);
+            bubble.setOrigin({radius, radius});
+            bubble.setPosition({x, y});
+            bubble.setFillColor(withAlpha(brighten(hazard.coreColor, 0.35f), 112.f + 62.f * pulse));
+            window->draw(bubble);
+        }
+
+        for (int emberIndex = 0; emberIndex < 12; ++emberIndex)
+        {
+            const float laneNoise = seededNoise(
+                {hazard.leftX + static_cast<float>(emberIndex) * 17.f, hazard.topY},
+                emberIndex,
+                hazard.phase + 0.31f
+            );
+            const float horizontalDrift = std::sin(time * (1.3f + emberIndex * 0.08f) + hazard.phase + emberIndex) * 18.f;
+            const float riseDistance = std::fmod(
+                time * (76.f + emberIndex * 7.f) + hazard.phase * 48.f + static_cast<float>(emberIndex * 31),
+                height + 88.f
+            );
+            const float x = hazard.leftX + laneNoise * width + horizontalDrift;
+            const float y = hazard.bottomY - riseDistance;
+            const float radius = 2.2f + 3.6f * seededNoise(
+                {hazard.rightX, hazard.bottomY + static_cast<float>(emberIndex) * 9.f},
+                emberIndex + 7,
+                hazard.phase + 0.63f
+            );
+
+            sf::CircleShape ember(radius);
+            ember.setOrigin({radius, radius});
+            ember.setPosition({x, y});
+            ember.setFillColor(withAlpha(hazard.emberColor, 96.f + 84.f * pulse));
+            window->draw(ember);
+        }
     }
 }
 
@@ -1039,6 +1298,8 @@ void GameLevel::generateMiniLocations()
 {
     generatedMiniLocations.clear();
     generatedMiniRewards.clear();
+    generatedMiniBarriers.clear();
+    generatedMiniHazards.clear();
 
     if (!platforms || !decorations || !ground || loadedLevelData.is_null())
     {
@@ -1158,7 +1419,31 @@ void GameLevel::generateMiniLocations()
         return lhs.centerX < rhs.centerX;
     });
 
-    float extensionCursor = baseWidth + 540.f;
+    constexpr float kPocketWorldGap = 1860.f;
+    constexpr float kPocketRoomSpacing = 1040.f;
+    constexpr float kPocketSealOverflow = 180.f;
+    constexpr float kPocketWorldSealInset = 92.f;
+    const float worldSealX = std::max(0.f, baseWidth - kPocketWorldSealInset);
+    const float worldSealTop = 0.f;
+    const float worldSealBottom = static_cast<float>(size.y) + kPocketSealOverflow;
+
+    addMiniLocationSeal(
+        *platforms,
+        worldSealX,
+        worldSealTop,
+        worldSealBottom
+    );
+    generatedMiniBarriers.push_back({
+        worldSealX + 36.f,
+        worldSealTop,
+        worldSealBottom,
+        24.f,
+        randomFloat(0.f, 6.28318f),
+        sf::Color(136, 232, 220, 255),
+        sf::Color(102, 198, 192, 255)
+    });
+
+    float extensionCursor = baseWidth + kPocketWorldGap;
     const auto& themes = getMiniLocationThemes();
 
     for (std::size_t index = 0; index < selectedCandidates.size(); ++index)
@@ -1173,9 +1458,57 @@ void GameLevel::generateMiniLocations()
         const float roomCenterX = roomX + roomWidth * 0.5f;
         const float roomCeilingY = roomFloorY - roomHeight;
         const float shelfY = roomFloorY - randomFloat(150.f, 174.f);
+        const float roomLeftSealX = roomX - 102.f;
+        const float roomRightSealX = roomX + roomWidth + 32.f;
+        const float roomSealTop = 0.f;
+        const float roomSealBottom = static_cast<float>(size.y) + kPocketSealOverflow;
+        const float deathY = std::min(static_cast<float>(size.y) - 24.f, roomFloorY + randomFloat(152.f, 184.f));
+        const float hazardTopY = std::max(roomFloorY + 88.f, deathY - 20.f);
+        const float hazardBottomY = static_cast<float>(size.y) + 56.f;
 
-        extensionCursor += roomWidth + randomFloat(280.f, 360.f);
-        size.x = std::max(size.x, static_cast<int>(std::ceil(roomX + roomWidth + 260.f)));
+        extensionCursor += roomWidth + kPocketRoomSpacing + randomFloat(80.f, 180.f);
+        size.x = std::max(size.x, static_cast<int>(std::ceil(roomX + roomWidth + 420.f)));
+
+        addMiniLocationSeal(
+            *platforms,
+            roomLeftSealX,
+            roomSealTop,
+            roomSealBottom
+        );
+        addMiniLocationSeal(
+            *platforms,
+            roomRightSealX,
+            roomSealTop,
+            roomSealBottom
+        );
+        generatedMiniBarriers.push_back({
+            roomLeftSealX + 36.f,
+            roomSealTop,
+            roomSealBottom,
+            22.f,
+            randomFloat(0.f, 6.28318f),
+            theme.accentColor,
+            brighten(theme.entranceColor, 0.18f)
+        });
+        generatedMiniBarriers.push_back({
+            roomRightSealX + 36.f,
+            roomSealTop,
+            roomSealBottom,
+            22.f,
+            randomFloat(0.f, 6.28318f),
+            theme.exitColor,
+            brighten(theme.accentColor, 0.24f)
+        });
+        generatedMiniHazards.push_back({
+            roomX - 8.f,
+            roomX + roomWidth + 56.f,
+            hazardTopY,
+            hazardBottomY,
+            randomFloat(0.f, 6.28318f),
+            sf::Color(242, 104, 56, 255),
+            sf::Color(255, 182, 96, 255),
+            sf::Color(255, 236, 188, 255)
+        });
 
         for (float floorX = roomX + 28.f; floorX <= roomX + roomWidth - 330.f; floorX += 320.f)
         {
@@ -1272,7 +1605,14 @@ void GameLevel::generateMiniLocations()
             theme.accentColor,
             126.f,
             theme.entrancePrompt,
-            theme.exitPrompt
+            theme.exitPrompt,
+            roomX - 8.f,
+            roomX + roomWidth + 56.f,
+            roomLeftSealX - 28.f,
+            roomRightSealX + 28.f,
+            roomCeilingY,
+            roomFloorY,
+            deathY
         });
 
         GeneratedMiniReward reward;
@@ -1336,12 +1676,18 @@ void GameLevel::loadLevelData(const std::string& fileNamePath)
     loadedLevelData = nlohmann::json::parse(dataFile);
 
     size = sf::Vector2i(loadedLevelData["Presets"]["Size"][0], loadedLevelData["Presets"]["Size"][1]);
+    primaryWorldWidth = size.x;
+    primaryWorldCameraRightEdge = static_cast<float>(primaryWorldWidth);
     levelName = fileNamePath;
 
     initializePlatforms(loadedLevelData);
     initializeDecorations(loadedLevelData);
     initializeBackground(loadedLevelData);
     initializeGround(loadedLevelData);
+    if (ground)
+    {
+        primaryWorldCameraRightEdge = ground->getCameraClampRight();
+    }
     generateMiniLocations();
 
     enemyManager.reset();
@@ -1372,6 +1718,8 @@ void GameLevel::clearLevel()
     interactives.clear();
     generatedMiniLocations.clear();
     generatedMiniRewards.clear();
+    generatedMiniBarriers.clear();
+    generatedMiniHazards.clear();
 
     background.clear();
     ground.reset();
@@ -1417,6 +1765,26 @@ void GameLevel::runErrorScreen(std::string errorString)
 sf::Vector2i GameLevel::getLevelSize() const
 {
     return size;
+}
+
+sf::FloatRect GameLevel::getCameraBoundsForPosition(const sf::Vector2f& position) const
+{
+    for (const auto& generatedLocation : generatedMiniLocations)
+    {
+        if (position.x >= generatedLocation.activeLeftX && position.x <= generatedLocation.activeRightX)
+        {
+            return sf::FloatRect(
+                {generatedLocation.activeLeftX, 0.f},
+                {generatedLocation.activeRightX - generatedLocation.activeLeftX, static_cast<float>(size.y)}
+            );
+        }
+    }
+
+    const float mainWorldRight = std::max(
+        primaryWorldCameraRightEdge > 0.f ? primaryWorldCameraRightEdge : static_cast<float>(primaryWorldWidth),
+        0.f
+    );
+    return sf::FloatRect({0.f, 0.f}, {mainWorldRight, static_cast<float>(size.y)});
 }
 
 std::vector<std::shared_ptr<sf::RectangleShape>>& GameLevel::getPlatformRects()

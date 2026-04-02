@@ -274,6 +274,31 @@ sf::FloatRect Ground::getSurfaceBounds() const
     return groundRect_.getGlobalBounds();
 }
 
+float Ground::getCameraClampRight() const
+{
+    const float pointBegin = static_cast<float>(pointBegin_);
+    const float pointEnd = static_cast<float>(pointEnd_);
+    if (surfaceTextures_.empty())
+    {
+        return pointEnd;
+    }
+
+    const float tileWidth = static_cast<float>(surfaceTextures_.front()->getSize().x);
+    if (tileWidth <= 0.f)
+    {
+        return pointEnd;
+    }
+
+    const float spanWidth = pointEnd - pointBegin;
+    const float remainder = std::fmod(spanWidth, tileWidth);
+    if (remainder <= 0.01f || std::abs(remainder - tileWidth) <= 0.01f)
+    {
+        return pointEnd;
+    }
+
+    return std::max(pointBegin, pointEnd - (tileWidth - remainder));
+}
+
 bool Ground::containsX(float x) const
 {
     return x >= static_cast<float>(pointBegin_) && x <= static_cast<float>(pointEnd_);

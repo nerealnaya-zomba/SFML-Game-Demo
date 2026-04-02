@@ -1,5 +1,8 @@
+#include <CampaignProgress.h>
 #include <Defines.h>
+#include <DeveloperOverlay.h>
 #include <DeathScreen.h>
+#include <NotificationFeed.h>
 #include <PlayerUI.h>
 #include <ScreenTransition.h>
 #include <nlohmann/json.hpp>
@@ -10,6 +13,7 @@
 #include <chrono>
 #include <future>
 #include <string>
+#include <vector>
 
 namespace
 {
@@ -27,6 +31,27 @@ void resetViewForMenu(sf::RenderWindow& window, sf::View& view)
     view.setCenter({WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f});
     view.setSize({WINDOW_WIDTH, WINDOW_HEIGHT});
     window.setView(view);
+}
+
+std::string getLevelDisplayName(const std::string& levelName)
+{
+    const CampaignLevelInfo& info = CampaignProgress::getLevelInfo(levelName);
+    return info.levelName == "unknown" ? levelName : info.title;
+}
+
+const char* getAshDensityLabel(const int particleCount)
+{
+    if (particleCount <= 120)
+    {
+        return "Low";
+    }
+
+    if (particleCount >= 260)
+    {
+        return "High";
+    }
+
+    return "Medium";
 }
 }
 
@@ -126,7 +151,11 @@ int main()
     sf::View view({0, 0}, {WINDOW_WIDTH, WINDOW_HEIGHT});
     const sf::Color gameBackGroundColor({0, 0, 0, 255});
 
-    Menu menu(window);
+    window.setVerticalSyncEnabled(gameData->isVsyncEnabled());
+    window.setFramerateLimit(gameData->isVsyncEnabled() ? 0u : WINDOW_FPS);
+
+    Menu menu(window, *gameData);
+    NotificationFeed notificationFeed(font);
     DeathScreen deathScreen(window, font);
     tgui::Font tguiFont("fonts/Roboto_Condensed-Black.ttf");
     menu.connectTGUIFont(tguiFont);
@@ -160,9 +189,14 @@ int main()
 
     sf::Vector2f traderPosition = {800.f, 940.f};
     Trader trader(*gameData, player, traderPosition);
+    DeveloperOverlay developerOverlay(window);
 
     bool hasActiveRun = false;
     DeathFlowState deathFlowState = DeathFlowState::Inactive;
+
+    auto pushNotification = [&](std::string title, std::string body, const NotificationTone tone = NotificationTone::Info) {
+        notificationFeed.push(std::move(title), std::move(body), tone);
+    };
 
     auto syncMenuState = [&]() {
         MenuState state;
@@ -176,37 +210,139 @@ int main()
         menu.setState(state);
     };
 
+    auto startLevelByName = [&](const std::string& levelName) {
+        const bool changedLevel = levelManager.goToLevel(std::make_optional(levelName));
+        if (changedLevel)
+        {
+            const bool playerReady = player.isAlive || levelManager.respawnPlayerAtCurrentSpawn();
+            if (!playerReady)
+            {
+                return false;
+            }
+
+            hasActiveRun = true;
+            player.playFadeInAnimation();
+            syncMenuState();
+            pushNotification(
+                "Gate opened",
+                getLevelDisplayName(levelName) + " awaits.",
+                NotificationTone::Success
+            );
+        }
+        else
+        {
+            pushNotification(
+                "Gate sealed",
+                "That realm cannot be opened right now.",
+                NotificationTone::Warning
+            );
+        }
+        return changedLevel;
+    };
+
     syncMenuState();
     menu.openMainMenu();
+    developerOverlay.setActions(DeveloperOverlayActions{
+        .onRestoreVitals = [&]() {
+            player.restoreVitalResources();
+            pushNotification("Ritual Console", "Vital resources restored.", NotificationTone::Success);
+        },
+        .onGrantGold = [&](int amount) {
+            player.addGold(amount);
+            pushNotification(
+                "Ritual Console",
+                "Granted " + std::to_string(amount) + " grave-gold.",
+                NotificationTone::Success
+            );
+        },
+        .onRestartLevel = [&]() {
+            if (levelManager.restartCurrentLevel())
+            {
+                hasActiveRun = true;
+                player.playFadeInAnimation();
+                syncMenuState();
+                pushNotification("Ritual Console", "Current realm reloaded.", NotificationTone::Info);
+            }
+        },
+        .onRespawnAtSpawn = [&]() {
+            if (levelManager.respawnPlayerAtCurrentSpawn())
+            {
+                hasActiveRun = true;
+                player.playFadeInAnimation();
+                syncMenuState();
+                pushNotification("Ritual Console", "Respawned at the current checkpoint.", NotificationTone::Info);
+            }
+        },
+        .onReturnToBase = [&]() {
+            levelManager.setPlayerPositionToBase();
+            player.restoreVitalResources();
+            hasActiveRun = true;
+            player.playFadeInAnimation();
+            syncMenuState();
+            pushNotification("Ritual Console", "Returned to the level base.", NotificationTone::Info);
+        },
+        .onGoToLevel = [&](const std::string& levelName) {
+            return startLevelByName(levelName);
+        },
+        .onSetVsync = [&](bool enabled) {
+            gameData->setVsyncEnabled(enabled);
+            window.setVerticalSyncEnabled(enabled);
+            window.setFramerateLimit(enabled ? 0u : WINDOW_FPS);
+            pushNotification(
+                "Ritual Console",
+                enabled ? "VSync enabled." : "VSync disabled.",
+                NotificationTone::Info
+            );
+        },
+        .onSetMenuParticleCount = [&](int count) {
+            gameData->setMenuParticleCount(count);
+            pushNotification(
+                "Ritual Console",
+                std::string("Menu ash density: ") + getAshDensityLabel(count) + ".",
+                NotificationTone::Info
+            );
+        }
+    });
 
     menu.setCallbacks(MenuCallbacks{
         .onResumeGame = [&]() {
             player.playFadeInAnimation();
         },
-        .onStartSelectedLevel = [&](const std::string& levelName) {
-            const bool changedLevel = levelManager.goToLevel(std::make_optional(levelName));
-            if (changedLevel)
-            {
-                const bool playerReady = player.isAlive || levelManager.respawnPlayerAtCurrentSpawn();
-                if (!playerReady)
-                {
-                    return false;
-                }
-
-                hasActiveRun = true;
-                player.playFadeInAnimation();
-                syncMenuState();
-            }
-            return changedLevel;
-        },
+        .onStartSelectedLevel = startLevelByName,
         .onRestartCurrentLevel = [&]() {
             const bool restarted = hasActiveRun && levelManager.restartCurrentLevel();
             if (restarted)
             {
                 player.playFadeInAnimation();
                 syncMenuState();
+                pushNotification("Run reset", "The current realm has been restarted.", NotificationTone::Info);
             }
             return restarted;
+        },
+        .onResetProgress = [&]() {
+            player.resetProgress();
+            levelManager.clearDeathRecoveries();
+            deathScreen.close();
+            deathFlowState = DeathFlowState::Inactive;
+            hasActiveRun = false;
+
+            const std::vector<std::string> unlockedLevels = player.getUnlockedLevelNames(levelManager.getLevelNames());
+            if (!unlockedLevels.empty() && levelManager.goToLevel(std::make_optional(unlockedLevels.front())))
+            {
+                levelManager.respawnPlayerAtCurrentSpawn();
+            }
+
+            resetViewForMenu(window, view);
+            syncMenuState();
+            pushNotification(
+                "Progress reset",
+                "Gold, relics and unlocked gates were returned to the first rite.",
+                NotificationTone::Warning
+            );
+            return true;
+        },
+        .onNotify = [&](std::string title, std::string body, const NotificationTone tone) {
+            pushNotification(std::move(title), std::move(body), tone);
         },
         .onReturnToMainMenu = [&]() {
             syncMenuState();
@@ -238,8 +374,13 @@ int main()
         menu.openMainMenu();
     };
 
+    sf::Clock frameClock;
+
     while (window.isOpen())
     {
+        const sf::Time frameDelta = sf::seconds(std::min(frameClock.restart().asSeconds(), 0.05f));
+        notificationFeed.update();
+
         while (const std::optional event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
@@ -250,6 +391,11 @@ int main()
             if (menu.isOpen())
             {
                 menu.menuHandleEvents(*event);
+                continue;
+            }
+
+            if (developerOverlay.handleEvent(*event))
+            {
                 continue;
             }
 
@@ -282,6 +428,11 @@ int main()
                 continue;
             }
 
+            if (playerUI.handleEvent(*event))
+            {
+                continue;
+            }
+
             const bool levelEventConsumed = levelManager.handleEvent(*event);
             const bool levelModalOpen = levelManager.hasBlockingInteractiveModal();
 
@@ -299,16 +450,21 @@ int main()
         {
             window.clear(gameBackGroundColor);
             menu.menuDraw(window);
+            notificationFeed.draw(window);
+            window.display();
             continue;
         }
+
+        developerOverlay.beginFrame(frameDelta);
 
         const bool deathSequenceActive =
             deathFlowState != DeathFlowState::Inactive ||
             player.isPlayingDieAnimation ||
             !player.isAlive;
         const bool deathChoiceActive = deathFlowState == DeathFlowState::AwaitingChoice;
+        const bool overlayActive = developerOverlay.isOpen();
 
-        if (!deathSequenceActive)
+        if (!deathSequenceActive && !overlayActive)
         {
             player.updateControls();
             player.updatePhysics();
@@ -317,7 +473,7 @@ int main()
             player.moveBullets();
         }
 
-        if (!deathChoiceActive)
+        if (!deathChoiceActive && !overlayActive)
         {
             levelManager.update();
             levelManager.updateEnemyManager();
@@ -350,7 +506,7 @@ int main()
             deathScreen.update();
         }
 
-        if (!deathSequenceActive)
+        if (!deathSequenceActive && !overlayActive)
         {
             playerUI.update();
             player.chooseDestinationMenuUpdate();
@@ -374,6 +530,15 @@ int main()
         player.chooseDestinationMenuDraw(window);
         player.drawTransition();
         deathScreen.draw();
+        developerOverlay.draw(
+            player,
+            *gameData,
+            camera,
+            levelManager,
+            hasActiveRun,
+            deathSequenceActive
+        );
+        notificationFeed.draw(window);
         window.display();
     }
 }

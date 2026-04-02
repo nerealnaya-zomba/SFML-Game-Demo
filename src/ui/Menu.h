@@ -3,6 +3,7 @@
 #include <AskDialogue.h>
 #include <Defines.h>
 #include <MenuBackground.h>
+#include <NotificationFeed.h>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 #include <TGUI/Backend/Font/SFML-Graphics/BackendFontSFML.hpp>
@@ -27,6 +28,8 @@ inline const tgui::String BASE_SETTINGS_BUTTON_TEXT = "Settings";
 inline const tgui::String BASE_RANDOM_LEVEL_BUTTON_TEXT = "Omen Pick";
 inline constexpr unsigned int BASE_MENU_BUTTONS_CHARACTER_SIZE = 25;
 
+class GameData;
+
 enum class MenuMode
 {
     Main,
@@ -47,6 +50,9 @@ struct MenuCallbacks
     std::function<void()> onResumeGame = []() {};
     std::function<bool(const std::string&)> onStartSelectedLevel = [](const std::string&) { return false; };
     std::function<bool()> onRestartCurrentLevel = []() { return false; };
+    std::function<bool()> onResetProgress = []() { return false; };
+    std::function<void(std::string, std::string, NotificationTone)> onNotify =
+        [](std::string, std::string, NotificationTone) {};
     std::function<void()> onReturnToMainMenu = []() {};
     std::function<void()> onExitGame = []() {};
 };
@@ -54,7 +60,7 @@ struct MenuCallbacks
 class Menu
 {
 public:
-    explicit Menu(sf::RenderWindow& window);
+    Menu(sf::RenderWindow& window, GameData& gameData);
     ~Menu();
 
     void menuDraw(sf::RenderWindow& window);
@@ -92,6 +98,7 @@ private:
     bool isOpen_ = true;
 
     std::unique_ptr<AskDialogue> exitDialogue;
+    std::unique_ptr<AskDialogue> resetProgressDialogue;
 
     tgui::Gui gui;
     tgui::Button::Ptr continueButton;
@@ -115,8 +122,10 @@ private:
     tgui::ChildWindow::Ptr controlsWindow;
     tgui::Button::Ptr vsyncToggleButton;
     tgui::Button::Ptr particleToggleButton;
+    tgui::Button::Ptr resetProgressButton;
 
     sf::RenderWindow* window_m = nullptr;
+    GameData* gameData_m = nullptr;
     MenuBackground background;
     sf::Clock menuAnimationClock;
     float menuVisualTime_ = 0.f;
@@ -149,6 +158,7 @@ private:
     void styleInfoLabel(const tgui::Label::Ptr& label) const;
     void styleSelector() const;
     void styleChildWindow(const tgui::ChildWindow::Ptr& childWindow) const;
+    void syncPreferencesFromGameData();
     void initializeLevelSelector();
     void initializeSettingsWindow();
     void initializeControlsWindow();
@@ -176,5 +186,6 @@ private:
     void controlsButtonOnClick();
     void toggleVsync();
     void toggleMenuParticles();
+    void resetProgressButtonOnClick();
     void exitButtonOnClick();
 };

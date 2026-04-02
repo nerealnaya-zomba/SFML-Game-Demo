@@ -38,6 +38,55 @@ set(TGUI_STATIC_LIBS TRUE)
 set(TGUI_BUILD_GUI_BUILDER OFF)
 FetchContent_MakeAvailable(tgui)
 
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.91.1
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+    SYSTEM
+)
+FetchContent_MakeAvailable(imgui)
+
+set(IMGUI_DIR ${imgui_SOURCE_DIR} CACHE PATH "" FORCE)
+set(IMGUI_SFML_FIND_SFML OFF CACHE BOOL "" FORCE)
+set(IMGUI_SFML_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(IMGUI_SFML_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    imgui_sfml
+    GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git
+    GIT_TAG ab6b5cfeddb4eb980a42b526dc66901a0976ff6d
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+    SYSTEM
+)
+FetchContent_MakeAvailable(imgui_sfml)
+
+FetchContent_Declare(
+    selbaward
+    GIT_REPOSITORY https://github.com/Hapaxia/SelbaWard.git
+    GIT_TAG d4c18efdd8313a22eed668ba4d9174ce613f496f
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+    SYSTEM
+)
+FetchContent_GetProperties(selbaward)
+if(NOT selbaward_POPULATED)
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0169 OLD)
+    FetchContent_Populate(selbaward)
+    cmake_policy(POP)
+endif()
+
+add_library(SelbaWard
+    ${selbaward_SOURCE_DIR}/src/SelbaWard/ProgressBar.cpp
+    ${selbaward_SOURCE_DIR}/src/SelbaWard/Ring.cpp
+)
+add_library(SelbaWard::SelbaWard ALIAS SelbaWard)
+target_include_directories(SelbaWard PUBLIC ${selbaward_SOURCE_DIR}/src)
+target_link_libraries(SelbaWard PUBLIC SFML::Graphics)
+target_compile_features(SelbaWard PUBLIC cxx_std_17)
+
 file(GLOB_RECURSE SFML_GAME_DEMO_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
 )
@@ -73,6 +122,8 @@ target_link_libraries(main PRIVATE
     swscale
     avutil
     tgui
+    ImGui-SFML::ImGui-SFML
+    SelbaWard::SelbaWard
 )
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/src FILES ${SFML_GAME_DEMO_SOURCES} ${SFML_GAME_DEMO_HEADERS})

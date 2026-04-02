@@ -36,11 +36,11 @@ float expSmoothingFactor(float sharpness, float deltaTime)
 }
 }
 
-void GameCamera::movementUpdate(float deltatime, unsigned int levelWidth, unsigned int levelHeight)
+void GameCamera::movementUpdate(float deltatime, const sf::FloatRect& cameraBounds)
 {
     targetPos = chasePlayer
-        ? calculateFollowTarget(deltatime, levelWidth, levelHeight)
-        : clampToLevelBounds(targetPos, levelWidth, levelHeight);
+        ? calculateFollowTarget(deltatime, cameraBounds)
+        : clampToLevelBounds(targetPos, cameraBounds);
 
     const float snapDistanceX = getScreenViewSize().x * BASE_CAMERA_SNAP_DISTANCE_FACTOR;
     const float snapDistanceY = getScreenViewSize().y * BASE_CAMERA_SNAP_DISTANCE_FACTOR;
@@ -70,27 +70,46 @@ void GameCamera::movementUpdate(float deltatime, unsigned int levelWidth, unsign
         deltatime
     );
 
-    cameraPos = clampToLevelBounds(cameraPos, levelWidth, levelHeight);
+    cameraPos = clampToLevelBounds(cameraPos, cameraBounds);
 }
 
-sf::Vector2f GameCamera::clampToLevelBounds(sf::Vector2f pos, unsigned int levelWidth, unsigned int levelHeight) const
+sf::Vector2f GameCamera::clampToLevelBounds(sf::Vector2f pos, const sf::FloatRect& cameraBounds) const
 {
     const sf::Vector2f viewSize = getScreenViewSize();
     const float halfWidth = viewSize.x / 2.f;
     const float halfHeight = viewSize.y / 2.f;
 
-    const float minX = halfWidth;
-    const float minY = halfHeight;
-    const float maxX = std::max(minX, static_cast<float>(levelWidth) - halfWidth);
-    const float maxY = std::max(minY, static_cast<float>(levelHeight) - halfHeight);
+    const float left = cameraBounds.position.x;
+    const float top = cameraBounds.position.y;
+    const float right = cameraBounds.position.x + cameraBounds.size.x;
+    const float bottom = cameraBounds.position.y + cameraBounds.size.y;
 
-    pos.x = std::clamp(pos.x, minX, maxX);
-    pos.y = std::clamp(pos.y, minY, maxY);
+    const float minX = left + halfWidth;
+    const float maxX = right - halfWidth;
+    if (maxX < minX)
+    {
+        pos.x = left + cameraBounds.size.x * 0.5f;
+    }
+    else
+    {
+        pos.x = std::clamp(pos.x, minX, maxX);
+    }
+
+    const float minY = top + halfHeight;
+    const float maxY = bottom - halfHeight;
+    if (maxY < minY)
+    {
+        pos.y = top + cameraBounds.size.y * 0.5f;
+    }
+    else
+    {
+        pos.y = std::clamp(pos.y, minY, maxY);
+    }
 
     return pos;
 }
 
-sf::Vector2f GameCamera::calculateFollowTarget(float deltatime, unsigned int levelWidth, unsigned int levelHeight)
+sf::Vector2f GameCamera::calculateFollowTarget(float deltatime, const sf::FloatRect& cameraBounds)
 {
     const sf::Vector2f playerPos = player->getCenterPosition();
 
@@ -112,7 +131,7 @@ sf::Vector2f GameCamera::calculateFollowTarget(float deltatime, unsigned int lev
         BASE_CAMERA_LOOK_AHEAD_MAX
     );
 
-    return clampToLevelBounds(playerPos + lookAheadOffset, levelWidth, levelHeight);
+    return clampToLevelBounds(playerPos + lookAheadOffset, cameraBounds);
 }
 
 sf::Vector2f GameCamera::calculateShakeOffset() const
@@ -124,7 +143,7 @@ sf::Vector2f GameCamera::calculateShakeOffset() const
     };
 }
 
-void GameCamera::updateScreenEffects(float deltaTime, unsigned int levelWidth, unsigned int levelHeight)
+void GameCamera::updateScreenEffects(float deltaTime, const sf::FloatRect& cameraBounds)
 {
     shakeTime += deltaTime;
     shakeTrauma = std::max(0.f, shakeTrauma - kCameraTraumaDecay * deltaTime);
@@ -136,8 +155,7 @@ void GameCamera::updateScreenEffects(float deltaTime, unsigned int levelWidth, u
 
     const sf::Vector2f finalCenter = clampToLevelBounds(
         cameraPos + impactOffset + calculateShakeOffset(),
-        levelWidth,
-        levelHeight
+        cameraBounds
     );
     const float zoomFactor = std::clamp(1.f - zoomPunch, 0.82f, 1.06f);
 
@@ -235,17 +253,11 @@ void GameCamera::update()
         }
     }
 
-    movementUpdate(
-        dt,
-        static_cast<unsigned int>(std::max(0, levelSize.x)),
-        static_cast<unsigned int>(std::max(0, levelSize.y))
-    );
+    const sf::FloatRect cameraBounds = levelManager->getCurrentCameraBoundsForPosition(player->getCenterPosition());
 
-    updateScreenEffects(
-        dt,
-        static_cast<unsigned int>(std::max(0, levelSize.x)),
-        static_cast<unsigned int>(std::max(0, levelSize.y))
-    );
+    movementUpdate(dt, cameraBounds);
+
+    updateScreenEffects(dt, cameraBounds);
 }
 
 void GameCamera::pointCameraAt(sf::Vector2f pos, std::function<bool()> condition)
@@ -296,11 +308,7 @@ void GameCamera::setCenterPosition(sf::Vector2f pos)
     {
         const sf::Vector2i levelSize = levelManager->getCurrentLevelSize();
         mapBorders = {static_cast<float>(levelSize.x), static_cast<float>(levelSize.y)};
-        pos = clampToLevelBounds(
-            pos,
-            static_cast<unsigned int>(std::max(0, levelSize.x)),
-            static_cast<unsigned int>(std::max(0, levelSize.y))
-        );
+        pos = clampToLevelBounds(pos, levelManager->getCurrentCameraBoundsForPosition(pos));
     }
 
     cameraPos = pos;

@@ -27,6 +27,12 @@
 class GameData
 {
 public:
+    struct LaunchPreferences
+    {
+        bool vsyncEnabled = false;
+        int menuParticleCount = 200;
+    };
+
     GameData(sf::Font* font, std::shared_ptr<LoadingProgress> loadingProgress = nullptr);
     ~GameData();
 
@@ -171,6 +177,11 @@ public:
     std::map<std::string,sf::Texture> guiTextures;
 
     const nlohmann::json& getEnemySettings() const;
+    bool isVsyncEnabled() const;
+    int getMenuParticleCount() const;
+    LaunchPreferences getLaunchPreferences() const;
+    void setVsyncEnabled(bool enabled);
+    void setMenuParticleCount(int count);
 
 private:
     // Texture loading and processing
@@ -191,11 +202,14 @@ private:
     int allOperations_count_m{};        // Total operations from launchSettings.json
     std::shared_ptr<LoadingProgress> loadingProgress_m{}; // Shared loading progress for async UI
     nlohmann::json enemySettings_m{};
+    LaunchPreferences launchPreferences_{};
 
     // Data persistence
     void saveOperationsData();
+    void saveLaunchSettings() const;
     void loadData();
     void loadEnemySettings();
+    static int clampMenuParticleCount(int count);
 
     // Texture file paths
     

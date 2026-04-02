@@ -192,7 +192,9 @@ public:
     bool spendGold(int amount);
     bool tryPurchaseItem(const Item& item);
     void restoreVitalResources();
+    void resetProgress();
     void teleportToSupportPoint(const sf::Vector2f& supportPoint);
+    void forceKill();
     void respawnAt(sf::Vector2f pos);
     void notifyLevelEntered(const std::string& levelName);
 
@@ -387,6 +389,7 @@ private:
     float gravity_ = 0.1f;
     int maxAirJumps_ = 0;
     int airJumpsRemaining_ = 0;
+    bool jumpKeyWasDown_ = false;
     Item::Stats inventoryStatsBonus_{};
     std::vector<OwnedItem> inventory_;
     std::vector<OwnedItem> arsenal_;

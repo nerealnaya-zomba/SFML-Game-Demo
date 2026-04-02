@@ -962,6 +962,20 @@ void Player::restoreVitalResources()
     triggerCameraImpact({0.f, -0.18f}, 18.f, 0.08f, 0.01f);
 }
 
+void Player::resetProgress()
+{
+    const sf::Vector2f currentPosition = playerRectangle_ != nullptr
+        ? playerRectangle_->getPosition()
+        : sf::Vector2f{playerPosX_m, playerPosY_m};
+
+    loadData();
+    campaignProgress_ = CampaignProgress{};
+    initializeDefaultWeapon();
+    recalculateStatsFromInventory();
+    respawnAt(currentPosition);
+    saveData();
+}
+
 void Player::teleportToSupportPoint(const sf::Vector2f& supportPoint)
 {
     initialWalkSpeed = 0.f;
@@ -1048,6 +1062,7 @@ void Player::respawnAt(sf::Vector2f pos)
     landingEffectClock_.restart();
     deathEffectPlayed_ = false;
     wasInTeleportArea_ = false;
+    jumpKeyWasDown_ = false;
     restoreAirJumps();
     applyCurrentWeaponStats();
 
@@ -1066,6 +1081,27 @@ void Player::respawnAt(sf::Vector2f pos)
     playerSprite->setTexture(idleTextures->at(0), true);
     playerSprite->setScale({std::abs(playerSprite->getScale().x), playerSprite->getScale().y});
     trail->clearTrailArray();
+}
+
+void Player::forceKill()
+{
+    if (!isAlive || isPlayingDieAnimation)
+    {
+        return;
+    }
+
+    HP_ = 0;
+    isPlayingHurtAnimation = false;
+    isPlayingDieAnimation = true;
+    CDMenu.close();
+
+    if (!deathEffectPlayed_)
+    {
+        spawnDeathEffect();
+        deathEffectPlayed_ = true;
+    }
+
+    triggerCameraImpact({0.f, -0.65f}, 110.f, 0.75f, 0.11f);
 }
 
 bool Player::tryPurchaseItem(const Item &item)
@@ -2017,7 +2053,13 @@ void Player::bloodExplode()
 
 void Player::updateControls()
 {
-    if(!this->isAlive || isPlayingDieAnimation || isControlsBlocked) return;
+    const bool jumpKeyDown = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z);
+
+    if(!this->isAlive || isPlayingDieAnimation || isControlsBlocked)
+    {
+        jumpKeyWasDown_ = jumpKeyDown;
+        return;
+    }
     
     // Обновляем готовность действий по таймерам
     if (!canShoot && shootTimer.getElapsedTime().asMilliseconds() >= ButtonRepeat_shootCooldown) {
@@ -2051,7 +2093,7 @@ void Player::updateControls()
     }
     
     // Jumping (Z key)
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z) && canJump)
+    if(jumpKeyDown && !jumpKeyWasDown_ && canJump)
     {
         if(canPerformJump())
         {
@@ -2060,6 +2102,7 @@ void Player::updateControls()
             jumpTimer.restart();
         }
     }
+    jumpKeyWasDown_ = jumpKeyDown;
     
     // Dash (C key)
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C) && canDash)

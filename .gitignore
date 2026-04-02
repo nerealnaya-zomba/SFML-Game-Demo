@@ -20,6 +20,8 @@
 *.so
 *.swp
 *.tmp
+imgui.ini
+/data/imgui.ini
 
 .clangd
 .idea/

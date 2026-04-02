@@ -63,10 +63,10 @@ private:
     //////////////////////////////////////////////////
     // Обновление переменных передвижения
     //////////////////////////////////////////////////
-    void movementUpdate(float deltatime, unsigned int levelWidth, unsigned int levelHeight);
-    sf::Vector2f clampToLevelBounds(sf::Vector2f pos, unsigned int levelWidth, unsigned int levelHeight) const;
-    sf::Vector2f calculateFollowTarget(float deltatime, unsigned int levelWidth, unsigned int levelHeight);
-    void updateScreenEffects(float deltaTime, unsigned int levelWidth, unsigned int levelHeight);
+    void movementUpdate(float deltatime, const sf::FloatRect& cameraBounds);
+    sf::Vector2f clampToLevelBounds(sf::Vector2f pos, const sf::FloatRect& cameraBounds) const;
+    sf::Vector2f calculateFollowTarget(float deltatime, const sf::FloatRect& cameraBounds);
+    void updateScreenEffects(float deltaTime, const sf::FloatRect& cameraBounds);
     sf::Vector2f calculateShakeOffset() const;
     float smoothDamp(float current, float target, float& currentVelocity, float smoothTime, float maxSpeedValue, float deltaTime);
     void resetMotionState();

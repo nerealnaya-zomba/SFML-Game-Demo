@@ -1,5 +1,6 @@
 #include <Menu.h>
 #include <CampaignProgress.h>
+#include <GameData.h>
 
 #include <TGUI/Renderers/ListBoxRenderer.hpp>
 
@@ -92,7 +93,50 @@ std::string getLevelFlavor(const std::string& levelName)
 
 std::string getAshDensityLabel(int particleCount)
 {
-    return particleCount <= 120 ? "Low" : "High";
+    if (particleCount <= 120)
+    {
+        return "Low";
+    }
+
+    if (particleCount >= 260)
+    {
+        return "High";
+    }
+
+    return "Medium";
+}
+
+int normalizeAshDensityCount(int particleCount)
+{
+    if (particleCount <= 140)
+    {
+        return 120;
+    }
+
+    if (particleCount >= 230)
+    {
+        return 260;
+    }
+
+    return 200;
+}
+
+int getNextAshDensityCount(int particleCount)
+{
+    switch (normalizeAshDensityCount(particleCount))
+    {
+        case 120:
+            return 200;
+        case 200:
+            return 260;
+        default:
+            return 120;
+    }
+}
+
+std::string buildAshDensityText(int particleCount)
+{
+    return "Ash density: " + getAshDensityLabel(particleCount) + " (" + std::to_string(particleCount) + ")";
 }
 
 sf::Color brighten(const sf::Color& color, int amount, std::uint8_t alpha = 255)
@@ -240,10 +284,13 @@ float getPanelHeight(MenuMode mode)
 }
 }
 
-Menu::Menu(sf::RenderWindow& window)
+Menu::Menu(sf::RenderWindow& window, GameData& gameData)
     : window_m(&window)
+    , gameData_m(&gameData)
     , background(static_cast<int>(window.getSize().x), static_cast<int>(window.getSize().y))
 {
+    syncPreferencesFromGameData();
+
     gui.setWindow(window);
     setupMainWidgets();
 
@@ -257,10 +304,46 @@ Menu::Menu(sf::RenderWindow& window)
     exitDialogue->setOnYesClick([this]() { callbacks_.onExitGame(); });
     exitDialogue->setOnNoClick([this]() { exitDialogue->close(); });
 
+    resetProgressDialogue = std::make_unique<AskDialogue>(
+        sf::Vector2f(windowSize.x / 2.f, windowSize.y / 2.f),
+        sf::Vector2f(460.f, 180.f),
+        "Reset all saved progress?\nGold, relics, weapons and unlocked gates will be lost.",
+        *window_m
+    );
+    resetProgressDialogue->setOnYesClick([this]() {
+        if (callbacks_.onResetProgress())
+        {
+            closePopups();
+            openMainMenu();
+            return;
+        }
+
+        resetProgressDialogue->close();
+        syncPopupInteractivity();
+    });
+    resetProgressDialogue->setOnNoClick([this]() {
+        resetProgressDialogue->close();
+        syncPopupInteractivity();
+    });
+
     openMainMenu();
 }
 
 Menu::~Menu() = default;
+
+void Menu::syncPreferencesFromGameData()
+{
+    if (!gameData_m)
+    {
+        return;
+    }
+
+    vsyncEnabled = gameData_m->isVsyncEnabled();
+    menuParticleCount = normalizeAshDensityCount(gameData_m->getMenuParticleCount());
+    background.setParticleCount(menuParticleCount);
+    window_m->setVerticalSyncEnabled(vsyncEnabled);
+    window_m->setFramerateLimit(vsyncEnabled ? 0u : WINDOW_FPS);
+}
 
 void Menu::styleButton(const tgui::Button::Ptr& button, ButtonStyleRole role) const
 {
@@ -484,41 +567,49 @@ void Menu::initializeSettingsWindow()
 {
     settingsWindow = tgui::ChildWindow::create();
     settingsWindow->setTitle("Ritual Settings");
-    settingsWindow->setClientSize({420.f, 250.f});
+    settingsWindow->setClientSize({420.f, 300.f});
     settingsWindow->setPosition({
         window_m->getSize().x / 2.f - 210.f,
-        window_m->getSize().y / 2.f - 160.f
+        window_m->getSize().y / 2.f - 185.f
     });
     settingsWindow->setResizable(false);
     settingsWindow->setTitleButtons(tgui::ChildWindow::TitleButton::None);
     settingsWindow->setVisible(false);
 
-    auto settingsLabel = tgui::Label::create("Tune the veil of this session");
+    auto settingsLabel = tgui::Label::create("Tune the veil of this run\nThese rites are remembered next launch");
     settingsLabel->setWidgetName("settingsLabel");
-    settingsLabel->setTextSize(20);
+    settingsLabel->setTextSize(18);
     settingsLabel->setPosition({0.f, 6.f});
-    settingsLabel->setSize({388.f, 26.f});
+    settingsLabel->setSize({388.f, 44.f});
     settingsLabel->setHorizontalAlignment(tgui::HorizontalAlignment::Center);
     settingsWindow->add(settingsLabel);
 
     vsyncToggleButton = tgui::Button::create();
     vsyncToggleButton->setSize({360.f, 42.f});
-    vsyncToggleButton->setPosition({14.f, 56.f});
+    vsyncToggleButton->setPosition({14.f, 70.f});
     vsyncToggleButton->setTextSize(22);
     vsyncToggleButton->onClick([this]() { toggleVsync(); });
     settingsWindow->add(vsyncToggleButton);
 
     particleToggleButton = tgui::Button::create();
     particleToggleButton->setSize({360.f, 42.f});
-    particleToggleButton->setPosition({14.f, 106.f});
+    particleToggleButton->setPosition({14.f, 120.f});
     particleToggleButton->setTextSize(22);
     particleToggleButton->onClick([this]() { toggleMenuParticles(); });
     settingsWindow->add(particleToggleButton);
 
+    resetProgressButton = tgui::Button::create();
+    resetProgressButton->setSize({360.f, 42.f});
+    resetProgressButton->setPosition({14.f, 170.f});
+    resetProgressButton->setText("Reset saved progress");
+    resetProgressButton->setTextSize(22);
+    resetProgressButton->onClick([this]() { resetProgressButtonOnClick(); });
+    settingsWindow->add(resetProgressButton);
+
     auto closeButton = tgui::Button::create();
     closeButton->setWidgetName("settingsCloseButton");
     closeButton->setSize({360.f, 42.f});
-    closeButton->setPosition({14.f, 156.f});
+    closeButton->setPosition({14.f, 220.f});
     closeButton->setText("Close");
     closeButton->setTextSize(22);
     closeButton->onClick([this]() {
@@ -554,7 +645,8 @@ void Menu::initializeControlsWindow()
         "E - Destination menu\n"
         "Enter - Confirm\n\n"
         "Menus\n"
-        "Escape - Pause"
+        "Escape - Pause\n"
+        "F1 - Ritual Console"
     );
     controlsLabel->setWidgetName("controlsLabel");
     controlsLabel->setTextSize(19);
@@ -581,6 +673,7 @@ void Menu::connectTGUIFont(tgui::Font& font)
 {
     gui.setFont(font);
     exitDialogue->connectTGUIFont(font);
+    resetProgressDialogue->connectTGUIFont(font);
 }
 
 void Menu::setCallbacks(MenuCallbacks callbacks)
@@ -739,6 +832,8 @@ std::string Menu::buildSystemInfoText() const
     return std::string("Session\n") +
         "Current run: " + currentLevel + "\n" +
         "Selected file: " + selectedLevel + "\n" +
+        "VSync: " + std::string(vsyncEnabled ? "ON" : "OFF") + "\n" +
+        "Menu ash: " + getAshDensityLabel(menuParticleCount) + "\n" +
         "Known gates: " + std::to_string(state_.availableLevels.size()) + "\n" +
         "Continue: " + std::string(state_.canContinue ? "Ready" : "No active run");
 }
@@ -769,7 +864,7 @@ void Menu::refreshMenuContext()
 
     if (particleToggleButton)
     {
-        particleToggleButton->setText(std::string("Ash density: ") + std::to_string(menuParticleCount));
+        particleToggleButton->setText(buildAshDensityText(menuParticleCount));
     }
 
     if (mode_ == MenuMode::Pause)
@@ -987,6 +1082,7 @@ void Menu::applyModeTheme()
     styleButton(randomLevelButton, ButtonStyleRole::Secondary);
     styleButton(vsyncToggleButton, ButtonStyleRole::Secondary);
     styleButton(particleToggleButton, ButtonStyleRole::Secondary);
+    styleButton(resetProgressButton, ButtonStyleRole::Danger);
     styleInfoLabel(selectionInfoLabel);
     styleInfoLabel(systemInfoLabel);
     styleInfoLabel(shortcutInfoLabel);
@@ -1027,6 +1123,7 @@ void Menu::applyModeTheme()
 bool Menu::isBlockingPopupOpen() const
 {
     return (exitDialogue && exitDialogue->isOpen())
+        || (resetProgressDialogue && resetProgressDialogue->isOpen())
         || (settingsWindow && settingsWindow->isVisible())
         || (controlsWindow && controlsWindow->isVisible());
 }
@@ -1264,6 +1361,10 @@ void Menu::closePopups()
     {
         exitDialogue->close();
     }
+    if (resetProgressDialogue)
+    {
+        resetProgressDialogue->close();
+    }
 
     syncPopupInteractivity();
 }
@@ -1340,14 +1441,41 @@ void Menu::toggleVsync()
     vsyncEnabled = !vsyncEnabled;
     window_m->setVerticalSyncEnabled(vsyncEnabled);
     window_m->setFramerateLimit(vsyncEnabled ? 0u : WINDOW_FPS);
+    if (gameData_m)
+    {
+        gameData_m->setVsyncEnabled(vsyncEnabled);
+    }
+    callbacks_.onNotify(
+        "Settings saved",
+        vsyncEnabled ? "VSync enabled." : "VSync disabled.",
+        NotificationTone::Info
+    );
     refreshMenuContext();
 }
 
 void Menu::toggleMenuParticles()
 {
-    menuParticleCount = (menuParticleCount <= 120) ? 260 : 120;
+    menuParticleCount = getNextAshDensityCount(menuParticleCount);
     background.setParticleCount(menuParticleCount);
+    if (gameData_m)
+    {
+        gameData_m->setMenuParticleCount(menuParticleCount);
+    }
+    callbacks_.onNotify(
+        "Settings saved",
+        "Menu ash density: " + getAshDensityLabel(menuParticleCount) + ".",
+        NotificationTone::Info
+    );
     refreshMenuContext();
+}
+
+void Menu::resetProgressButtonOnClick()
+{
+    if (resetProgressDialogue)
+    {
+        resetProgressDialogue->open();
+        syncPopupInteractivity();
+    }
 }
 
 void Menu::exitButtonOnClick()
@@ -1358,6 +1486,7 @@ void Menu::exitButtonOnClick()
 
 void Menu::openMainMenu()
 {
+    syncPreferencesFromGameData();
     mode_ = MenuMode::Main;
     isOpen_ = true;
     closePopups();
@@ -1369,6 +1498,7 @@ void Menu::openMainMenu()
 
 void Menu::openPauseMenu()
 {
+    syncPreferencesFromGameData();
     mode_ = MenuMode::Pause;
     isOpen_ = true;
     closePopups();
@@ -1425,7 +1555,7 @@ void Menu::menuDraw(sf::RenderWindow& window)
     drawDecorativeLayout(window);
     gui.draw();
     exitDialogue->draw(window);
-    window.display();
+    resetProgressDialogue->draw(window);
 }
 
 void Menu::menuHandleEvents(const sf::Event& ev)
@@ -1437,6 +1567,12 @@ void Menu::menuHandleEvents(const sf::Event& ev)
             if (exitDialogue->isOpen())
             {
                 exitDialogue->close();
+                syncPopupInteractivity();
+                return;
+            }
+            if (resetProgressDialogue->isOpen())
+            {
+                resetProgressDialogue->close();
                 syncPopupInteractivity();
                 return;
             }
@@ -1536,6 +1672,12 @@ void Menu::menuHandleEvents(const sf::Event& ev)
     if (exitDialogue->isOpen())
     {
         exitDialogue->handleEvent(ev);
+        return;
+    }
+
+    if (resetProgressDialogue->isOpen())
+    {
+        resetProgressDialogue->handleEvent(ev);
         return;
     }
 

@@ -1,3 +1,9 @@
 {
-    "loadingGameAssets_operationsCount": 61
+    "loadingGameAssets_operationsCount": 61,
+    "video": {
+        "vsyncEnabled": false
+    },
+    "menu": {
+        "particleCount": 200
+    }
 }

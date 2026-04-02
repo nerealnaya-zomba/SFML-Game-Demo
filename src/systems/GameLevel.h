@@ -41,6 +41,13 @@ private:
         float interactRadius = 120.f;
         std::string entrancePrompt;
         std::string exitPrompt;
+        float roomLeftX = 0.f;
+        float roomRightX = 0.f;
+        float activeLeftX = 0.f;
+        float activeRightX = 0.f;
+        float roomCeilingY = 0.f;
+        float roomFloorY = 0.f;
+        float deathY = 0.f;
     };
 
     struct GeneratedMiniReward
@@ -63,6 +70,29 @@ private:
         std::string body;
     };
 
+    struct GeneratedMiniBarrier
+    {
+        float x = 0.f;
+        float topY = 0.f;
+        float bottomY = 0.f;
+        float width = 22.f;
+        float phase = 0.f;
+        sf::Color coreColor = sf::Color::White;
+        sf::Color glowColor = sf::Color::White;
+    };
+
+    struct GeneratedMiniHazard
+    {
+        float leftX = 0.f;
+        float rightX = 0.f;
+        float topY = 0.f;
+        float bottomY = 0.f;
+        float phase = 0.f;
+        sf::Color coreColor = sf::Color(255, 126, 72, 255);
+        sf::Color glowColor = sf::Color(255, 208, 124, 255);
+        sf::Color emberColor = sf::Color(255, 238, 190, 255);
+    };
+
     sf::Vector2i size{};
     std::shared_ptr<Platform> platforms;
     std::shared_ptr<Decoration> decorations;
@@ -71,6 +101,9 @@ private:
     std::vector<std::unique_ptr<InteractiveObject>> interactives;
     std::vector<GeneratedMiniLocation> generatedMiniLocations;
     std::vector<GeneratedMiniReward> generatedMiniRewards;
+    std::vector<GeneratedMiniBarrier> generatedMiniBarriers;
+    std::vector<GeneratedMiniHazard> generatedMiniHazards;
+    sf::Clock miniLocationEffectsClock;
 
     Player* player = nullptr;
     GameData* data = nullptr;
@@ -81,6 +114,8 @@ private:
 
     sf::Vector2f playerSpawnPos{};
     nlohmann::json loadedLevelData{};
+    int primaryWorldWidth = 0;
+    float primaryWorldCameraRightEdge = 0.f;
 
     bool doResetToBase = true;
     bool isConstant = true;
@@ -94,6 +129,9 @@ private:
     void generateMiniLocations();
     void tryInitializeEnemyManager();
     void tryInitializeInteractives();
+    void updateMiniLocationHazards();
+    void drawMiniLocationBarriers();
+    void drawMiniLocationHazards();
 
 public:
     GameLevel(GameData& d, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath);
@@ -125,6 +163,7 @@ public:
     void runErrorScreen(std::string errorString);
 
     sf::Vector2i getLevelSize() const;
+    sf::FloatRect getCameraBoundsForPosition(const sf::Vector2f& position) const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     sf::RectangleShape& getGroundRect();
     sf::Vector2f getPlayerSpawnPos();
@@ -182,6 +221,7 @@ public:
     void drawInteractives();
 
     sf::Vector2i getCurrentLevelSize() const;
+    sf::FloatRect getCurrentCameraBoundsForPosition(const sf::Vector2f& position) const;
     std::string getCurrentLevelName() const;
     std::vector<std::string> getLevelNames() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
@@ -192,6 +232,7 @@ public:
     void setCurrentLevelSpawn(const sf::Vector2f& pos);
 
     void attachPlayer(Player& p);
+    void clearDeathRecoveries();
     void registerDeathRecovery(const sf::Vector2f& position, int goldAmount);
     bool handleEvent(const sf::Event& event);
 };

@@ -1,5 +1,33 @@
 #include "GameData.h"
+
+#include <algorithm>
 #include <stdexcept>
+
+namespace
+{
+constexpr const char* kLaunchSettingsPath = "data/launchSettings.json";
+constexpr int kDefaultLoadingOperationsCount = 61;
+constexpr bool kDefaultVsyncEnabled = false;
+constexpr int kDefaultMenuParticleCount = 200;
+
+nlohmann::json loadLaunchSettingsDocument()
+{
+    std::ifstream input(kLaunchSettingsPath);
+    if (!input.is_open())
+    {
+        return nlohmann::json::object();
+    }
+
+    try
+    {
+        return nlohmann::json::parse(input);
+    }
+    catch (const nlohmann::json::exception&)
+    {
+        return nlohmann::json::object();
+    }
+}
+}
 
 GameData::GameData(sf::Font* font, std::shared_ptr<LoadingProgress> loadingProgress)
     : gameFont(font)
@@ -305,25 +333,41 @@ void GameData::finishLoadingStep()
 //
 void GameData::saveOperationsData()
 {
-    // Чтение
-    std::ifstream in("data/launchSettings.json");
-    nlohmann::json j = nlohmann::json::parse(in);
-    in.close();  // Закрыть для чтения
+    allOperations_count_m = succesedOperationsCount_m;
+    saveLaunchSettings();
+}
 
+void GameData::saveLaunchSettings() const
+{
+    nlohmann::json document = loadLaunchSettingsDocument();
+    document["loadingGameAssets_operationsCount"] = allOperations_count_m;
+    document["video"]["vsyncEnabled"] = launchPreferences_.vsyncEnabled;
+    document["menu"]["particleCount"] = launchPreferences_.menuParticleCount;
 
-    // Изменение
-    j["loadingGameAssets_operationsCount"] = succesedOperationsCount_m;
-    
-    // Запись
-    std::ofstream out("data/launchSettings.json");
-    out << j.dump(4);
+    std::ofstream output(kLaunchSettingsPath);
+    output << document.dump(4);
 }
 
 void GameData::loadData()
 {
-    std::fstream f("data/launchSettings.json");
-    nlohmann::json j = nlohmann::json::parse(f);
-    allOperations_count_m = j["loadingGameAssets_operationsCount"];
+    const nlohmann::json document = loadLaunchSettingsDocument();
+    allOperations_count_m = document.value(
+        "loadingGameAssets_operationsCount",
+        kDefaultLoadingOperationsCount
+    );
+
+    const nlohmann::json videoSettings = document.value("video", nlohmann::json::object());
+    const nlohmann::json menuSettings = document.value("menu", nlohmann::json::object());
+    launchPreferences_.vsyncEnabled = videoSettings.value(
+        "vsyncEnabled",
+        document.value("vsyncEnabled", kDefaultVsyncEnabled)
+    );
+    launchPreferences_.menuParticleCount = clampMenuParticleCount(
+        menuSettings.value(
+            "particleCount",
+            document.value("menuParticleCount", kDefaultMenuParticleCount)
+        )
+    );
 }
 
 void GameData::loadEnemySettings()
@@ -335,4 +379,47 @@ void GameData::loadEnemySettings()
 const nlohmann::json& GameData::getEnemySettings() const
 {
     return enemySettings_m;
+}
+
+bool GameData::isVsyncEnabled() const
+{
+    return launchPreferences_.vsyncEnabled;
+}
+
+int GameData::getMenuParticleCount() const
+{
+    return launchPreferences_.menuParticleCount;
+}
+
+GameData::LaunchPreferences GameData::getLaunchPreferences() const
+{
+    return launchPreferences_;
+}
+
+void GameData::setVsyncEnabled(const bool enabled)
+{
+    if (launchPreferences_.vsyncEnabled == enabled)
+    {
+        return;
+    }
+
+    launchPreferences_.vsyncEnabled = enabled;
+    saveLaunchSettings();
+}
+
+void GameData::setMenuParticleCount(const int count)
+{
+    const int clampedCount = clampMenuParticleCount(count);
+    if (launchPreferences_.menuParticleCount == clampedCount)
+    {
+        return;
+    }
+
+    launchPreferences_.menuParticleCount = clampedCount;
+    saveLaunchSettings();
+}
+
+int GameData::clampMenuParticleCount(const int count)
+{
+    return std::clamp(count, 80, 260);
 }

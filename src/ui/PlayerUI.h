@@ -1,6 +1,8 @@
 #pragma once
 
 #include<SFML/Graphics.hpp>
+#include<SelbaWard/ProgressBar.hpp>
+#include<SelbaWard/Ring.hpp>
 #include<Player.h>
 
 #include<memory>
@@ -24,13 +26,19 @@ const sf::Vector2f BASE_INVENTORY_PANEL_SIZE                = {320.f,0.f};
 const sf::Vector2f BASE_INVENTORY_SLOT_SIZE                 = {48.f,48.f};
 const sf::Vector2f BASE_INVENTORY_SLOT_GAP                  = {10.f,10.f};
 const unsigned int BASE_INVENTORY_COLUMNS                   = 4;
-const sf::Vector2f BASE_STATS_PANEL_OFFSET                  = {18.f,152.f};
-const sf::Vector2f BASE_STATS_PANEL_SIZE                    = {264.f,0.f};
-const sf::Vector2f BASE_OBJECTIVE_PANEL_SIZE                = {560.f,162.f};
-const sf::Vector2f BASE_OBJECTIVE_PANEL_TOP_OFFSET          = {0.f,18.f};
+const sf::Vector2f BASE_STATS_PANEL_OFFSET                  = {18.f,0.f};
+const sf::Vector2f BASE_STATS_PANEL_SIZE                    = {600.f,0.f};
+const float BASE_STATS_PANEL_TOP_GAP_FROM_RESOURCES         = 12.f;
+const float BASE_STATS_GRID_GAP                             = 8.f;
+const float BASE_STATS_CARD_HEIGHT                          = 44.f;
+const unsigned int BASE_STATS_GRID_COLUMNS                  = 5;
+const unsigned int BASE_STATS_GRID_ROWS                     = 3;
+const sf::Vector2f BASE_OBJECTIVE_PANEL_SIZE                = {430.f,140.f};
+const float BASE_OBJECTIVE_PANEL_TOP_OFFSET                 = 18.f;
+const float BASE_OBJECTIVE_PANEL_GAP_FROM_INVENTORY         = 16.f;
 const sf::Vector2f BASE_OBJECTIVE_TOAST_SIZE                = {420.f,64.f};
-const float BASE_STATS_LINE_HEIGHT                          = 19.f;
-const float BASE_STATS_LINE_GAP                             = 5.f;
+const float BASE_OBJECTIVE_PANEL_HIDDEN_MARGIN              = 44.f;
+const float BASE_OBJECTIVE_PANEL_SLIDE_SPEED                = 5.8f;
 const float BASE_STATS_PANEL_PADDING                        = 12.f;
 
 class GameData;
@@ -121,9 +129,18 @@ private:
     sf::RectangleShape statsHeaderAccent;
     sf::RectangleShape statsSideSigil;
     sf::RectangleShape statsDivider;
+    sf::RectangleShape statsHintShadow;
+    sf::RectangleShape statsHintBack;
+    sf::RectangleShape statsHintAccent;
     sf::Text statsTitleText;
     sf::Text statsWeaponText;
+    sf::Text statsHintText;
     std::vector<StatLineVisual> statLines;
+    bool statsPanelVisible_ = false;
+    bool statsToggleKeyDown_ = false;
+    float statsPanelReveal_ = 0.f;
+    sf::Clock statsPanelAnimationClock_;
+    sf::Clock statsPanelVisibilityClock_;
 
     void updateStatsPanel();
     void rebuildStatLines();
@@ -135,17 +152,22 @@ private:
     sf::RectangleShape objectivePanelBack;
     sf::RectangleShape objectiveHeaderAccent;
     sf::RectangleShape objectiveDivider;
-    sf::RectangleShape objectiveProgressBack;
-    sf::RectangleShape objectiveProgressFront;
+    sf::RectangleShape objectiveHintShadow;
+    sf::RectangleShape objectiveHintBack;
+    sf::RectangleShape objectiveHintAccent;
     sf::RectangleShape objectiveProgressGlow;
     sf::CircleShape objectiveSigilGlow;
     sf::CircleShape objectiveSigilCore;
+    sw::ProgressBar objectiveProgressBar;
+    sw::Ring objectiveSigilRing;
+    sw::Ring objectiveSigilOrbitRing;
     sf::Text objectiveTitleText;
     sf::Text objectiveChapterText;
     sf::Text objectiveNarrativeText;
     sf::Text objectiveTaskText;
     sf::Text objectiveProgressText;
     sf::Text objectiveRewardText;
+    sf::Text objectiveHintText;
     sf::RectangleShape objectiveToastShadow;
     sf::RectangleShape objectiveToastBack;
     sf::RectangleShape objectiveToastAccent;
@@ -156,6 +178,11 @@ private:
     std::string previousObjectiveTask_;
     bool objectiveToastVisible_ = false;
     bool objectiveStateInitialized_ = false;
+    bool objectivePanelExpanded_ = false;
+    bool objectiveToggleKeyDown_ = false;
+    float objectivePanelReveal_ = 0.f;
+    sf::Clock objectivePanelAnimationClock_;
+    sf::Clock objectivePanelVisibilityClock_;
 
     void updateObjectivePanel();
 
@@ -173,6 +200,9 @@ private:
     sf::RectangleShape inventoryPanelBack;
     sf::RectangleShape inventoryHeaderAccent;
     sf::RectangleShape inventoryDivider;
+    sf::RectangleShape inventoryHintShadow;
+    sf::RectangleShape inventoryHintBack;
+    sf::RectangleShape inventoryHintAccent;
     sf::RectangleShape goldChip;
     sf::RectangleShape weaponChip;
     sf::CircleShape goldCoinGlow;
@@ -185,8 +215,14 @@ private:
     sf::Text inventoryWeaponText;
     sf::Text inventoryWeaponHintText;
     sf::Text inventoryEmptyText;
+    sf::Text inventoryHintText;
 
     std::vector<InventorySlotVisual> inventorySlots;
+    bool inventoryPanelVisible_ = false;
+    bool inventoryToggleKeyDown_ = false;
+    float inventoryPanelReveal_ = 0.f;
+    sf::Clock inventoryPanelAnimationClock_;
+    sf::Clock inventoryPanelVisibilityClock_;
     sf::Clock uiAnimationClock;
 
     void updateInventoryPanel();
@@ -198,6 +234,7 @@ public:
 
     void draw(sf::RenderWindow& window);
     void update();
+    bool handleEvent(const sf::Event& event);
 
     void addCooldownRect(sf::Clock& currentCD, int& targetCD, sf::Texture& iconTexture);
 };

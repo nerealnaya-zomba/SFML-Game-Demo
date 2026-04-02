@@ -37,6 +37,7 @@ public:
 
     float getSurfaceY() const;
     sf::FloatRect getSurfaceBounds() const;
+    float getCameraClampRight() const;
     bool containsX(float x) const;
     std::string getStyleName() const;
 

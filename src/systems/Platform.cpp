@@ -10,6 +10,7 @@ constexpr bool DRAW_PLATFORM_HITBOXES = false;
 const std::unordered_map<std::string, Platform::TypeDefinition>& buildPlatformDefinitions()
 {
     static const std::unordered_map<std::string, Platform::TypeDefinition> definitions{
+        {"Invisible-wall", {"", {72.f, 180.f}, {1.f, 1.f}, {0.f, 0.f}, sf::Color::Transparent}},
         {"Single-angled", {"images/platform/Single-angled.png", {40.f, 40.f}, {0.2f, 0.2f}, {-6.f, 0.f}, sf::Color::White}},
         {"Single-flat", {"images/platform/Single-flat.png", {40.f, 30.f}, {0.2f, 0.2f}, {-6.f, 0.f}, sf::Color::White}},
         {"Single-square", {"images/platform/Single-square.png", {50.f, 40.f}, {0.2f, 0.2f}, {-5.f, 0.f}, sf::Color::White}},
@@ -38,6 +39,11 @@ std::unordered_map<std::string, sf::Texture> loadPlatformTextures()
 
     for (const auto& [name, definition] : buildPlatformDefinitions())
     {
+        if (definition.texturePath.empty())
+        {
+            continue;
+        }
+
         sf::Texture texture;
         if (!texture.loadFromFile(definition.texturePath))
         {
@@ -94,14 +100,19 @@ void Platform::addPlatform(sf::Vector2f position, std::string name)
         return;
     }
 
-    const auto textureIt = textures->find(name);
-    if (textureIt == textures->end())
-    {
-        std::cerr << "Texture not loaded for platform type: " << name << std::endl;
-        return;
-    }
-
     const TypeDefinition& definition = definitionIt->second;
+    const sf::Texture* texture = nullptr;
+    if (!definition.texturePath.empty())
+    {
+        const auto textureIt = textures->find(name);
+        if (textureIt == textures->end())
+        {
+            std::cerr << "Texture not loaded for platform type: " << name << std::endl;
+            return;
+        }
+
+        texture = &textureIt->second;
+    }
 
     auto rect = std::make_shared<sf::RectangleShape>();
     rect->setPosition(position);
@@ -110,12 +121,15 @@ void Platform::addPlatform(sf::Vector2f position, std::string name)
     const sf::Vector2f center = rect->getGlobalBounds().getCenter();
     rects.push_back(rect);
 
-    auto sprite = std::make_unique<sf::Sprite>(textureIt->second);
-    sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-    sprite->setPosition(center + definition.spriteOffset);
-    sprite->setScale(definition.spriteScale);
-    sprite->setColor(definition.tint);
-    sprites.push_back(std::move(sprite));
+    if (texture != nullptr)
+    {
+        auto sprite = std::make_unique<sf::Sprite>(*texture);
+        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
+        sprite->setPosition(center + definition.spriteOffset);
+        sprite->setScale(definition.spriteScale);
+        sprite->setColor(definition.tint);
+        sprites.push_back(std::move(sprite));
+    }
 }
 
 std::vector<std::shared_ptr<sf::RectangleShape>>& Platform::getRects()
