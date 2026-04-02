@@ -99,7 +99,7 @@ BestiaryEnemy::BestiaryEnemy(GameData& gameData,
 
     sprite_ = std::make_unique<sf::Sprite>(idleTextures_->at(0));
     setSpriteOriginToMiddle(*sprite_);
-    sprite_->setScale(enemyScale_);
+    sprite_->setScale({getVisualFacingSign() * enemyScale_.x, enemyScale_.y});
 
     rect_ = std::make_unique<sf::RectangleShape>(hitboxSize_);
     rect_->setFillColor(sf::Color::Transparent);
@@ -260,6 +260,17 @@ sf::Vector2f BestiaryEnemy::getCenterPosition() const
 float BestiaryEnemy::getFacingSign() const
 {
     return facingRight_ ? 1.f : -1.f;
+}
+
+float BestiaryEnemy::getVisualFacingSign() const
+{
+    float direction = getFacingSign();
+    if (kind_ == Kind::WraithBat || kind_ == Kind::DreadScorpion)
+    {
+        direction *= -1.f;
+    }
+
+    return direction;
 }
 
 void BestiaryEnemy::updateAI()
@@ -1216,11 +1227,7 @@ void BestiaryEnemy::updateTextures()
     const float visualScaleY = (kind_ == Kind::VoidSlime && state_ == State::Windup)
         ? enemyScale_.y * 0.84f
         : enemyScale_.y;
-    float visualScaleX = getFacingSign() * enemyScale_.x;
-    if (kind_ == Kind::DreadScorpion)
-    {
-        visualScaleX *= -1.f;
-    }
+    const float visualScaleX = getVisualFacingSign() * enemyScale_.x;
     sprite_->setScale({visualScaleX, visualScaleY});
     syncSpriteToRect();
 }

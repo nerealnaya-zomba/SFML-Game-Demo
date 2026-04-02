@@ -3,7 +3,8 @@
     "isConstant": true,
     "isAvaiable": true,
     "Size": [7600, 1080],
-    "PlayerSpawn": [200, 900]
+    "PlayerSpawn": [200, 900],
+    "BackgroundTheme": "VerdantDawn"
   },
   "Platforms": [
     {

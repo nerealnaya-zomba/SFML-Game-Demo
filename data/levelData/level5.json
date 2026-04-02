@@ -3,7 +3,8 @@
     "isConstant": true,
     "isAvaiable": true,
     "Size": [1920, 1080],
-    "PlayerSpawn": [100, 900]
+    "PlayerSpawn": [100, 900],
+    "BackgroundTheme": "TwilightRift"
   },
   "Platforms": [
     {
@@ -87,21 +88,27 @@
   ],
   "Background": [
     {
-      "BgName": "Background_46.png",
+      "BgName": "Background_31.png",
       "Position": [960, 540],
       "ParallaxFactor": [0.96, 0.99],
       "Type": 0
     },
     {
-      "BgName": "Background_45.png",
+      "BgName": "Background_32.png",
       "Position": [960, 540],
-      "ParallaxFactor": [0.88, 0.94],
+      "ParallaxFactor": [0.90, 0.95],
       "Type": 0
     },
     {
-      "BgName": "Background_44.png",
+      "BgName": "Background_33.png",
       "Position": [960, 540],
-      "ParallaxFactor": [0.80, 0.88],
+      "ParallaxFactor": [0.82, 0.90],
+      "Type": 0
+    },
+    {
+      "BgName": "Background_34.png",
+      "Position": [960, 540],
+      "ParallaxFactor": [0.72, 0.84],
       "Type": 0
     }
   ],

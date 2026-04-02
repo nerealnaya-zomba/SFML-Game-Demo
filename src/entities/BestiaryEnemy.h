@@ -217,4 +217,5 @@ private:
 
     sf::Vector2f getCenterPosition() const;
     float getFacingSign() const;
+    float getVisualFacingSign() const;
 };

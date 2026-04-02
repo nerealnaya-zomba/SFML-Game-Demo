@@ -535,7 +535,14 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
 {
     try
     {
-        for (const auto& backgroundData : data["Background"])
+        const std::string backgroundTheme = data.contains("Presets")
+            ? data["Presets"].value("BackgroundTheme", std::string{})
+            : std::string{};
+        const auto& backgroundLayers = data["Background"];
+        const std::size_t layerCount = backgroundLayers.size();
+
+        std::size_t layerIndex = 0;
+        for (const auto& backgroundData : backgroundLayers)
         {
             const sf::Vector2f position = {backgroundData["Position"][0], backgroundData["Position"][1]};
             const sf::Vector2f parallaxFactor = {
@@ -544,6 +551,10 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
             };
             const std::string name = backgroundData["BgName"];
             const Type type = backgroundData["Type"];
+            BackgroundSceneConfig sceneConfig;
+            sceneConfig.themeName = backgroundData.value("Theme", backgroundTheme);
+            sceneConfig.layerIndex = layerIndex;
+            sceneConfig.layerCount = layerCount;
 
             background.push_back(
                 std::make_shared<Background>(
@@ -553,9 +564,12 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
                     position,
                     name,
                     parallaxFactor,
-                    type
+                    type,
+                    sceneConfig
                 )
             );
+
+            ++layerIndex;
         }
     }
     catch (const std::exception&)

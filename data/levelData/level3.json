@@ -3,7 +3,8 @@
     "isConstant": true,
     "isAvaiable": true,
     "Size": [7000, 1080],
-    "PlayerSpawn": [100, 900]
+    "PlayerSpawn": [100, 900],
+    "BackgroundTheme": "BloodMoon"
   },
   "Platforms": [
     {

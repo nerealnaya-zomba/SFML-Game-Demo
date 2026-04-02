@@ -3,7 +3,8 @@
     "isConstant": true,
     "isAvaiable": true,
     "Size": [9000, 1080],
-    "PlayerSpawn": [150, 900]
+    "PlayerSpawn": [150, 900],
+    "BackgroundTheme": "BoneCrypt"
   },
   "Platforms": [
     {
@@ -226,6 +227,12 @@
       "BgName": "Background_29.png",
       "Position": [960, 540],
       "ParallaxFactor": [0.76, 0.88],
+      "Type": 0
+    },
+    {
+      "BgName": "Background_30.png",
+      "Position": [960, 540],
+      "ParallaxFactor": [0.66, 0.82],
       "Type": 0
     }
   ],

@@ -1,11 +1,16 @@
 #pragma once
-#include<SFML/Graphics.hpp>
-#include<vector>
-#include<iostream>
-#include<Defines.h>
-#include<GameData.h>
-#include<GameCamera.h>
+
+#include <SFML/Graphics.hpp>
+
+#include <GameCamera.h>
+#include <GameData.h>
+#include <Defines.h>
+#include <cstddef>
+#include <iostream>
 #include <memory>
+#include <string>
+#include <vector>
+
 /////////////////////////////////////
 // BASE_PARALLAX_FACTOR == 1.f - Фон следует за игроком без малейших изменений в позиции
 // BASE_PARALLAX_FACTOR == 0.f - Фон остается на месте своего создания
@@ -18,6 +23,7 @@ class GameCamera;
 class GameLevelManager;
 class GameLevel;
 class Player;
+class BackgroundAtmosphere;
 
 //////////////////////////////////////////
 // То, что Z=-100, на него паралакс не воздействует, и он абсолютно всегда находится в позиции камеры Z_FOREGROUND_POWER = 1.f
@@ -25,10 +31,18 @@ class Player;
 // А после преодоления предела в 0, становится быстрее
 //////////////////////////////////////////
 enum Type{RepeatedBackground, SingleBackground};
+
+struct BackgroundSceneConfig
+{
+    std::string themeName{};
+    std::size_t layerIndex = 0;
+    std::size_t layerCount = 1;
+};
+
 ////////////////////////////////////////////////// IMPLEMENTME
-// Представляет собой фон уровня. 
+// Представляет собой фон уровня.
 // На фон уровня можно выбирать как картинку, так и видео (FFMPEG в помощь).
-// 
+//
 // У фона есть задние объекты z<0 и передние z>0.
 // На задние и передние объекты работает парралакс эффект
 //
@@ -37,9 +51,18 @@ enum Type{RepeatedBackground, SingleBackground};
 // — Single: Только один фон в одной позиции
 //////////////////////////////////////////////////
 class Background
-{  
+{
 public:
-    Background(GameData& d, GameCamera& c, GameLevel& l, sf::Vector2f pos, std::string bgName, sf::Vector2f parallaxFact, Type t);
+    Background(
+        GameData& d,
+        GameCamera& c,
+        GameLevel& l,
+        sf::Vector2f pos,
+        std::string bgName,
+        sf::Vector2f parallaxFact,
+        Type t,
+        BackgroundSceneConfig sceneConfig = {}
+    );
     ~Background();
 
     //////////////////////////////////////////////////
@@ -62,20 +85,26 @@ public:
 
 private:
     // Указатели на внешние данные
-    const GameCamera* camera;
-    const GameLevel* level;
+    const GameCamera* camera = nullptr;
+    const GameLevel* level = nullptr;
 
     const Type type;                        // Тип фона
     const sf::Vector2f position;            // Позиция при создании.
     const std::string name;                 // Название фона
-    sf::Vector2u bgTextureSize;
+    const BackgroundSceneConfig sceneConfig;
+    sf::Vector2u bgTextureSize{};
 
     // Parallax
-    int zDepth;                             // Сила с которой растет offset
     sf::Vector2f parallaxFactor;            // Растет с удалением от центра спрайта
+    sf::Clock animationClock;
+    float animationTime = 0.f;
 
-    void applyParallax(); // Вычисляет offset, основываясь на zDepth и удалении от сентра спрайта
+    void applyParallax();
+    sf::Vector2f computeAnimationOffset() const;
+    sf::FloatRect getActiveViewRect() const;
+    void drawRepeated(sf::RenderWindow& window) const;
 
     // Основной спрайт
     std::unique_ptr<sf::Sprite> bgFront;
+    std::unique_ptr<BackgroundAtmosphere> atmosphere;
 };

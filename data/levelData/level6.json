@@ -3,7 +3,8 @@
     "isConstant": true,
     "isAvaiable": true,
     "Size": [6000, 1080],
-    "PlayerSpawn": [100, 900]
+    "PlayerSpawn": [100, 900],
+    "BackgroundTheme": "MidnightRain"
   },
   "Platforms": [
     {
@@ -163,21 +164,27 @@
   ],
   "Background": [
     {
+      "BgName": "Background_47.png",
+      "Position": [960, 540],
+      "ParallaxFactor": [0.97, 0.99],
+      "Type": 0
+    },
+    {
       "BgName": "Background_46.png",
       "Position": [960, 540],
-      "ParallaxFactor": [0.96, 0.99],
+      "ParallaxFactor": [0.90, 0.96],
       "Type": 0
     },
     {
       "BgName": "Background_45.png",
       "Position": [960, 540],
-      "ParallaxFactor": [0.88, 0.96],
+      "ParallaxFactor": [0.82, 0.90],
       "Type": 0
     },
     {
       "BgName": "Background_44.png",
       "Position": [960, 540],
-      "ParallaxFactor": [0.78, 0.90],
+      "ParallaxFactor": [0.72, 0.84],
       "Type": 0
     }
   ],
