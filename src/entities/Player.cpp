@@ -1244,9 +1244,6 @@ void Player::chooseDestinationMenuUpdate()
 
 void Player::chooseDestinationMenuHandleEvents(const sf::Event &ev)
 {
-    CDMenu.handleEvents(ev);
-
-    // Open that menu
     if(const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
     {
         if(keyPressed->scancode == BASE_CHOOSEDESTINATIONMENU_OPEN_CLOSE_KEY)
@@ -1259,8 +1256,12 @@ void Player::chooseDestinationMenuHandleEvents(const sf::Event &ev)
             {
                 CDMenu.close();
             }
+
+            return;
         }
     }
+
+    CDMenu.handleEvents(ev);
 }
 
 void Player::drawTransition()

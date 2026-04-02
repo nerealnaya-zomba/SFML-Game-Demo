@@ -1,17 +1,21 @@
 {
     "campaign": {
-        "relicsPurchased": 1,
-        "totalGoldCollected": 61,
-        "totalGoldSpent": 35,
+        "relicsPurchased": 5,
+        "totalGoldCollected": 9108,
+        "totalGoldSpent": 7175,
         "visitedLevels": [
             "level1.json",
-            "level2.json"
+            "level2.json",
+            "level3.json",
+            "level4.json",
+            "level5.json",
+            "level6.json"
         ],
-        "weaponsPurchased": 0
+        "weaponsPurchased": 4
     },
     "player": {
-        "currentWeaponIconName": "Item_02.png",
-        "gold": 26,
+        "currentWeaponIconName": "Item_29.png",
+        "gold": 1933,
         "inventory": [
             {
                 "category": "Upgrade",
@@ -45,6 +49,278 @@
                     "projectileSpeed": 0,
                     "splashRadius": 0,
                     "spread": 0
+                }
+            },
+            {
+                "category": "Upgrade",
+                "description": "A black-red pigment that turns simple bolts into burning sigils on impact.",
+                "displayName": "Ember Ink",
+                "iconName": "Item_06.png",
+                "price": 95,
+                "quality": 1,
+                "stats": {
+                    "bulletDistance": 0,
+                    "bulletSpeed": 1,
+                    "damage": 12,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 0,
+                    "health": 0,
+                    "initialSpeed": 0,
+                    "jumpPower": 0,
+                    "maxSpeed": 0,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 0,
+                    "damageBonus": 0,
+                    "energyCost": 0,
+                    "kind": "AshenBolt",
+                    "pierceCount": 0,
+                    "projectileCount": 1,
+                    "projectileRange": 0,
+                    "projectileSpeed": 0,
+                    "splashRadius": 0,
+                    "spread": 0
+                }
+            },
+            {
+                "category": "Upgrade",
+                "description": "Still light enough to twitch in dead air. Movement feels sharper and more certain.",
+                "displayName": "Falcon Feather",
+                "iconName": "Item_08.png",
+                "price": 115,
+                "quality": 1,
+                "stats": {
+                    "bulletDistance": 0,
+                    "bulletSpeed": 0,
+                    "damage": 0,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 0,
+                    "health": 0,
+                    "initialSpeed": 10,
+                    "jumpPower": 0,
+                    "maxSpeed": 8,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 0,
+                    "damageBonus": 0,
+                    "energyCost": 0,
+                    "kind": "AshenBolt",
+                    "pierceCount": 0,
+                    "projectileCount": 1,
+                    "projectileRange": 0,
+                    "projectileSpeed": 0,
+                    "splashRadius": 0,
+                    "spread": 0
+                }
+            },
+            {
+                "category": "Upgrade",
+                "description": "A rider's spur blessed for short bursts of speed through old grave roads.",
+                "displayName": "Quick Spur",
+                "iconName": "Item_03.png",
+                "price": 55,
+                "quality": 0,
+                "stats": {
+                    "bulletDistance": 0,
+                    "bulletSpeed": 0,
+                    "damage": 0,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 0,
+                    "health": 0,
+                    "initialSpeed": 6,
+                    "jumpPower": 0,
+                    "maxSpeed": 4,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 0,
+                    "damageBonus": 0,
+                    "energyCost": 0,
+                    "kind": "AshenBolt",
+                    "pierceCount": 0,
+                    "projectileCount": 1,
+                    "projectileRange": 0,
+                    "projectileSpeed": 0,
+                    "splashRadius": 0,
+                    "spread": 0
+                }
+            },
+            {
+                "category": "Upgrade",
+                "description": "Heavy and old, but warded. It lets your body endure a few more bad prophecies.",
+                "displayName": "Iron Charm",
+                "iconName": "Item_04.png",
+                "price": 75,
+                "quality": 0,
+                "stats": {
+                    "bulletDistance": 0,
+                    "bulletSpeed": 0,
+                    "damage": 0,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 0,
+                    "health": 90,
+                    "initialSpeed": 0,
+                    "jumpPower": 0,
+                    "maxSpeed": 0,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 0,
+                    "damageBonus": 0,
+                    "energyCost": 0,
+                    "kind": "AshenBolt",
+                    "pierceCount": 0,
+                    "projectileCount": 1,
+                    "projectileRange": 0,
+                    "projectileSpeed": 0,
+                    "splashRadius": 0,
+                    "spread": 0
+                }
+            },
+            {
+                "category": "Weapon",
+                "description": "A bone-white rite that drills through one enemy and keeps going. Fast, cold and merciless.",
+                "displayName": "Gravepiercer Pike",
+                "iconName": "Item_07.png",
+                "price": 650,
+                "quality": 1,
+                "stats": {
+                    "bulletDistance": 0,
+                    "bulletSpeed": 0,
+                    "damage": 0,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 0,
+                    "health": 0,
+                    "initialSpeed": 0,
+                    "jumpPower": 0,
+                    "maxSpeed": 0,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 230,
+                    "damageBonus": 18,
+                    "energyCost": 90,
+                    "kind": "Gravepiercer",
+                    "pierceCount": 3,
+                    "projectileCount": 1,
+                    "projectileRange": 120,
+                    "projectileSpeed": 2,
+                    "splashRadius": 0,
+                    "spread": 0
+                }
+            },
+            {
+                "category": "Weapon",
+                "description": "A final rite for wealthy hunters only. It tears a laser scar across the room and pierces whole lines of enemies.",
+                "displayName": "Nightfall Beam",
+                "iconName": "Item_33.png",
+                "price": 2750,
+                "quality": 3,
+                "stats": {
+                    "bulletDistance": 0,
+                    "bulletSpeed": 0,
+                    "damage": 0,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 0,
+                    "health": 0,
+                    "initialSpeed": 0,
+                    "jumpPower": 0,
+                    "maxSpeed": 0,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 540,
+                    "damageBonus": 48,
+                    "energyCost": 180,
+                    "kind": "NightfallBeam",
+                    "pierceCount": 8,
+                    "projectileCount": 1,
+                    "projectileRange": 320,
+                    "projectileSpeed": 0,
+                    "splashRadius": 0,
+                    "spread": 0
+                }
+            },
+            {
+                "category": "Weapon",
+                "description": "Three shard-bolts in one breath. It feels viciously quick and paints the screen with electric streaks.",
+                "displayName": "Storm Needler",
+                "iconName": "Item_22.png",
+                "price": 1450,
+                "quality": 2,
+                "stats": {
+                    "bulletDistance": 0,
+                    "bulletSpeed": 0,
+                    "damage": 0,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 0,
+                    "health": 0,
+                    "initialSpeed": 0,
+                    "jumpPower": 0,
+                    "maxSpeed": 0,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 145,
+                    "damageBonus": 14,
+                    "energyCost": 72,
+                    "kind": "StormNeedler",
+                    "pierceCount": 0,
+                    "projectileCount": 3,
+                    "projectileRange": 120,
+                    "projectileSpeed": 3,
+                    "splashRadius": 0,
+                    "spread": 0
+                }
+            },
+            {
+                "category": "Weapon",
+                "description": "A fractured ritual focus that fans bolts into a spectral wedge. It owns crowded corridors.",
+                "displayName": "Dread Prism",
+                "iconName": "Item_29.png",
+                "price": 1950,
+                "quality": 3,
+                "stats": {
+                    "bulletDistance": 0,
+                    "bulletSpeed": 0,
+                    "damage": 0,
+                    "dashCooldownReduction": 0,
+                    "dashForce": 0,
+                    "extraJumpCount": 0,
+                    "health": 0,
+                    "initialSpeed": 0,
+                    "jumpPower": 0,
+                    "maxSpeed": 0,
+                    "shootSpeedCooldownReduction": 0,
+                    "slowFallPercent": 0
+                },
+                "weaponStats": {
+                    "cooldownMs": 240,
+                    "damageBonus": 24,
+                    "energyCost": 118,
+                    "kind": "DreadPrism",
+                    "pierceCount": 2,
+                    "projectileCount": 3,
+                    "projectileRange": 150,
+                    "projectileSpeed": 2,
+                    "splashRadius": 0,
+                    "spread": 8
                 }
             }
         ]
