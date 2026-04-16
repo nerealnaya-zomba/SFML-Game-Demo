@@ -87,19 +87,25 @@ target_include_directories(SelbaWard PUBLIC ${selbaward_SOURCE_DIR}/src)
 target_link_libraries(SelbaWard PUBLIC SFML::Graphics)
 target_compile_features(SelbaWard PUBLIC cxx_std_17)
 
-file(GLOB_RECURSE SFML_GAME_DEMO_SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE SFML_GAME_DEMO_ALL_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
 )
-file(GLOB_RECURSE SFML_GAME_DEMO_HEADERS CONFIGURE_DEPENDS
+file(GLOB_RECURSE SFML_GAME_DEMO_ALL_HEADERS CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/*.h"
 )
 
-add_executable(main
-    ${SFML_GAME_DEMO_SOURCES}
-    ${SFML_GAME_DEMO_HEADERS}
+set(SFML_GAME_DEMO_CORE_SOURCES ${SFML_GAME_DEMO_ALL_SOURCES})
+set(SFML_GAME_DEMO_CORE_HEADERS ${SFML_GAME_DEMO_ALL_HEADERS})
+list(REMOVE_ITEM SFML_GAME_DEMO_CORE_SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")
+list(FILTER SFML_GAME_DEMO_CORE_SOURCES EXCLUDE REGEX ".*/src/editor/.*")
+list(FILTER SFML_GAME_DEMO_CORE_HEADERS EXCLUDE REGEX ".*/src/editor/.*")
+
+add_library(game_core STATIC
+    ${SFML_GAME_DEMO_CORE_SOURCES}
+    ${SFML_GAME_DEMO_CORE_HEADERS}
 )
 
-target_include_directories(main PRIVATE
+target_include_directories(game_core PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/src/entities
@@ -110,11 +116,11 @@ target_include_directories(main PRIVATE
 )
 
 if(WIN32)
-    target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/include)
-    target_link_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/lib)
+    target_include_directories(game_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/include)
+    target_link_directories(game_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/lib)
 endif()
 
-target_link_libraries(main PRIVATE
+target_link_libraries(game_core PUBLIC
     SFML::Graphics
     nlohmann_json::nlohmann_json
     avcodec
@@ -126,7 +132,18 @@ target_link_libraries(main PRIVATE
     SelbaWard::SelbaWard
 )
 
-source_group(TREE ${CMAKE_SOURCE_DIR}/src FILES ${SFML_GAME_DEMO_SOURCES} ${SFML_GAME_DEMO_HEADERS})
+add_executable(main
+    ${CMAKE_SOURCE_DIR}/src/main.cpp
+)
+target_link_libraries(main PRIVATE game_core)
+
+add_executable(level_editor
+    ${CMAKE_SOURCE_DIR}/src/editor/LevelEditorMain.cpp
+)
+target_link_libraries(level_editor PRIVATE game_core)
+target_compile_definitions(level_editor PRIVATE SFML_GAME_DEMO_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
+source_group(TREE ${CMAKE_SOURCE_DIR}/src FILES ${SFML_GAME_DEMO_ALL_SOURCES} ${SFML_GAME_DEMO_ALL_HEADERS})
 
 set(SFML_GAME_DEMO_RUNTIME_ASSETS
     data
@@ -134,7 +151,7 @@ set(SFML_GAME_DEMO_RUNTIME_ASSETS
     images
 )
 
-add_custom_target(sync_runtime_assets ALL DEPENDS main)
+add_custom_target(sync_runtime_assets ALL DEPENDS main level_editor)
 
 foreach(asset_dir IN LISTS SFML_GAME_DEMO_RUNTIME_ASSETS)
     add_custom_command(TARGET sync_runtime_assets POST_BUILD
@@ -150,10 +167,12 @@ if(WIN32 AND EXISTS "${CMAKE_SOURCE_DIR}/libs/ffmpeg/bin")
     )
 
     foreach(runtime_dll IN LISTS SFML_GAME_DEMO_FFMPEG_DLLS)
-        add_custom_command(TARGET main POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${runtime_dll}"
-                "$<TARGET_FILE_DIR:main>"
-        )
+        foreach(runtime_target IN ITEMS main level_editor)
+            add_custom_command(TARGET ${runtime_target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${runtime_dll}"
+                    "$<TARGET_FILE_DIR:${runtime_target}>"
+            )
+        endforeach()
     endforeach()
 endif()

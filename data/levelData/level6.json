@@ -1,5 +1,8 @@
 {
   "Presets": {
+    "LevelId": "level6.json",
+    "Title": "The Returning Veil",
+    "MenuOrder": 6,
     "isConstant": true,
     "isAvaiable": true,
     "Size": [6000, 1080],

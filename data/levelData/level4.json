@@ -1,5 +1,8 @@
 {
   "Presets": {
+    "LevelId": "level4.json",
+    "Title": "Bone Reliquary",
+    "MenuOrder": 4,
     "isConstant": true,
     "isAvaiable": true,
     "Size": [9000, 1080],

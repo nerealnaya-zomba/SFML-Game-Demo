@@ -866,33 +866,44 @@ void ChooseDestinationMenu::updateDisplayedTexts()
 
     const auto& destination = levelIt->leveldestination;
     const CampaignLevelInfo& levelInfo = CampaignProgress::getLevelInfo(destination.level->levelName);
-    setDisplayingLevelNameString(levelInfo.title);
+    const bool hasCampaignInfo = levelInfo.levelName != "unknown";
+    const std::string displayTitle = destination.level->levelTitle.empty()
+        ? (hasCampaignInfo ? levelInfo.title : destination.level->levelName)
+        : destination.level->levelTitle;
+    const std::string description = hasCampaignInfo
+        ? levelInfo.description
+        : "A custom route prepared in the level editor.";
+    const std::string farmingFocus = hasCampaignInfo
+        ? levelInfo.farmingFocus
+        : "Best for: testing layouts, encounters and pocket locations.";
+
+    setDisplayingLevelNameString(displayTitle);
 
     std::string stateText;
     if (!destination.isOpened)
     {
         stateText = "Sealed route  •  the covenant still rejects this gate";
-        destinationDescriptionText.setString(levelInfo.description + "\n" + player->getLevelUnlockHint(destination.level->levelName));
+        destinationDescriptionText.setString(description + "\n" + player->getLevelUnlockHint(destination.level->levelName));
     }
     else if (destination.isPlayerThere && destination.isChoosed)
     {
         stateText = "Current ground  •  portal already attuned";
-        destinationDescriptionText.setString(levelInfo.description + "\n" + levelInfo.farmingFocus);
+        destinationDescriptionText.setString(description + "\n" + farmingFocus);
     }
     else if (destination.isPlayerThere)
     {
         stateText = "Current ground";
-        destinationDescriptionText.setString(levelInfo.description + "\n" + levelInfo.farmingFocus);
+        destinationDescriptionText.setString(description + "\n" + farmingFocus);
     }
     else if (destination.isChoosed)
     {
         stateText = "Portal attuned to this destination";
-        destinationDescriptionText.setString(levelInfo.description + "\n" + levelInfo.farmingFocus);
+        destinationDescriptionText.setString(description + "\n" + farmingFocus);
     }
     else
     {
         stateText = "Unbound destination";
-        destinationDescriptionText.setString(levelInfo.description + "\n" + levelInfo.farmingFocus);
+        destinationDescriptionText.setString(description + "\n" + farmingFocus);
     }
 
     destinationStateText.setString(stateText);

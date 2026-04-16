@@ -83,12 +83,45 @@ std::string getLevelTitle(const std::string& levelName)
     return levelInfo.levelName == "unknown" ? levelName : levelInfo.title;
 }
 
+std::string getLevelTitle(const MenuState& state, const std::string& levelName)
+{
+    if (levelName.empty())
+    {
+        return "None";
+    }
+
+    const auto displayNameIt = state.levelDisplayNames.find(levelName);
+    if (displayNameIt != state.levelDisplayNames.end() && !displayNameIt->second.empty())
+    {
+        return displayNameIt->second;
+    }
+
+    return getLevelTitle(levelName);
+}
+
 std::string getLevelFlavor(const std::string& levelName)
 {
     const CampaignLevelInfo& levelInfo = CampaignProgress::getLevelInfo(levelName);
     return levelInfo.levelName == "unknown"
         ? "No omen is written for this gate yet."
         : levelInfo.flavor;
+}
+
+std::string getLevelFlavor(const MenuState& state, const std::string& levelName)
+{
+    const CampaignLevelInfo& levelInfo = CampaignProgress::getLevelInfo(levelName);
+    if (levelInfo.levelName != "unknown")
+    {
+        return levelInfo.flavor;
+    }
+
+    const auto displayNameIt = state.levelDisplayNames.find(levelName);
+    if (displayNameIt != state.levelDisplayNames.end() && !displayNameIt->second.empty())
+    {
+        return "A custom route saved in the level editor.";
+    }
+
+    return "No omen is written for this gate yet.";
 }
 
 std::string getAshDensityLabel(int particleCount)
@@ -554,10 +587,13 @@ void Menu::initializeLevelSelector()
     levelSelector->setSize({400.f, 42.f});
     levelSelector->setTextSize(20);
     levelSelector->setDefaultText("Select a level");
-    levelSelector->addItem(state_.selectedLevelName);
-    levelSelector->setSelectedItem(state_.selectedLevelName);
     levelSelector->onItemSelect([this](const tgui::String& item) {
-        state_.selectedLevelName = item.toStdString();
+        const std::string label = item.toStdString();
+        const auto selectedLevelIt = selectorLabelToLevelId_.find(label);
+        if (selectedLevelIt != selectorLabelToLevelId_.end())
+        {
+            state_.selectedLevelName = selectedLevelIt->second;
+        }
         refreshMenuContext();
     });
     gui.add(levelSelector);
@@ -720,13 +756,29 @@ void Menu::setCanRestartLevel(bool enabled)
     refreshMenuContext();
 }
 
+std::string Menu::buildLevelSelectorLabel(const std::string& levelName) const
+{
+    const auto displayNameIt = state_.levelDisplayNames.find(levelName);
+    if (displayNameIt == state_.levelDisplayNames.end() || displayNameIt->second.empty() || displayNameIt->second == levelName)
+    {
+        return levelName;
+    }
+
+    return displayNameIt->second + "  [" + levelName + "]";
+}
+
 void Menu::refreshLevelSelector()
 {
     levelSelector->removeAllItems();
+    selectorLabelToLevelId_.clear();
+    levelIdToSelectorLabel_.clear();
 
     for (const auto& levelName : state_.availableLevels)
     {
-        levelSelector->addItem(levelName);
+        const std::string selectorLabel = buildLevelSelectorLabel(levelName);
+        selectorLabelToLevelId_[selectorLabel] = levelName;
+        levelIdToSelectorLabel_[levelName] = selectorLabel;
+        levelSelector->addItem(selectorLabel);
     }
 
     if (state_.availableLevels.empty())
@@ -747,10 +799,15 @@ void Menu::refreshLevelSelector()
             : state_.availableLevels.front();
     }
 
-    if (!levelSelector->setSelectedItem(state_.selectedLevelName))
+    const auto selectedLabelIt = levelIdToSelectorLabel_.find(state_.selectedLevelName);
+    if (selectedLabelIt == levelIdToSelectorLabel_.end() || !levelSelector->setSelectedItem(selectedLabelIt->second))
     {
         state_.selectedLevelName = state_.availableLevels.front();
-        levelSelector->setSelectedItem(state_.selectedLevelName);
+        const auto fallbackLabelIt = levelIdToSelectorLabel_.find(state_.selectedLevelName);
+        if (fallbackLabelIt != levelIdToSelectorLabel_.end())
+        {
+            levelSelector->setSelectedItem(fallbackLabelIt->second);
+        }
     }
 }
 
@@ -806,13 +863,13 @@ std::string Menu::buildSelectionInfoText() const
     if (mode_ == MenuMode::Pause)
     {
         return std::string("Current Realm\n") +
-            getLevelTitle(currentLevel) +
-            "\n" + getLevelFlavor(currentLevel);
+            getLevelTitle(state_, currentLevel) +
+            "\n" + getLevelFlavor(state_, currentLevel);
     }
 
     return std::string("Selected Gate\n") +
-        getLevelTitle(selectedLevel) +
-        "\n" + getLevelFlavor(selectedLevel);
+        getLevelTitle(state_, selectedLevel) +
+        "\n" + getLevelFlavor(state_, selectedLevel);
 }
 
 std::string Menu::buildSystemInfoText() const
@@ -830,8 +887,9 @@ std::string Menu::buildSystemInfoText() const
     }
 
     return std::string("Session\n") +
-        "Current run: " + currentLevel + "\n" +
-        "Selected file: " + selectedLevel + "\n" +
+        "Current run: " + getLevelTitle(state_, currentLevel) + "\n" +
+        "Selected gate: " + getLevelTitle(state_, selectedLevel) + "\n" +
+        "Level id: " + selectedLevel + "\n" +
         "VSync: " + std::string(vsyncEnabled ? "ON" : "OFF") + "\n" +
         "Menu ash: " + getAshDensityLabel(menuParticleCount) + "\n" +
         "Known gates: " + std::to_string(state_.availableLevels.size()) + "\n" +
@@ -876,7 +934,7 @@ void Menu::refreshMenuContext()
         }
         else
         {
-            subtitleLabel->setText("The world waits on: " + getLevelTitle(state_.currentLevelName));
+            subtitleLabel->setText("The world waits on: " + getLevelTitle(state_, state_.currentLevelName));
         }
 
         footerLabel->setText("Choose a rite, then return to the world");
@@ -896,8 +954,8 @@ void Menu::refreshMenuContext()
         else
         {
             subtitleLabel->setText(
-                std::string("Current level: ") + getLevelTitle(state_.currentLevelName) +
-                "\nSelected start: " + getLevelTitle(state_.selectedLevelName)
+                std::string("Current level: ") + getLevelTitle(state_, state_.currentLevelName) +
+                "\nSelected start: " + getLevelTitle(state_, state_.selectedLevelName)
             );
         }
 
@@ -922,7 +980,11 @@ void Menu::refreshMenuContext()
 
     if (levelSelector->isVisible() && !state_.selectedLevelName.empty() && levelSelector->getSelectedItem().empty())
     {
-        levelSelector->setSelectedItem(state_.selectedLevelName);
+        const auto selectedLabelIt = levelIdToSelectorLabel_.find(state_.selectedLevelName);
+        if (selectedLabelIt != levelIdToSelectorLabel_.end())
+        {
+            levelSelector->setSelectedItem(selectedLabelIt->second);
+        }
     }
 
     syncPopupInteractivity();

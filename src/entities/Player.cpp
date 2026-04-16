@@ -215,9 +215,15 @@ Player::Player(GameData& gameTextures, GameLevelManager& m, GameCamera& c, sf::R
     recalculateStatsFromInventory();
 
     // Attaching levels to ChooseDestinationMenu
-    for (auto &&i : m.getLevelsMap())
+    for (const LevelDescriptor& descriptor : m.getLevelRegistry().getLevels())
     {
-        CDMenu.addLevelInVector(*i.second,i.second->getLevelBackgroundSprite().getTexture());
+        const auto levelIt = m.getLevelsMap().find(descriptor.id);
+        if (levelIt == m.getLevelsMap().end() || !levelIt->second)
+        {
+            continue;
+        }
+
+        CDMenu.addLevelInVector(*levelIt->second, levelIt->second->getLevelBackgroundSprite().getTexture());
     }
 
     //Textures initialization

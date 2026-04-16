@@ -240,7 +240,8 @@ void DeveloperOverlay::draw(
                 ImGui::SeparatorText("Quick Travel");
                 for (const auto& levelName : unlockedLevels)
                 {
-                    if (ImGui::Button(levelName.c_str(), ImVec2(150.f, 0.f)))
+                    const std::string buttonLabel = levelManager.getLevelDisplayName(levelName) + "##" + levelName;
+                    if (ImGui::Button(buttonLabel.c_str(), ImVec2(150.f, 0.f)))
                     {
                         actions_.onGoToLevel(levelName);
                     }

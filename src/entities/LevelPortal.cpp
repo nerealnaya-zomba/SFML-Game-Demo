@@ -96,7 +96,7 @@ LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, co
 
     initializeSquishVars();
 
-    setPortalDestination("level2.json");
+    setPortalDestination(std::nullopt);
 }
 
 void LevelPortal::draw(sf::RenderWindow &window)

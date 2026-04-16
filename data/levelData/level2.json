@@ -1,5 +1,8 @@
 {
   "Presets": {
+    "LevelId": "level2.json",
+    "Title": "Obsidian Rookery",
+    "MenuOrder": 2,
     "isConstant": true,
     "isAvaiable": true,
     "Size": [6000, 1080],

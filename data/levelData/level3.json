@@ -1,5 +1,8 @@
 {
   "Presets": {
+    "LevelId": "level3.json",
+    "Title": "Crimson Nave",
+    "MenuOrder": 3,
     "isConstant": true,
     "isAvaiable": true,
     "Size": [7000, 1080],

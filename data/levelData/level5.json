@@ -1,5 +1,8 @@
 {
   "Presets": {
+    "LevelId": "level5.json",
+    "Title": "Trial of Embers",
+    "MenuOrder": 5,
     "isConstant": true,
     "isAvaiable": true,
     "Size": [1920, 1080],

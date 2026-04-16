@@ -34,6 +34,7 @@ public:
     void setYPos(unsigned int yPos);
     void setVisualDepthRows(unsigned int rows);
     bool setStyle(const std::string& styleName);
+    static std::vector<std::string> getAvailableStyles();
 
     float getSurfaceY() const;
     sf::FloatRect getSurfaceBounds() const;

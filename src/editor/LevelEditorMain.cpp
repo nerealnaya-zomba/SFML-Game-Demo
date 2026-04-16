@@ -1,0 +1,2540 @@
+#include <Defines.h>
+#include <GameData.h>
+#include <Ground.h>
+#include <LevelRegistry.h>
+#include <Platform.h>
+#include <imgui-SFML.h>
+#include <imgui.h>
+#include <nlohmann/json.hpp>
+#include <sfml-headers.h>
+
+#include <SFML/Graphics/VertexArray.hpp>
+
+#include <algorithm>
+#include <array>
+#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <limits>
+#include <map>
+#include <memory>
+#include <optional>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <vector>
+
+#ifndef SFML_GAME_DEMO_SOURCE_DIR
+#define SFML_GAME_DEMO_SOURCE_DIR ""
+#endif
+
+namespace
+{
+constexpr char kRuntimeLevelsFolder[] = "data/levelData";
+constexpr float kGridSpacing = 64.f;
+constexpr float kSelectionOutlineThickness = 2.f;
+constexpr sf::Color kGridColor(255, 255, 255, 18);
+constexpr sf::Color kPlatformOutlineColor(248, 206, 134, 255);
+constexpr sf::Color kDecorationOutlineColor(124, 224, 196, 255);
+constexpr sf::Color kBackgroundOutlineColor(140, 176, 255, 255);
+constexpr sf::Color kSpawnerOutlineColor(244, 128, 104, 255);
+constexpr sf::Color kInteractiveOutlineColor(236, 216, 144, 255);
+constexpr sf::Color kMiniLocationOutlineColor(176, 232, 220, 255);
+constexpr sf::Color kSpawnOutlineColor(255, 255, 255, 255);
+
+const std::array<const char*, 5> kEnemyTypes{
+    "SkeletonWhite",
+    "SkeletonYellow",
+    "WraithBat",
+    "VoidSlime",
+    "DreadScorpion"
+};
+
+const std::array<const char*, 3> kInteractiveTypes{
+    "EchoTablet",
+    "RestShrine",
+    "GoldCache"
+};
+
+const std::array<const char*, 22> kAnimatedDecorationNames{
+    "plant1",
+    "plant2",
+    "plant3",
+    "plant4",
+    "plant5",
+    "plant6",
+    "plant7",
+    "jumpPlant",
+    "jumpPlant2",
+    "jumpBloom2",
+    "windPlant1",
+    "windPlant",
+    "plantWind1",
+    "blueFlower1",
+    "blueFlower2",
+    "blueFlower",
+    "blueFlowerClosed",
+    "poisonPlant",
+    "cat",
+    "portalGreen",
+    "portalBlue1",
+    "portalBlue8"
+};
+
+enum class EditorTab
+{
+    Level,
+    Platforms,
+    Decorations,
+    Backgrounds,
+    Ground,
+    Spawners,
+    Interactives,
+    MiniLocations
+};
+
+enum class SelectionKind
+{
+    None,
+    Spawn,
+    Platform,
+    Decoration,
+    Background,
+    Ground,
+    Spawner,
+    Interactive,
+    MiniLocation
+};
+
+struct EditorSelection
+{
+    SelectionKind kind = SelectionKind::None;
+    std::size_t index = 0u;
+
+    bool isValid() const
+    {
+        return kind != SelectionKind::None;
+    }
+
+    void clear()
+    {
+        kind = SelectionKind::None;
+        index = 0u;
+    }
+};
+
+sf::Vector2f readVector2f(const nlohmann::json& value, const sf::Vector2f fallback = {0.f, 0.f})
+{
+    if (!value.is_array() || value.size() < 2)
+    {
+        return fallback;
+    }
+
+    return {
+        value[0].get<float>(),
+        value[1].get<float>()
+    };
+}
+
+sf::Color readColor(const nlohmann::json& value, const sf::Color fallback = sf::Color::White)
+{
+    if (!value.is_array() || value.size() < 4)
+    {
+        return fallback;
+    }
+
+    return sf::Color{
+        value[0].get<std::uint8_t>(),
+        value[1].get<std::uint8_t>(),
+        value[2].get<std::uint8_t>(),
+        value[3].get<std::uint8_t>()
+    };
+}
+
+sf::FloatRect readRect(const nlohmann::json& value, const sf::FloatRect fallback = sf::FloatRect({0.f, 0.f}, {0.f, 0.f}))
+{
+    if (!value.is_array() || value.size() < 4)
+    {
+        return fallback;
+    }
+
+    return sf::FloatRect(
+        {value[0].get<float>(), value[1].get<float>()},
+        {value[2].get<float>(), value[3].get<float>()}
+    );
+}
+
+nlohmann::json toJson(const sf::Vector2f value)
+{
+    return nlohmann::json::array({value.x, value.y});
+}
+
+nlohmann::json toJson(const sf::Color color)
+{
+    return nlohmann::json::array({color.r, color.g, color.b, color.a});
+}
+
+nlohmann::json toJson(const sf::FloatRect rect)
+{
+    return nlohmann::json::array({rect.position.x, rect.position.y, rect.size.x, rect.size.y});
+}
+
+void copyStringToBuffer(const std::string& value, char* buffer, const std::size_t size)
+{
+    if (size == 0u)
+    {
+        return;
+    }
+
+    std::snprintf(buffer, size, "%s", value.c_str());
+}
+
+std::string makeSafeFileName(std::string value)
+{
+    std::replace_if(value.begin(), value.end(), [](const unsigned char character) {
+        return !(std::isalnum(character) || character == '_' || character == '-' || character == '.');
+    }, '_');
+
+    if (value.empty())
+    {
+        value = "new_level.json";
+    }
+
+    if (value.find('.') == std::string::npos)
+    {
+        value += ".json";
+    }
+
+    return value;
+}
+
+std::vector<std::string> sortedTextureKeys(const std::map<std::string, sf::Texture>& textures)
+{
+    std::vector<std::string> keys;
+    keys.reserve(textures.size());
+    for (const auto& [name, _] : textures)
+    {
+        keys.push_back(name);
+    }
+
+    std::sort(keys.begin(), keys.end());
+    return keys;
+}
+
+std::optional<std::filesystem::path> getSourceLevelsFolder()
+{
+    const std::string sourceDir = SFML_GAME_DEMO_SOURCE_DIR;
+    if (sourceDir.empty())
+    {
+        return std::nullopt;
+    }
+
+    return std::filesystem::path(sourceDir) / "data" / "levelData";
+}
+
+bool comboFromStrings(const char* label, const std::vector<std::string>& options, std::string& currentValue)
+{
+    if (options.empty())
+    {
+        ImGui::TextDisabled("%s: no options", label);
+        return false;
+    }
+
+    const char* previewValue = currentValue.empty() ? options.front().c_str() : currentValue.c_str();
+    bool changed = false;
+
+    if (ImGui::BeginCombo(label, previewValue))
+    {
+        for (const std::string& option : options)
+        {
+            const bool selected = (currentValue == option);
+            if (ImGui::Selectable(option.c_str(), selected))
+            {
+                currentValue = option;
+                changed = true;
+            }
+
+            if (selected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+
+        ImGui::EndCombo();
+    }
+
+    return changed;
+}
+
+bool comboFromLiteralArray(const char* label, const std::vector<std::string>& options, std::string& currentValue)
+{
+    return comboFromStrings(label, options, currentValue);
+}
+
+bool editStringField(const char* label, nlohmann::json& object, const char* key, const std::size_t capacity = 256u)
+{
+    std::vector<char> buffer(capacity, '\0');
+    copyStringToBuffer(object.value(key, std::string{}), buffer.data(), buffer.size());
+    if (ImGui::InputText(label, buffer.data(), buffer.size()))
+    {
+        object[key] = std::string(buffer.data());
+        return true;
+    }
+
+    return false;
+}
+
+bool editMultilineStringField(const char* label, nlohmann::json& object, const char* key, const ImVec2 size, const std::size_t capacity = 1024u)
+{
+    std::vector<char> buffer(capacity, '\0');
+    copyStringToBuffer(object.value(key, std::string{}), buffer.data(), buffer.size());
+    if (ImGui::InputTextMultiline(label, buffer.data(), buffer.size(), size))
+    {
+        object[key] = std::string(buffer.data());
+        return true;
+    }
+
+    return false;
+}
+
+bool editVector2Field(const char* label, nlohmann::json& object, const char* key, const sf::Vector2f fallback = {0.f, 0.f})
+{
+    if (!object.contains(key))
+    {
+        object[key] = toJson(fallback);
+    }
+
+    sf::Vector2f value = readVector2f(object[key], fallback);
+    float raw[2]{value.x, value.y};
+    if (ImGui::InputFloat2(label, raw))
+    {
+        object[key] = nlohmann::json::array({raw[0], raw[1]});
+        return true;
+    }
+
+    return false;
+}
+
+bool editColorField(const char* label, nlohmann::json& object, const char* key, const sf::Color fallback = sf::Color::White)
+{
+    if (!object.contains(key))
+    {
+        object[key] = toJson(fallback);
+    }
+
+    const sf::Color color = readColor(object[key], fallback);
+    float raw[4]{
+        color.r / 255.f,
+        color.g / 255.f,
+        color.b / 255.f,
+        color.a / 255.f
+    };
+    if (ImGui::ColorEdit4(label, raw))
+    {
+        object[key] = nlohmann::json::array({
+            static_cast<int>(std::round(raw[0] * 255.f)),
+            static_cast<int>(std::round(raw[1] * 255.f)),
+            static_cast<int>(std::round(raw[2] * 255.f)),
+            static_cast<int>(std::round(raw[3] * 255.f))
+        });
+        return true;
+    }
+
+    return false;
+}
+
+std::string formatPositionLabel(const sf::Vector2f position)
+{
+    return std::to_string(static_cast<int>(std::round(position.x)))
+        + ", "
+        + std::to_string(static_cast<int>(std::round(position.y)));
+}
+
+class LevelEditorApp
+{
+public:
+    LevelEditorApp()
+        : window_(
+            sf::VideoMode({1600u, 900u}),
+            "SFML Game Demo Level Editor",
+            (sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize)
+        )
+        , worldView_({0.f, 0.f}, {1600.f, 900.f})
+    {
+        window_.setFramerateLimit(60u);
+
+        if (!font_.openFromFile("fonts/Roboto_Condensed-Black.ttf"))
+        {
+            throw std::runtime_error("Editor font was not loaded");
+        }
+
+        gameData_ = std::make_unique<GameData>(&font_);
+        if (!ImGui::SFML::Init(window_))
+        {
+            throw std::runtime_error("Failed to initialize ImGui-SFML for level editor");
+        }
+
+        ImGui::GetIO().IniFilename = "data/level_editor_imgui.ini";
+        applyEditorStyle();
+        buildCatalogs();
+        refreshRegistry();
+
+        if (!registry_.getLevels().empty())
+        {
+            loadLevel(registry_.getLevels().front().filePath);
+        }
+        else
+        {
+            createDefaultLevel();
+        }
+    }
+
+    ~LevelEditorApp()
+    {
+        ImGui::SFML::Shutdown();
+    }
+
+    int run()
+    {
+        while (window_.isOpen())
+        {
+            while (const std::optional event = window_.pollEvent())
+            {
+                handleEvent(*event);
+            }
+
+            const sf::Time deltaTime = sf::seconds(std::min(frameClock_.restart().asSeconds(), 0.05f));
+            ImGui::SFML::Update(window_, deltaTime);
+
+            window_.clear(sf::Color(13, 12, 16, 255));
+            drawWorld();
+            drawUi();
+            window_.setView(window_.getDefaultView());
+            ImGui::SFML::Render(window_);
+            window_.display();
+        }
+
+        return 0;
+    }
+
+private:
+    sf::RenderWindow window_;
+    sf::View worldView_;
+    sf::Clock frameClock_;
+    sf::Font font_;
+    std::unique_ptr<GameData> gameData_{};
+    LevelRegistry registry_{};
+
+    nlohmann::json document_{};
+    std::filesystem::path currentFilePath_{};
+    bool dirty_ = false;
+
+    EditorTab activeTab_ = EditorTab::Level;
+    EditorSelection selection_{};
+    SelectionKind placementMode_ = SelectionKind::None;
+
+    bool draggingView_ = false;
+    sf::Vector2i lastDragPixel_{};
+
+    std::map<std::string, sf::Texture> platformPreviewTextures_{};
+    std::map<std::string, const sf::Texture*> previewTextures_{};
+    std::vector<std::string> platformTypes_{};
+    std::vector<std::string> decorationOptions_{};
+    std::vector<std::string> backgroundOptions_{};
+    std::vector<std::string> groundTileOptions_{};
+    std::vector<std::string> groundStyleOptions_{};
+    std::vector<std::string> previewTextureOptions_{};
+    std::vector<std::string> enemyTypeOptions_{};
+    std::vector<std::string> interactiveTypeOptions_{};
+
+    int selectedPlatformTypeIndex_ = 0;
+    int selectedDecorationIndex_ = 0;
+    int selectedBackgroundIndex_ = 0;
+    int selectedGroundTileIndex_ = 0;
+    int selectedGroundStyleIndex_ = 0;
+    int selectedPreviewTextureIndex_ = 0;
+    int selectedEnemyTypeIndex_ = 0;
+    int selectedInteractiveTypeIndex_ = 0;
+
+    char fileNameBuffer_[256]{};
+    char levelIdBuffer_[256]{};
+    char levelTitleBuffer_[256]{};
+
+    void applyEditorStyle()
+    {
+        ImGui::StyleColorsDark();
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.WindowRounding = 9.f;
+        style.FrameRounding = 6.f;
+        style.GrabRounding = 5.f;
+        style.PopupRounding = 8.f;
+        style.FramePadding = ImVec2(9.f, 6.f);
+        style.ItemSpacing = ImVec2(10.f, 8.f);
+
+        ImVec4* colors = style.Colors;
+        colors[ImGuiCol_WindowBg] = ImVec4(0.08f, 0.08f, 0.10f, 0.97f);
+        colors[ImGuiCol_TitleBg] = ImVec4(0.11f, 0.13f, 0.18f, 0.96f);
+        colors[ImGuiCol_TitleBgActive] = ImVec4(0.16f, 0.20f, 0.27f, 0.98f);
+        colors[ImGuiCol_Header] = ImVec4(0.22f, 0.30f, 0.40f, 0.78f);
+        colors[ImGuiCol_HeaderHovered] = ImVec4(0.30f, 0.42f, 0.55f, 0.86f);
+        colors[ImGuiCol_Button] = ImVec4(0.20f, 0.29f, 0.38f, 0.84f);
+        colors[ImGuiCol_ButtonHovered] = ImVec4(0.30f, 0.42f, 0.56f, 0.92f);
+        colors[ImGuiCol_ButtonActive] = ImVec4(0.38f, 0.50f, 0.66f, 0.96f);
+        colors[ImGuiCol_Tab] = ImVec4(0.16f, 0.18f, 0.22f, 0.98f);
+        colors[ImGuiCol_TabHovered] = ImVec4(0.24f, 0.30f, 0.38f, 0.98f);
+        colors[ImGuiCol_TabSelected] = ImVec4(0.24f, 0.34f, 0.46f, 0.98f);
+    }
+
+    void buildCatalogs()
+    {
+        platformTypes_ = Platform::getAvailableTypes();
+        for (const std::string& platformType : platformTypes_)
+        {
+            const auto definition = Platform::getTypeDefinition(platformType);
+            if (!definition.has_value() || definition->texturePath.empty())
+            {
+                continue;
+            }
+
+            sf::Texture texture;
+            if (!texture.loadFromFile(definition->texturePath))
+            {
+                continue;
+            }
+
+            platformPreviewTextures_.emplace(platformType, std::move(texture));
+        }
+
+        decorationOptions_ = sortedTextureKeys(gameData_->allStaticTextures);
+        for (const char* animatedName : kAnimatedDecorationNames)
+        {
+            decorationOptions_.push_back(animatedName);
+        }
+        std::sort(decorationOptions_.begin(), decorationOptions_.end());
+        decorationOptions_.erase(std::unique(decorationOptions_.begin(), decorationOptions_.end()), decorationOptions_.end());
+
+        backgroundOptions_ = sortedTextureKeys(gameData_->backgroundTextures);
+        groundTileOptions_ = sortedTextureKeys(gameData_->TileSetGreenTextures);
+        groundStyleOptions_ = Ground::getAvailableStyles();
+
+        enemyTypeOptions_.assign(kEnemyTypes.begin(), kEnemyTypes.end());
+        interactiveTypeOptions_.assign(kInteractiveTypes.begin(), kInteractiveTypes.end());
+
+        for (const auto& [name, texture] : gameData_->allStaticTextures)
+        {
+            previewTextures_[name] = &texture;
+        }
+        for (const auto& [name, texture] : gameData_->backgroundTextures)
+        {
+            previewTextures_[name] = &texture;
+        }
+        for (const auto& [name, texture] : gameData_->itemsTextures)
+        {
+            previewTextures_[name] = &texture;
+        }
+        for (const auto& [name, texture] : gameData_->guiTextures)
+        {
+            previewTextures_[name] = &texture;
+        }
+        for (const auto& [name, texture] : gameData_->TileSetGreenTextures)
+        {
+            previewTextures_[name] = &texture;
+        }
+        for (auto& [name, texture] : platformPreviewTextures_)
+        {
+            previewTextures_[name] = &texture;
+        }
+
+        const auto registerAnimatedPreview = [&](const std::string& name, const std::vector<sf::Texture>& textures) {
+            if (!textures.empty())
+            {
+                previewTextures_[name] = &textures.front();
+            }
+        };
+
+        registerAnimatedPreview("plant1", gameData_->plant1Textures);
+        registerAnimatedPreview("plant2", gameData_->plant2Textures);
+        registerAnimatedPreview("plant3", gameData_->plant3Textures);
+        registerAnimatedPreview("plant4", gameData_->plant4Textures);
+        registerAnimatedPreview("plant5", gameData_->plant5Textures);
+        registerAnimatedPreview("plant6", gameData_->plant6Textures);
+        registerAnimatedPreview("plant7", gameData_->plant7Textures);
+        registerAnimatedPreview("jumpPlant", gameData_->jumpPlantTextures);
+        registerAnimatedPreview("jumpPlant2", gameData_->jumpPlant2Textures);
+        registerAnimatedPreview("jumpBloom2", gameData_->jumpPlant2Textures);
+        registerAnimatedPreview("windPlant1", gameData_->plantWind1Textures);
+        registerAnimatedPreview("windPlant", gameData_->plantWind1Textures);
+        registerAnimatedPreview("plantWind1", gameData_->plantWind1Textures);
+        registerAnimatedPreview("blueFlower1", gameData_->blueFlower1Textures);
+        registerAnimatedPreview("blueFlower2", gameData_->blueFlower2Textures);
+        registerAnimatedPreview("blueFlower", gameData_->blueFlower1Textures);
+        registerAnimatedPreview("blueFlowerClosed", gameData_->blueFlower2Textures);
+        registerAnimatedPreview("poisonPlant", gameData_->plant8PoisonTextures);
+        registerAnimatedPreview("cat", gameData_->cat1Textures);
+        registerAnimatedPreview("portalGreen", gameData_->portalGreenTextures);
+        registerAnimatedPreview("portalBlue1", gameData_->portalBlue1Textures);
+        registerAnimatedPreview("portalBlue8", gameData_->portalBlue8Textures);
+
+        previewTextureOptions_.reserve(previewTextures_.size());
+        for (const auto& [name, _] : previewTextures_)
+        {
+            previewTextureOptions_.push_back(name);
+        }
+        std::sort(previewTextureOptions_.begin(), previewTextureOptions_.end());
+    }
+
+    std::filesystem::path runtimeLevelsFolder() const
+    {
+        return std::filesystem::path(kRuntimeLevelsFolder);
+    }
+
+    void refreshRegistry()
+    {
+        registry_.scan(runtimeLevelsFolder());
+    }
+
+    void markDirty()
+    {
+        dirty_ = true;
+    }
+
+    void syncMetadataBuffers()
+    {
+        copyStringToBuffer(currentFilePath_.filename().string(), fileNameBuffer_, sizeof(fileNameBuffer_));
+        copyStringToBuffer(document_["Presets"].value("LevelId", std::string{}), levelIdBuffer_, sizeof(levelIdBuffer_));
+        copyStringToBuffer(document_["Presets"].value("Title", std::string{}), levelTitleBuffer_, sizeof(levelTitleBuffer_));
+    }
+
+    void ensureDocumentShape()
+    {
+        if (!document_.is_object())
+        {
+            document_ = nlohmann::json::object();
+        }
+
+        if (!document_.contains("Presets") || !document_["Presets"].is_object())
+        {
+            document_["Presets"] = nlohmann::json::object();
+        }
+
+        auto& presets = document_["Presets"];
+        if (!presets.contains("isConstant"))
+        {
+            presets["isConstant"] = true;
+        }
+        if (!presets.contains("isAvaiable"))
+        {
+            presets["isAvaiable"] = true;
+        }
+        if (!presets.contains("GenerateMiniLocations"))
+        {
+            presets["GenerateMiniLocations"] = false;
+        }
+        if (!presets.contains("Size"))
+        {
+            presets["Size"] = nlohmann::json::array({3840, 1080});
+        }
+        if (!presets.contains("MainWorldWidth"))
+        {
+            presets["MainWorldWidth"] = presets["Size"][0];
+        }
+        if (!presets.contains("PlayerSpawn"))
+        {
+            presets["PlayerSpawn"] = nlohmann::json::array({200.f, 900.f});
+        }
+        if (!presets.contains("BackgroundTheme"))
+        {
+            presets["BackgroundTheme"] = "VerdantDawn";
+        }
+        if (!presets.contains("Title"))
+        {
+            presets["Title"] = currentFilePath_.stem().string();
+        }
+        if (!presets.contains("LevelId"))
+        {
+            presets["LevelId"] = currentFilePath_.filename().string();
+        }
+        if (!presets.contains("MenuOrder"))
+        {
+            presets["MenuOrder"] = static_cast<int>(registry_.getLevels().size()) + 1;
+        }
+
+        for (const char* arrayName : {"Platforms", "Decorations", "Background", "Ground", "Spawners", "Interactives", "MiniLocations"})
+        {
+            if (!document_.contains(arrayName) || !document_[arrayName].is_array())
+            {
+                document_[arrayName] = nlohmann::json::array();
+            }
+        }
+
+        syncMetadataBuffers();
+        selection_.clear();
+    }
+
+    void createDefaultLevel()
+    {
+        currentFilePath_.clear();
+        document_ = {
+            {"Presets", {
+                {"LevelId", "new_level.json"},
+                {"Title", "New Level"},
+                {"MenuOrder", static_cast<int>(registry_.getLevels().size()) + 1},
+                {"isConstant", true},
+                {"isAvaiable", true},
+                {"GenerateMiniLocations", false},
+                {"Size", {3840, 1080}},
+                {"MainWorldWidth", 3840},
+                {"PlayerSpawn", {200.f, 900.f}},
+                {"BackgroundTheme", "VerdantDawn"}
+            }},
+            {"Platforms", nlohmann::json::array({
+                {
+                    {"Type", platformTypes_.empty() ? "Runed-ledge" : platformTypes_.front()},
+                    {"Position", {360.f, 900.f}}
+                }
+            })},
+            {"Decorations", nlohmann::json::array()},
+            {"Background", nlohmann::json::array({
+                {
+                    {"BgName", backgroundOptions_.empty() ? "" : backgroundOptions_.front()},
+                    {"Position", {960.f, 540.f}},
+                    {"ParallaxFactor", {0.08f, 0.06f}},
+                    {"Type", 0}
+                }
+            })},
+            {"Ground", nlohmann::json::array({
+                {
+                    {"GroundStyle", groundStyleOptions_.empty() ? "VerdantKeep" : groundStyleOptions_.front()},
+                    {"GroundName", groundTileOptions_.empty() ? "TileSetGreen_02.png" : groundTileOptions_.front()},
+                    {"Points", {0, 3840}},
+                    {"YPos", 980},
+                    {"DepthRows", 2},
+                    {"Offset", 8.f}
+                }
+            })},
+            {"Spawners", nlohmann::json::array()},
+            {"Interactives", nlohmann::json::array()},
+            {"MiniLocations", nlohmann::json::array()}
+        };
+
+        ensureDocumentShape();
+        worldView_.setCenter({960.f, 540.f});
+        dirty_ = true;
+    }
+
+    void loadLevel(const std::filesystem::path& filePath)
+    {
+        std::ifstream input(filePath);
+        if (!input.is_open())
+        {
+            return;
+        }
+
+        document_ = nlohmann::json::parse(input, nullptr, false);
+        if (document_.is_discarded())
+        {
+            createDefaultLevel();
+            return;
+        }
+
+        currentFilePath_ = filePath;
+        ensureDocumentShape();
+        const auto levelSize = readVector2f(document_["Presets"]["Size"], {3840.f, 1080.f});
+        worldView_.setCenter({levelSize.x * 0.5f, levelSize.y * 0.5f});
+        dirty_ = false;
+    }
+
+    bool saveDocumentToPath(const std::filesystem::path& targetPath)
+    {
+        std::filesystem::create_directories(targetPath.parent_path());
+
+        std::ofstream output(targetPath);
+        if (!output.is_open())
+        {
+            return false;
+        }
+
+        output << document_.dump(4);
+        output.close();
+
+        if (const auto sourceLevelsFolder = getSourceLevelsFolder(); sourceLevelsFolder.has_value())
+        {
+            std::filesystem::create_directories(*sourceLevelsFolder);
+            const std::filesystem::path sourcePath = *sourceLevelsFolder / targetPath.filename();
+            if (sourcePath != targetPath)
+            {
+                std::ofstream sourceOutput(sourcePath);
+                if (sourceOutput.is_open())
+                {
+                    sourceOutput << document_.dump(4);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    void syncMetadataFromBuffers()
+    {
+        document_["Presets"]["LevelId"] = std::string(levelIdBuffer_);
+        document_["Presets"]["Title"] = std::string(levelTitleBuffer_);
+        if (document_["Presets"].value("MainWorldWidth", 0) <= 0)
+        {
+            document_["Presets"]["MainWorldWidth"] = document_["Presets"]["Size"][0];
+        }
+
+        float farthestRight = document_["Presets"]["Size"][0].get<float>();
+        for (const auto& room : document_["MiniLocations"])
+        {
+            const sf::FloatRect bounds = readRect(room.value("Bounds", nlohmann::json::array()));
+            farthestRight = std::max(farthestRight, bounds.position.x + bounds.size.x + 180.f);
+        }
+        document_["Presets"]["Size"][0] = std::max(
+            document_["Presets"]["Size"][0].get<int>(),
+            static_cast<int>(std::ceil(farthestRight))
+        );
+    }
+
+    bool saveLevel()
+    {
+        syncMetadataFromBuffers();
+
+        std::string fileName = makeSafeFileName(fileNameBuffer_);
+        if (fileName.empty())
+        {
+            fileName = makeSafeFileName(std::string(levelIdBuffer_));
+        }
+
+        const std::filesystem::path targetPath = runtimeLevelsFolder() / fileName;
+        if (!saveDocumentToPath(targetPath))
+        {
+            return false;
+        }
+
+        currentFilePath_ = targetPath;
+        dirty_ = false;
+        refreshRegistry();
+        syncMetadataBuffers();
+        return true;
+    }
+
+    void handleEvent(const sf::Event& event)
+    {
+        ImGui::SFML::ProcessEvent(window_, event);
+
+        if (event.is<sf::Event::Closed>())
+        {
+            window_.close();
+            return;
+        }
+
+        if (const auto* resized = event.getIf<sf::Event::Resized>())
+        {
+            const sf::Vector2f newSize = {
+                static_cast<float>(resized->size.x),
+                static_cast<float>(resized->size.y)
+            };
+            worldView_.setSize(newSize);
+            return;
+        }
+
+        if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
+        {
+            if (keyPressed->scancode == sf::Keyboard::Scancode::Delete)
+            {
+                deleteSelection();
+                return;
+            }
+
+            if (keyPressed->scancode == sf::Keyboard::Scancode::S && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl))
+            {
+                saveLevel();
+                return;
+            }
+        }
+
+        if (ImGui::GetIO().WantCaptureMouse)
+        {
+            return;
+        }
+
+        if (const auto* wheelScrolled = event.getIf<sf::Event::MouseWheelScrolled>())
+        {
+            const float zoomFactor = wheelScrolled->delta > 0.f ? 0.88f : 1.14f;
+            worldView_.zoom(zoomFactor);
+            return;
+        }
+
+        if (const auto* mousePressed = event.getIf<sf::Event::MouseButtonPressed>())
+        {
+            if (mousePressed->button == sf::Mouse::Button::Middle || mousePressed->button == sf::Mouse::Button::Right)
+            {
+                draggingView_ = true;
+                lastDragPixel_ = mousePressed->position;
+                return;
+            }
+
+            if (mousePressed->button == sf::Mouse::Button::Left)
+            {
+                const sf::Vector2f worldPosition = window_.mapPixelToCoords(mousePressed->position, worldView_);
+                handleWorldLeftClick(worldPosition);
+                return;
+            }
+        }
+
+        if (const auto* mouseReleased = event.getIf<sf::Event::MouseButtonReleased>())
+        {
+            if (mouseReleased->button == sf::Mouse::Button::Middle || mouseReleased->button == sf::Mouse::Button::Right)
+            {
+                draggingView_ = false;
+                return;
+            }
+        }
+
+        if (const auto* mouseMoved = event.getIf<sf::Event::MouseMoved>())
+        {
+            if (!draggingView_)
+            {
+                return;
+            }
+
+            const sf::Vector2f previousWorld = window_.mapPixelToCoords(lastDragPixel_, worldView_);
+            const sf::Vector2f currentWorld = window_.mapPixelToCoords(mouseMoved->position, worldView_);
+            worldView_.move(previousWorld - currentWorld);
+            lastDragPixel_ = mouseMoved->position;
+        }
+    }
+
+    void handleWorldLeftClick(const sf::Vector2f worldPosition)
+    {
+        switch (placementMode_)
+        {
+        case SelectionKind::Spawn:
+            document_["Presets"]["PlayerSpawn"] = toJson(worldPosition);
+            selection_.kind = SelectionKind::Spawn;
+            markDirty();
+            break;
+        case SelectionKind::Platform:
+            placePlatform(worldPosition);
+            break;
+        case SelectionKind::Decoration:
+            placeDecoration(worldPosition);
+            break;
+        case SelectionKind::Background:
+            placeBackground(worldPosition);
+            break;
+        case SelectionKind::Spawner:
+            placeSpawner(worldPosition);
+            break;
+        case SelectionKind::Interactive:
+            placeInteractive(worldPosition);
+            break;
+        case SelectionKind::MiniLocation:
+            placeMiniLocation(worldPosition);
+            break;
+        default:
+            selectObjectAt(worldPosition);
+            break;
+        }
+    }
+
+    const sf::Texture* findPreviewTexture(const std::string& textureName) const
+    {
+        const auto textureIt = previewTextures_.find(textureName);
+        return textureIt != previewTextures_.end() ? textureIt->second : nullptr;
+    }
+
+    sf::FloatRect textureBoundsAt(const std::string& textureName, const sf::Vector2f position, const sf::Vector2f scale, const sf::Vector2f fallbackSize = {64.f, 64.f}) const
+    {
+        const sf::Texture* texture = findPreviewTexture(textureName);
+        const sf::Vector2f size = texture != nullptr
+            ? sf::Vector2f{
+                static_cast<float>(texture->getSize().x) * std::abs(scale.x),
+                static_cast<float>(texture->getSize().y) * std::abs(scale.y)
+            }
+            : sf::Vector2f{fallbackSize.x * std::abs(scale.x), fallbackSize.y * std::abs(scale.y)};
+
+        return sf::FloatRect(
+            {position.x - size.x * 0.5f, position.y - size.y * 0.5f},
+            size
+        );
+    }
+
+    sf::FloatRect platformBounds(const nlohmann::json& platform) const
+    {
+        const sf::Vector2f position = readVector2f(platform.value("Position", nlohmann::json::array()));
+        const std::string typeName = platform.value("Type", std::string{});
+        if (const auto definition = Platform::getTypeDefinition(typeName); definition.has_value())
+        {
+            return sf::FloatRect(position, definition->hitboxSize);
+        }
+
+        return sf::FloatRect(position, {96.f, 32.f});
+    }
+
+    sf::FloatRect decorationBounds(const nlohmann::json& decoration) const
+    {
+        return textureBoundsAt(
+            decoration.value("Name", std::string{}),
+            readVector2f(decoration.value("Position", nlohmann::json::array())),
+            readVector2f(decoration.value("Scale", nlohmann::json::array()), {1.f, 1.f}),
+            {72.f, 72.f}
+        );
+    }
+
+    sf::FloatRect backgroundBounds(const nlohmann::json& background) const
+    {
+        const sf::Vector2f center = readVector2f(background.value("Position", nlohmann::json::array()), {960.f, 540.f});
+        return sf::FloatRect(
+            {center.x - WINDOW_WIDTH * 0.5f, center.y - WINDOW_HEIGHT * 0.5f},
+            {static_cast<float>(WINDOW_WIDTH), static_cast<float>(WINDOW_HEIGHT)}
+        );
+    }
+
+    sf::FloatRect spawnerBounds(const nlohmann::json& spawner) const
+    {
+        if (!spawner.contains("SpawnArea") || !spawner["SpawnArea"].is_array() || spawner["SpawnArea"].size() < 2)
+        {
+            return sf::FloatRect({0.f, 0.f}, {0.f, 0.f});
+        }
+
+        const auto& spawnArea = spawner["SpawnArea"];
+        const float minX = spawnArea[0][0].get<float>();
+        const float maxX = spawnArea[0][1].get<float>();
+        const float minY = spawnArea[1][0].get<float>();
+        const float maxY = spawnArea[1][1].get<float>();
+        return sf::FloatRect({minX, minY}, {maxX - minX, maxY - minY});
+    }
+
+    sf::FloatRect interactiveBounds(const nlohmann::json& interactive) const
+    {
+        return textureBoundsAt(
+            interactive.value("Texture", std::string{}),
+            readVector2f(interactive.value("Position", nlohmann::json::array())),
+            readVector2f(interactive.value("Scale", nlohmann::json::array()), {1.f, 1.f}),
+            {84.f, 84.f}
+        );
+    }
+
+    void selectObjectAt(const sf::Vector2f worldPosition)
+    {
+        selection_.clear();
+
+        if (activeTab_ == EditorTab::Level)
+        {
+            const sf::Vector2f spawn = readVector2f(document_["Presets"].value("PlayerSpawn", nlohmann::json::array()), {0.f, 0.f});
+            const sf::FloatRect spawnBounds({spawn.x - 24.f, spawn.y - 48.f}, {48.f, 48.f});
+            if (spawnBounds.contains(worldPosition))
+            {
+                selection_.kind = SelectionKind::Spawn;
+            }
+            return;
+        }
+
+        const auto findLastMatch = [&](nlohmann::json& array, const SelectionKind kind, const auto& boundsBuilder) {
+            for (std::size_t index = array.size(); index > 0u; --index)
+            {
+                if (boundsBuilder(array[index - 1]).contains(worldPosition))
+                {
+                    selection_.kind = kind;
+                    selection_.index = index - 1u;
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        switch (activeTab_)
+        {
+        case EditorTab::Platforms:
+            findLastMatch(document_["Platforms"], SelectionKind::Platform, [&](const auto& value) { return platformBounds(value); });
+            break;
+        case EditorTab::Decorations:
+            findLastMatch(document_["Decorations"], SelectionKind::Decoration, [&](const auto& value) { return decorationBounds(value); });
+            break;
+        case EditorTab::Backgrounds:
+            findLastMatch(document_["Background"], SelectionKind::Background, [&](const auto& value) { return backgroundBounds(value); });
+            break;
+        case EditorTab::Ground:
+            findLastMatch(document_["Ground"], SelectionKind::Ground, [&](const auto& value) {
+                const float levelHeight = document_["Presets"]["Size"][1].get<float>();
+                const float offset = value.value("Offset", 8.f);
+                const float yPos = value.value("YPos", 980.f);
+                const float startX = value["Points"][0].template get<float>();
+                const float endX = value["Points"][1].template get<float>();
+                return sf::FloatRect({startX, yPos + offset}, {endX - startX, levelHeight - (yPos + offset)});
+            });
+            break;
+        case EditorTab::Spawners:
+            findLastMatch(document_["Spawners"], SelectionKind::Spawner, [&](const auto& value) { return spawnerBounds(value); });
+            break;
+        case EditorTab::Interactives:
+            findLastMatch(document_["Interactives"], SelectionKind::Interactive, [&](const auto& value) { return interactiveBounds(value); });
+            break;
+        case EditorTab::MiniLocations:
+            findLastMatch(document_["MiniLocations"], SelectionKind::MiniLocation, [&](const auto& value) {
+                return readRect(value.value("Bounds", nlohmann::json::array()));
+            });
+            break;
+        default:
+            break;
+        }
+    }
+
+    void placePlatform(const sf::Vector2f worldPosition)
+    {
+        if (platformTypes_.empty())
+        {
+            return;
+        }
+
+        const std::string typeName = platformTypes_.at(std::clamp(selectedPlatformTypeIndex_, 0, static_cast<int>(platformTypes_.size()) - 1));
+        document_["Platforms"].push_back({
+            {"Type", typeName},
+            {"Position", toJson(worldPosition)}
+        });
+        selection_ = {SelectionKind::Platform, document_["Platforms"].size() - 1u};
+        markDirty();
+    }
+
+    void placeDecoration(const sf::Vector2f worldPosition)
+    {
+        if (decorationOptions_.empty())
+        {
+            return;
+        }
+
+        const std::string decorationName = decorationOptions_.at(std::clamp(selectedDecorationIndex_, 0, static_cast<int>(decorationOptions_.size()) - 1));
+        document_["Decorations"].push_back({
+            {"Name", decorationName},
+            {"Position", toJson(worldPosition)},
+            {"Scale", {1.f, 1.f}},
+            {"Color", {255, 255, 255, 255}},
+            {"ParallaxFactor", {1.f, 1.f}},
+            {"Z", 0}
+        });
+        selection_ = {SelectionKind::Decoration, document_["Decorations"].size() - 1u};
+        markDirty();
+    }
+
+    void placeBackground(const sf::Vector2f worldPosition)
+    {
+        if (backgroundOptions_.empty())
+        {
+            return;
+        }
+
+        const std::string backgroundName = backgroundOptions_.at(std::clamp(selectedBackgroundIndex_, 0, static_cast<int>(backgroundOptions_.size()) - 1));
+        document_["Background"].push_back({
+            {"BgName", backgroundName},
+            {"Position", toJson(worldPosition)},
+            {"ParallaxFactor", {0.08f, 0.06f}},
+            {"Type", 0}
+        });
+        selection_ = {SelectionKind::Background, document_["Background"].size() - 1u};
+        markDirty();
+    }
+
+    void placeSpawner(const sf::Vector2f worldPosition)
+    {
+        if (enemyTypeOptions_.empty())
+        {
+            return;
+        }
+
+        const std::string enemyName = enemyTypeOptions_.at(std::clamp(selectedEnemyTypeIndex_, 0, static_cast<int>(enemyTypeOptions_.size()) - 1));
+        document_["Spawners"].push_back({
+            {"EnemyName", enemyName},
+            {"EnemyAmount", 3},
+            {"SpawnCooldown", 5000},
+            {"EnemyPerSpawn", 1},
+            {"SpawnArea", {
+                {worldPosition.x - 90.f, worldPosition.x + 90.f},
+                {worldPosition.y - 80.f, worldPosition.y + 20.f}
+            }}
+        });
+        selection_ = {SelectionKind::Spawner, document_["Spawners"].size() - 1u};
+        markDirty();
+    }
+
+    void placeInteractive(const sf::Vector2f worldPosition)
+    {
+        const std::string interactiveType = interactiveTypeOptions_.empty()
+            ? "EchoTablet"
+            : interactiveTypeOptions_.at(std::clamp(selectedInteractiveTypeIndex_, 0, static_cast<int>(interactiveTypeOptions_.size()) - 1));
+        const std::string textureName = previewTextureOptions_.empty()
+            ? std::string{}
+            : previewTextureOptions_.at(std::clamp(selectedPreviewTextureIndex_, 0, static_cast<int>(previewTextureOptions_.size()) - 1));
+
+        document_["Interactives"].push_back({
+            {"Type", interactiveType},
+            {"Texture", textureName},
+            {"Position", toJson(worldPosition)},
+            {"Scale", {1.f, 1.f}},
+            {"Color", {255, 255, 255, 255}},
+            {"AccentColor", {220, 184, 122, 255}},
+            {"InteractRadius", 120.f},
+            {"RewardGold", 0},
+            {"SingleUse", true},
+            {"GrantsCheckpoint", interactiveType == "RestShrine"},
+            {"RestoreVitality", interactiveType == "RestShrine"},
+            {"Prompt", "Enter to interact"},
+            {"Title", "Forgotten Relic"},
+            {"Body", "The dead left a trace here."}
+        });
+        selection_ = {SelectionKind::Interactive, document_["Interactives"].size() - 1u};
+        markDirty();
+    }
+
+    void placeMiniLocation(const sf::Vector2f worldPosition)
+    {
+        auto& presets = document_["Presets"];
+        const float currentLevelWidth = presets["Size"][0].get<float>();
+        const float mainWorldWidth = static_cast<float>(presets.value("MainWorldWidth", static_cast<int>(currentLevelWidth)));
+        const float roomX = std::max(currentLevelWidth + 260.f, mainWorldWidth + 640.f);
+        const float roomY = 420.f;
+        const float roomWidth = 920.f;
+        const float roomHeight = 340.f;
+        const int locationIndex = static_cast<int>(document_["MiniLocations"].size()) + 1;
+
+        document_["MiniLocations"].push_back({
+            {"Id", "mini_location_" + std::to_string(locationIndex)},
+            {"Title", "Mini Location " + std::to_string(locationIndex)},
+            {"Bounds", {roomX, roomY, roomWidth, roomHeight}},
+            {"BarrierEnabled", true},
+            {"BarrierWidth", 22.f},
+            {"AccentColor", {130, 214, 184, 255}},
+            {"Entry", {
+                {"Texture", "MossyDecorationHazard_25.png"},
+                {"Position", {worldPosition.x, worldPosition.y}},
+                {"Scale", {0.22f, 0.33f}},
+                {"DestinationSupport", {roomX + 180.f, roomY + roomHeight - 18.f}},
+                {"Color", {214, 246, 232, 255}},
+                {"AccentColor", {130, 214, 184, 255}},
+                {"InteractRadius", 126.f},
+                {"Prompt", "Enter the hidden route"}
+            }},
+            {"Exit", {
+                {"Texture", "MossyDecorationHazard_24.png"},
+                {"Position", {roomX + 110.f, roomY + roomHeight - 18.f}},
+                {"Scale", {0.22f, 0.33f}},
+                {"DestinationSupport", {worldPosition.x, worldPosition.y - 18.f}},
+                {"Color", {212, 232, 255, 255}},
+                {"AccentColor", {130, 214, 184, 255}},
+                {"InteractRadius", 126.f},
+                {"Prompt", "Enter to return"}
+            }},
+            {"Hazard", {
+                {"Enabled", false},
+                {"Rect", {roomX, roomY + roomHeight + 64.f, roomWidth, 64.f}},
+                {"CoreColor", {242, 104, 56, 255}},
+                {"GlowColor", {255, 182, 96, 255}},
+                {"EmberColor", {255, 236, 188, 255}}
+            }}
+        });
+
+        presets["MainWorldWidth"] = static_cast<int>(std::max(mainWorldWidth, currentLevelWidth));
+        presets["Size"][0] = static_cast<int>(std::ceil(roomX + roomWidth + 220.f));
+        presets["GenerateMiniLocations"] = false;
+
+        selection_ = {SelectionKind::MiniLocation, document_["MiniLocations"].size() - 1u};
+        markDirty();
+        focusMiniLocation(selection_.index);
+    }
+
+    void deleteSelection()
+    {
+        if (!selection_.isValid())
+        {
+            return;
+        }
+
+        auto eraseFromArray = [&](const char* arrayName) {
+            auto& array = document_[arrayName];
+            if (selection_.index < array.size())
+            {
+                array.erase(array.begin() + static_cast<nlohmann::json::difference_type>(selection_.index));
+                selection_.clear();
+                markDirty();
+            }
+        };
+
+        switch (selection_.kind)
+        {
+        case SelectionKind::Platform:
+            eraseFromArray("Platforms");
+            break;
+        case SelectionKind::Decoration:
+            eraseFromArray("Decorations");
+            break;
+        case SelectionKind::Background:
+            eraseFromArray("Background");
+            break;
+        case SelectionKind::Ground:
+            eraseFromArray("Ground");
+            break;
+        case SelectionKind::Spawner:
+            eraseFromArray("Spawners");
+            break;
+        case SelectionKind::Interactive:
+            eraseFromArray("Interactives");
+            break;
+        case SelectionKind::MiniLocation:
+            eraseFromArray("MiniLocations");
+            break;
+        default:
+            break;
+        }
+    }
+
+    void drawGrid()
+    {
+        const sf::Vector2f viewCenter = worldView_.getCenter();
+        const sf::Vector2f viewSize = worldView_.getSize();
+        const float left = viewCenter.x - viewSize.x * 0.5f;
+        const float top = viewCenter.y - viewSize.y * 0.5f;
+        const float right = left + viewSize.x;
+        const float bottom = top + viewSize.y;
+
+        sf::VertexArray lines(sf::PrimitiveType::Lines);
+        const float startX = std::floor(left / kGridSpacing) * kGridSpacing;
+        const float startY = std::floor(top / kGridSpacing) * kGridSpacing;
+
+        for (float x = startX; x <= right + kGridSpacing; x += kGridSpacing)
+        {
+            lines.append(sf::Vertex{{x, top - kGridSpacing}, kGridColor});
+            lines.append(sf::Vertex{{x, bottom + kGridSpacing}, kGridColor});
+        }
+
+        for (float y = startY; y <= bottom + kGridSpacing; y += kGridSpacing)
+        {
+            lines.append(sf::Vertex{{left - kGridSpacing, y}, kGridColor});
+            lines.append(sf::Vertex{{right + kGridSpacing, y}, kGridColor});
+        }
+
+        window_.draw(lines);
+    }
+
+    void drawBackgroundPreview(const nlohmann::json& background, const bool selected)
+    {
+        const std::string textureName = background.value("BgName", std::string{});
+        const sf::Texture* texture = findPreviewTexture(textureName);
+        if (texture == nullptr)
+        {
+            return;
+        }
+
+        sf::Sprite sprite(*texture);
+        sprite.setOrigin(sprite.getGlobalBounds().getCenter());
+        sprite.setScale({
+            static_cast<float>(WINDOW_WIDTH) / static_cast<float>(texture->getSize().x),
+            static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(texture->getSize().y)
+        });
+        sprite.setPosition(readVector2f(background.value("Position", nlohmann::json::array()), {960.f, 540.f}));
+        sprite.setColor(selected ? sf::Color(255, 255, 255, 220) : sf::Color(255, 255, 255, 180));
+
+        const int backgroundType = background.value("Type", 0);
+        if (backgroundType == 0)
+        {
+            const float worldWidth = document_["Presets"]["Size"][0].get<float>();
+            const float repeatedWidth = sprite.getGlobalBounds().size.x;
+            const int repeatCount = std::max(1, static_cast<int>(std::ceil(worldWidth / repeatedWidth)) + 2);
+            for (int index = -1; index < repeatCount; ++index)
+            {
+                sf::Sprite repeatedSprite(sprite);
+                repeatedSprite.setPosition({
+                    sprite.getPosition().x + repeatedWidth * static_cast<float>(index),
+                    sprite.getPosition().y
+                });
+                window_.draw(repeatedSprite);
+            }
+        }
+        else
+        {
+            window_.draw(sprite);
+        }
+    }
+
+    void drawWorld()
+    {
+        window_.setView(worldView_);
+        drawGrid();
+
+        for (std::size_t index = 0; index < document_["Background"].size(); ++index)
+        {
+            drawBackgroundPreview(document_["Background"][index], selection_.kind == SelectionKind::Background && selection_.index == index);
+        }
+
+        drawGroundPreview();
+        drawMiniLocationPreview();
+        drawDecorationPreview();
+        drawPlatformPreview();
+        drawSpawnerPreview();
+        drawInteractivePreview();
+        drawSpawnPreview();
+    }
+
+    void drawGroundPreview()
+    {
+        for (std::size_t index = 0; index < document_["Ground"].size(); ++index)
+        {
+            const auto& ground = document_["Ground"][index];
+            const float startX = ground["Points"][0].get<float>();
+            const float endX = ground["Points"][1].get<float>();
+            const float yPos = ground.value("YPos", 980.f);
+            const float offset = ground.value("Offset", 8.f);
+            const float levelHeight = document_["Presets"]["Size"][1].get<float>();
+
+            sf::RectangleShape groundRect({endX - startX, levelHeight - (yPos + offset)});
+            groundRect.setPosition({startX, yPos + offset});
+            groundRect.setFillColor(selection_.kind == SelectionKind::Ground && selection_.index == index
+                ? sf::Color(84, 64, 52, 156)
+                : sf::Color(58, 44, 38, 124));
+            groundRect.setOutlineThickness(1.5f);
+            groundRect.setOutlineColor(sf::Color(204, 180, 128, 180));
+            window_.draw(groundRect);
+        }
+    }
+
+    void drawPlatformPreview()
+    {
+        for (std::size_t index = 0; index < document_["Platforms"].size(); ++index)
+        {
+            const auto& platform = document_["Platforms"][index];
+            const sf::FloatRect bounds = platformBounds(platform);
+            const std::string typeName = platform.value("Type", std::string{});
+            const auto definition = Platform::getTypeDefinition(typeName);
+
+            if (definition.has_value() && !definition->texturePath.empty())
+            {
+                const sf::Texture* texture = findPreviewTexture(typeName);
+                if (texture != nullptr)
+                {
+                    sf::Sprite sprite(*texture);
+                    sprite.setOrigin(sprite.getGlobalBounds().getCenter());
+                    sprite.setScale(definition->spriteScale);
+                    sprite.setColor(definition->tint);
+                    sprite.setPosition(bounds.getCenter() + definition->spriteOffset);
+                    window_.draw(sprite);
+                }
+            }
+
+            sf::RectangleShape outline(bounds.size);
+            outline.setPosition(bounds.position);
+            outline.setFillColor(sf::Color::Transparent);
+            outline.setOutlineThickness(selection_.kind == SelectionKind::Platform && selection_.index == index ? kSelectionOutlineThickness : 1.f);
+            outline.setOutlineColor(selection_.kind == SelectionKind::Platform && selection_.index == index
+                ? kPlatformOutlineColor
+                : sf::Color(255, 255, 255, 66));
+            window_.draw(outline);
+        }
+    }
+
+    void drawDecorationPreview()
+    {
+        for (std::size_t index = 0; index < document_["Decorations"].size(); ++index)
+        {
+            const auto& decoration = document_["Decorations"][index];
+            const std::string textureName = decoration.value("Name", std::string{});
+            const sf::Texture* texture = findPreviewTexture(textureName);
+            const sf::Vector2f position = readVector2f(decoration.value("Position", nlohmann::json::array()));
+            const sf::Vector2f scale = readVector2f(decoration.value("Scale", nlohmann::json::array()), {1.f, 1.f});
+            const sf::Color color = readColor(decoration.value("Color", nlohmann::json::array()), sf::Color::White);
+
+            if (texture != nullptr)
+            {
+                sf::Sprite sprite(*texture);
+                sprite.setOrigin(sprite.getGlobalBounds().getCenter());
+                sprite.setPosition(position);
+                sprite.setScale(scale);
+                sprite.setColor(color);
+                window_.draw(sprite);
+            }
+
+            const sf::FloatRect bounds = decorationBounds(decoration);
+            sf::RectangleShape outline(bounds.size);
+            outline.setPosition(bounds.position);
+            outline.setFillColor(sf::Color::Transparent);
+            outline.setOutlineThickness(selection_.kind == SelectionKind::Decoration && selection_.index == index ? kSelectionOutlineThickness : 1.f);
+            outline.setOutlineColor(selection_.kind == SelectionKind::Decoration && selection_.index == index
+                ? kDecorationOutlineColor
+                : sf::Color(255, 255, 255, 42));
+            window_.draw(outline);
+        }
+    }
+
+    void drawSpawnerPreview()
+    {
+        for (std::size_t index = 0; index < document_["Spawners"].size(); ++index)
+        {
+            const auto& spawner = document_["Spawners"][index];
+            const sf::FloatRect bounds = spawnerBounds(spawner);
+
+            sf::RectangleShape rect(bounds.size);
+            rect.setPosition(bounds.position);
+            rect.setFillColor(sf::Color(244, 110, 92, 36));
+            rect.setOutlineThickness(selection_.kind == SelectionKind::Spawner && selection_.index == index ? kSelectionOutlineThickness : 1.f);
+            rect.setOutlineColor(selection_.kind == SelectionKind::Spawner && selection_.index == index
+                ? kSpawnerOutlineColor
+                : sf::Color(244, 110, 92, 120));
+            window_.draw(rect);
+
+            sf::Text label(font_);
+            label.setCharacterSize(18u);
+            label.setFillColor(sf::Color(255, 228, 210, 230));
+            label.setString(spawner.value("EnemyName", std::string{"Spawner"}));
+            label.setPosition({bounds.position.x + 6.f, bounds.position.y - 22.f});
+            window_.draw(label);
+        }
+    }
+
+    void drawInteractivePreview()
+    {
+        for (std::size_t index = 0; index < document_["Interactives"].size(); ++index)
+        {
+            const auto& interactive = document_["Interactives"][index];
+            const sf::FloatRect bounds = interactiveBounds(interactive);
+            const sf::Texture* texture = findPreviewTexture(interactive.value("Texture", std::string{}));
+            const sf::Vector2f position = readVector2f(interactive.value("Position", nlohmann::json::array()));
+            const sf::Vector2f scale = readVector2f(interactive.value("Scale", nlohmann::json::array()), {1.f, 1.f});
+            const sf::Color color = readColor(interactive.value("Color", nlohmann::json::array()), sf::Color::White);
+
+            if (texture != nullptr)
+            {
+                sf::Sprite sprite(*texture);
+                sprite.setOrigin(sprite.getGlobalBounds().getCenter());
+                sprite.setPosition(position);
+                sprite.setScale(scale);
+                sprite.setColor(color);
+                window_.draw(sprite);
+            }
+
+            sf::RectangleShape outline(bounds.size);
+            outline.setPosition(bounds.position);
+            outline.setFillColor(sf::Color::Transparent);
+            outline.setOutlineThickness(selection_.kind == SelectionKind::Interactive && selection_.index == index ? kSelectionOutlineThickness : 1.f);
+            outline.setOutlineColor(selection_.kind == SelectionKind::Interactive && selection_.index == index
+                ? kInteractiveOutlineColor
+                : sf::Color(255, 255, 255, 48));
+            window_.draw(outline);
+        }
+    }
+
+    void drawMiniLocationPreview()
+    {
+        for (std::size_t index = 0; index < document_["MiniLocations"].size(); ++index)
+        {
+            const auto& location = document_["MiniLocations"][index];
+            const sf::FloatRect bounds = readRect(location.value("Bounds", nlohmann::json::array()));
+            const sf::Color accentColor = location.contains("AccentColor")
+                ? readColor(location["AccentColor"], kMiniLocationOutlineColor)
+                : kMiniLocationOutlineColor;
+
+            sf::RectangleShape room(bounds.size);
+            room.setPosition(bounds.position);
+            room.setFillColor(sf::Color(accentColor.r, accentColor.g, accentColor.b, 22));
+            room.setOutlineThickness(selection_.kind == SelectionKind::MiniLocation && selection_.index == index ? kSelectionOutlineThickness : 1.f);
+            room.setOutlineColor(selection_.kind == SelectionKind::MiniLocation && selection_.index == index
+                ? accentColor
+                : sf::Color(accentColor.r, accentColor.g, accentColor.b, 148));
+            window_.draw(room);
+
+            const sf::Vector2f entryPos = readVector2f(location["Entry"].value("Position", nlohmann::json::array()));
+            const sf::Vector2f exitPos = readVector2f(location["Exit"].value("Position", nlohmann::json::array()));
+            const sf::Vector2f entryDest = readVector2f(location["Entry"].value("DestinationSupport", nlohmann::json::array()));
+            const sf::Vector2f exitDest = readVector2f(location["Exit"].value("DestinationSupport", nlohmann::json::array()));
+
+            drawPortalMarker(entryPos, accentColor, location["Entry"].value("Texture", std::string{}));
+            drawPortalMarker(exitPos, sf::Color(212, 232, 255, 255), location["Exit"].value("Texture", std::string{}));
+            drawConnectionLine(entryPos, entryDest, accentColor);
+            drawConnectionLine(exitPos, exitDest, sf::Color(212, 232, 255, 255));
+
+            sf::Text label(font_);
+            label.setCharacterSize(18u);
+            label.setFillColor(sf::Color(236, 255, 248, 232));
+            label.setString(location.value("Title", std::string{"Mini Location"}));
+            label.setPosition({bounds.position.x + 8.f, bounds.position.y + 8.f});
+            window_.draw(label);
+        }
+    }
+
+    void drawPortalMarker(const sf::Vector2f position, const sf::Color color, const std::string& textureName)
+    {
+        const sf::Texture* texture = findPreviewTexture(textureName);
+        if (texture != nullptr)
+        {
+            sf::Sprite sprite(*texture);
+            sprite.setOrigin(sprite.getGlobalBounds().getCenter());
+            sprite.setPosition(position);
+            sprite.setScale({0.28f, 0.28f});
+            sprite.setColor(color);
+            window_.draw(sprite);
+            return;
+        }
+
+        sf::CircleShape circle(14.f);
+        circle.setOrigin({14.f, 14.f});
+        circle.setPosition(position);
+        circle.setFillColor(sf::Color::Transparent);
+        circle.setOutlineThickness(2.f);
+        circle.setOutlineColor(color);
+        window_.draw(circle);
+    }
+
+    void drawConnectionLine(const sf::Vector2f start, const sf::Vector2f end, const sf::Color color)
+    {
+        sf::VertexArray line(sf::PrimitiveType::Lines, 2u);
+        line[0].position = start;
+        line[0].color = color;
+        line[1].position = end;
+        line[1].color = sf::Color(color.r, color.g, color.b, 110);
+        window_.draw(line);
+    }
+
+    void drawSpawnPreview()
+    {
+        const sf::Vector2f spawn = readVector2f(document_["Presets"].value("PlayerSpawn", nlohmann::json::array()), {200.f, 900.f});
+
+        sf::CircleShape marker(16.f);
+        marker.setOrigin({16.f, 16.f});
+        marker.setPosition(spawn);
+        marker.setFillColor(sf::Color(255, 255, 255, 22));
+        marker.setOutlineThickness(selection_.kind == SelectionKind::Spawn ? kSelectionOutlineThickness : 1.5f);
+        marker.setOutlineColor(kSpawnOutlineColor);
+        window_.draw(marker);
+
+        sf::VertexArray cross(sf::PrimitiveType::Lines, 4u);
+        cross[0].position = {spawn.x - 16.f, spawn.y};
+        cross[1].position = {spawn.x + 16.f, spawn.y};
+        cross[2].position = {spawn.x, spawn.y - 20.f};
+        cross[3].position = {spawn.x, spawn.y + 20.f};
+        for (std::size_t index = 0; index < cross.getVertexCount(); ++index)
+        {
+            cross[index].color = kSpawnOutlineColor;
+        }
+        window_.draw(cross);
+    }
+
+    void drawUi()
+    {
+        drawToolbarWindow();
+        drawLevelsWindow();
+        drawInspectorWindow();
+    }
+
+    void drawToolbarWindow()
+    {
+        ImGui::SetNextWindowPos(ImVec2(12.f, 12.f), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(640.f, 118.f), ImGuiCond_FirstUseEver);
+        if (!ImGui::Begin("Level Editor"))
+        {
+            ImGui::End();
+            return;
+        }
+
+        ImGui::TextUnformatted(dirty_ ? "Unsaved changes" : "All changes saved");
+        ImGui::SameLine();
+        ImGui::TextDisabled("%s", currentFilePath_.empty() ? "unsaved document" : currentFilePath_.filename().string().c_str());
+
+        if (ImGui::Button("Save"))
+        {
+            saveLevel();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Play In Game"))
+        {
+            if (saveLevel())
+            {
+                playCurrentLevel();
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reload Registry"))
+        {
+            refreshRegistry();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Focus Spawn"))
+        {
+            const sf::Vector2f spawn = readVector2f(document_["Presets"].value("PlayerSpawn", nlohmann::json::array()));
+            worldView_.setCenter(spawn);
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Mode: %s", placementModeLabel().c_str());
+        ImGui::Text("Camera: %.0f, %.0f", worldView_.getCenter().x, worldView_.getCenter().y);
+        ImGui::TextWrapped("Controls: middle/right drag pans, wheel zooms, left click selects or places, Delete removes the selected object.");
+        ImGui::End();
+    }
+
+    void drawLevelsWindow()
+    {
+        ImGui::SetNextWindowPos(ImVec2(12.f, 142.f), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(340.f, 680.f), ImGuiCond_FirstUseEver);
+        if (!ImGui::Begin("Levels"))
+        {
+            ImGui::End();
+            return;
+        }
+
+        if (ImGui::Button("New Level"))
+        {
+            createDefaultLevel();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Refresh"))
+        {
+            refreshRegistry();
+        }
+
+        ImGui::SeparatorText("Create");
+        if (fileNameBuffer_[0] == '\0')
+        {
+            copyStringToBuffer("new_level.json", fileNameBuffer_, sizeof(fileNameBuffer_));
+        }
+        if (levelIdBuffer_[0] == '\0')
+        {
+            copyStringToBuffer("new_level.json", levelIdBuffer_, sizeof(levelIdBuffer_));
+        }
+        if (levelTitleBuffer_[0] == '\0')
+        {
+            copyStringToBuffer("New Level", levelTitleBuffer_, sizeof(levelTitleBuffer_));
+        }
+
+        ImGui::InputText("File", fileNameBuffer_, sizeof(fileNameBuffer_));
+        ImGui::InputText("Level ID", levelIdBuffer_, sizeof(levelIdBuffer_));
+        ImGui::InputText("Title", levelTitleBuffer_, sizeof(levelTitleBuffer_));
+        if (ImGui::Button("Start Blank Level"))
+        {
+            createDefaultLevel();
+            document_["Presets"]["LevelId"] = std::string(levelIdBuffer_);
+            document_["Presets"]["Title"] = std::string(levelTitleBuffer_);
+            syncMetadataBuffers();
+        }
+
+        ImGui::SeparatorText("Existing");
+        if (ImGui::BeginChild("level_registry_list", ImVec2(0.f, 0.f), true))
+        {
+            for (const LevelDescriptor& descriptor : registry_.getLevels())
+            {
+                const std::string label = descriptor.title + "##" + descriptor.id;
+                if (ImGui::Selectable(label.c_str(), currentFilePath_ == descriptor.filePath))
+                {
+                    loadLevel(descriptor.filePath);
+                }
+                ImGui::TextDisabled("%s", descriptor.fileName.c_str());
+                ImGui::Separator();
+            }
+        }
+        ImGui::EndChild();
+        ImGui::End();
+    }
+
+    void drawInspectorWindow()
+    {
+        ImGui::SetNextWindowPos(ImVec2(1240.f, 12.f), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(348.f, 810.f), ImGuiCond_FirstUseEver);
+        if (!ImGui::Begin("Inspector"))
+        {
+            ImGui::End();
+            return;
+        }
+
+        if (ImGui::BeginTabBar("editor_tabs"))
+        {
+            if (ImGui::BeginTabItem("Level"))
+            {
+                activeTab_ = EditorTab::Level;
+                drawLevelInspector();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Platforms"))
+            {
+                activeTab_ = EditorTab::Platforms;
+                drawPlatformsInspector();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Decorations"))
+            {
+                activeTab_ = EditorTab::Decorations;
+                drawDecorationsInspector();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Background"))
+            {
+                activeTab_ = EditorTab::Backgrounds;
+                drawBackgroundInspector();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Ground"))
+            {
+                activeTab_ = EditorTab::Ground;
+                drawGroundInspector();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Spawners"))
+            {
+                activeTab_ = EditorTab::Spawners;
+                drawSpawnersInspector();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Interactives"))
+            {
+                activeTab_ = EditorTab::Interactives;
+                drawInteractivesInspector();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Mini Locations"))
+            {
+                activeTab_ = EditorTab::MiniLocations;
+                drawMiniLocationsInspector();
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
+        }
+
+        ImGui::End();
+    }
+
+    void drawLevelInspector()
+    {
+        bool changed = false;
+        changed |= ImGui::InputText("File Name", fileNameBuffer_, sizeof(fileNameBuffer_));
+        changed |= ImGui::InputText("Level ID", levelIdBuffer_, sizeof(levelIdBuffer_));
+        changed |= ImGui::InputText("Title", levelTitleBuffer_, sizeof(levelTitleBuffer_));
+
+        auto& presets = document_["Presets"];
+        int size[2]{presets["Size"][0].get<int>(), presets["Size"][1].get<int>()};
+        if (ImGui::InputInt2("Level Size", size))
+        {
+            presets["Size"] = nlohmann::json::array({std::max(size[0], 640), std::max(size[1], 360)});
+            changed = true;
+        }
+
+        int mainWorldWidth = presets.value("MainWorldWidth", presets["Size"][0].get<int>());
+        if (ImGui::InputInt("Main World Width", &mainWorldWidth))
+        {
+            presets["MainWorldWidth"] = std::max(mainWorldWidth, 640);
+            changed = true;
+        }
+
+        sf::Vector2f spawn = readVector2f(presets.value("PlayerSpawn", nlohmann::json::array()), {200.f, 900.f});
+        float spawnRaw[2]{spawn.x, spawn.y};
+        if (ImGui::InputFloat2("Player Spawn", spawnRaw))
+        {
+            presets["PlayerSpawn"] = nlohmann::json::array({spawnRaw[0], spawnRaw[1]});
+            changed = true;
+        }
+
+        changed |= editStringField("Background Theme", presets, "BackgroundTheme", 128u);
+
+        bool isAvailable = presets.value("isAvaiable", true);
+        if (ImGui::Checkbox("Available", &isAvailable))
+        {
+            presets["isAvaiable"] = isAvailable;
+            changed = true;
+        }
+
+        bool isConstant = presets.value("isConstant", true);
+        if (ImGui::Checkbox("Constant Level", &isConstant))
+        {
+            presets["isConstant"] = isConstant;
+            changed = true;
+        }
+
+        bool proceduralMiniLocations = presets.value("GenerateMiniLocations", false);
+        if (ImGui::Checkbox("Procedural Mini Locations", &proceduralMiniLocations))
+        {
+            presets["GenerateMiniLocations"] = proceduralMiniLocations;
+            changed = true;
+        }
+
+        if (ImGui::Button("Pick Spawn From Scene"))
+        {
+            placementMode_ = SelectionKind::Spawn;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Select Mode"))
+        {
+            placementMode_ = SelectionKind::None;
+        }
+
+        if (changed)
+        {
+            markDirty();
+        }
+    }
+
+    void drawPlatformsInspector()
+    {
+        if (!platformTypes_.empty())
+        {
+            drawPlacementCombo("Platform Type", platformTypes_, selectedPlatformTypeIndex_);
+        }
+        drawPlacementButtons(SelectionKind::Platform);
+        drawPlatformList();
+
+        if (selection_.kind == SelectionKind::Platform && selection_.index < document_["Platforms"].size())
+        {
+            auto& platform = document_["Platforms"][selection_.index];
+            bool changed = false;
+            std::string typeName = platform.value("Type", platformTypes_.empty() ? std::string{} : platformTypes_.front());
+            if (comboFromStrings("Type", platformTypes_, typeName))
+            {
+                platform["Type"] = typeName;
+                changed = true;
+            }
+            changed |= editVector2Field("Position", platform, "Position");
+
+            if (changed)
+            {
+                markDirty();
+            }
+        }
+    }
+
+    void drawDecorationsInspector()
+    {
+        if (!decorationOptions_.empty())
+        {
+            drawPlacementCombo("Decoration", decorationOptions_, selectedDecorationIndex_);
+        }
+        drawPlacementButtons(SelectionKind::Decoration);
+        drawDecorationList();
+
+        if (selection_.kind == SelectionKind::Decoration && selection_.index < document_["Decorations"].size())
+        {
+            auto& decoration = document_["Decorations"][selection_.index];
+            bool changed = false;
+            std::string name = decoration.value("Name", decorationOptions_.empty() ? std::string{} : decorationOptions_.front());
+            if (comboFromStrings("Name", decorationOptions_, name))
+            {
+                decoration["Name"] = name;
+                changed = true;
+            }
+            changed |= editVector2Field("Position", decoration, "Position");
+            changed |= editVector2Field("Scale", decoration, "Scale", {1.f, 1.f});
+            changed |= editVector2Field("Parallax", decoration, "ParallaxFactor", {1.f, 1.f});
+            changed |= editColorField("Color", decoration, "Color", sf::Color::White);
+
+            int zDepth = decoration.value("Z", 0);
+            if (ImGui::InputInt("Z", &zDepth))
+            {
+                decoration["Z"] = zDepth;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                markDirty();
+            }
+        }
+    }
+
+    void drawBackgroundInspector()
+    {
+        if (!backgroundOptions_.empty())
+        {
+            drawPlacementCombo("Background", backgroundOptions_, selectedBackgroundIndex_);
+        }
+        drawPlacementButtons(SelectionKind::Background);
+        drawBackgroundList();
+
+        if (selection_.kind == SelectionKind::Background && selection_.index < document_["Background"].size())
+        {
+            auto& background = document_["Background"][selection_.index];
+            bool changed = false;
+            std::string bgName = background.value("BgName", backgroundOptions_.empty() ? std::string{} : backgroundOptions_.front());
+            if (comboFromStrings("Texture", backgroundOptions_, bgName))
+            {
+                background["BgName"] = bgName;
+                changed = true;
+            }
+            changed |= editVector2Field("Position", background, "Position", {960.f, 540.f});
+            changed |= editVector2Field("Parallax", background, "ParallaxFactor", {0.08f, 0.06f});
+            changed |= editStringField("Theme Override", background, "Theme", 128u);
+
+            int backgroundType = background.value("Type", 0);
+            if (ImGui::Combo("Type", &backgroundType, "Repeated\0Single\0"))
+            {
+                background["Type"] = backgroundType;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                markDirty();
+            }
+        }
+    }
+
+    void drawGroundInspector()
+    {
+        if (ImGui::Button("Add Ground Strip"))
+        {
+            document_["Ground"].push_back({
+                {"GroundStyle", groundStyleOptions_.empty() ? "VerdantKeep" : groundStyleOptions_.front()},
+                {"GroundName", groundTileOptions_.empty() ? "TileSetGreen_02.png" : groundTileOptions_.front()},
+                {"Points", {0, document_["Presets"]["MainWorldWidth"].get<int>()}},
+                {"YPos", 980},
+                {"DepthRows", 2},
+                {"Offset", 8.f}
+            });
+            selection_ = {SelectionKind::Ground, document_["Ground"].size() - 1u};
+            markDirty();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Select Mode"))
+        {
+            placementMode_ = SelectionKind::None;
+        }
+
+        drawGroundList();
+
+        if (selection_.kind == SelectionKind::Ground && selection_.index < document_["Ground"].size())
+        {
+            auto& ground = document_["Ground"][selection_.index];
+            bool changed = false;
+            std::string groundTile = ground.value("GroundName", groundTileOptions_.empty() ? std::string{} : groundTileOptions_.front());
+            if (comboFromStrings("Ground Tile", groundTileOptions_, groundTile))
+            {
+                ground["GroundName"] = groundTile;
+                changed = true;
+            }
+
+            std::string groundStyle = ground.value("GroundStyle", groundStyleOptions_.empty() ? std::string{} : groundStyleOptions_.front());
+            if (comboFromStrings("Style", groundStyleOptions_, groundStyle))
+            {
+                ground["GroundStyle"] = groundStyle;
+                changed = true;
+            }
+
+            int points[2]{ground["Points"][0].get<int>(), ground["Points"][1].get<int>()};
+            if (ImGui::InputInt2("Span", points))
+            {
+                ground["Points"] = nlohmann::json::array({std::min(points[0], points[1]), std::max(points[0], points[1])});
+                changed = true;
+            }
+
+            int yPos = ground.value("YPos", 980);
+            if (ImGui::InputInt("Y Pos", &yPos))
+            {
+                ground["YPos"] = yPos;
+                changed = true;
+            }
+
+            int depthRows = ground.value("DepthRows", 2);
+            if (ImGui::InputInt("Depth Rows", &depthRows))
+            {
+                ground["DepthRows"] = std::max(depthRows, 0);
+                changed = true;
+            }
+
+            float offset = ground.value("Offset", 8.f);
+            if (ImGui::InputFloat("Offset", &offset))
+            {
+                ground["Offset"] = offset;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                markDirty();
+            }
+        }
+    }
+
+    void drawSpawnersInspector()
+    {
+        if (!enemyTypeOptions_.empty())
+        {
+            drawPlacementCombo("Enemy", enemyTypeOptions_, selectedEnemyTypeIndex_);
+        }
+        drawPlacementButtons(SelectionKind::Spawner);
+        drawSpawnerList();
+
+        if (selection_.kind == SelectionKind::Spawner && selection_.index < document_["Spawners"].size())
+        {
+            auto& spawner = document_["Spawners"][selection_.index];
+            bool changed = false;
+            std::string enemyName = spawner.value("EnemyName", enemyTypeOptions_.empty() ? std::string{} : enemyTypeOptions_.front());
+            if (comboFromStrings("Enemy", enemyTypeOptions_, enemyName))
+            {
+                spawner["EnemyName"] = enemyName;
+                changed = true;
+            }
+
+            int enemyAmount = spawner.value("EnemyAmount", 1);
+            if (ImGui::InputInt("Enemy Amount", &enemyAmount))
+            {
+                spawner["EnemyAmount"] = std::max(enemyAmount, 0);
+                changed = true;
+            }
+
+            int spawnCooldown = spawner.value("SpawnCooldown", 5000);
+            if (ImGui::InputInt("Spawn Cooldown", &spawnCooldown))
+            {
+                spawner["SpawnCooldown"] = std::max(spawnCooldown, 0);
+                changed = true;
+            }
+
+            int enemyPerSpawn = spawner.value("EnemyPerSpawn", 1);
+            if (ImGui::InputInt("Enemy Per Spawn", &enemyPerSpawn))
+            {
+                spawner["EnemyPerSpawn"] = std::max(enemyPerSpawn, 1);
+                changed = true;
+            }
+
+            sf::FloatRect bounds = spawnerBounds(spawner);
+            float rectRaw[4]{bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y};
+            if (ImGui::InputFloat4("Spawn Area", rectRaw))
+            {
+                spawner["SpawnArea"] = nlohmann::json::array({
+                    nlohmann::json::array({rectRaw[0], rectRaw[0] + rectRaw[2]}),
+                    nlohmann::json::array({rectRaw[1], rectRaw[1] + rectRaw[3]})
+                });
+                changed = true;
+            }
+
+            if (changed)
+            {
+                markDirty();
+            }
+        }
+    }
+
+    void drawInteractivesInspector()
+    {
+        if (!interactiveTypeOptions_.empty())
+        {
+            drawPlacementCombo("Type", interactiveTypeOptions_, selectedInteractiveTypeIndex_);
+        }
+        if (!previewTextureOptions_.empty())
+        {
+            drawPlacementCombo("Texture", previewTextureOptions_, selectedPreviewTextureIndex_);
+        }
+        drawPlacementButtons(SelectionKind::Interactive);
+        drawInteractiveList();
+
+        if (selection_.kind == SelectionKind::Interactive && selection_.index < document_["Interactives"].size())
+        {
+            auto& interactive = document_["Interactives"][selection_.index];
+            bool changed = false;
+
+            std::string typeName = interactive.value("Type", interactiveTypeOptions_.empty() ? std::string{} : interactiveTypeOptions_.front());
+            if (comboFromStrings("Interactive Type", interactiveTypeOptions_, typeName))
+            {
+                interactive["Type"] = typeName;
+                changed = true;
+            }
+
+            std::string textureName = interactive.value("Texture", previewTextureOptions_.empty() ? std::string{} : previewTextureOptions_.front());
+            if (comboFromStrings("Texture", previewTextureOptions_, textureName))
+            {
+                interactive["Texture"] = textureName;
+                changed = true;
+            }
+
+            changed |= editVector2Field("Position", interactive, "Position");
+            changed |= editVector2Field("Scale", interactive, "Scale", {1.f, 1.f});
+            changed |= editColorField("Color", interactive, "Color", sf::Color::White);
+            changed |= editColorField("Accent", interactive, "AccentColor", sf::Color(220, 184, 122, 255));
+
+            float interactRadius = interactive.value("InteractRadius", 120.f);
+            if (ImGui::InputFloat("Interact Radius", &interactRadius))
+            {
+                interactive["InteractRadius"] = std::max(interactRadius, 0.f);
+                changed = true;
+            }
+
+            int rewardGold = interactive.value("RewardGold", 0);
+            if (ImGui::InputInt("Reward Gold", &rewardGold))
+            {
+                interactive["RewardGold"] = std::max(rewardGold, 0);
+                changed = true;
+            }
+
+            bool singleUse = interactive.value("SingleUse", true);
+            if (ImGui::Checkbox("Single Use", &singleUse))
+            {
+                interactive["SingleUse"] = singleUse;
+                changed = true;
+            }
+
+            bool grantsCheckpoint = interactive.value("GrantsCheckpoint", typeName == "RestShrine");
+            if (ImGui::Checkbox("Checkpoint", &grantsCheckpoint))
+            {
+                interactive["GrantsCheckpoint"] = grantsCheckpoint;
+                changed = true;
+            }
+
+            bool restoreVitality = interactive.value("RestoreVitality", typeName == "RestShrine");
+            if (ImGui::Checkbox("Restore Vitality", &restoreVitality))
+            {
+                interactive["RestoreVitality"] = restoreVitality;
+                changed = true;
+            }
+
+            changed |= editVector2Field("Spawn Offset", interactive, "SpawnOffset", {0.f, 0.f});
+            changed |= editStringField("Prompt", interactive, "Prompt", 256u);
+            changed |= editStringField("Title", interactive, "Title", 256u);
+            changed |= editMultilineStringField("Body", interactive, "Body", ImVec2(-1.f, 84.f), 2048u);
+
+            if (changed)
+            {
+                markDirty();
+            }
+        }
+    }
+
+    void drawMiniLocationsInspector()
+    {
+        drawPlacementButtons(SelectionKind::MiniLocation);
+        drawMiniLocationList();
+
+        if (selection_.kind == SelectionKind::MiniLocation && selection_.index < document_["MiniLocations"].size())
+        {
+            auto& location = document_["MiniLocations"][selection_.index];
+            if (!location.contains("Entry") || !location["Entry"].is_object())
+            {
+                location["Entry"] = nlohmann::json::object();
+            }
+            if (!location.contains("Exit") || !location["Exit"].is_object())
+            {
+                location["Exit"] = nlohmann::json::object();
+            }
+            bool changed = false;
+            changed |= editStringField("Id", location, "Id", 256u);
+            changed |= editStringField("Title", location, "Title", 256u);
+
+            sf::FloatRect bounds = readRect(location.value("Bounds", nlohmann::json::array()), sf::FloatRect({0.f, 0.f}, {920.f, 340.f}));
+            float rectRaw[4]{bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y};
+            if (ImGui::InputFloat4("Bounds", rectRaw))
+            {
+                location["Bounds"] = nlohmann::json::array({rectRaw[0], rectRaw[1], std::max(rectRaw[2], 64.f), std::max(rectRaw[3], 64.f)});
+                changed = true;
+            }
+
+            bool barrierEnabled = location.value("BarrierEnabled", true);
+            if (ImGui::Checkbox("Barriers Enabled", &barrierEnabled))
+            {
+                location["BarrierEnabled"] = barrierEnabled;
+                changed = true;
+            }
+
+            float barrierWidth = location.value("BarrierWidth", 22.f);
+            if (ImGui::InputFloat("Barrier Width", &barrierWidth))
+            {
+                location["BarrierWidth"] = std::max(barrierWidth, 0.f);
+                changed = true;
+            }
+
+            changed |= editColorField("Accent Color", location, "AccentColor", sf::Color(130, 214, 184, 255));
+
+            float deathY = location.value("DeathY", std::numeric_limits<float>::max());
+            if (ImGui::InputFloat("Death Y", &deathY))
+            {
+                location["DeathY"] = deathY;
+                changed = true;
+            }
+
+            ImGui::SeparatorText("Entry");
+            {
+                std::string entryTexture = location["Entry"].value("Texture", std::string{});
+                if (comboFromStrings("Entry Texture", previewTextureOptions_, entryTexture))
+                {
+                    location["Entry"]["Texture"] = entryTexture;
+                    changed = true;
+                }
+            }
+            changed |= editVector2Field("Entry Position", location["Entry"], "Position");
+            changed |= editVector2Field("Entry Scale", location["Entry"], "Scale", {0.22f, 0.33f});
+            changed |= editVector2Field("Entry Support", location["Entry"], "DestinationSupport");
+            changed |= editColorField("Entry Color", location["Entry"], "Color", sf::Color(214, 246, 232, 255));
+            changed |= editColorField("Entry Accent", location["Entry"], "AccentColor", sf::Color(130, 214, 184, 255));
+            changed |= editStringField("Entry Prompt", location["Entry"], "Prompt", 256u);
+
+            ImGui::SeparatorText("Exit");
+            {
+                std::string exitTexture = location["Exit"].value("Texture", std::string{});
+                if (comboFromStrings("Exit Texture", previewTextureOptions_, exitTexture))
+                {
+                    location["Exit"]["Texture"] = exitTexture;
+                    changed = true;
+                }
+            }
+            changed |= editVector2Field("Exit Position", location["Exit"], "Position");
+            changed |= editVector2Field("Exit Scale", location["Exit"], "Scale", {0.22f, 0.33f});
+            changed |= editVector2Field("Exit Support", location["Exit"], "DestinationSupport");
+            changed |= editColorField("Exit Color", location["Exit"], "Color", sf::Color(212, 232, 255, 255));
+            changed |= editColorField("Exit Accent", location["Exit"], "AccentColor", sf::Color(130, 214, 184, 255));
+            changed |= editStringField("Exit Prompt", location["Exit"], "Prompt", 256u);
+
+            ImGui::SeparatorText("Hazard");
+            if (!location.contains("Hazard") || !location["Hazard"].is_object())
+            {
+                location["Hazard"] = nlohmann::json::object();
+            }
+            bool hazardEnabled = location["Hazard"].value("Enabled", false);
+            if (ImGui::Checkbox("Hazard Enabled", &hazardEnabled))
+            {
+                location["Hazard"]["Enabled"] = hazardEnabled;
+                changed = true;
+            }
+
+            sf::FloatRect hazardRect = readRect(location["Hazard"].value("Rect", nlohmann::json::array()), sf::FloatRect({bounds.position.x, bounds.position.y + bounds.size.y + 64.f}, {bounds.size.x, 64.f}));
+            float hazardRaw[4]{hazardRect.position.x, hazardRect.position.y, hazardRect.size.x, hazardRect.size.y};
+            if (ImGui::InputFloat4("Hazard Rect", hazardRaw))
+            {
+                location["Hazard"]["Rect"] = nlohmann::json::array({hazardRaw[0], hazardRaw[1], std::max(hazardRaw[2], 1.f), std::max(hazardRaw[3], 1.f)});
+                changed = true;
+            }
+
+            changed |= editColorField("Hazard Core", location["Hazard"], "CoreColor", sf::Color(242, 104, 56, 255));
+            changed |= editColorField("Hazard Glow", location["Hazard"], "GlowColor", sf::Color(255, 182, 96, 255));
+            changed |= editColorField("Hazard Ember", location["Hazard"], "EmberColor", sf::Color(255, 236, 188, 255));
+
+            if (ImGui::Button("Focus Room"))
+            {
+                focusMiniLocation(selection_.index);
+            }
+
+            if (changed)
+            {
+                markDirty();
+            }
+        }
+    }
+
+    void drawPlacementCombo(const char* label, const std::vector<std::string>& options, int& selectedIndex)
+    {
+        if (options.empty())
+        {
+            ImGui::TextDisabled("%s: no assets", label);
+            return;
+        }
+
+        selectedIndex = std::clamp(selectedIndex, 0, static_cast<int>(options.size()) - 1);
+        std::string currentValue = options[selectedIndex];
+        if (comboFromStrings(label, options, currentValue))
+        {
+            const auto currentIt = std::find(options.begin(), options.end(), currentValue);
+            selectedIndex = currentIt != options.end() ? static_cast<int>(std::distance(options.begin(), currentIt)) : 0;
+        }
+    }
+
+    void drawPlacementButtons(const SelectionKind placementKind)
+    {
+        if (ImGui::Button("Place In Scene"))
+        {
+            placementMode_ = placementKind;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Select Mode"))
+        {
+            placementMode_ = SelectionKind::None;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Delete Selected"))
+        {
+            deleteSelection();
+        }
+    }
+
+    void drawPlatformList()
+    {
+        if (ImGui::BeginChild("platform_list", ImVec2(0.f, 148.f), true))
+        {
+            for (std::size_t index = 0; index < document_["Platforms"].size(); ++index)
+            {
+                const auto& platform = document_["Platforms"][index];
+                const std::string label = std::to_string(index + 1u) + ". " + platform.value("Type", std::string{"Platform"}) + " @ " + formatPositionLabel(readVector2f(platform.value("Position", nlohmann::json::array())));
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Platform && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::Platform, index};
+                }
+            }
+        }
+        ImGui::EndChild();
+    }
+
+    void drawDecorationList()
+    {
+        if (ImGui::BeginChild("decoration_list", ImVec2(0.f, 148.f), true))
+        {
+            for (std::size_t index = 0; index < document_["Decorations"].size(); ++index)
+            {
+                const auto& decoration = document_["Decorations"][index];
+                const std::string label = std::to_string(index + 1u) + ". " + decoration.value("Name", std::string{"Decoration"}) + " @ " + formatPositionLabel(readVector2f(decoration.value("Position", nlohmann::json::array())));
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Decoration && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::Decoration, index};
+                }
+            }
+        }
+        ImGui::EndChild();
+    }
+
+    void drawBackgroundList()
+    {
+        if (ImGui::BeginChild("background_list", ImVec2(0.f, 148.f), true))
+        {
+            for (std::size_t index = 0; index < document_["Background"].size(); ++index)
+            {
+                const auto& background = document_["Background"][index];
+                const std::string label = std::to_string(index + 1u) + ". " + background.value("BgName", std::string{"Background"});
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Background && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::Background, index};
+                }
+            }
+        }
+        ImGui::EndChild();
+    }
+
+    void drawGroundList()
+    {
+        if (ImGui::BeginChild("ground_list", ImVec2(0.f, 120.f), true))
+        {
+            for (std::size_t index = 0; index < document_["Ground"].size(); ++index)
+            {
+                const auto& ground = document_["Ground"][index];
+                const std::string label = std::to_string(index + 1u) + ". " + ground.value("GroundStyle", std::string{"Ground"});
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Ground && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::Ground, index};
+                }
+            }
+        }
+        ImGui::EndChild();
+    }
+
+    void drawSpawnerList()
+    {
+        if (ImGui::BeginChild("spawner_list", ImVec2(0.f, 148.f), true))
+        {
+            for (std::size_t index = 0; index < document_["Spawners"].size(); ++index)
+            {
+                const auto& spawner = document_["Spawners"][index];
+                const std::string label = std::to_string(index + 1u) + ". " + spawner.value("EnemyName", std::string{"Spawner"});
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Spawner && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::Spawner, index};
+                }
+            }
+        }
+        ImGui::EndChild();
+    }
+
+    void drawInteractiveList()
+    {
+        if (ImGui::BeginChild("interactive_list", ImVec2(0.f, 148.f), true))
+        {
+            for (std::size_t index = 0; index < document_["Interactives"].size(); ++index)
+            {
+                const auto& interactive = document_["Interactives"][index];
+                const std::string label = std::to_string(index + 1u) + ". " + interactive.value("Title", interactive.value("Type", std::string{"Interactive"}));
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Interactive && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::Interactive, index};
+                }
+            }
+        }
+        ImGui::EndChild();
+    }
+
+    void drawMiniLocationList()
+    {
+        if (ImGui::BeginChild("mini_location_list", ImVec2(0.f, 148.f), true))
+        {
+            for (std::size_t index = 0; index < document_["MiniLocations"].size(); ++index)
+            {
+                const auto& location = document_["MiniLocations"][index];
+                const std::string label = std::to_string(index + 1u) + ". " + location.value("Title", std::string{"Mini Location"});
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::MiniLocation && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::MiniLocation, index};
+                }
+            }
+        }
+        ImGui::EndChild();
+    }
+
+    void focusMiniLocation(const std::size_t index)
+    {
+        if (index >= document_["MiniLocations"].size())
+        {
+            return;
+        }
+
+        const sf::FloatRect bounds = readRect(document_["MiniLocations"][index].value("Bounds", nlohmann::json::array()));
+        worldView_.setCenter(bounds.getCenter());
+    }
+
+    std::string placementModeLabel() const
+    {
+        switch (placementMode_)
+        {
+        case SelectionKind::Spawn:
+            return "Pick spawn";
+        case SelectionKind::Platform:
+            return "Place platforms";
+        case SelectionKind::Decoration:
+            return "Place decorations";
+        case SelectionKind::Background:
+            return "Place backgrounds";
+        case SelectionKind::Spawner:
+            return "Place spawners";
+        case SelectionKind::Interactive:
+            return "Place interactives";
+        case SelectionKind::MiniLocation:
+            return "Place mini locations";
+        default:
+            return "Select";
+        }
+    }
+
+    void playCurrentLevel()
+    {
+        const std::string levelId = document_["Presets"].value("LevelId", std::string{});
+        if (levelId.empty())
+        {
+            return;
+        }
+
+#ifdef _WIN32
+        const std::filesystem::path executablePath = std::filesystem::current_path() / "main.exe";
+#else
+        const std::filesystem::path executablePath = std::filesystem::current_path() / "main";
+#endif
+        if (!std::filesystem::exists(executablePath))
+        {
+            return;
+        }
+
+        const std::string command = "\"" + executablePath.string() + "\" --level \"" + levelId + "\"";
+        std::thread([command]() {
+            std::system(command.c_str());
+        }).detach();
+    }
+};
+}
+
+int main()
+{
+    try
+    {
+        LevelEditorApp app;
+        return app.run();
+    }
+    catch (const std::exception& exception)
+    {
+        std::cerr << "Level editor error: " << exception.what() << std::endl;
+        return 1;
+    }
+}

@@ -12,6 +12,7 @@
 #include <ctime>
 #include <chrono>
 #include <future>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -33,10 +34,18 @@ void resetViewForMenu(sf::RenderWindow& window, sf::View& view)
     window.setView(view);
 }
 
-std::string getLevelDisplayName(const std::string& levelName)
+std::optional<std::string> parseRequestedLevelIdentifier(int argc, char** argv)
 {
-    const CampaignLevelInfo& info = CampaignProgress::getLevelInfo(levelName);
-    return info.levelName == "unknown" ? levelName : info.title;
+    for (int index = 1; index < argc; ++index)
+    {
+        const std::string argument = argv[index];
+        if ((argument == "--level" || argument == "--force-level") && index + 1 < argc)
+        {
+            return std::string(argv[index + 1]);
+        }
+    }
+
+    return std::nullopt;
 }
 
 const char* getAshDensityLabel(const int particleCount)
@@ -55,9 +64,10 @@ const char* getAshDensityLabel(const int particleCount)
 }
 }
 
-int main()
+int main(int argc, char** argv)
 {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    const std::optional<std::string> requestedLevelIdentifier = parseRequestedLevelIdentifier(argc, argv);
 
     auto window = sf::RenderWindow(
         sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}),
@@ -201,6 +211,7 @@ int main()
     auto syncMenuState = [&]() {
         MenuState state;
         state.availableLevels = player.getUnlockedLevelNames(levelManager.getLevelNames());
+        state.levelDisplayNames = levelManager.getLevelDisplayNames();
         state.currentLevelName = levelManager.getCurrentLevelName();
         state.selectedLevelName = menu.getSelectedLevelName().empty()
             ? levelManager.getCurrentLevelName()
@@ -210,8 +221,8 @@ int main()
         menu.setState(state);
     };
 
-    auto startLevelByName = [&](const std::string& levelName) {
-        const bool changedLevel = levelManager.goToLevel(std::make_optional(levelName));
+    auto startLevelByNameInternal = [&](const std::string& levelName, const bool ignoreUnlocks) {
+        const bool changedLevel = levelManager.goToLevel(std::make_optional(levelName), ignoreUnlocks);
         if (changedLevel)
         {
             const bool playerReady = player.isAlive || levelManager.respawnPlayerAtCurrentSpawn();
@@ -225,7 +236,7 @@ int main()
             syncMenuState();
             pushNotification(
                 "Gate opened",
-                getLevelDisplayName(levelName) + " awaits.",
+                levelManager.getLevelDisplayName(levelName) + " awaits.",
                 NotificationTone::Success
             );
         }
@@ -240,8 +251,17 @@ int main()
         return changedLevel;
     };
 
+    auto startLevelByName = [&](const std::string& levelName) {
+        return startLevelByNameInternal(levelName, false);
+    };
+
     syncMenuState();
     menu.openMainMenu();
+    if (requestedLevelIdentifier.has_value() && startLevelByNameInternal(*requestedLevelIdentifier, true))
+    {
+        menu.close();
+    }
+
     developerOverlay.setActions(DeveloperOverlayActions{
         .onRestoreVitals = [&]() {
             player.restoreVitalResources();

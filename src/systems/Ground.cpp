@@ -264,6 +264,19 @@ bool Ground::setStyle(const std::string& styleName)
     return true;
 }
 
+std::vector<std::string> Ground::getAvailableStyles()
+{
+    std::vector<std::string> styles;
+    styles.reserve(getGroundStyles().size());
+    for (const auto& [styleName, _] : getGroundStyles())
+    {
+        styles.push_back(styleName);
+    }
+
+    std::sort(styles.begin(), styles.end());
+    return styles;
+}
+
 float Ground::getSurfaceY() const
 {
     return static_cast<float>(yPos_) + offset_;

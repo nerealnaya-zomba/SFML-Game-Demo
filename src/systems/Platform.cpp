@@ -269,6 +269,18 @@ std::vector<std::string> Platform::getAvailableTypes()
     return names;
 }
 
+std::optional<Platform::TypeDefinition> Platform::getTypeDefinition(const std::string& name)
+{
+    const auto& definitions = getTypeDefinitions();
+    const auto definitionIt = definitions.find(name);
+    if (definitionIt == definitions.end())
+    {
+        return std::nullopt;
+    }
+
+    return definitionIt->second;
+}
+
 Platform::Platform()
     : textures(&getSharedTextures())
 {

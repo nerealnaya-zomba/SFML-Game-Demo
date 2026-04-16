@@ -4,6 +4,7 @@
 #include <PlatformAtmosphere.h>
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -38,6 +39,7 @@ public:
 
     static bool hasType(const std::string& name);
     static std::vector<std::string> getAvailableTypes();
+    static std::optional<TypeDefinition> getTypeDefinition(const std::string& name);
 
 private:
     struct PlatformInstance

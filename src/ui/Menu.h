@@ -12,6 +12,7 @@
 
 #include <array>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <utility>
@@ -39,8 +40,9 @@ enum class MenuMode
 struct MenuState
 {
     std::vector<std::string> availableLevels{};
+    std::map<std::string, std::string> levelDisplayNames{};
     std::string currentLevelName{};
-    std::string selectedLevelName{"level1.json"};
+    std::string selectedLevelName{};
     bool canContinue = false;
     bool canRestartLevel = false;
 };
@@ -123,6 +125,8 @@ private:
     tgui::Button::Ptr vsyncToggleButton;
     tgui::Button::Ptr particleToggleButton;
     tgui::Button::Ptr resetProgressButton;
+    std::map<std::string, std::string> selectorLabelToLevelId_;
+    std::map<std::string, std::string> levelIdToSelectorLabel_;
 
     sf::RenderWindow* window_m = nullptr;
     GameData* gameData_m = nullptr;
@@ -162,6 +166,7 @@ private:
     void initializeLevelSelector();
     void initializeSettingsWindow();
     void initializeControlsWindow();
+    std::string buildLevelSelectorLabel(const std::string& levelName) const;
     void refreshLevelSelector();
     void refreshMenuContext();
     void applyModeLayout();

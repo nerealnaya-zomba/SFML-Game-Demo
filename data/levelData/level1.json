@@ -1,5 +1,8 @@
 {
   "Presets": {
+    "LevelId": "level1.json",
+    "Title": "Ashwake Causeway",
+    "MenuOrder": 1,
     "isConstant": true,
     "isAvaiable": true,
     "Size": [7600, 1080],

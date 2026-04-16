@@ -5,8 +5,10 @@
 #include <Decoration.h>
 #include <EnemyManager.h>
 #include <Ground.h>
+#include <LevelRegistry.h>
 #include <Platform.h>
 #include <SFML/Graphics.hpp>
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <memory>
@@ -33,8 +35,10 @@ private:
         std::string exitTexture;
         sf::Vector2f entrancePosition{0.f, 0.f};
         sf::Vector2f entranceDestinationSupport{0.f, 0.f};
+        sf::Vector2f entranceScale{0.22f, 0.33f};
         sf::Vector2f exitPosition{0.f, 0.f};
         sf::Vector2f exitDestinationSupport{0.f, 0.f};
+        sf::Vector2f exitScale{0.22f, 0.33f};
         sf::Color entranceColor = sf::Color::White;
         sf::Color exitColor = sf::Color::White;
         sf::Color accentColor = sf::Color::White;
@@ -126,6 +130,7 @@ private:
     void initializeGround(const nlohmann::json& data);
     void initializeEnemyManager(const nlohmann::json& data);
     void initializeInteractives(const nlohmann::json& data);
+    void initializeExplicitMiniLocations(const nlohmann::json& data);
     void generateMiniLocations();
     void tryInitializeEnemyManager();
     void tryInitializeInteractives();
@@ -134,10 +139,13 @@ private:
     void drawMiniLocationHazards();
 
 public:
-    GameLevel(GameData& d, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const std::string& fileNamePath);
+    GameLevel(GameData& d, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const LevelDescriptor& descriptor);
     ~GameLevel();
 
     std::string levelName;
+    std::string levelTitle;
+    std::string sourceFileName;
+    std::filesystem::path sourceFilePath{};
 
     void update();
     void updatePlatforms();
@@ -155,7 +163,7 @@ public:
     void drawEnemyManager();
     void drawInteractives();
 
-    void loadLevelData(const std::string& fileName);
+    void loadLevelData(const LevelDescriptor& descriptor);
     void clearLevel();
     void saveLevelData();
     void resetTobase();
@@ -172,6 +180,7 @@ public:
     bool handleEvent(const sf::Event& event);
     bool hasBlockingInteractiveModal() const;
     void setPlayerSpawnPos(const sf::Vector2f& pos);
+    LevelDescriptor getLevelDescriptor() const;
 
     void attachPlayer(Player& p);
 };
@@ -185,6 +194,7 @@ private:
     sf::RenderWindow* window = nullptr;
 
     const std::string levelsFolder;
+    LevelRegistry levelRegistry_{};
 
     std::map<std::string, std::shared_ptr<GameLevel>> levels;
     std::map<std::string, std::shared_ptr<GameLevel>>::iterator levelIt;
@@ -201,7 +211,7 @@ public:
 
     void setPlayerPositionToBase();
 
-    bool goToLevel(std::optional<std::string> levelName);
+    bool goToLevel(std::optional<std::string> levelName, bool ignoreUnlocks = false);
     bool restartCurrentLevel();
     bool respawnPlayerAtCurrentSpawn();
 
@@ -224,12 +234,17 @@ public:
     sf::Vector2i getCurrentLevelSize() const;
     sf::FloatRect getCurrentCameraBoundsForPosition(const sf::Vector2f& position) const;
     std::string getCurrentLevelName() const;
+    std::string getCurrentLevelTitle() const;
     std::vector<std::string> getLevelNames() const;
+    std::map<std::string, std::string> getLevelDisplayNames() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     Platform& getCurrentPlatformSystem();
     sf::RectangleShape& getGroundRect();
     const std::map<std::string, std::shared_ptr<GameLevel>>& getLevelsMap() const;
     std::map<std::string, std::shared_ptr<GameLevel>>::iterator& getIteratorReference();
+    const LevelRegistry& getLevelRegistry() const;
+    std::optional<LevelDescriptor> resolveLevelIdentifier(const std::string& levelIdentifier) const;
+    std::string getLevelDisplayName(const std::string& levelIdentifier) const;
     bool hasBlockingInteractiveModal() const;
     void setCurrentLevelSpawn(const sf::Vector2f& pos);
 
