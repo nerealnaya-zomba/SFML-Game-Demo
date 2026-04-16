@@ -1,297 +1,718 @@
 {
-  "Presets": {
-    "LevelId": "level2.json",
-    "Title": "Obsidian Rookery",
-    "MenuOrder": 2,
-    "isConstant": true,
-    "isAvaiable": true,
-    "Size": [6000, 1080],
-    "PlayerSpawn": [100, 900],
-    "BackgroundTheme": "StormFront"
-  },
-  "Platforms": [
-    {
-      "Type": "Thorn-ramp",
-      "Position": [1620, 980]
+    "Background": [
+        {
+            "BgName": "Background_39.png",
+            "ParallaxFactor": [
+                0.96,
+                0.99
+            ],
+            "Position": [
+                960,
+                540
+            ],
+            "Type": 0
+        },
+        {
+            "BgName": "Background_40.png",
+            "ParallaxFactor": [
+                0.9,
+                0.97
+            ],
+            "Position": [
+                960,
+                540
+            ],
+            "Type": 0
+        },
+        {
+            "BgName": "Background_41.png",
+            "ParallaxFactor": [
+                0.8,
+                0.94
+            ],
+            "Position": [
+                960,
+                540
+            ],
+            "Type": 0
+        },
+        {
+            "BgName": "Background_42.png",
+            "ParallaxFactor": [
+                0.68,
+                0.9
+            ],
+            "Position": [
+                960,
+                540
+            ],
+            "Type": 0
+        }
+    ],
+    "Decorations": [
+        {
+            "Color": [
+                140,
+                150,
+                160,
+                180
+            ],
+            "Name": "MossyBackgroundDecoration_01.png",
+            "ParallaxFactor": [
+                0.14,
+                0.12
+            ],
+            "Position": [
+                1200,
+                620
+            ],
+            "Scale": [
+                0.38,
+                0.38
+            ],
+            "Z": -3
+        },
+        {
+            "Color": [
+                140,
+                150,
+                160,
+                170
+            ],
+            "Name": "MossyBackgroundDecoration_04.png",
+            "ParallaxFactor": [
+                0.18,
+                0.16
+            ],
+            "Position": [
+                4020,
+                540
+            ],
+            "Scale": [
+                0.44,
+                0.44
+            ],
+            "Z": -3
+        },
+        {
+            "Color": [
+                160,
+                165,
+                185,
+                255
+            ],
+            "Name": "MossyHills_06.png",
+            "ParallaxFactor": [
+                0.2,
+                0.18
+            ],
+            "Position": [
+                686.214599609375,
+                982.1461181640625
+            ],
+            "Scale": [
+                0.52,
+                0.52
+            ],
+            "Z": -2
+        },
+        {
+            "Color": [
+                170,
+                175,
+                195,
+                255
+            ],
+            "Name": "MossyHills_05.png",
+            "ParallaxFactor": [
+                0.26,
+                0.22
+            ],
+            "Position": [
+                1645.0,
+                763.0
+            ],
+            "Scale": [
+                0.56,
+                0.56
+            ],
+            "Z": -2
+        },
+        {
+            "Color": [
+                180,
+                185,
+                205,
+                255
+            ],
+            "Name": "MossyHills_03.png",
+            "ParallaxFactor": [
+                0.3,
+                0.24
+            ],
+            "Position": [
+                3077.0,
+                588.9999389648438
+            ],
+            "Scale": [
+                0.6,
+                0.6
+            ],
+            "Z": -1
+        },
+        {
+            "Color": [
+                190,
+                195,
+                215,
+                255
+            ],
+            "Name": "MossyHills_01.png",
+            "ParallaxFactor": [
+                0.24,
+                0.2
+            ],
+            "Position": [
+                4700,
+                820
+            ],
+            "Scale": [
+                0.54,
+                0.54
+            ],
+            "Z": -2
+        },
+        {
+            "Color": [
+                180,
+                205,
+                180,
+                220
+            ],
+            "Name": "MossyHangingPlants_03.png",
+            "ParallaxFactor": [
+                0.38,
+                0.34
+            ],
+            "Position": [
+                969.1968383789063,
+                170.87411499023438
+            ],
+            "Scale": [
+                0.4,
+                0.4
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                180,
+                205,
+                180,
+                220
+            ],
+            "Name": "MossyHangingPlants_06.png",
+            "ParallaxFactor": [
+                0.42,
+                0.36
+            ],
+            "Position": [
+                2480,
+                240
+            ],
+            "Scale": [
+                0.46,
+                0.46
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                230,
+                230,
+                255,
+                255
+            ],
+            "Name": "MossyDecorationHazard_02.png",
+            "ParallaxFactor": [
+                0.5,
+                0.5
+            ],
+            "Position": [
+                1580,
+                930
+            ],
+            "Scale": [
+                0.34,
+                0.34
+            ],
+            "Z": 1
+        },
+        {
+            "Color": [
+                230,
+                230,
+                255,
+                255
+            ],
+            "Name": "MossyDecorationHazard_09.png",
+            "ParallaxFactor": [
+                0.46,
+                0.46
+            ],
+            "Position": [
+                3334.0,
+                1099.0
+            ],
+            "Scale": [
+                0.3,
+                0.3
+            ],
+            "Z": 1
+        },
+        {
+            "Color": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "Name": "plant6",
+            "ParallaxFactor": [
+                0.62,
+                0.62
+            ],
+            "Position": [
+                560,
+                985
+            ],
+            "Scale": [
+                0.46,
+                0.46
+            ],
+            "Z": 2
+        },
+        {
+            "Color": [
+                230,
+                230,
+                255,
+                255
+            ],
+            "Name": "plant2",
+            "ParallaxFactor": [
+                0.6,
+                0.6
+            ],
+            "Position": [
+                1342.0,
+                1006.0001220703125
+            ],
+            "Scale": [
+                0.44,
+                0.44
+            ],
+            "Z": 2
+        },
+        {
+            "Color": [
+                230,
+                230,
+                255,
+                255
+            ],
+            "Name": "plant5",
+            "ParallaxFactor": [
+                0.68,
+                0.68
+            ],
+            "Position": [
+                2949.0,
+                1003.0
+            ],
+            "Scale": [
+                0.52,
+                0.52
+            ],
+            "Z": 2
+        },
+        {
+            "Color": [
+                230,
+                230,
+                255,
+                255
+            ],
+            "Name": "plant3",
+            "ParallaxFactor": [
+                0.7,
+                0.7
+            ],
+            "Position": [
+                5220,
+                992
+            ],
+            "Scale": [
+                0.48,
+                0.48
+            ],
+            "Z": 2
+        },
+        {
+            "Color": [
+                215,
+                225,
+                255,
+                235
+            ],
+            "Name": "blueFlower2",
+            "ParallaxFactor": [
+                0.66,
+                0.66
+            ],
+            "Position": [
+                752.0,
+                1041.0
+            ],
+            "Scale": [
+                0.22,
+                0.22
+            ],
+            "Z": 3
+        },
+        {
+            "Color": [
+                220,
+                235,
+                255,
+                235
+            ],
+            "Name": "jumpPlant2",
+            "ParallaxFactor": [
+                0.62,
+                0.62
+            ],
+            "Position": [
+                1649.0,
+                944.0000610351563
+            ],
+            "Scale": [
+                0.34,
+                0.34
+            ],
+            "Z": 2
+        },
+        {
+            "Color": [
+                220,
+                230,
+                255,
+                220
+            ],
+            "Name": "windPlant1",
+            "ParallaxFactor": [
+                0.7,
+                0.7
+            ],
+            "Position": [
+                2364.0,
+                1005.9999389648438
+            ],
+            "Scale": [
+                0.4,
+                0.4
+            ],
+            "Z": 2
+        },
+        {
+            "Color": [
+                210,
+                190,
+                255,
+                235
+            ],
+            "Name": "poisonPlant",
+            "ParallaxFactor": [
+                0.72,
+                0.72
+            ],
+            "Position": [
+                3126.0,
+                1050.0
+            ],
+            "Scale": [
+                0.4,
+                0.4
+            ],
+            "Z": 2
+        },
+        {
+            "Color": [
+                180,
+                220,
+                255,
+                210
+            ],
+            "Name": "portalBlue4",
+            "ParallaxFactor": [
+                0.48,
+                0.44
+            ],
+            "Position": [
+                4180,
+                862
+            ],
+            "Scale": [
+                0.56,
+                0.56
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                210,
+                230,
+                255,
+                235
+            ],
+            "Name": "blueFlower1",
+            "ParallaxFactor": [
+                0.72,
+                0.72
+            ],
+            "Position": [
+                5140,
+                994
+            ],
+            "Scale": [
+                0.23,
+                0.23
+            ],
+            "Z": 3
+        }
+    ],
+    "Ground": [
+        {
+            "DepthRows": 3,
+            "GroundName": "TileSetGreen_27.png",
+            "GroundStyle": "ObsidianRunes",
+            "Offset": 8.0,
+            "Points": [
+                0,
+                6000
+            ],
+            "YPos": 1048
+        }
+    ],
+    "Interactives": [
+        {
+            "AccentColor": [
+                166,
+                180,
+                255,
+                255
+            ],
+            "AutoNameplate": true,
+            "Body": "Rain-stiffened markings speak of beasts nesting where the path narrows. Draw them into open ground before you spend too much strength climbing.",
+            "Color": [
+                226,
+                230,
+                255,
+                255
+            ],
+            "InteractRadius": 118.0,
+            "Position": [
+                1200,
+                552
+            ],
+            "Prompt": "Enter to listen",
+            "RewardGold": 35,
+            "Scale": [
+                0.30000001192092896,
+                0.30000001192092896
+            ],
+            "SingleUse": true,
+            "SpawnOffset": [
+                0.0,
+                0.0
+            ],
+            "Texture": "MossyDecorationHazard_25.png",
+            "Title": "Storm Echo",
+            "Type": "EchoTablet"
+        },
+        {
+            "AccentColor": [
+                248,
+                202,
+                98,
+                255
+            ],
+            "Body": "The clasp snaps and a clutch of grave-gold drops into your palm. Whoever hid it never made the return climb.",
+            "Color": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "InteractRadius": 90.0,
+            "Position": [
+                3560,
+                910
+            ],
+            "Prompt": "Enter to pry open cache",
+            "RewardGold": 105,
+            "Scale": [
+                3.5,
+                3.5
+            ],
+            "SingleUse": true,
+            "SpawnOffset": [
+                0.0,
+                0.0
+            ],
+            "Texture": "Item_20.png",
+            "Title": "Hunter's Purse",
+            "Type": "GoldCache"
+        }
+    ],
+    "MiniLocations": [],
+    "Platforms": [
+        {
+            "Position": [
+                1620,
+                980
+            ],
+            "Type": "Thorn-ramp"
+        },
+        {
+            "Position": [
+                1520,
+                880
+            ],
+            "Type": "Bone-dais"
+        },
+        {
+            "Position": [
+                1420,
+                800
+            ],
+            "Type": "Runed-ledge"
+        },
+        {
+            "Position": [
+                1220,
+                700
+            ],
+            "Type": "Obsidian-span"
+        },
+        {
+            "Position": [
+                1020,
+                600
+            ],
+            "Type": "Cathedral-span"
+        },
+        {
+            "Position": [
+                870,
+                500
+            ],
+            "Type": "Crypt-pillar"
+        },
+        {
+            "EditHitbox": false,
+            "HitboxOffset": [
+                -18.998291015625,
+                3.1663818359375
+            ],
+            "HitboxSize": [
+                285.1092529296875,
+                48.88739013671875
+            ],
+            "Position": [
+                559.8385009765625,
+                430.0806884765625
+            ],
+            "Scale": [
+                0.23009999096393585,
+                0.20376285910606384
+            ],
+            "Type": "Ritual-bridge"
+        },
+        {
+            "Position": [
+                520,
+                280
+            ],
+            "Type": "Fallen-arcade"
+        }
+    ],
+    "Presets": {
+        "BackgroundTheme": "StormFront",
+        "GenerateMiniLocations": false,
+        "LevelId": "level2.json",
+        "MainWorldWidth": 6000,
+        "MenuOrder": 2,
+        "PlayerSpawn": [
+            100,
+            900
+        ],
+        "Size": [
+            6000,
+            1080
+        ],
+        "Title": "Obsidian Rookery",
+        "isAvaiable": true,
+        "isConstant": true
     },
-    {
-      "Type": "Bone-dais",
-      "Position": [1520, 880]
-    },
-    {
-      "Type": "Runed-ledge",
-      "Position": [1420, 800]
-    },
-    {
-      "Type": "Obsidian-span",
-      "Position": [1220, 700]
-    },
-    {
-      "Type": "Cathedral-span",
-      "Position": [1020, 600]
-    },
-    {
-      "Type": "Crypt-pillar",
-      "Position": [870, 500]
-    },
-    {
-      "Type": "Ritual-bridge",
-      "Position": [620, 400]
-    },
-    {
-      "Type": "Fallen-arcade",
-      "Position": [520, 280]
-    }
-  ],
-  "Decorations": [
-    {
-      "Name": "MossyBackgroundDecoration_01.png",
-      "Position": [1200, 620],
-      "Scale": [0.38, 0.38],
-      "Color": [140, 150, 160, 180],
-      "ParallaxFactor": [0.14, 0.12],
-      "Z": -3
-    },
-    {
-      "Name": "MossyBackgroundDecoration_04.png",
-      "Position": [4020, 540],
-      "Scale": [0.44, 0.44],
-      "Color": [140, 150, 160, 170],
-      "ParallaxFactor": [0.18, 0.16],
-      "Z": -3
-    },
-    {
-      "Name": "MossyHills_06.png",
-      "Position": [680, 920],
-      "Scale": [0.52, 0.52],
-      "Color": [160, 165, 185, 255],
-      "ParallaxFactor": [0.20, 0.18],
-      "Z": -2
-    },
-    {
-      "Name": "MossyHills_05.png",
-      "Position": [1700, 780],
-      "Scale": [0.56, 0.56],
-      "Color": [170, 175, 195, 255],
-      "ParallaxFactor": [0.26, 0.22],
-      "Z": -2
-    },
-    {
-      "Name": "MossyHills_03.png",
-      "Position": [3100, 880],
-      "Scale": [0.60, 0.60],
-      "Color": [180, 185, 205, 255],
-      "ParallaxFactor": [0.30, 0.24],
-      "Z": -1
-    },
-    {
-      "Name": "MossyHills_01.png",
-      "Position": [4700, 820],
-      "Scale": [0.54, 0.54],
-      "Color": [190, 195, 215, 255],
-      "ParallaxFactor": [0.24, 0.20],
-      "Z": -2
-    },
-    {
-      "Name": "MossyHangingPlants_03.png",
-      "Position": [980, 260],
-      "Scale": [0.40, 0.40],
-      "Color": [180, 205, 180, 220],
-      "ParallaxFactor": [0.38, 0.34],
-      "Z": 0
-    },
-    {
-      "Name": "MossyHangingPlants_06.png",
-      "Position": [2480, 240],
-      "Scale": [0.46, 0.46],
-      "Color": [180, 205, 180, 220],
-      "ParallaxFactor": [0.42, 0.36],
-      "Z": 0
-    },
-    {
-      "Name": "MossyDecorationHazard_02.png",
-      "Position": [1580, 930],
-      "Scale": [0.34, 0.34],
-      "Color": [230, 230, 255, 255],
-      "ParallaxFactor": [0.50, 0.50],
-      "Z": 1
-    },
-    {
-      "Name": "MossyDecorationHazard_09.png",
-      "Position": [3560, 930],
-      "Scale": [0.30, 0.30],
-      "Color": [230, 230, 255, 255],
-      "ParallaxFactor": [0.46, 0.46],
-      "Z": 1
-    },
-    {
-      "Name": "plant6",
-      "Position": [560, 985],
-      "Scale": [0.46, 0.46],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.62, 0.62],
-      "Z": 2
-    },
-    {
-      "Name": "plant2",
-      "Position": [1540, 760],
-      "Scale": [0.44, 0.44],
-      "Color": [230, 230, 255, 255],
-      "ParallaxFactor": [0.60, 0.60],
-      "Z": 2
-    },
-    {
-      "Name": "plant5",
-      "Position": [2860, 994],
-      "Scale": [0.52, 0.52],
-      "Color": [230, 230, 255, 255],
-      "ParallaxFactor": [0.68, 0.68],
-      "Z": 2
-    },
-    {
-      "Name": "plant3",
-      "Position": [5220, 992],
-      "Scale": [0.48, 0.48],
-      "Color": [230, 230, 255, 255],
-      "ParallaxFactor": [0.70, 0.70],
-      "Z": 2
-    },
-    {
-      "Name": "blueFlower2",
-      "Position": [820, 994],
-      "Scale": [0.22, 0.22],
-      "Color": [215, 225, 255, 235],
-      "ParallaxFactor": [0.66, 0.66],
-      "Z": 3
-    },
-    {
-      "Name": "jumpPlant2",
-      "Position": [1500, 734],
-      "Scale": [0.34, 0.34],
-      "Color": [220, 235, 255, 235],
-      "ParallaxFactor": [0.62, 0.62],
-      "Z": 2
-    },
-    {
-      "Name": "windPlant1",
-      "Position": [2360, 990],
-      "Scale": [0.40, 0.40],
-      "Color": [220, 230, 255, 220],
-      "ParallaxFactor": [0.70, 0.70],
-      "Z": 2
-    },
-    {
-      "Name": "poisonPlant",
-      "Position": [3180, 992],
-      "Scale": [0.40, 0.40],
-      "Color": [210, 190, 255, 235],
-      "ParallaxFactor": [0.72, 0.72],
-      "Z": 2
-    },
-    {
-      "Name": "portalBlue4",
-      "Position": [4180, 862],
-      "Scale": [0.56, 0.56],
-      "Color": [180, 220, 255, 210],
-      "ParallaxFactor": [0.48, 0.44],
-      "Z": 0
-    },
-    {
-      "Name": "blueFlower1",
-      "Position": [5140, 994],
-      "Scale": [0.23, 0.23],
-      "Color": [210, 230, 255, 235],
-      "ParallaxFactor": [0.72, 0.72],
-      "Z": 3
-    }
-  ],
-  "Interactives": [
-    {
-      "Type": "EchoTablet",
-      "Texture": "MossyDecorationHazard_25.png",
-      "Position": [1200, 552],
-      "Scale": [0.26, 0.26],
-      "Color": [226, 230, 255, 255],
-      "AccentColor": [166, 180, 255, 255],
-      "InteractRadius": 118.0,
-      "RewardGold": 35,
-      "SingleUse": true,
-      "Prompt": "Enter to listen",
-      "Title": "Storm Echo",
-      "Body": "Rain-stiffened markings speak of beasts nesting where the path narrows. Draw them into open ground before you spend too much strength climbing."
-    },
-    {
-      "Type": "GoldCache",
-      "Texture": "Item_20.png",
-      "Position": [3560, 910],
-      "Scale": [3.5, 3.5],
-      "Color": [255, 255, 255, 255],
-      "AccentColor": [248, 202, 98, 255],
-      "InteractRadius": 90.0,
-      "RewardGold": 105,
-      "SingleUse": true,
-      "Prompt": "Enter to pry open cache",
-      "Title": "Hunter's Purse",
-      "Body": "The clasp snaps and a clutch of grave-gold drops into your palm. Whoever hid it never made the return climb."
-    }
-  ],
-  "Background": [
-    {
-      "BgName": "Background_39.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.96, 0.99],
-      "Type": 0
-    },
-    {
-      "BgName": "Background_40.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.90, 0.97],
-      "Type": 0
-    },
-    {
-      "BgName": "Background_41.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.80, 0.94],
-      "Type": 0
-    },
-    {
-      "BgName": "Background_42.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.68, 0.90],
-      "Type": 0
-    }
-  ],
-  "Ground": [
-    {
-      "GroundStyle": "ObsidianRunes",
-      "GroundName": "TileSetGreen_27.png",
-      "Points": [0, 6000],
-      "YPos": 1048,
-      "DepthRows": 3,
-      "Offset": 8.0
-    }
-  ],
-  "Spawners": [
-    {
-      "EnemyName": "SkeletonYellow",
-      "EnemyAmount": 100,
-      "SpawnCooldown": 7000,
-      "EnemyPerSpawn": 10,
-      "SpawnArea": [[200, 700], [700, 800]]
-    },
-    {
-      "EnemyName": "WraithBat",
-      "EnemyAmount": 5,
-      "SpawnCooldown": 5400,
-      "EnemyPerSpawn": 2,
-      "SpawnArea": [[900, 2600], [260, 620]]
-    },
-    {
-      "EnemyName": "DreadScorpion",
-      "EnemyAmount": 4,
-      "SpawnCooldown": 6200,
-      "EnemyPerSpawn": 1,
-      "SpawnArea": [[1800, 3600], [700, 880]]
-    }
-  ]
+    "Spawners": [
+        {
+            "EnemyAmount": 100,
+            "EnemyName": "SkeletonYellow",
+            "EnemyPerSpawn": 10,
+            "SpawnArea": [
+                [
+                    200,
+                    700
+                ],
+                [
+                    700,
+                    800
+                ]
+            ],
+            "SpawnCooldown": 7000
+        },
+        {
+            "EnemyAmount": 5,
+            "EnemyName": "WraithBat",
+            "EnemyPerSpawn": 2,
+            "SpawnArea": [
+                [
+                    900,
+                    2600
+                ],
+                [
+                    260,
+                    620
+                ]
+            ],
+            "SpawnCooldown": 5400
+        },
+        {
+            "EnemyAmount": 4,
+            "EnemyName": "DreadScorpion",
+            "EnemyPerSpawn": 1,
+            "SpawnArea": [
+                [
+                    1800,
+                    3600
+                ],
+                [
+                    700,
+                    880
+                ]
+            ],
+            "SpawnCooldown": 6200
+        }
+    ]
 }

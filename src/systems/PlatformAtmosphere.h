@@ -3,6 +3,9 @@
 #include <SFML/Graphics.hpp>
 #include <cstddef>
 #include <limits>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <vector>
 
 enum class PlatformAtmosphereStyle
@@ -12,6 +15,10 @@ enum class PlatformAtmosphereStyle
     Ember,
     Drip
 };
+
+std::vector<std::string> getPlatformAtmosphereStyleNames();
+std::optional<PlatformAtmosphereStyle> parsePlatformAtmosphereStyle(const std::string& styleName);
+std::string toString(PlatformAtmosphereStyle style);
 
 class PlatformAtmosphere
 {

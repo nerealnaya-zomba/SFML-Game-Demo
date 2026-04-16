@@ -1,6 +1,7 @@
 #include <PlatformAtmosphere.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <random>
@@ -12,6 +13,59 @@ std::mt19937& platformAtmosphereRng()
     static std::mt19937 rng(std::random_device{}());
     return rng;
 }
+
+std::string normalizeAtmosphereStyleName(std::string value)
+{
+    std::transform(value.begin(), value.end(), value.begin(), [](const unsigned char symbol) {
+        return static_cast<char>(std::tolower(symbol));
+    });
+    return value;
+}
+}
+
+std::vector<std::string> getPlatformAtmosphereStyleNames()
+{
+    return {"None", "Dust", "Ember", "Drip"};
+}
+
+std::optional<PlatformAtmosphereStyle> parsePlatformAtmosphereStyle(const std::string& styleName)
+{
+    const std::string normalized = normalizeAtmosphereStyleName(styleName);
+
+    if (normalized == "none")
+    {
+        return PlatformAtmosphereStyle::None;
+    }
+    if (normalized == "dust")
+    {
+        return PlatformAtmosphereStyle::Dust;
+    }
+    if (normalized == "ember")
+    {
+        return PlatformAtmosphereStyle::Ember;
+    }
+    if (normalized == "drip")
+    {
+        return PlatformAtmosphereStyle::Drip;
+    }
+
+    return std::nullopt;
+}
+
+std::string toString(const PlatformAtmosphereStyle style)
+{
+    switch (style)
+    {
+    case PlatformAtmosphereStyle::Dust:
+        return "Dust";
+    case PlatformAtmosphereStyle::Ember:
+        return "Ember";
+    case PlatformAtmosphereStyle::Drip:
+        return "Drip";
+    case PlatformAtmosphereStyle::None:
+    default:
+        return "None";
+    }
 }
 
 void PlatformAtmosphere::clear()

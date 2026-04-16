@@ -123,6 +123,16 @@ void applyWorldNameplateVisual(WorldInteractable::Config& config)
     config.color = sf::Color::White;
 }
 
+bool shouldUseAutomaticNameplate(const nlohmann::json& interactiveData, const std::string& typeName)
+{
+    if (interactiveData.contains("AutoNameplate"))
+    {
+        return interactiveData["AutoNameplate"].get<bool>();
+    }
+
+    return typeName != "CustomSign";
+}
+
 std::mt19937& miniLocationRng()
 {
     static std::mt19937 rng(std::random_device{}());
@@ -1217,7 +1227,50 @@ void GameLevel::initializePlatforms(const nlohmann::json& data)
         };
 
         const std::string type = platform["Type"];
-        platforms->addPlatform(position, remapPlatformTypeForLevel(levelName, type));
+        Platform::InstanceOverrides overrides;
+        if (platform.contains("HitboxSize"))
+        {
+            const sf::Vector2f hitboxSize = readVector2f(platform["HitboxSize"]);
+            overrides.hitboxSize = {
+                std::max(hitboxSize.x, 8.f),
+                std::max(hitboxSize.y, 8.f)
+            };
+        }
+        if (platform.contains("HitboxOffset"))
+        {
+            overrides.hitboxOffset = readVector2f(platform["HitboxOffset"]);
+        }
+        if (platform.contains("Scale"))
+        {
+            const sf::Vector2f scale = readVector2f(platform["Scale"], {1.f, 1.f});
+            overrides.spriteScale = {
+                std::max(scale.x, 0.02f),
+                std::max(scale.y, 0.02f)
+            };
+        }
+        if (platform.contains("AtmosphereStyle"))
+        {
+            if (const auto atmosphereStyle = parsePlatformAtmosphereStyle(platform["AtmosphereStyle"].get<std::string>()); atmosphereStyle.has_value())
+            {
+                overrides.atmosphereStyle = *atmosphereStyle;
+            }
+        }
+        if (platform.contains("AtmosphereColor"))
+        {
+            const auto& color = platform["AtmosphereColor"];
+            overrides.atmosphereColor = sf::Color{
+                color[0].get<std::uint8_t>(),
+                color[1].get<std::uint8_t>(),
+                color[2].get<std::uint8_t>(),
+                color[3].get<std::uint8_t>()
+            };
+        }
+        if (platform.contains("AtmosphereDensity"))
+        {
+            overrides.atmosphereDensity = std::max(platform["AtmosphereDensity"].get<float>(), 0.f);
+        }
+
+        platforms->addPlatform(position, remapPlatformTypeForLevel(levelName, type), overrides);
     }
 }
 
@@ -1404,7 +1457,11 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
             config.prompt = interactiveData.value("Prompt", std::string{"Enter to interact"});
             config.title = interactiveData.value("Title", std::string{"Forgotten Relic"});
             config.body = interactiveData.value("Body", std::string{"The dead left a trace here."});
-            applyWorldNameplateVisual(config);
+
+            if (shouldUseAutomaticNameplate(interactiveData, typeName) || config.textureName.empty())
+            {
+                applyWorldNameplateVisual(config);
+            }
 
             if (interactiveData.contains("SpawnOffset"))
             {

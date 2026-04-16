@@ -12,6 +12,16 @@
 class Platform
 {
 public:
+    struct InstanceOverrides
+    {
+        std::optional<sf::Vector2f> hitboxSize{};
+        std::optional<sf::Vector2f> hitboxOffset{};
+        std::optional<sf::Vector2f> spriteScale{};
+        std::optional<PlatformAtmosphereStyle> atmosphereStyle{};
+        std::optional<sf::Color> atmosphereColor{};
+        std::optional<float> atmosphereDensity{};
+    };
+
     struct TypeDefinition
     {
         std::string texturePath;
@@ -32,6 +42,7 @@ public:
     void update();
     void draw(sf::RenderWindow& window);
     void addPlatform(sf::Vector2f position, std::string name);
+    void addPlatform(sf::Vector2f position, std::string name, InstanceOverrides overrides);
     void applyImpact(const sf::RectangleShape& rect, float fallSpeed);
 
     std::vector<std::shared_ptr<sf::RectangleShape>>& getRects();
@@ -46,7 +57,10 @@ private:
     {
         std::shared_ptr<sf::RectangleShape> rect;
         std::unique_ptr<sf::Sprite> sprite;
-        sf::Vector2f baseRectPosition{0.f, 0.f};
+        sf::Vector2f anchorPosition{0.f, 0.f};
+        sf::Vector2f hitboxOffset{0.f, 0.f};
+        sf::Vector2f hitboxSize{0.f, 0.f};
+        sf::Vector2f spriteAnchorSize{0.f, 0.f};
         sf::Vector2f spriteOffset{0.f, 0.f};
         float hoverAmplitude = 0.f;
         float hoverFrequency = 0.f;

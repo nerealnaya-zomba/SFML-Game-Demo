@@ -150,13 +150,16 @@ void Platform::update()
         }
 
         instance.rect->setPosition({
-            instance.baseRectPosition.x,
-            instance.baseRectPosition.y + hoverOffset + instance.springOffset
+            instance.anchorPosition.x + instance.hitboxOffset.x,
+            instance.anchorPosition.y + instance.hitboxOffset.y + hoverOffset + instance.springOffset
         });
 
         if (instance.sprite)
         {
-            instance.sprite->setPosition(instance.rect->getGlobalBounds().getCenter() + instance.spriteOffset);
+            instance.sprite->setPosition({
+                instance.anchorPosition.x + instance.spriteAnchorSize.x * 0.5f + instance.spriteOffset.x,
+                instance.anchorPosition.y + instance.spriteAnchorSize.y * 0.5f + instance.spriteOffset.y + hoverOffset + instance.springOffset
+            });
         }
 
         if (instance.emitterIndex != PlatformAtmosphere::InvalidEmitterIndex)
@@ -170,6 +173,11 @@ void Platform::update()
 
 void Platform::addPlatform(sf::Vector2f position, std::string name)
 {
+    addPlatform(position, std::move(name), InstanceOverrides{});
+}
+
+void Platform::addPlatform(sf::Vector2f position, std::string name, InstanceOverrides overrides)
+{
     const auto& definitions = getTypeDefinitions();
     const auto definitionIt = definitions.find(name);
     if (definitionIt == definitions.end())
@@ -179,6 +187,12 @@ void Platform::addPlatform(sf::Vector2f position, std::string name)
     }
 
     const TypeDefinition& definition = definitionIt->second;
+    const sf::Vector2f hitboxSize = overrides.hitboxSize.value_or(definition.hitboxSize);
+    const sf::Vector2f hitboxOffset = overrides.hitboxOffset.value_or(sf::Vector2f{0.f, 0.f});
+    const sf::Vector2f spriteScale = overrides.spriteScale.value_or(definition.spriteScale);
+    const PlatformAtmosphereStyle atmosphereStyle = overrides.atmosphereStyle.value_or(definition.atmosphereStyle);
+    const sf::Color atmosphereColor = overrides.atmosphereColor.value_or(definition.atmosphereColor);
+    const float atmosphereDensity = overrides.atmosphereDensity.value_or(definition.atmosphereDensity);
     const sf::Texture* texture = nullptr;
     if (!definition.texturePath.empty())
     {
@@ -194,10 +208,13 @@ void Platform::addPlatform(sf::Vector2f position, std::string name)
 
     PlatformInstance instance;
     instance.rect = std::make_shared<sf::RectangleShape>();
-    instance.baseRectPosition = position;
-    instance.rect->setPosition(position);
+    instance.anchorPosition = position;
+    instance.hitboxOffset = hitboxOffset;
+    instance.hitboxSize = hitboxSize;
+    instance.spriteAnchorSize = definition.hitboxSize;
+    instance.rect->setPosition(position + hitboxOffset);
     instance.rect->setFillColor(sf::Color(0, 0, 0, 0));
-    instance.rect->setSize(definition.hitboxSize);
+    instance.rect->setSize(hitboxSize);
     instance.spriteOffset = definition.spriteOffset;
     instance.hoverAmplitude = definition.texturePath.empty() ? 0.f : definition.hoverAmplitude;
     instance.hoverFrequency = definition.hoverFrequency;
@@ -207,16 +224,16 @@ void Platform::addPlatform(sf::Vector2f position, std::string name)
     {
         instance.sprite = std::make_unique<sf::Sprite>(*texture);
         instance.sprite->setOrigin(instance.sprite->getGlobalBounds().getCenter());
-        instance.sprite->setScale(definition.spriteScale);
+        instance.sprite->setScale(spriteScale);
         instance.sprite->setColor(definition.tint);
-        instance.sprite->setPosition(instance.rect->getGlobalBounds().getCenter() + definition.spriteOffset);
+        instance.sprite->setPosition(position + definition.hitboxSize * 0.5f + definition.spriteOffset);
     }
 
     instance.emitterIndex = atmosphere_.addEmitter({
         instance.rect->getGlobalBounds(),
-        definition.atmosphereStyle,
-        definition.atmosphereColor,
-        definition.atmosphereDensity
+        atmosphereStyle,
+        atmosphereColor,
+        atmosphereDensity
     });
 
     rects.push_back(instance.rect);
