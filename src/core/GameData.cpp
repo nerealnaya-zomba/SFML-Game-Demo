@@ -6,7 +6,7 @@
 namespace
 {
 constexpr const char* kLaunchSettingsPath = "data/launchSettings.json";
-constexpr int kDefaultLoadingOperationsCount = 61;
+constexpr int kDefaultLoadingOperationsCount = 62;
 constexpr bool kDefaultVsyncEnabled = false;
 constexpr int kDefaultMenuParticleCount = 200;
 
@@ -173,6 +173,7 @@ GameData::GameData(sf::Font* font, std::shared_ptr<LoadingProgress> loadingProgr
     loadStaticTextures("Hanging creeping roots", allStaticTextures, MossyHangingPlantsPath, false);
     loadStaticTextures("Raising distant hills", allStaticTextures, MossyHillsPath, false);
     loadStaticTextures("Stacking mossy stones", allStaticTextures, MossyTileSetPath, false, true, true);
+    loadStaticTextures("Carving ritual nameplates", allStaticTextures, nameplatesPath, false);
 
     loadStaticTextures("Forging ground tiles", TileSetGreenTextures, groundTileSetGreenPath, true, true, true);
     loadStaticTextures("Layering haunted skies", backgroundTextures, backgroundPath, true, true, true);

@@ -1,5 +1,6 @@
 #include "BestiaryEnemy.h"
 
+#include <CollisionUtils.h>
 #include <Bullet.h>
 #include <EnemyManager.h>
 #include <GameLevel.h>
@@ -833,30 +834,34 @@ void BestiaryEnemy::updateGroundPhysics()
     isOnGround_ = false;
 
     velocityY_ += gravity_;
-    rect_->move({0.f, velocityY_});
-    checkGroundCollision();
-    checkPlatformCollision();
-
-    rect_->move({velocityX_, 0.f});
-    checkPlatformCollision();
-
     const sf::Vector2f levelBounds = static_cast<sf::Vector2f>(gameLevel_->getLevelSize());
-    sf::Vector2f position = rect_->getPosition();
+    const collision::MoveResult moveResult = collision::moveBodyWithWorldCollisions(
+        *rect_,
+        {velocityX_, velocityY_},
+        platform_->getRects(),
+        &ground_->getRect(),
+        levelBounds.x
+    );
 
-    if (position.x <= 0.f)
+    if (moveResult.blockedLeft || moveResult.blockedRight)
     {
-        position.x = 0.f;
-        velocityX_ = std::abs(velocityX_) * 0.2f;
+        velocityX_ = 0.f;
         collidedHorizontally_ = true;
     }
-    else if (position.x + rect_->getSize().x >= levelBounds.x)
+
+    if (moveResult.hitCeiling && velocityY_ < 0.f)
     {
-        position.x = levelBounds.x - rect_->getSize().x;
-        velocityX_ = -std::abs(velocityX_) * 0.2f;
-        collidedHorizontally_ = true;
+        velocityY_ = 0.f;
     }
 
-    rect_->setPosition(position);
+    const bool standingOnGround = collision::isStandingOnGround(*rect_, ground_->getRect());
+    const bool standingOnPlatform = collision::findSupportingPlatform(*rect_, platform_->getRects()) != nullptr;
+    isOnGround_ = moveResult.landed || standingOnGround || standingOnPlatform;
+
+    if (isOnGround_)
+    {
+        velocityY_ = 0.f;
+    }
 
     if (!wasOnGround && isOnGround_ && kind_ == Kind::VoidSlime && state_ != State::Attack)
     {

@@ -2,6 +2,13 @@
 #include<math.h>
 #include<ScreenTransition.h>
 
+#include <algorithm>
+
+namespace
+{
+constexpr float kPi = 3.14159265f;
+}
+
 void LevelPortal::portalOpeningAnimation()
 {
     sf::Vector2f currentScale = sprite->getScale();
@@ -95,30 +102,61 @@ LevelPortal::LevelPortal(const sf::Vector2f basePos, const sf::Vector2f& sOO, co
 void LevelPortal::draw(sf::RenderWindow &window)
 {
     // Выйти если не выполняется ни одно из следующих условий
-    if(!(isOpened || isCalledForOpen || isCalledForClose)) return;
+    if(!(isOpened || isCalledForOpen || isCalledForClose) && effectParticles_.empty()) return;
 
-    
-    if(allTexturesIt == (allPortalBlue.end()-1))
+    if(isOpened || isCalledForOpen || isCalledForClose)
     {
-        gameUtils::switchToNextSprite(sprite.get(),**allTexturesIt->second,*allTexturesIt->first,switchSprite_SwitchOption::Loop);
-        window.draw(*sprite);
-        return;
+        if(allTexturesIt == (allPortalBlue.end()-1))
+        {
+            gameUtils::switchToNextSprite(sprite.get(),**allTexturesIt->second,*allTexturesIt->first,switchSprite_SwitchOption::Loop);
+            window.draw(*sprite);
+        }
+        else if(!gameUtils::switchToNextSprite(sprite.get(),**allTexturesIt->second,*allTexturesIt->first,switchSprite_SwitchOption::Single))
+        {
+            allTexturesIt++;
+            window.draw(*sprite);
+        }
+        else
+        {
+            window.draw(*sprite);
+        }
     }
-    else if(!gameUtils::switchToNextSprite(sprite.get(),**allTexturesIt->second,*allTexturesIt->first,switchSprite_SwitchOption::Single))
+
+    for (const auto& particle : effectParticles_)
     {
-        allTexturesIt++;
+        particle.draw(window);
     }
-    window.draw(*sprite);
     
 }
 
 void LevelPortal::update()
 {
     checkIsTargetInAreaOfTeleportation();
+    updateEffectParticles();
 
     if(isCalledForOpen) portalOpeningAnimation();
     if(isCalledForClose) portalClosingAnimation();
     if(isClosed) setPortalIteratorToBegin();
+
+    const bool shouldEmitTransitionParticles = isOpened && isTargetInAreaOfTeleportation;
+    if (shouldEmitTransitionParticles)
+    {
+        if (!emittedTransitionBurst_)
+        {
+            spawnTransitionParticles(14, 48.f, 164.f, 0.62f);
+            emittedTransitionBurst_ = true;
+            particleEmissionClock_.restart();
+        }
+        else if (particleEmissionClock_.getElapsedTime().asMilliseconds() >= 55)
+        {
+            particleEmissionClock_.restart();
+            spawnTransitionParticles(5, 34.f, 118.f, 0.46f);
+        }
+    }
+    else
+    {
+        emittedTransitionBurst_ = false;
+    }
 
     if(isOpened)
     {
@@ -216,8 +254,10 @@ void LevelPortal::resetState()
     isClosed = true;
     isTargetInAreaOfTeleportation = false;
     isTargetBeingSquished = false;
+    emittedTransitionBurst_ = false;
     setPortalIteratorToBegin();
     sprite->setScale(closedScale);
+    effectParticles_.clear();
     resetTargetScaleToBase();
     resetSquishBools();
 }
@@ -352,4 +392,44 @@ void LevelPortal::teleportTargetToCenterOfPortal()
 {
     this->squishTargetSprite->setPosition(getCenterPosition());
     this->squishTargetRect->setPosition({getCenterPosition().x-20.f,getCenterPosition().y-20.f}); // FIXME 20.f Это оффсет для положения при телепортации ТОЛЬКО основного персонажа
+}
+
+void LevelPortal::spawnTransitionParticles(int count, float minSpeed, float maxSpeed, float lifetime)
+{
+    const sf::Vector2f origin = getCenterPosition();
+
+    for (int index = 0; index < count; ++index)
+    {
+        const float angle = random(0.f, 360.f) * kPi / 180.f;
+        const float speed = random(minSpeed, maxSpeed);
+        const sf::Color color = random(0.f, 1.f) > 0.35f
+            ? sf::Color(112, 208, 255, 218)
+            : sf::Color(82, 150, 255, 202);
+
+        effectParticles_.emplace_back(
+            origin,
+            sf::Vector2f(std::cos(angle) * speed, std::sin(angle) * speed),
+            sf::Vector2f(random(-28.f, 28.f), random(-28.f, 28.f)),
+            color,
+            random(1.7f, 2.8f),
+            -24.f,
+            0.88f,
+            lifetime
+        );
+    }
+}
+
+void LevelPortal::updateEffectParticles()
+{
+    for (auto& particle : effectParticles_)
+    {
+        particle.update();
+    }
+
+    effectParticles_.erase(
+        std::remove_if(effectParticles_.begin(), effectParticles_.end(), [](const Particle& particle) {
+            return !particle.getIsAlive();
+        }),
+        effectParticles_.end()
+    );
 }

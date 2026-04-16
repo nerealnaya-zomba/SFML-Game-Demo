@@ -1,10 +1,13 @@
 #include<Player.h>
+#include <CollisionUtils.h>
+#include <GameLevel.h>
 #include<ScreenTransition.h>
 #include<GameCamera.h>
 #include<VisualEffects.h>
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <exception>
 
 using namespace gameUtils;
@@ -13,6 +16,27 @@ namespace
 {
 constexpr float kPi = 3.14159265f;
 const char* kPlayerProgressPath = "data/playerProgress.json";
+
+sf::Vector2f lerpVector(const sf::Vector2f& from, const sf::Vector2f& to, float progress)
+{
+    return {
+        from.x + (to.x - from.x) * progress,
+        from.y + (to.y - from.y) * progress
+    };
+}
+
+float easeOutCubic(float value)
+{
+    const float clampedValue = std::clamp(value, 0.f, 1.f);
+    const float inverse = 1.f - clampedValue;
+    return 1.f - inverse * inverse * inverse;
+}
+
+float easeInCubic(float value)
+{
+    const float clampedValue = std::clamp(value, 0.f, 1.f);
+    return clampedValue * clampedValue * clampedValue;
+}
 
 std::string categoryToString(Item::Category category)
 {
@@ -287,6 +311,11 @@ ScreenTransition &Player::getScreenTransition()
 bool Player::isCDMenuOpened()
 {
     return this->CDMenu.getIsOpened();
+}
+
+bool Player::isMiniLocationTransitionActive() const
+{
+    return miniLocationTransition_.active;
 }
 
 int Player::getHP()
@@ -903,6 +932,8 @@ void Player::setPosition(sf::Vector2f pos)
 {
     this->playerRectangle_->setPosition(pos);
     this->playerSprite->setPosition(playerRectangle_->getGlobalBounds().getCenter());
+    supportPlatform_ = nullptr;
+    supportPlatformPosition_ = {0.f, 0.f};
 }
 
 void Player::addGold(int amount)
@@ -1012,6 +1043,142 @@ void Player::teleportToSupportPoint(const sf::Vector2f& supportPoint)
     }
 }
 
+void Player::beginMiniLocationTransition(
+    const sf::Vector2f& destinationSupportPoint,
+    const sf::Vector2f& portalCenter,
+    const sf::Color& portalColor
+)
+{
+    if (!isAlive || isPlayingDieAnimation || miniLocationTransition_.active)
+    {
+        return;
+    }
+
+    miniLocationTransition_.active = true;
+    miniLocationTransition_.startCenter = getCenterPosition();
+    miniLocationTransition_.portalCenter = portalCenter;
+    miniLocationTransition_.destinationSupportPoint = destinationSupportPoint;
+    miniLocationTransition_.portalColor = portalColor;
+    miniLocationTransition_.drawRotation = 0.f;
+    miniLocationTransition_.drawScaleFactor = 1.f;
+    miniLocationTransition_.drawAlpha = 255.f;
+    miniLocationTransition_.clock.restart();
+    miniLocationTransition_.particleClock.restart();
+
+    initialWalkSpeed = 0.f;
+    fallingSpeed = 0.f;
+    isIdle = true;
+    isFalling = false;
+    isFliesUp = false;
+    isJumped = false;
+    supportPlatform_ = nullptr;
+    supportPlatformPosition_ = {0.f, 0.f};
+    wasInTeleportArea_ = false;
+    restoreAirJumps();
+    blockControls();
+
+    pushRing(portalCenter, sf::Color(portalColor.r, portalColor.g, portalColor.b, 182), 10.f, 58.f, 3.8f, 2.4f, 182.f);
+    pushRing(portalCenter, sf::Color(228, 255, 212, 132), 6.f, 34.f, 2.8f, 1.8f, 132.f);
+    spawnParticleBurst(
+        portalCenter,
+        sf::Color(150, 244, 188, 212),
+        12,
+        42.f,
+        144.f,
+        2.2f,
+        -48.f,
+        0.62f
+    );
+    triggerCameraImpact({0.f, -0.18f}, 20.f, 0.08f, 0.012f);
+}
+
+bool Player::updateMiniLocationTransition()
+{
+    if (!miniLocationTransition_.active)
+    {
+        return false;
+    }
+
+    const sf::Color portalColor = miniLocationTransition_.portalColor;
+    const float rawProgress = std::clamp(
+        miniLocationTransition_.clock.getElapsedTime().asSeconds() / miniLocationTransition_.durationSeconds,
+        0.f,
+        1.f
+    );
+    const float travelProgress = easeOutCubic(rawProgress);
+    const float shrinkProgress = easeInCubic(rawProgress);
+    const sf::Vector2f targetCenter = {
+        miniLocationTransition_.portalCenter.x,
+        miniLocationTransition_.portalCenter.y + 6.f
+    };
+    const sf::Vector2f currentCenter = lerpVector(
+        miniLocationTransition_.startCenter,
+        targetCenter,
+        travelProgress
+    );
+
+    setPosition({
+        currentCenter.x - playerRectangle_->getSize().x / 2.f,
+        currentCenter.y - playerRectangle_->getSize().y / 2.f
+    });
+
+    initialWalkSpeed = 0.f;
+    fallingSpeed = 0.f;
+    isIdle = true;
+    isFalling = false;
+    isFliesUp = false;
+    isJumped = false;
+
+    miniLocationTransition_.drawRotation = 540.f * travelProgress + std::sin(rawProgress * kPi * 4.f) * 10.f;
+    miniLocationTransition_.drawScaleFactor = std::max(0.04f, 1.f - shrinkProgress * 0.94f);
+    miniLocationTransition_.drawAlpha = std::max(18.f, 255.f - shrinkProgress * 210.f);
+
+    if (miniLocationTransition_.particleClock.getElapsedTime().asMilliseconds() >= 60)
+    {
+        miniLocationTransition_.particleClock.restart();
+        const sf::Vector2f emissionOrigin = {
+            miniLocationTransition_.portalCenter.x + random(-12.f, 12.f),
+            miniLocationTransition_.portalCenter.y + random(-18.f, 18.f)
+        };
+        spawnParticleBurst(
+            emissionOrigin,
+            sf::Color(portalColor.r, static_cast<std::uint8_t>(std::min(255, portalColor.g + 22)), portalColor.b, 210),
+            4,
+            26.f,
+            104.f,
+            1.8f,
+            -34.f,
+            0.42f
+        );
+    }
+
+    if (rawProgress < 1.f)
+    {
+        return true;
+    }
+
+    spawnParticleBurst(
+        miniLocationTransition_.portalCenter,
+        sf::Color(portalColor.r, static_cast<std::uint8_t>(std::min(255, portalColor.g + 12)), portalColor.b, 200),
+        10,
+        58.f,
+        154.f,
+        1.9f,
+        -42.f,
+        0.38f
+    );
+
+    const sf::Vector2f destinationSupportPoint = miniLocationTransition_.destinationSupportPoint;
+    miniLocationTransition_.active = false;
+    miniLocationTransition_.drawRotation = 0.f;
+    miniLocationTransition_.drawScaleFactor = 1.f;
+    miniLocationTransition_.drawAlpha = 255.f;
+    teleportToSupportPoint(destinationSupportPoint);
+    unblockControls();
+
+    return true;
+}
+
 void Player::respawnAt(sf::Vector2f pos)
 {
     HP_ = maxHP;
@@ -1039,6 +1206,10 @@ void Player::respawnAt(sf::Vector2f pos)
     bullets.clear();
     particles.clear();
     effectRings_.clear();
+    miniLocationTransition_.active = false;
+    miniLocationTransition_.drawRotation = 0.f;
+    miniLocationTransition_.drawScaleFactor = 1.f;
+    miniLocationTransition_.drawAlpha = 255.f;
 
     shootTimer.reset();
     shootTimer.stop();
@@ -1183,6 +1354,15 @@ void Player::updateTextures()
         if(!switchToNextSprite(this->playerSprite,*this->satiro_hurtTextures,satiro_hurt_helper,switchSprite_SwitchOption::Single))
         {
             isPlayingHurtAnimation = false;
+        }
+        return;
+    }
+
+    if (miniLocationTransition_.active)
+    {
+        for (auto&& bullet : bullets)
+        {
+            bullet->updateTextures();
         }
         return;
     }
@@ -2151,6 +2331,12 @@ void Player::updatePhysics()
 
     updateParticles();
 
+    if (miniLocationTransition_.active)
+    {
+        updateMiniLocationTransition();
+        return;
+    }
+
     if(this->HP_<=0)
     {
         isPlayingDieAnimation = true;
@@ -2216,45 +2402,103 @@ void Player::updatePhysics()
             isJumped  = true;
     } else  isFliesUp = false;
 
-    if(!isPlayingDashAnimation) playerRectangle_->move({0.f,this->fallingSpeed});
-    
-    playerRectangle_->move({initialWalkSpeed,0.f});
-    
-    if(playerRectangle_->getPosition().y+playerRectangle_->getSize().y>=WINDOW_HEIGHT)
+    Platform& platformSystem = levelManager->getCurrentPlatformSystem();
+    auto& platformRects = platformSystem.getRects();
+    sf::RectangleShape& groundRect = levelManager->getGroundRect();
+    const float levelWidth = static_cast<float>(levelManager->getCurrentLevelSize().x);
+
+    if (supportPlatform_ != nullptr)
+    {
+        const auto supportIt = std::find_if(
+            platformRects.begin(),
+            platformRects.end(),
+            [this](const std::shared_ptr<sf::RectangleShape>& rect) {
+                return rect && rect.get() == supportPlatform_;
+            }
+        );
+
+        if (supportIt != platformRects.end() &&
+            !isPlayingDashAnimation &&
+            fallingSpeed >= -0.05f)
+        {
+            const sf::Vector2f currentSupportPosition = (*supportIt)->getPosition();
+            playerRectangle_->move(currentSupportPosition - supportPlatformPosition_);
+        }
+    }
+
+    const float previousFallSpeed = fallingSpeed;
+    const sf::Vector2f frameDelta{
+        initialWalkSpeed,
+        isPlayingDashAnimation ? 0.f : fallingSpeed
+    };
+    const collision::MoveResult moveResult = collision::moveBodyWithWorldCollisions(
+        *playerRectangle_,
+        frameDelta,
+        platformRects,
+        &groundRect,
+        levelWidth
+    );
+
+    if (moveResult.blockedLeft || moveResult.blockedRight)
+    {
+        initialWalkSpeed = 0.f;
+    }
+
+    if (moveResult.hitCeiling && fallingSpeed < 0.f)
+    {
+        fallingSpeed = 0.f;
+        isFliesUp = false;
+    }
+
+    const bool standingOnGround = collision::isStandingOnGround(*playerRectangle_, groundRect);
+    const sf::RectangleShape* currentSupport = collision::findSupportingPlatform(*playerRectangle_, platformRects);
+    if (currentSupport == nullptr && moveResult.supportRect != nullptr)
+    {
+        currentSupport = moveResult.supportRect;
+    }
+    const bool supported = standingOnGround || currentSupport != nullptr || moveResult.landed;
+
+    if (supported)
     {
         isFalling = false;
-        playerRectangle_->setPosition({playerRectangle_->getPosition().x, WINDOW_HEIGHT-playerRectangle_->getSize().y});
+        fallingSpeed = 0.f;
         restoreAirJumps();
+
+        if (moveResult.landed)
+        {
+            const float landingSpeed = std::max(previousFallSpeed, 0.f);
+            if (landingSpeed > 1.6f)
+            {
+                spawnLandingEffect(landingSpeed);
+            }
+
+            if (moveResult.supportRect != nullptr && landingSpeed > 0.6f)
+            {
+                platformSystem.applyImpact(*moveResult.supportRect, landingSpeed);
+            }
+        }
     }
     else
     {
         isFalling = true;
     }
-    if(isFalling)
+
+    if (isFalling)
     {
-        if(isPlayingDashAnimation)
+        if (isPlayingDashAnimation)
         {
-            fallingSpeed= 0.f;
-        } else{
+            fallingSpeed = 0.f;
+        }
+        else
+        {
             fallingSpeed += gravity_;
         }
+    }
 
-    }
-    else
+    supportPlatform_ = currentSupport;
+    if (supportPlatform_ != nullptr)
     {
-        fallingSpeed = 0.f;
-    }
-    //std::cout << playerRectangle->getPosition().x << std::endl;
-
-    //Level border collision (left and right)
-    float levelWidth = static_cast<float>(levelManager->getCurrentLevelSize().x);
-    if(playerRectangle_->getPosition().x+playerRectangle_->getSize().x>=levelWidth)
-    {
-        playerRectangle_->setPosition({levelWidth-playerRectangle_->getSize().x,playerRectangle_->getPosition().y});
-    }
-    else if(playerRectangle_->getPosition().x<=0)
-    {
-        playerRectangle_->setPosition({0.f,playerRectangle_->getPosition().y});
+        supportPlatformPosition_ = supportPlatform_->getPosition();
     }
 }
 
@@ -2317,8 +2561,32 @@ void Player::draw(sf::RenderWindow& window)
 
     drawParticles(window);
     playerSprite->setPosition({(playerRectangle_->getPosition().x+playerRectangle_->getSize().x/2),(playerRectangle_->getPosition().y+playerRectangle_->getSize().y/2)-6.f});
+    const sf::Vector2f baseScale = playerSprite->getScale();
+    const sf::Color baseColor = playerSprite->getColor();
+    const sf::Angle baseRotation = playerSprite->getRotation();
+
+    if (miniLocationTransition_.active)
+    {
+        const float scaleFactor = miniLocationTransition_.drawScaleFactor;
+        const float drawAlpha = std::clamp(miniLocationTransition_.drawAlpha, 0.f, 255.f);
+        playerSprite->setScale({
+            (baseScale.x >= 0.f ? 1.f : -1.f) * std::max(0.04f, std::abs(baseScale.x) * scaleFactor),
+            std::max(0.04f, baseScale.y * scaleFactor)
+        });
+        playerSprite->setRotation(sf::degrees(miniLocationTransition_.drawRotation));
+        playerSprite->setColor(sf::Color(
+            static_cast<std::uint8_t>(std::clamp(baseColor.r + 24.f, 0.f, 255.f)),
+            static_cast<std::uint8_t>(std::clamp(baseColor.g + 16.f, 0.f, 255.f)),
+            static_cast<std::uint8_t>(std::clamp(baseColor.b + 8.f, 0.f, 255.f)),
+            static_cast<std::uint8_t>(drawAlpha)
+        ));
+    }
+
     // window.draw(*playerRectangle_);
     window.draw(*playerSprite);
+    playerSprite->setScale(baseScale);
+    playerSprite->setColor(baseColor);
+    playerSprite->setRotation(baseRotation);
 }
 
 void Player::drawParticles(sf::RenderWindow &window)
@@ -2344,7 +2612,13 @@ void Player::drawPlayerTrail(sf::RenderWindow& window)
     trail->speedOfTrailDisappearing = 14;
     trail->trailColor = sf::Color(14, 12, 16, 82);
 
-    if (portal->getIsInAreaOfTeleportation())
+    if (miniLocationTransition_.active)
+    {
+        trail->speedOfTrailDisappearing = 11;
+        trail->trailColor = sf::Color(82, 186, 124, 110);
+        trail->generateTrail(window);
+    }
+    else if (portal->getIsInAreaOfTeleportation())
     {
         trail->speedOfTrailDisappearing = 10;
         trail->trailColor = sf::Color(54, 132, 166, 96);

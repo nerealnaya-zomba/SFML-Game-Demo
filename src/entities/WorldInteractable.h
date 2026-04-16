@@ -61,6 +61,8 @@ private:
     bool panelOpen_ = false;
 
     sf::Clock animationClock_;
+    float animationPhase_ = 0.f;
+    sf::CircleShape shadow_;
     sf::CircleShape halo_;
     sf::CircleShape innerHalo_;
     sf::RectangleShape promptShadow_;

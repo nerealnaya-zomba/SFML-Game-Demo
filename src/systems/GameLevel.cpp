@@ -27,6 +27,31 @@
 
 namespace
 {
+constexpr sf::Vector2f kMiniLocationPortalScale{0.22f, 0.33f};
+constexpr sf::Vector2f kWorldNameplateScale{0.30f, 0.30f};
+constexpr std::array<const char*, 20> kWorldNameplateTextures{
+    "nameplate_01.png",
+    "nameplate_02.png",
+    "nameplate_03.png",
+    "nameplate_04.png",
+    "nameplate_05.png",
+    "nameplate_06.png",
+    "nameplate_07.png",
+    "nameplate_08.png",
+    "nameplate_09.png",
+    "nameplate_10.png",
+    "nameplate_11.png",
+    "nameplate_12.png",
+    "nameplate_13.png",
+    "nameplate_14.png",
+    "nameplate_15.png",
+    "nameplate_16.png",
+    "nameplate_17.png",
+    "nameplate_18.png",
+    "nameplate_19.png",
+    "nameplate_20.png"
+};
+
 struct MiniLocationCandidate
 {
     float centerX = 0.f;
@@ -59,6 +84,43 @@ struct MiniLocationTheme
     std::string rewardTitle;
     std::string rewardBody;
 };
+
+std::uint32_t hashNameplateSeed(const std::string& value)
+{
+    std::uint32_t hash = 2166136261u;
+    for (const unsigned char symbol : value)
+    {
+        hash ^= symbol;
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
+std::string pickWorldNameplateTexture(
+    const WorldInteractable::Type type,
+    const std::string& title,
+    const sf::Vector2f& position
+)
+{
+    const std::string seed =
+        std::to_string(static_cast<int>(type))
+        + "|"
+        + title
+        + "|"
+        + std::to_string(static_cast<int>(std::round(position.x)))
+        + "|"
+        + std::to_string(static_cast<int>(std::round(position.y)));
+
+    const std::size_t textureIndex = hashNameplateSeed(seed) % kWorldNameplateTextures.size();
+    return kWorldNameplateTextures[textureIndex];
+}
+
+void applyWorldNameplateVisual(WorldInteractable::Config& config)
+{
+    config.textureName = pickWorldNameplateTexture(config.type, config.title, config.position);
+    config.scale = kWorldNameplateScale;
+    config.color = sf::Color::White;
+}
 
 std::mt19937& miniLocationRng()
 {
@@ -196,6 +258,54 @@ const std::vector<MiniLocationTheme>& getMiniLocationThemes()
     };
 
     return themes;
+}
+
+bool usesAbyssPlatformTheme(const std::string& levelName)
+{
+    return levelName == "level4.json" || levelName == "level6.json";
+}
+
+std::string remapPlatformTypeForLevel(const std::string& levelName, const std::string& originalType)
+{
+    if (!usesAbyssPlatformTheme(levelName))
+    {
+        return originalType;
+    }
+
+    if (originalType == "Thorn-ramp")
+    {
+        return "Abyss-Thorn-ramp";
+    }
+    if (originalType == "Runed-ledge")
+    {
+        return "Abyss-Runed-ledge";
+    }
+    if (originalType == "Bone-dais")
+    {
+        return "Abyss-Bone-dais";
+    }
+    if (originalType == "Obsidian-span")
+    {
+        return "Abyss-Obsidian-span";
+    }
+    if (originalType == "Cathedral-span")
+    {
+        return "Abyss-Cathedral-span";
+    }
+    if (originalType == "Ritual-bridge")
+    {
+        return "Abyss-Ritual-bridge";
+    }
+    if (originalType == "Fallen-arcade")
+    {
+        return "Abyss-Fallen-arcade";
+    }
+    if (originalType == "Crypt-pillar")
+    {
+        return "Abyss-Crypt-pillar";
+    }
+
+    return originalType;
 }
 
 bool hasEntranceClearance(
@@ -529,6 +639,16 @@ std::vector<std::shared_ptr<sf::RectangleShape>>& GameLevelManager::getPlatformR
     return levelIt->second->getPlatformRects();
 }
 
+Platform& GameLevelManager::getCurrentPlatformSystem()
+{
+    if (levelIt == levels.end() || !levelIt->second)
+    {
+        throw std::runtime_error("Current level does not exist");
+    }
+
+    return levelIt->second->getPlatformSystem();
+}
+
 sf::RectangleShape& GameLevelManager::getGroundRect()
 {
     return levelIt->second->getGroundRect();
@@ -703,6 +823,10 @@ GameLevel::~GameLevel() = default;
 
 void GameLevel::updatePlatforms()
 {
+    if (platforms)
+    {
+        platforms->update();
+    }
 }
 
 void GameLevel::updateDecorations()
@@ -749,7 +873,6 @@ void GameLevel::updateInteractives()
 
 void GameLevel::update()
 {
-    updatePlatforms();
     updateDecorations();
     updateBackgrounds();
     updateGrounds();
@@ -1005,7 +1128,7 @@ void GameLevel::initializePlatforms(const nlohmann::json& data)
         };
 
         const std::string type = platform["Type"];
-        platforms->addPlatform(position, type);
+        platforms->addPlatform(position, remapPlatformTypeForLevel(levelName, type));
     }
 }
 
@@ -1192,6 +1315,7 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
             config.prompt = interactiveData.value("Prompt", std::string{"Enter to interact"});
             config.title = interactiveData.value("Title", std::string{"Forgotten Relic"});
             config.body = interactiveData.value("Body", std::string{"The dead left a trace here."});
+            applyWorldNameplateVisual(config);
 
             if (interactiveData.contains("SpawnOffset"))
             {
@@ -1217,7 +1341,7 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
         MiniLocationEntrance::Config entranceConfig;
         entranceConfig.textureName = generatedLocation.entranceTexture;
         entranceConfig.position = generatedLocation.entrancePosition;
-        entranceConfig.scale = {0.32f, 0.32f};
+        entranceConfig.scale = kMiniLocationPortalScale;
         entranceConfig.destinationSupportPoint = generatedLocation.entranceDestinationSupport;
         entranceConfig.color = generatedLocation.entranceColor;
         entranceConfig.accentColor = generatedLocation.accentColor;
@@ -1235,7 +1359,7 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
         MiniLocationEntrance::Config exitConfig;
         exitConfig.textureName = generatedLocation.exitTexture;
         exitConfig.position = generatedLocation.exitPosition;
-        exitConfig.scale = {0.26f, 0.26f};
+        exitConfig.scale = kMiniLocationPortalScale;
         exitConfig.destinationSupportPoint = generatedLocation.exitDestinationSupport;
         exitConfig.color = generatedLocation.exitColor;
         exitConfig.accentColor = generatedLocation.accentColor;
@@ -1283,6 +1407,7 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
         config.prompt = generatedReward.prompt;
         config.title = generatedReward.title;
         config.body = generatedReward.body;
+        applyWorldNameplateVisual(config);
 
         interactives.push_back(std::make_unique<WorldInteractable>(
             *this->data,
@@ -1790,6 +1915,11 @@ sf::FloatRect GameLevel::getCameraBoundsForPosition(const sf::Vector2f& position
 std::vector<std::shared_ptr<sf::RectangleShape>>& GameLevel::getPlatformRects()
 {
     return platforms->getRects();
+}
+
+Platform& GameLevel::getPlatformSystem()
+{
+    return *platforms;
 }
 
 sf::RectangleShape& GameLevel::getGroundRect()

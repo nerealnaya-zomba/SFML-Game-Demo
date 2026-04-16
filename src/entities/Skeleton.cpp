@@ -1,4 +1,5 @@
 #include <Skeleton.h>
+#include <CollisionUtils.h>
 #include "Ground.h"    
 #include "Platform.h"  
 #include "Player.h"
@@ -951,32 +952,38 @@ void Skeleton::updatePhysics() {
     if(!portal->getIsHalfPassed()) return;
 
     applyFriction(initialWalkSpeed, frictionForce);
-    
-    skeletonRect->move({0.f, fallingSpeed});
-    skeletonRect->move({initialWalkSpeed, 0.f});
-    
 
     sf::Vector2f levelBounds = static_cast<sf::Vector2f>(gameLevel->getLevelSize());
-    
-    // Коллизии с границами окна
-    if (skeletonRect->getPosition().y + skeletonRect->getSize().y >= levelBounds.y) {
-        isFalling = false;
-        skeletonRect->setPosition({skeletonRect->getPosition().x, levelBounds.y - skeletonRect->getSize().y});
-    } else {
-        isFalling = true;
+    const collision::MoveResult moveResult = collision::moveBodyWithWorldCollisions(
+        *skeletonRect,
+        {initialWalkSpeed, fallingSpeed},
+        platform_->getRects(),
+        &ground_->getRect(),
+        levelBounds.x
+    );
+
+    if (moveResult.blockedLeft || moveResult.blockedRight) {
+        initialWalkSpeed = 0.f;
+
+        const bool blockedWhileChasingRight = hasDetectedPlayer && action_ == WALKRIGHT && moveResult.blockedRight;
+        const bool blockedWhileChasingLeft = hasDetectedPlayer && action_ == WALKLEFT && moveResult.blockedLeft;
+        if (blockedWhileChasingRight || blockedWhileChasingLeft) {
+            registerBlockedChaseBoundary(blockedWhileChasingLeft);
+        }
     }
-    
+
+    if (moveResult.hitCeiling && fallingSpeed < 0.f) {
+        fallingSpeed = 0.f;
+    }
+
+    const bool standingOnGround = collision::isStandingOnGround(*skeletonRect, ground_->getRect());
+    const bool standingOnPlatform = collision::findSupportingPlatform(*skeletonRect, platform_->getRects()) != nullptr;
+    isFalling = !(moveResult.landed || standingOnGround || standingOnPlatform);
+
     if (isFalling) {
         fallingSpeed += 0.1f;
     } else {
         fallingSpeed = 0.f;
-    }
-    
-    // Боковые границы
-    if (skeletonRect->getPosition().x + skeletonRect->getSize().x >= levelBounds.x) {
-        skeletonRect->setPosition({levelBounds.x - skeletonRect->getSize().x, skeletonRect->getPosition().y});
-    } else if (skeletonRect->getPosition().x <= 0) {
-        skeletonRect->setPosition({0.f, skeletonRect->getPosition().y});
     }
     
     if (HP_ <= 0) {
@@ -997,9 +1004,6 @@ void Skeleton::updatePhysics() {
         );
     }
 
-    // Коллизии (всегда в конце)
-    checkGroundCollision(*ground_);
-    checkPlatformCollision(*platform_);
     if (HP_ > 0) checkBulletCollision(*player_);
     
     healthbar->update(HP_);

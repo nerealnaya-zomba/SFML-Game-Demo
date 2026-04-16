@@ -194,9 +194,15 @@ public:
     void restoreVitalResources();
     void resetProgress();
     void teleportToSupportPoint(const sf::Vector2f& supportPoint);
+    void beginMiniLocationTransition(
+        const sf::Vector2f& destinationSupportPoint,
+        const sf::Vector2f& portalCenter,
+        const sf::Color& portalColor = sf::Color(110, 224, 164, 255)
+    );
     void forceKill();
     void respawnAt(sf::Vector2f pos);
     void notifyLevelEntered(const std::string& levelName);
+    bool isMiniLocationTransitionActive() const;
 
         // Control methods
     void updateControls();                  // Process player input
@@ -243,6 +249,21 @@ private:
         float alpha = 180.f;
     };
 
+    struct MiniLocationTransitionState
+    {
+        bool active = false;
+        sf::Clock clock;
+        sf::Clock particleClock;
+        sf::Vector2f startCenter{0.f, 0.f};
+        sf::Vector2f portalCenter{0.f, 0.f};
+        sf::Vector2f destinationSupportPoint{0.f, 0.f};
+        sf::Color portalColor{110, 224, 164, 255};
+        float durationSeconds = 0.5f;
+        float drawRotation = 0.f;
+        float drawScaleFactor = 1.f;
+        float drawAlpha = 255.f;
+    };
+
     // Texture arrays
     std::vector<sf::Texture>* idleTextures;     // Idle animation frames
     std::vector<sf::Texture>* runningTextures;  // Running animation frames  
@@ -268,6 +289,7 @@ private:
     ////////////////////////////////////////////////////////////////
 
     std::vector<VisualRing> effectRings_;
+    MiniLocationTransitionState miniLocationTransition_{};
     bool deathEffectPlayed_ = false;
     bool wasInTeleportArea_ = false;
 
@@ -311,6 +333,7 @@ private:
     void spawnCriticalHealthEffect();
     void spawnWeaponSwitchEffect();
     void updateRingEffects();
+    bool updateMiniLocationTransition();
     void triggerCameraImpact(const sf::Vector2f& direction, float impulseStrength, float trauma, float zoomPunch = 0.02f);
     float getFacingDirection() const;
     void initializeDefaultWeapon();
@@ -389,6 +412,8 @@ private:
     float gravity_ = 0.1f;
     int maxAirJumps_ = 0;
     int airJumpsRemaining_ = 0;
+    const sf::RectangleShape* supportPlatform_ = nullptr;
+    sf::Vector2f supportPlatformPosition_{0.f, 0.f};
     bool jumpKeyWasDown_ = false;
     Item::Stats inventoryStatsBonus_{};
     std::vector<OwnedItem> inventory_;

@@ -1,16 +1,34 @@
 #include <Platform.h>
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <random>
 
 namespace
 {
 constexpr bool DRAW_PLATFORM_HITBOXES = false;
+constexpr char EXTRACTED_PLATFORM_PREFIX[] = "images/platform/Extracted/";
+constexpr float PLATFORM_SPRING_STIFFNESS = 42.f;
+constexpr float PLATFORM_SPRING_DAMPING = 10.5f;
+constexpr float PLATFORM_SPRING_REST_THRESHOLD = 0.03f;
+
+std::mt19937& platformAnimationRng()
+{
+    static std::mt19937 rng(std::random_device{}());
+    return rng;
+}
+
+float randomFloat(const float minValue, const float maxValue)
+{
+    std::uniform_real_distribution<float> distribution(minValue, maxValue);
+    return distribution(platformAnimationRng());
+}
 
 const std::unordered_map<std::string, Platform::TypeDefinition>& buildPlatformDefinitions()
 {
     static const std::unordered_map<std::string, Platform::TypeDefinition> definitions{
-        {"Invisible-wall", {"", {72.f, 180.f}, {1.f, 1.f}, {0.f, 0.f}, sf::Color::Transparent}},
+        {"Invisible-wall", {"", {72.f, 180.f}, {1.f, 1.f}, {0.f, 0.f}, sf::Color::Transparent, PlatformAtmosphereStyle::None, sf::Color::Transparent, 1.f, 0.f, 0.f}},
         {"Single-angled", {"images/platform/Single-angled.png", {40.f, 40.f}, {0.2f, 0.2f}, {-6.f, 0.f}, sf::Color::White}},
         {"Single-flat", {"images/platform/Single-flat.png", {40.f, 30.f}, {0.2f, 0.2f}, {-6.f, 0.f}, sf::Color::White}},
         {"Single-square", {"images/platform/Single-square.png", {50.f, 40.f}, {0.2f, 0.2f}, {-5.f, 0.f}, sf::Color::White}},
@@ -27,7 +45,16 @@ const std::unordered_map<std::string, Platform::TypeDefinition>& buildPlatformDe
         {"Cathedral-span", {"images/platform/Cathedral-span.png", {180.f, 30.f}, {0.2f, 0.2f}, {1.f, 6.f}, sf::Color(255, 244, 240, 255)}},
         {"Crypt-pillar", {"images/platform/Crypt-pillar.png", {60.f, 150.f}, {0.2f, 0.2f}, {-2.f, 12.f}, sf::Color(250, 250, 255, 255)}},
         {"Ritual-bridge", {"images/platform/Ritual-bridge.png", {264.f, 32.f}, {0.2f, 0.2f}, {-2.f, 8.f}, sf::Color(255, 244, 240, 255)}},
-        {"Fallen-arcade", {"images/platform/Fallen-arcade.png", {336.f, 30.f}, {0.2f, 0.2f}, {-2.f, 6.f}, sf::Color(252, 248, 244, 255)}}
+        {"Fallen-arcade", {"images/platform/Fallen-arcade.png", {336.f, 30.f}, {0.2f, 0.2f}, {-2.f, 6.f}, sf::Color(252, 248, 244, 255)}},
+
+        {"Abyss-Thorn-ramp", {"images/platform/Extracted/platform_variant_03.png", {54.f, 28.f}, {0.27f, 0.27f}, {-2.f, 0.f}, sf::Color(255, 248, 244, 255), PlatformAtmosphereStyle::Ember, sf::Color(255, 168, 96, 116), 0.72f}},
+        {"Abyss-Runed-ledge", {"images/platform/Extracted/platform_variant_03.png", {64.f, 30.f}, {0.29f, 0.29f}, {0.f, 1.f}, sf::Color(255, 248, 244, 255), PlatformAtmosphereStyle::Ember, sf::Color(255, 168, 96, 110), 0.78f}},
+        {"Abyss-Bone-dais", {"images/platform/Extracted/platform_variant_03.png", {66.f, 30.f}, {0.30f, 0.30f}, {0.f, 1.f}, sf::Color(255, 248, 244, 255), PlatformAtmosphereStyle::Ember, sf::Color(255, 174, 102, 106), 0.74f}},
+        {"Abyss-Obsidian-span", {"images/platform/Extracted/platform_variant_14.png", {180.f, 30.f}, {0.74f, 0.74f}, {0.f, 18.f}, sf::Color(255, 250, 244, 255), PlatformAtmosphereStyle::Dust, sf::Color(224, 204, 160, 92), 0.82f}},
+        {"Abyss-Cathedral-span", {"images/platform/Extracted/platform_variant_14.png", {180.f, 30.f}, {0.74f, 0.74f}, {0.f, 18.f}, sf::Color(255, 250, 244, 255), PlatformAtmosphereStyle::Dust, sf::Color(214, 204, 178, 88), 0.78f}},
+        {"Abyss-Ritual-bridge", {"images/platform/Extracted/platform_variant_14.png", {264.f, 32.f}, {1.08f, 1.08f}, {0.f, 31.f}, sf::Color(255, 250, 244, 255), PlatformAtmosphereStyle::Dust, sf::Color(214, 196, 162, 86), 0.90f}},
+        {"Abyss-Fallen-arcade", {"images/platform/Extracted/platform_variant_14.png", {336.f, 30.f}, {1.36f, 1.36f}, {0.f, 43.f}, sf::Color(255, 250, 244, 255), PlatformAtmosphereStyle::Dust, sf::Color(204, 192, 164, 82), 0.96f}},
+        {"Abyss-Crypt-pillar", {"images/platform/Crypt-pillar.png", {60.f, 150.f}, {0.2f, 0.2f}, {-2.f, 12.f}, sf::Color(250, 250, 255, 255), PlatformAtmosphereStyle::Drip, sf::Color(212, 136, 255, 104), 0.66f}}
     };
 
     return definitions;
@@ -51,11 +78,13 @@ std::unordered_map<std::string, sf::Texture> loadPlatformTextures()
             continue;
         }
 
-        if (texture.generateMipmap())
+        const bool isExtractedPlatform = definition.texturePath.find(EXTRACTED_PLATFORM_PREFIX) == 0;
+        if (!isExtractedPlatform && texture.generateMipmap())
         {
             debugLog("Mipmap generated for platform: ", name);
         }
-        texture.setSmooth(true);
+
+        texture.setSmooth(!isExtractedPlatform);
         loadedTextures.emplace(name, std::move(texture));
     }
 
@@ -84,10 +113,59 @@ void Platform::draw(sf::RenderWindow& window)
         }
     }
 
-    for (auto& sprite : sprites)
+    for (auto& instance : instances_)
     {
-        window.draw(*sprite);
+        if (instance.sprite)
+        {
+            window.draw(*instance.sprite);
+        }
     }
+
+    atmosphere_.draw(window);
+}
+
+void Platform::update()
+{
+    const float deltaSeconds = std::min(0.05f, deltaClock_.restart().asSeconds());
+    const float elapsedSeconds = animationClock_.getElapsedTime().asSeconds();
+
+    for (auto& instance : instances_)
+    {
+        const float hoverOffset =
+            instance.hoverAmplitude > 0.f
+                ? std::sin(elapsedSeconds * instance.hoverFrequency + instance.hoverPhase) * instance.hoverAmplitude
+                : 0.f;
+
+        instance.springVelocity += (
+            -instance.springOffset * PLATFORM_SPRING_STIFFNESS -
+            instance.springVelocity * PLATFORM_SPRING_DAMPING
+        ) * deltaSeconds;
+        instance.springOffset += instance.springVelocity * deltaSeconds;
+
+        if (std::abs(instance.springOffset) < PLATFORM_SPRING_REST_THRESHOLD &&
+            std::abs(instance.springVelocity) < PLATFORM_SPRING_REST_THRESHOLD)
+        {
+            instance.springOffset = 0.f;
+            instance.springVelocity = 0.f;
+        }
+
+        instance.rect->setPosition({
+            instance.baseRectPosition.x,
+            instance.baseRectPosition.y + hoverOffset + instance.springOffset
+        });
+
+        if (instance.sprite)
+        {
+            instance.sprite->setPosition(instance.rect->getGlobalBounds().getCenter() + instance.spriteOffset);
+        }
+
+        if (instance.emitterIndex != PlatformAtmosphere::InvalidEmitterIndex)
+        {
+            atmosphere_.setEmitterBounds(instance.emitterIndex, instance.rect->getGlobalBounds());
+        }
+    }
+
+    atmosphere_.update();
 }
 
 void Platform::addPlatform(sf::Vector2f position, std::string name)
@@ -114,21 +192,49 @@ void Platform::addPlatform(sf::Vector2f position, std::string name)
         texture = &textureIt->second;
     }
 
-    auto rect = std::make_shared<sf::RectangleShape>();
-    rect->setPosition(position);
-    rect->setFillColor(sf::Color(0, 0, 0, 0));
-    rect->setSize(definition.hitboxSize);
-    const sf::Vector2f center = rect->getGlobalBounds().getCenter();
-    rects.push_back(rect);
+    PlatformInstance instance;
+    instance.rect = std::make_shared<sf::RectangleShape>();
+    instance.baseRectPosition = position;
+    instance.rect->setPosition(position);
+    instance.rect->setFillColor(sf::Color(0, 0, 0, 0));
+    instance.rect->setSize(definition.hitboxSize);
+    instance.spriteOffset = definition.spriteOffset;
+    instance.hoverAmplitude = definition.texturePath.empty() ? 0.f : definition.hoverAmplitude;
+    instance.hoverFrequency = definition.hoverFrequency;
+    instance.hoverPhase = randomFloat(0.f, 6.28318f);
 
     if (texture != nullptr)
     {
-        auto sprite = std::make_unique<sf::Sprite>(*texture);
-        sprite->setOrigin(sprite->getGlobalBounds().getCenter());
-        sprite->setPosition(center + definition.spriteOffset);
-        sprite->setScale(definition.spriteScale);
-        sprite->setColor(definition.tint);
-        sprites.push_back(std::move(sprite));
+        instance.sprite = std::make_unique<sf::Sprite>(*texture);
+        instance.sprite->setOrigin(instance.sprite->getGlobalBounds().getCenter());
+        instance.sprite->setScale(definition.spriteScale);
+        instance.sprite->setColor(definition.tint);
+        instance.sprite->setPosition(instance.rect->getGlobalBounds().getCenter() + definition.spriteOffset);
+    }
+
+    instance.emitterIndex = atmosphere_.addEmitter({
+        instance.rect->getGlobalBounds(),
+        definition.atmosphereStyle,
+        definition.atmosphereColor,
+        definition.atmosphereDensity
+    });
+
+    rects.push_back(instance.rect);
+    instances_.push_back(std::move(instance));
+}
+
+void Platform::applyImpact(const sf::RectangleShape& rect, const float fallSpeed)
+{
+    for (auto& instance : instances_)
+    {
+        if (instance.rect.get() != &rect || instance.hoverAmplitude <= 0.f)
+        {
+            continue;
+        }
+
+        const float impactStrength = std::clamp(fallSpeed * 0.9f, 1.4f, 6.8f);
+        instance.springVelocity += impactStrength * 64.f;
+        break;
     }
 }
 
@@ -139,8 +245,11 @@ std::vector<std::shared_ptr<sf::RectangleShape>>& Platform::getRects()
 
 void Platform::clearPlatforms()
 {
-    sprites.clear();
+    instances_.clear();
     rects.clear();
+    atmosphere_.clear();
+    animationClock_.restart();
+    deltaClock_.restart();
 }
 
 bool Platform::hasType(const std::string& name)
@@ -163,6 +272,8 @@ std::vector<std::string> Platform::getAvailableTypes()
 Platform::Platform()
     : textures(&getSharedTextures())
 {
+    animationClock_.restart();
+    deltaClock_.restart();
 }
 
 Platform::~Platform() = default;

@@ -27,6 +27,8 @@ public:
 private:
     GameCamera* camera = nullptr;
     Player* player = nullptr;
+    std::vector<sf::Texture>* portalTextures_ = nullptr;
+    texturesIterHelper portalTextureHelper_{};
 
     sf::Vector2f anchorPosition_{0.f, 0.f};
     sf::Vector2f destinationSupportPoint_{0.f, 0.f};
@@ -54,4 +56,5 @@ public:
     void draw(sf::RenderWindow& window) override;
     void update() override;
     bool handleEvent(const sf::Event& event) override;
+    bool blocksPlayerInput() const override;
 };

@@ -466,10 +466,9 @@ int main()
 
         if (!deathSequenceActive && !overlayActive)
         {
+            levelManager.updatePlatforms();
             player.updateControls();
             player.updatePhysics();
-            player.checkGroundCollision(levelManager.getGroundRect());
-            player.checkPlatformRectCollision(levelManager.getPlatformRects());
             player.moveBullets();
         }
 

@@ -165,6 +165,7 @@ public:
     sf::Vector2i getLevelSize() const;
     sf::FloatRect getCameraBoundsForPosition(const sf::Vector2f& position) const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
+    Platform& getPlatformSystem();
     sf::RectangleShape& getGroundRect();
     sf::Vector2f getPlayerSpawnPos();
     sf::Sprite& getLevelBackgroundSprite();
@@ -225,6 +226,7 @@ public:
     std::string getCurrentLevelName() const;
     std::vector<std::string> getLevelNames() const;
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
+    Platform& getCurrentPlatformSystem();
     sf::RectangleShape& getGroundRect();
     const std::map<std::string, std::shared_ptr<GameLevel>>& getLevelsMap() const;
     std::map<std::string, std::shared_ptr<GameLevel>>::iterator& getIteratorReference();

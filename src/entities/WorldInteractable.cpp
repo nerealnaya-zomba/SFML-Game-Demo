@@ -79,6 +79,8 @@ WorldInteractable::WorldInteractable(
     , bodyText_(*gameData.gameFont)
     , hintText_(*gameData.gameFont)
 {
+    animationPhase_ = anchorPosition_.x * 0.011f + anchorPosition_.y * 0.007f;
+
     setSpriteOriginToMiddle(*sprite);
     setScale(baseScale_);
     setCalculationsScale(baseScale_);
@@ -86,6 +88,11 @@ WorldInteractable::WorldInteractable(
     sprite->setColor(baseColor_);
 
     offsetToInteract = config.interactRadius;
+
+    shadow_.setRadius(26.f);
+    shadow_.setOrigin({shadow_.getRadius(), shadow_.getRadius()});
+    shadow_.setScale({1.55f, 0.50f});
+    shadow_.setFillColor(sf::Color(0, 0, 0, 92));
 
     halo_.setRadius(34.f);
     halo_.setOrigin({halo_.getRadius(), halo_.getRadius()});
@@ -189,14 +196,28 @@ void WorldInteractable::updateInteractionState()
 void WorldInteractable::updateAmbientMotion()
 {
     const float time = animationClock_.getElapsedTime().asSeconds();
-    const float bob = std::sin(time * 1.35f + anchorPosition_.x * 0.01f) * 4.5f;
-    const float pulse = 1.f + std::sin(time * 2.4f + anchorPosition_.y * 0.015f) * 0.08f;
+    const float bob = std::sin(time * 1.65f + animationPhase_) * 6.5f;
+    const float sway = std::sin(time * 0.95f + animationPhase_ * 0.7f) * 3.0f;
+    const float pulse = 1.f + std::sin(time * 2.55f + animationPhase_ * 0.9f) * 0.055f;
+    const float floatScale = 0.985f + std::cos(time * 1.7f + animationPhase_ * 0.6f) * 0.025f;
+    const sf::Vector2f spritePosition{anchorPosition_.x + sway, anchorPosition_.y + bob};
 
-    sprite->setPosition({anchorPosition_.x, anchorPosition_.y + bob});
-    halo_.setPosition({sprite->getGlobalBounds().getCenter().x, sprite->getGlobalBounds().getCenter().y - 8.f});
-    halo_.setScale({pulse * 1.12f, pulse});
+    sprite->setPosition(spritePosition);
+    sprite->setScale({
+        baseScale_.x * pulse,
+        baseScale_.y * floatScale
+    });
+
+    shadow_.setPosition({anchorPosition_.x, anchorPosition_.y + 18.f});
+    shadow_.setScale({
+        1.55f * (1.02f - bob * 0.015f),
+        0.50f * (1.02f - bob * 0.022f)
+    });
+
+    halo_.setPosition({sprite->getGlobalBounds().getCenter().x, sprite->getGlobalBounds().getCenter().y - 10.f});
+    halo_.setScale({pulse * 1.18f, pulse * 1.02f});
     innerHalo_.setPosition(halo_.getPosition());
-    innerHalo_.setScale({pulse, pulse});
+    innerHalo_.setScale({pulse * 0.96f, pulse * 0.92f});
 
     if (activated_ && singleUse_)
     {
@@ -327,6 +348,7 @@ void WorldInteractable::performActivation()
 
 void WorldInteractable::draw(sf::RenderWindow& window)
 {
+    window.draw(shadow_);
     window.draw(halo_);
     window.draw(innerHalo_);
     window.draw(*sprite);

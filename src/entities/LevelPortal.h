@@ -4,6 +4,7 @@
 #include<Mounting.h>
 #include<GameData.h>
 #include<GameLevel.h>
+#include<Particle.h>
 
 class GameLevelManager;
 class ScreenTransition;
@@ -73,9 +74,15 @@ private:
     bool isTargetInAreaOfTeleportation;
     bool isTargetBeingSquished;
     bool isTargetSelected;
+    bool emittedTransitionBurst_ = false;
+
+    std::vector<Particle> effectParticles_;
+    sf::Clock particleEmissionClock_;
 
     void portalOpeningAnimation();
     void portalClosingAnimation();
+    void spawnTransitionParticles(int count, float minSpeed, float maxSpeed, float lifetime);
+    void updateEffectParticles();
     
     // Поставить allTexturesIt в начало
     void setPortalIteratorToBegin();

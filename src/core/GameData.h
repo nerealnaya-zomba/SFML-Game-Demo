@@ -296,6 +296,7 @@ private:
     std::string MossyHangingPlantsPath{"images/decoration/MossyHangingPlants/MossyHangingPlants_"};
     std::string MossyHillsPath{"images/decoration/MossyHills/MossyHills_"};
     std::string MossyTileSetPath{"images/decoration/MossyTileSet/MossyTileSet_"};
+    std::string nameplatesPath{"images/decoration/Nameplates/nameplate_"};
         // PortalBlue
     std::string PortalBlue1Path{"images/decoration/PortalBlue/PortalBlue1/PortalBlue1_"};
     std::string PortalBlue2Path{"images/decoration/PortalBlue/PortalBlue2/PortalBlue2_"};
