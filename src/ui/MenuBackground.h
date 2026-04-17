@@ -65,6 +65,7 @@ public:
     void update(float deltaTime);
     void draw(sf::RenderWindow& window);
 
+    void setSize(int w, int h);
     void setTheme(MenuBackgroundTheme theme);
     void setColors(const sf::Color& c1, const sf::Color& c2);
     void setParticleCount(int count);

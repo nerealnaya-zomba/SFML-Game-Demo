@@ -5,6 +5,7 @@
 AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, sf::RenderWindow& window)
     : onYesClick([]() {})
     , onNoClick([]() {})
+    , desiredSize_(size)
 {
     window_m = &window;
     gui.setWindow(window);
@@ -12,10 +13,7 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     yesButton = tgui::Button::create();
     yesButton->onClick(onYesClick);
     yesButton->setSize(size.x / 5, size.y / 3);
-    const float answer1PositionX = pos.x - (size.x / 4);
-    const float answer1PositionY = pos.y + (size.y / 4);
     yesButton->setOrigin(0.5, 0.5);
-    yesButton->setPosition(answer1PositionX, answer1PositionY);
     yesButton->setText("Yes");
     yesButton->setTextSize(characterSize);
     yesButton->setWidgetName("yesButton");
@@ -34,10 +32,7 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     noButton = tgui::Button::create();
     noButton->onClick(onNoClick);
     noButton->setSize(size.x / 5, size.y / 3);
-    const float answer2PositionX = pos.x + (size.x / 4);
-    const float answer2PositionY = pos.y + (size.y / 4);
     noButton->setOrigin(0.5, 0.5);
-    noButton->setPosition(answer2PositionX, answer2PositionY);
     noButton->setText("No");
     noButton->setTextSize(characterSize);
     noButton->setWidgetName("noButton");
@@ -57,7 +52,6 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     label->setTextSize(characterSize);
     label->setText(text);
     label->setOrigin(0.5, 0.5);
-    label->setPosition(pos.x, pos.y - characterSize);
     label->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
     label->getRenderer()->setTextColor(BASE_LABEL_TEXT_COLOR);
     label->getRenderer()->setTextOutlineColor(sf::Color(0, 0, 0, 180));
@@ -69,10 +63,11 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
 
     mainRect_m.setSize(size);
     setRectangleOriginToMiddle(mainRect_m);
-    mainRect_m.setPosition({pos.x, pos.y - 50});
     mainRect_m.setFillColor(BASE_ASKDIALOGUE_BACKGROUND_COLOR);
     mainRect_m.setOutlineThickness(3.f);
     mainRect_m.setOutlineColor(sf::Color(146, 109, 80, 230));
+
+    refreshLayout();
 }
 
 AskDialogue::~AskDialogue() = default;
@@ -84,6 +79,7 @@ void AskDialogue::draw(sf::RenderWindow& window)
         return;
     }
 
+    refreshLayout();
     window.draw(mainRect_m);
     gui.draw();
 }
@@ -113,6 +109,13 @@ bool AskDialogue::isOpen() const
     return isCalled;
 }
 
+void AskDialogue::attachWindow(sf::RenderWindow& window)
+{
+    window_m = &window;
+    gui.setWindow(window);
+    refreshLayout();
+}
+
 void AskDialogue::setOnYesClick(std::function<void()> fnc)
 {
     onYesClick = std::move(fnc);
@@ -128,4 +131,27 @@ void AskDialogue::setOnNoClick(std::function<void()> fnc)
 void AskDialogue::connectTGUIFont(tgui::Font& font)
 {
     gui.setFont(font);
+}
+
+void AskDialogue::refreshLayout()
+{
+    if (!window_m)
+    {
+        return;
+    }
+
+    const sf::View& defaultView = window_m->getDefaultView();
+    const sf::Vector2f center = defaultView.getCenter();
+
+    mainRect_m.setSize(desiredSize_);
+    setRectangleOriginToMiddle(mainRect_m);
+    mainRect_m.setPosition(center);
+
+    const sf::Vector2f buttonSize = {desiredSize_.x / 5.f, desiredSize_.y / 3.f};
+    yesButton->setSize(buttonSize.x, buttonSize.y);
+    noButton->setSize(buttonSize.x, buttonSize.y);
+    yesButton->setPosition(center.x - desiredSize_.x * 0.24f, center.y + desiredSize_.y * 0.22f);
+    noButton->setPosition(center.x + desiredSize_.x * 0.24f, center.y + desiredSize_.y * 0.22f);
+
+    label->setPosition(center.x, center.y - desiredSize_.y * 0.16f);
 }

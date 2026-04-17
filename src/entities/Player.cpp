@@ -2412,6 +2412,9 @@ void Player::updatePhysics()
     auto& platformRects = platformSystem.getRects();
     sf::RectangleShape& groundRect = levelManager->getGroundRect();
     const float levelWidth = static_cast<float>(levelManager->getCurrentLevelSize().x);
+    const bool wasStandingOnGround = collision::isStandingOnGround(*playerRectangle_, groundRect);
+    const sf::RectangleShape* previousSupport = supportPlatform_;
+    const bool wasSupportedBeforeMove = wasStandingOnGround || previousSupport != nullptr;
 
     if (supportPlatform_ != nullptr)
     {
@@ -2463,6 +2466,15 @@ void Player::updatePhysics()
         currentSupport = moveResult.supportRect;
     }
     const bool supported = standingOnGround || currentSupport != nullptr || moveResult.landed;
+    const bool landedOnPlatformThisFrame =
+        currentSupport != nullptr &&
+        previousFallSpeed > 0.f &&
+        (
+            moveResult.supportRect == currentSupport ||
+            moveResult.landed ||
+            !wasSupportedBeforeMove ||
+            previousSupport != currentSupport
+        );
 
     if (supported)
     {
@@ -2470,7 +2482,7 @@ void Player::updatePhysics()
         fallingSpeed = 0.f;
         restoreAirJumps();
 
-        if (moveResult.landed)
+        if (moveResult.landed || landedOnPlatformThisFrame)
         {
             const float landingSpeed = std::max(previousFallSpeed, 0.f);
             if (landingSpeed > 1.6f)
@@ -2478,9 +2490,9 @@ void Player::updatePhysics()
                 spawnLandingEffect(landingSpeed);
             }
 
-            if (moveResult.supportRect != nullptr && landingSpeed > 0.6f)
+            if (currentSupport != nullptr && landingSpeed > 0.6f)
             {
-                platformSystem.applyImpact(*moveResult.supportRect, landingSpeed);
+                platformSystem.applyImpact(*currentSupport, landingSpeed);
             }
         }
     }

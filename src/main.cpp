@@ -11,6 +11,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <cmath>
+#include <fstream>
 #include <future>
 #include <optional>
 #include <string>
@@ -29,9 +31,54 @@ enum class DeathFlowState
 
 void resetViewForMenu(sf::RenderWindow& window, sf::View& view)
 {
-    view.setCenter({WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f});
-    view.setSize({WINDOW_WIDTH, WINDOW_HEIGHT});
+    const sf::View& defaultView = window.getDefaultView();
+    view.setCenter(defaultView.getCenter());
+    view.setSize(defaultView.getSize());
     window.setView(view);
+}
+
+sf::Vector2u chooseInitialWindowSize()
+{
+    const sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
+    const auto clampDimension = [](unsigned int requested, unsigned int desktop, unsigned int minimum) {
+        if (desktop <= minimum)
+        {
+            return desktop;
+        }
+
+        return std::clamp(requested, minimum, desktop);
+    };
+
+    const unsigned int requestedWidth = static_cast<unsigned int>(std::round(static_cast<float>(desktopMode.size.x) * 0.88f));
+    const unsigned int requestedHeight = static_cast<unsigned int>(std::round(static_cast<float>(desktopMode.size.y) * 0.86f));
+
+    return {
+        clampDimension(std::min(requestedWidth, WINDOW_WIDTH), desktopMode.size.x, 1280u),
+        clampDimension(std::min(requestedHeight, WINDOW_HEIGHT), desktopMode.size.y, 720u)
+    };
+}
+
+bool loadInitialFullscreenPreference()
+{
+    std::ifstream input("data/launchSettings.json");
+    if (!input.is_open())
+    {
+        return false;
+    }
+
+    try
+    {
+        const nlohmann::json document = nlohmann::json::parse(input);
+        const nlohmann::json videoSettings = document.value("video", nlohmann::json::object());
+        return videoSettings.value(
+            "fullscreenEnabled",
+            document.value("fullscreenEnabled", false)
+        );
+    }
+    catch (const nlohmann::json::exception&)
+    {
+        return false;
+    }
 }
 
 std::optional<std::string> parseRequestedLevelIdentifier(int argc, char** argv)
@@ -68,13 +115,26 @@ int main(int argc, char** argv)
 {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     const std::optional<std::string> requestedLevelIdentifier = parseRequestedLevelIdentifier(argc, argv);
+    const bool initialFullscreenEnabled = loadInitialFullscreenPreference();
 
-    auto window = sf::RenderWindow(
-        sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}),
-        WINDOW_TITLE,
-        (sf::Style::Titlebar | sf::Style::Close),
-        sf::State::Fullscreen
-    );
+    sf::RenderWindow window;
+    if (initialFullscreenEnabled)
+    {
+        window.create(
+            sf::VideoMode::getDesktopMode(),
+            WINDOW_TITLE,
+            sf::State::Fullscreen
+        );
+    }
+    else
+    {
+        window.create(
+            sf::VideoMode(chooseInitialWindowSize()),
+            WINDOW_TITLE,
+            (sf::Style::Titlebar | sf::Style::Close),
+            sf::State::Windowed
+        );
+    }
     window.setFramerateLimit(WINDOW_FPS);
 
     sf::Font font;
@@ -114,7 +174,8 @@ int main(int argc, char** argv)
     {
         while (const std::optional event = window.pollEvent())
         {
-            if (event->is<sf::Event::Closed>())
+            const sf::Event& currentEvent = *event;
+            if (currentEvent.is<sf::Event::Closed>())
             {
                 window.close();
             }
@@ -361,6 +422,46 @@ int main(int argc, char** argv)
             );
             return true;
         },
+        .onSetFullscreen = [&](bool enabled) {
+            try
+            {
+                const sf::Vector2u previousWindowSize = window.getSize();
+                const sf::Vector2u targetWindowSize = enabled ? sf::Vector2u(sf::VideoMode::getDesktopMode().size)
+                                                              : chooseInitialWindowSize();
+                if (enabled)
+                {
+                    window.create(
+                        sf::VideoMode::getDesktopMode(),
+                        WINDOW_TITLE,
+                        sf::State::Fullscreen
+                    );
+                }
+                else
+                {
+                    window.create(
+                        sf::VideoMode(targetWindowSize),
+                        WINDOW_TITLE,
+                        (sf::Style::Titlebar | sf::Style::Close),
+                        sf::State::Windowed
+                    );
+                }
+                window.setVerticalSyncEnabled(gameData->isVsyncEnabled());
+                window.setFramerateLimit(gameData->isVsyncEnabled() ? 0u : WINDOW_FPS);
+                menu.attachWindow(window);
+                resetViewForMenu(window, view);
+
+                if (!enabled && previousWindowSize != targetWindowSize)
+                {
+                    window.setPosition({60, 40});
+                }
+
+                return true;
+            }
+            catch (...)
+            {
+                return false;
+            }
+        },
         .onNotify = [&](std::string title, std::string body, const NotificationTone tone) {
             pushNotification(std::move(title), std::move(body), tone);
         },
@@ -403,32 +504,33 @@ int main(int argc, char** argv)
 
         while (const std::optional event = window.pollEvent())
         {
-            if (event->is<sf::Event::Closed>())
+            const sf::Event& currentEvent = *event;
+            if (currentEvent.is<sf::Event::Closed>())
             {
                 window.close();
             }
 
             if (menu.isOpen())
             {
-                menu.menuHandleEvents(*event);
+                menu.menuHandleEvents(currentEvent);
                 continue;
             }
 
-            if (developerOverlay.handleEvent(*event))
+            if (developerOverlay.handleEvent(currentEvent))
             {
                 continue;
             }
 
             if (deathScreen.isOpen())
             {
-                if (const auto action = deathScreen.handleEvent(*event))
+                if (const auto action = deathScreen.handleEvent(currentEvent))
                 {
                     handleDeathScreenAction(*action);
                 }
                 continue;
             }
 
-            if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+            if (const auto* keyPressed = currentEvent.getIf<sf::Event::KeyPressed>())
             {
                 if (keyPressed->scancode == sf::Keyboard::Scancode::Escape)
                 {
@@ -448,21 +550,23 @@ int main(int argc, char** argv)
                 continue;
             }
 
-            if (playerUI.handleEvent(*event))
+            if (playerUI.handleEvent(currentEvent))
             {
                 continue;
             }
 
-            const bool levelEventConsumed = levelManager.handleEvent(*event);
+            player.chooseDestinationMenuHandleEvents(currentEvent);
+            if (player.isCDMenuOpened())
+            {
+                continue;
+            }
+
+            const bool levelEventConsumed = levelManager.handleEvent(currentEvent);
             const bool levelModalOpen = levelManager.hasBlockingInteractiveModal();
 
-            if (!levelEventConsumed && !levelModalOpen && !player.isCDMenuOpened())
+            if (!levelEventConsumed && !levelModalOpen)
             {
-                trader.handleEvent(*event);
-            }
-            if (!levelEventConsumed && !levelModalOpen && !trader.isShopOpened())
-            {
-                player.chooseDestinationMenuHandleEvents(*event);
+                trader.handleEvent(currentEvent);
             }
         }
 

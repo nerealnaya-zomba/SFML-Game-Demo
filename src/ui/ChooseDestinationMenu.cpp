@@ -177,11 +177,11 @@ void ChooseDestinationMenu::handleMoveEvents(const sf::Event& ev)
 {
     if (const auto* keyPressed = ev.getIf<sf::Event::KeyPressed>())
     {
-        if (keyPressed->scancode == moveLeftKey || keyPressed->scancode == sf::Keyboard::Scan::Left)
+        if (keyPressed->scancode == moveLeftKey)
         {
             moveLevelItLeft();
         }
-        else if (keyPressed->scancode == moveRightKey || keyPressed->scancode == sf::Keyboard::Scan::Right)
+        else if (keyPressed->scancode == moveRightKey)
         {
             moveLevelItRight();
         }

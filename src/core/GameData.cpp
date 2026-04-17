@@ -7,6 +7,7 @@ namespace
 {
 constexpr const char* kLaunchSettingsPath = "data/launchSettings.json";
 constexpr int kDefaultLoadingOperationsCount = 62;
+constexpr bool kDefaultFullscreenEnabled = false;
 constexpr bool kDefaultVsyncEnabled = false;
 constexpr int kDefaultMenuParticleCount = 200;
 
@@ -342,6 +343,7 @@ void GameData::saveLaunchSettings() const
 {
     nlohmann::json document = loadLaunchSettingsDocument();
     document["loadingGameAssets_operationsCount"] = allOperations_count_m;
+    document["video"]["fullscreenEnabled"] = launchPreferences_.fullscreenEnabled;
     document["video"]["vsyncEnabled"] = launchPreferences_.vsyncEnabled;
     document["menu"]["particleCount"] = launchPreferences_.menuParticleCount;
 
@@ -359,6 +361,10 @@ void GameData::loadData()
 
     const nlohmann::json videoSettings = document.value("video", nlohmann::json::object());
     const nlohmann::json menuSettings = document.value("menu", nlohmann::json::object());
+    launchPreferences_.fullscreenEnabled = videoSettings.value(
+        "fullscreenEnabled",
+        document.value("fullscreenEnabled", kDefaultFullscreenEnabled)
+    );
     launchPreferences_.vsyncEnabled = videoSettings.value(
         "vsyncEnabled",
         document.value("vsyncEnabled", kDefaultVsyncEnabled)
@@ -382,6 +388,11 @@ const nlohmann::json& GameData::getEnemySettings() const
     return enemySettings_m;
 }
 
+bool GameData::isFullscreenEnabled() const
+{
+    return launchPreferences_.fullscreenEnabled;
+}
+
 bool GameData::isVsyncEnabled() const
 {
     return launchPreferences_.vsyncEnabled;
@@ -395,6 +406,17 @@ int GameData::getMenuParticleCount() const
 GameData::LaunchPreferences GameData::getLaunchPreferences() const
 {
     return launchPreferences_;
+}
+
+void GameData::setFullscreenEnabled(const bool enabled)
+{
+    if (launchPreferences_.fullscreenEnabled == enabled)
+    {
+        return;
+    }
+
+    launchPreferences_.fullscreenEnabled = enabled;
+    saveLaunchSettings();
 }
 
 void GameData::setVsyncEnabled(const bool enabled)

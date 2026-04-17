@@ -29,6 +29,7 @@ class GameData
 public:
     struct LaunchPreferences
     {
+        bool fullscreenEnabled = false;
         bool vsyncEnabled = false;
         int menuParticleCount = 200;
     };
@@ -177,9 +178,11 @@ public:
     std::map<std::string,sf::Texture> guiTextures;
 
     const nlohmann::json& getEnemySettings() const;
+    bool isFullscreenEnabled() const;
     bool isVsyncEnabled() const;
     int getMenuParticleCount() const;
     LaunchPreferences getLaunchPreferences() const;
+    void setFullscreenEnabled(bool enabled);
     void setVsyncEnabled(bool enabled);
     void setMenuParticleCount(int count);
 

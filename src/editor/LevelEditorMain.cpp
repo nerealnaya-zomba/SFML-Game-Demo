@@ -156,6 +156,16 @@ struct EditorSelection
     }
 };
 
+bool operator==(const EditorSelection& lhs, const EditorSelection& rhs)
+{
+    return lhs.kind == rhs.kind && lhs.index == rhs.index;
+}
+
+bool operator!=(const EditorSelection& lhs, const EditorSelection& rhs)
+{
+    return !(lhs == rhs);
+}
+
 enum class PlatformInteractionMode
 {
     None,
@@ -233,6 +243,24 @@ struct SpawnInteractionState
     void clear()
     {
         active = false;
+    }
+};
+
+struct PendingSelectionCycleState
+{
+    bool active = false;
+    sf::Vector2i startPixel{};
+    sf::Vector2f startWorld{0.f, 0.f};
+    EditorSelection initialSelection{};
+    std::vector<EditorSelection> candidates{};
+
+    void clear()
+    {
+        active = false;
+        startPixel = {};
+        startWorld = {0.f, 0.f};
+        initialSelection.clear();
+        candidates.clear();
     }
 };
 
@@ -700,6 +728,7 @@ private:
 
     bool draggingView_ = false;
     sf::Vector2i lastDragPixel_{};
+    PendingSelectionCycleState pendingSelectionCycle_{};
     SpawnInteractionState spawnInteraction_{};
     PlatformInteractionState platformInteraction_{};
     DecorationInteractionState decorationInteraction_{};
@@ -1165,6 +1194,10 @@ private:
 
             if (mousePressed->button == sf::Mouse::Button::Left)
             {
+                if (startPendingSelectionCycle(worldPosition, mousePressed->position))
+                {
+                    return;
+                }
                 if (beginSpawnInteraction(worldPosition))
                 {
                     return;
@@ -1200,7 +1233,10 @@ private:
 
             if (mousePressed->button == sf::Mouse::Button::Right)
             {
-                selectObjectAt(worldPosition, true);
+                if (!selectionContainsPoint(selection_, worldPosition))
+                {
+                    selectObjectAt(worldPosition, true);
+                }
                 if (selection_.isValid())
                 {
                     openWorldContextMenu_ = true;
@@ -1213,6 +1249,11 @@ private:
         {
             if (mouseReleased->button == sf::Mouse::Button::Left)
             {
+                if (pendingSelectionCycle_.active)
+                {
+                    cyclePendingSelection();
+                    return;
+                }
                 finishSpawnInteraction();
                 finishInteractiveInteraction();
                 finishSpawnerInteraction();
@@ -1232,6 +1273,27 @@ private:
 
         if (const auto* mouseMoved = event.getIf<sf::Event::MouseMoved>())
         {
+            if (pendingSelectionCycle_.active)
+            {
+                const sf::Vector2i pixelDelta = mouseMoved->position - pendingSelectionCycle_.startPixel;
+                if ((pixelDelta.x * pixelDelta.x + pixelDelta.y * pixelDelta.y) >= 9)
+                {
+                    pendingSelectionCycle_.clear();
+
+                    const sf::Vector2f movedWorldPosition = window_.mapPixelToCoords(mouseMoved->position, worldView_);
+                    if (beginSpawnInteraction(movedWorldPosition) ||
+                        beginInteractiveInteraction(movedWorldPosition) ||
+                        beginSpawnerInteraction(movedWorldPosition) ||
+                        beginPlatformInteraction(movedWorldPosition) ||
+                        beginDecorationInteraction(movedWorldPosition) ||
+                        beginMiniLocationInteraction(movedWorldPosition) ||
+                        beginGroundInteraction(movedWorldPosition))
+                    {
+                        return;
+                    }
+                }
+            }
+
             if (spawnInteraction_.active)
             {
                 updateSpawnInteraction(window_.mapPixelToCoords(mouseMoved->position, worldView_));
@@ -1621,6 +1683,52 @@ private:
         }
 
         return &(*array)[selection_.index];
+    }
+
+    nlohmann::json* arrayForSelectionKind(const SelectionKind kind)
+    {
+        switch (kind)
+        {
+        case SelectionKind::Platform:
+            return &document_["Platforms"];
+        case SelectionKind::Decoration:
+            return &document_["Decorations"];
+        case SelectionKind::Background:
+            return &document_["Background"];
+        case SelectionKind::Ground:
+            return &document_["Ground"];
+        case SelectionKind::Spawner:
+            return &document_["Spawners"];
+        case SelectionKind::Interactive:
+            return &document_["Interactives"];
+        case SelectionKind::MiniLocation:
+            return &document_["MiniLocations"];
+        default:
+            return nullptr;
+        }
+    }
+
+    const nlohmann::json* arrayForSelectionKind(const SelectionKind kind) const
+    {
+        switch (kind)
+        {
+        case SelectionKind::Platform:
+            return &document_["Platforms"];
+        case SelectionKind::Decoration:
+            return &document_["Decorations"];
+        case SelectionKind::Background:
+            return &document_["Background"];
+        case SelectionKind::Ground:
+            return &document_["Ground"];
+        case SelectionKind::Spawner:
+            return &document_["Spawners"];
+        case SelectionKind::Interactive:
+            return &document_["Interactives"];
+        case SelectionKind::MiniLocation:
+            return &document_["MiniLocations"];
+        default:
+            return nullptr;
+        }
     }
 
     nlohmann::json* selectedPlatform()
@@ -2777,6 +2885,322 @@ private:
         groundInteraction_.clear();
     }
 
+    bool selectionContainsPoint(const EditorSelection& selection, const sf::Vector2f worldPosition) const
+    {
+        switch (selection.kind)
+        {
+        case SelectionKind::Spawn:
+        {
+            const sf::Vector2f spawn = readVector2f(document_["Presets"].value("PlayerSpawn", nlohmann::json::array()), {0.f, 0.f});
+            return sf::FloatRect({spawn.x - 24.f, spawn.y - 48.f}, {48.f, 48.f}).contains(worldPosition);
+        }
+        case SelectionKind::Platform:
+            return selection.index < document_["Platforms"].size() &&
+                platformContainsPoint(document_["Platforms"][selection.index], worldPosition);
+        case SelectionKind::Decoration:
+            return selection.index < document_["Decorations"].size() &&
+                decorationContainsPoint(document_["Decorations"][selection.index], worldPosition);
+        case SelectionKind::Background:
+            return selection.index < document_["Background"].size() &&
+                backgroundBounds(document_["Background"][selection.index]).contains(worldPosition);
+        case SelectionKind::Ground:
+            return selection.index < document_["Ground"].size() &&
+                groundBounds(document_["Ground"][selection.index]).contains(worldPosition);
+        case SelectionKind::Spawner:
+            return selection.index < document_["Spawners"].size() &&
+                spawnerBounds(document_["Spawners"][selection.index]).contains(worldPosition);
+        case SelectionKind::Interactive:
+            return selection.index < document_["Interactives"].size() &&
+                interactiveBounds(document_["Interactives"][selection.index]).contains(worldPosition);
+        case SelectionKind::MiniLocation:
+            return selection.index < document_["MiniLocations"].size() &&
+                miniLocationBounds(document_["MiniLocations"][selection.index]).contains(worldPosition);
+        case SelectionKind::None:
+        default:
+            return false;
+        }
+    }
+
+    bool selectionUsesDirectManipulationHandle(const EditorSelection& selection, const sf::Vector2f worldPosition) const
+    {
+        switch (selection.kind)
+        {
+        case SelectionKind::Platform:
+            if (selection.index < document_["Platforms"].size())
+            {
+                const nlohmann::json& platform = document_["Platforms"][selection.index];
+                if (platformScaleHandleBounds(platform).contains(worldPosition) ||
+                    resizeZoneContains(platformSpriteBounds(platform), worldPosition))
+                {
+                    return true;
+                }
+
+                if (platformEditHitboxEnabled(platform))
+                {
+                    const sf::FloatRect hitboxBounds = platformBounds(platform);
+                    if (platformHitboxHandleBounds(platform).contains(worldPosition) ||
+                        resizeZoneContains(hitboxBounds, worldPosition))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        case SelectionKind::Decoration:
+            return selection.index < document_["Decorations"].size() &&
+                (decorationScaleHandleBounds(document_["Decorations"][selection.index]).contains(worldPosition) ||
+                 resizeZoneContains(decorationBounds(document_["Decorations"][selection.index]), worldPosition));
+        case SelectionKind::Interactive:
+            return selection.index < document_["Interactives"].size() &&
+                (interactiveScaleHandleBounds(document_["Interactives"][selection.index]).contains(worldPosition) ||
+                 resizeZoneContains(interactiveBounds(document_["Interactives"][selection.index]), worldPosition));
+        case SelectionKind::Spawner:
+            return selection.index < document_["Spawners"].size() &&
+                (spawnerResizeHandleBounds(document_["Spawners"][selection.index]).contains(worldPosition) ||
+                 resizeZoneContains(spawnerBounds(document_["Spawners"][selection.index]), worldPosition));
+        case SelectionKind::Ground:
+            return selection.index < document_["Ground"].size() &&
+                (groundResizeHandleBounds(document_["Ground"][selection.index]).contains(worldPosition) ||
+                 groundResizeZoneContains(groundBounds(document_["Ground"][selection.index]), worldPosition));
+        case SelectionKind::MiniLocation:
+            return selection.index < document_["MiniLocations"].size() &&
+                (miniLocationResizeHandleBounds(document_["MiniLocations"][selection.index]).contains(worldPosition) ||
+                 resizeZoneContains(miniLocationBounds(document_["MiniLocations"][selection.index]), worldPosition));
+        default:
+            return false;
+        }
+    }
+
+    std::vector<EditorSelection> collectSelectionsAt(const sf::Vector2f worldPosition) const
+    {
+        std::vector<EditorSelection> candidates;
+        candidates.reserve(
+            document_["Background"].size() +
+            document_["Ground"].size() +
+            document_["MiniLocations"].size() +
+            document_["Decorations"].size() +
+            document_["Platforms"].size() +
+            document_["Spawners"].size() +
+            document_["Interactives"].size() +
+            1u
+        );
+
+        const sf::Vector2f spawn = readVector2f(document_["Presets"].value("PlayerSpawn", nlohmann::json::array()), {0.f, 0.f});
+        if (sf::FloatRect({spawn.x - 24.f, spawn.y - 48.f}, {48.f, 48.f}).contains(worldPosition))
+        {
+            candidates.push_back({SelectionKind::Spawn, 0u});
+        }
+
+        for (std::size_t index = document_["Interactives"].size(); index > 0u; --index)
+        {
+            if (interactiveBounds(document_["Interactives"][index - 1u]).contains(worldPosition))
+            {
+                candidates.push_back({SelectionKind::Interactive, index - 1u});
+            }
+        }
+
+        for (std::size_t index = document_["Spawners"].size(); index > 0u; --index)
+        {
+            if (spawnerBounds(document_["Spawners"][index - 1u]).contains(worldPosition))
+            {
+                candidates.push_back({SelectionKind::Spawner, index - 1u});
+            }
+        }
+
+        for (std::size_t index = document_["Platforms"].size(); index > 0u; --index)
+        {
+            if (platformContainsPoint(document_["Platforms"][index - 1u], worldPosition))
+            {
+                candidates.push_back({SelectionKind::Platform, index - 1u});
+            }
+        }
+
+        for (std::size_t index = document_["Decorations"].size(); index > 0u; --index)
+        {
+            if (decorationBounds(document_["Decorations"][index - 1u]).contains(worldPosition))
+            {
+                candidates.push_back({SelectionKind::Decoration, index - 1u});
+            }
+        }
+
+        for (std::size_t index = document_["MiniLocations"].size(); index > 0u; --index)
+        {
+            if (miniLocationBounds(document_["MiniLocations"][index - 1u]).contains(worldPosition))
+            {
+                candidates.push_back({SelectionKind::MiniLocation, index - 1u});
+            }
+        }
+
+        for (std::size_t index = document_["Ground"].size(); index > 0u; --index)
+        {
+            if (groundBounds(document_["Ground"][index - 1u]).contains(worldPosition))
+            {
+                candidates.push_back({SelectionKind::Ground, index - 1u});
+            }
+        }
+
+        for (std::size_t index = document_["Background"].size(); index > 0u; --index)
+        {
+            if (backgroundBounds(document_["Background"][index - 1u]).contains(worldPosition))
+            {
+                candidates.push_back({SelectionKind::Background, index - 1u});
+            }
+        }
+
+        return candidates;
+    }
+
+    bool startPendingSelectionCycle(const sf::Vector2f worldPosition, const sf::Vector2i pixelPosition)
+    {
+        if (placementMode_ != SelectionKind::None || !selection_.isValid())
+        {
+            return false;
+        }
+
+        if (!selectionContainsPoint(selection_, worldPosition) ||
+            selectionUsesDirectManipulationHandle(selection_, worldPosition))
+        {
+            return false;
+        }
+
+        std::vector<EditorSelection> candidates = collectSelectionsAt(worldPosition);
+        if (candidates.size() <= 1u)
+        {
+            return false;
+        }
+
+        const auto currentIt = std::find(candidates.begin(), candidates.end(), selection_);
+        if (currentIt == candidates.end())
+        {
+            return false;
+        }
+
+        pendingSelectionCycle_.active = true;
+        pendingSelectionCycle_.startPixel = pixelPosition;
+        pendingSelectionCycle_.startWorld = worldPosition;
+        pendingSelectionCycle_.initialSelection = selection_;
+        pendingSelectionCycle_.candidates = std::move(candidates);
+        return true;
+    }
+
+    void cyclePendingSelection()
+    {
+        if (!pendingSelectionCycle_.active || pendingSelectionCycle_.candidates.empty())
+        {
+            pendingSelectionCycle_.clear();
+            return;
+        }
+
+        const auto currentIt = std::find(
+            pendingSelectionCycle_.candidates.begin(),
+            pendingSelectionCycle_.candidates.end(),
+            pendingSelectionCycle_.initialSelection
+        );
+        if (currentIt == pendingSelectionCycle_.candidates.end())
+        {
+            selection_ = pendingSelectionCycle_.candidates.front();
+            pendingSelectionCycle_.clear();
+            return;
+        }
+
+        std::size_t nextIndex = static_cast<std::size_t>(std::distance(pendingSelectionCycle_.candidates.begin(), currentIt));
+        nextIndex = (nextIndex + 1u) % pendingSelectionCycle_.candidates.size();
+        selection_ = pendingSelectionCycle_.candidates[nextIndex];
+        pendingSelectionCycle_.clear();
+    }
+
+    bool moveSelectedDrawOrder(const int delta)
+    {
+        nlohmann::json* array = arrayForSelectionKind(selection_.kind);
+        if (array == nullptr || selection_.index >= array->size())
+        {
+            return false;
+        }
+
+        const long long currentIndex = static_cast<long long>(selection_.index);
+        const long long newIndex = std::clamp(
+            currentIndex + static_cast<long long>(delta),
+            0ll,
+            static_cast<long long>(array->size()) - 1ll
+        );
+        if (newIndex == currentIndex)
+        {
+            return false;
+        }
+
+        nlohmann::json object = (*array)[selection_.index];
+        array->erase(array->begin() + static_cast<nlohmann::json::difference_type>(selection_.index));
+        array->insert(array->begin() + static_cast<nlohmann::json::difference_type>(newIndex), object);
+        selection_.index = static_cast<std::size_t>(newIndex);
+        markDirty();
+        return true;
+    }
+
+    bool moveSelectedToDrawOrderEdge(const bool toFront)
+    {
+        nlohmann::json* array = arrayForSelectionKind(selection_.kind);
+        if (array == nullptr || selection_.index >= array->size() || array->empty())
+        {
+            return false;
+        }
+
+        const std::size_t targetIndex = toFront ? array->size() - 1u : 0u;
+        if (selection_.index == targetIndex)
+        {
+            return false;
+        }
+
+        nlohmann::json object = (*array)[selection_.index];
+        array->erase(array->begin() + static_cast<nlohmann::json::difference_type>(selection_.index));
+        array->insert(array->begin() + static_cast<nlohmann::json::difference_type>(targetIndex), object);
+        selection_.index = targetIndex;
+        markDirty();
+        return true;
+    }
+
+    void drawSelectedDrawOrderControls(const char* idSuffix)
+    {
+        const nlohmann::json* array = arrayForSelectionKind(selection_.kind);
+        if (array == nullptr || selection_.kind == SelectionKind::Spawn || selection_.index >= array->size())
+        {
+            return;
+        }
+
+        ImGui::SeparatorText("Draw Order");
+        ImGui::TextDisabled(
+            "Index %zu of %zu. Higher index is drawn on top.",
+            selection_.index + 1u,
+            array->size()
+        );
+
+        const bool canMoveBackward = selection_.index > 0u;
+        const bool canMoveForward = selection_.index + 1u < array->size();
+
+        ImGui::BeginDisabled(!canMoveBackward);
+        if (ImGui::Button((std::string("To Back##") + idSuffix).c_str()))
+        {
+            moveSelectedToDrawOrderEdge(false);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button((std::string("Backward##") + idSuffix).c_str()))
+        {
+            moveSelectedDrawOrder(-1);
+        }
+        ImGui::EndDisabled();
+
+        ImGui::BeginDisabled(!canMoveForward);
+        if (ImGui::Button((std::string("Forward##") + idSuffix).c_str()))
+        {
+            moveSelectedDrawOrder(1);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button((std::string("To Front##") + idSuffix).c_str()))
+        {
+            moveSelectedToDrawOrderEdge(true);
+        }
+        ImGui::EndDisabled();
+    }
+
     bool trySelectSpawnAt(const sf::Vector2f worldPosition)
     {
         const sf::Vector2f spawn = readVector2f(document_["Presets"].value("PlayerSpawn", nlohmann::json::array()), {0.f, 0.f});
@@ -3100,6 +3524,7 @@ private:
                 decorationInteraction_.clear();
                 miniLocationInteraction_.clear();
                 groundInteraction_.clear();
+                pendingSelectionCycle_.clear();
                 openWorldContextMenu_ = false;
                 selection_.clear();
                 markDirty();
@@ -3643,6 +4068,8 @@ private:
                     (*platform)["HitboxSize"] = toJson(platformHitboxSize(*platform));
                     (*platform)["Scale"] = toJson(platformScale(*platform));
                 }
+
+                drawSelectedDrawOrderControls("platform_context");
             }
         }
         else if (selection_.kind == SelectionKind::Decoration)
@@ -3678,6 +4105,8 @@ private:
                 {
                     (*decoration)["Scale"] = toJson(decorationScale(*decoration));
                 }
+
+                drawSelectedDrawOrderControls("decoration_context");
             }
         }
         else if (selection_.kind == SelectionKind::Background)
@@ -3715,6 +4144,8 @@ private:
                     (*background)["Type"] = backgroundType;
                     changed = true;
                 }
+
+                drawSelectedDrawOrderControls("background_context");
             }
         }
         else if (selection_.kind == SelectionKind::Interactive)
@@ -3771,6 +4202,8 @@ private:
                 changed |= editStringField("Prompt##interactive_context", *interactive, "Prompt", 256u);
                 changed |= editStringField("Title##interactive_context", *interactive, "Title", 256u);
                 changed |= editMultilineStringField("Body##interactive_context", *interactive, "Body", ImVec2(320.f, 96.f), 2048u);
+
+                drawSelectedDrawOrderControls("interactive_context");
             }
         }
         else if (selection_.kind == SelectionKind::Spawner)
@@ -3807,6 +4240,8 @@ private:
                     (*spawner)["EnemyPerSpawn"] = std::max(enemyPerSpawn, 1);
                     changed = true;
                 }
+
+                drawSelectedDrawOrderControls("spawner_context");
             }
         }
         else if (selection_.kind == SelectionKind::Ground)
@@ -3857,6 +4292,19 @@ private:
                     (*ground)["Offset"] = offset;
                     changed = true;
                 }
+
+                drawSelectedDrawOrderControls("ground_context");
+            }
+        }
+        else if (selection_.kind == SelectionKind::MiniLocation)
+        {
+            if (auto* location = selectedObject(); location != nullptr)
+            {
+                ImGui::TextUnformatted("Mini Location");
+                ImGui::Separator();
+                ImGui::Text("Title: %s", location->value("Title", std::string{"Mini Location"}).c_str());
+                ImGui::Text("Id: %s", location->value("Id", std::string{"mini_location"}).c_str());
+                drawSelectedDrawOrderControls("mini_location_context");
             }
         }
         else if (const nlohmann::json* object = selectedObject(); object != nullptr)
@@ -4222,6 +4670,8 @@ private:
                 platform["Scale"] = toJson(platformScale(platform));
             }
 
+            drawSelectedDrawOrderControls("platform_inspector");
+
             if (changed)
             {
                 markDirty();
@@ -4276,6 +4726,8 @@ private:
             {
                 markDirty();
             }
+
+            drawSelectedDrawOrderControls("decoration_inspector");
         }
     }
 
@@ -4324,6 +4776,8 @@ private:
             {
                 markDirty();
             }
+
+            drawSelectedDrawOrderControls("background_inspector");
         }
     }
 
@@ -4401,6 +4855,8 @@ private:
             {
                 markDirty();
             }
+
+            drawSelectedDrawOrderControls("ground_inspector");
         }
     }
 
@@ -4461,6 +4917,8 @@ private:
             {
                 markDirty();
             }
+
+            drawSelectedDrawOrderControls("spawner_inspector");
         }
     }
 
@@ -4579,6 +5037,8 @@ private:
             {
                 markDirty();
             }
+
+            drawSelectedDrawOrderControls("interactive_inspector");
         }
     }
 
@@ -4699,6 +5159,8 @@ private:
             {
                 markDirty();
             }
+
+            drawSelectedDrawOrderControls("mini_location_inspector");
         }
     }
 

@@ -162,6 +162,19 @@ void MenuBackground::draw(sf::RenderWindow& window)
     drawVignette(window);
 }
 
+void MenuBackground::setSize(int w, int h)
+{
+    if (width == w && height == h)
+    {
+        return;
+    }
+
+    width = std::max(1, w);
+    height = std::max(1, h);
+    createMistBands();
+    createParticles(static_cast<int>(particles.size()));
+}
+
 void MenuBackground::drawGradient(sf::RenderWindow& window) const
 {
     const float widthF = static_cast<float>(width);

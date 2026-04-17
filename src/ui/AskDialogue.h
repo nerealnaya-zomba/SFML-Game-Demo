@@ -35,12 +35,15 @@ public:
     void open();
     void close();
     bool isOpen() const;
+    void attachWindow(sf::RenderWindow& window);
 
     void setOnYesClick(std::function<void()> fnc);
     void setOnNoClick(std::function<void()> fnc);
     void connectTGUIFont(tgui::Font& font);
 
 private:
+    void refreshLayout();
+
     tgui::Gui gui;
     tgui::Button::Ptr yesButton;
     tgui::Button::Ptr noButton;
@@ -59,6 +62,7 @@ private:
     Answer answer_m = NoAnswer;
     bool isCalled = false;
     int characterSize = 30;
+    sf::Vector2f desiredSize_{0.f, 0.f};
     std::function<void()> onYesClick;
     std::function<void()> onNoClick;
 };

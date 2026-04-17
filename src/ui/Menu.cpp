@@ -72,10 +72,10 @@ struct MenuTheme
     sf::Color infoCardGlow;
 };
 
-constexpr float kMainPanelWidth = 820.f;
-constexpr float kMainPanelHeight = 684.f;
-constexpr float kPausePanelWidth = 700.f;
-constexpr float kPausePanelHeight = 662.f;
+constexpr float kMainPanelWidth = 720.f;
+constexpr float kMainPanelHeight = 590.f;
+constexpr float kPausePanelWidth = 620.f;
+constexpr float kPausePanelHeight = 520.f;
 
 std::string getLevelTitle(const std::string& levelName)
 {
@@ -371,11 +371,27 @@ void Menu::syncPreferencesFromGameData()
         return;
     }
 
+    fullscreenEnabled = gameData_m->isFullscreenEnabled();
     vsyncEnabled = gameData_m->isVsyncEnabled();
     menuParticleCount = normalizeAshDensityCount(gameData_m->getMenuParticleCount());
     background.setParticleCount(menuParticleCount);
     window_m->setVerticalSyncEnabled(vsyncEnabled);
     window_m->setFramerateLimit(vsyncEnabled ? 0u : WINDOW_FPS);
+}
+
+void Menu::attachWindow(sf::RenderWindow& window)
+{
+    window_m = &window;
+    gui.setWindow(window);
+    if (exitDialogue)
+    {
+        exitDialogue->attachWindow(window);
+    }
+    if (resetProgressDialogue)
+    {
+        resetProgressDialogue->attachWindow(window);
+    }
+    applyModeLayout();
 }
 
 void Menu::styleButton(const tgui::Button::Ptr& button, ButtonStyleRole role) const
@@ -435,6 +451,7 @@ void Menu::styleLabel(const tgui::Label::Ptr& label, bool isTitle) const
     renderer->setTextOutlineColor(isTitle ? sf::Color(14, 2, 2, 190) : sf::Color(0, 0, 0, 150));
     renderer->setTextOutlineThickness(isTitle ? 2.f : 1.f);
     label->setHorizontalAlignment(tgui::HorizontalAlignment::Center);
+    label->setVerticalAlignment(tgui::VerticalAlignment::Center);
 }
 
 void Menu::styleInfoLabel(const tgui::Label::Ptr& label) const
@@ -517,7 +534,7 @@ void Menu::setupMainWidgets()
     titleLabel->setTextSize(52);
     gui.add(titleLabel);
 
-    subtitleLabel = tgui::Label::create("Stand before the ash and choose your path");
+    subtitleLabel = tgui::Label::create("Choose a level");
     subtitleLabel->setTextSize(19);
     gui.add(subtitleLabel);
 
@@ -549,9 +566,8 @@ void Menu::setupMainWidgets()
     levelNextButton->onClick([this]() { selectAdjacentLevel(1); });
     gui.add(levelNextButton);
 
-    randomLevelButton = tgui::Button::create(BASE_RANDOM_LEVEL_BUTTON_TEXT);
-    randomLevelButton->setTextSize(20);
-    randomLevelButton->onClick([this]() { selectRandomLevel(); });
+    randomLevelButton = tgui::Button::create("Hidden");
+    randomLevelButton->setVisible(false);
     gui.add(randomLevelButton);
 
     continueButton = createMenuButton(BASE_PLAY_BUTTON_TEXT, 0.f);
@@ -586,7 +602,7 @@ void Menu::initializeLevelSelector()
     levelSelector = tgui::ComboBox::create();
     levelSelector->setSize({400.f, 42.f});
     levelSelector->setTextSize(20);
-    levelSelector->setDefaultText("Select a level");
+    levelSelector->setDefaultText("Level");
     levelSelector->onItemSelect([this](const tgui::String& item) {
         const std::string label = item.toStdString();
         const auto selectedLevelIt = selectorLabelToLevelId_.find(label);
@@ -602,17 +618,17 @@ void Menu::initializeLevelSelector()
 void Menu::initializeSettingsWindow()
 {
     settingsWindow = tgui::ChildWindow::create();
-    settingsWindow->setTitle("Ritual Settings");
-    settingsWindow->setClientSize({420.f, 300.f});
+    settingsWindow->setTitle("Settings");
+    settingsWindow->setClientSize({420.f, 350.f});
     settingsWindow->setPosition({
         window_m->getSize().x / 2.f - 210.f,
-        window_m->getSize().y / 2.f - 185.f
+        window_m->getSize().y / 2.f - 210.f
     });
     settingsWindow->setResizable(false);
     settingsWindow->setTitleButtons(tgui::ChildWindow::TitleButton::None);
     settingsWindow->setVisible(false);
 
-    auto settingsLabel = tgui::Label::create("Tune the veil of this run\nThese rites are remembered next launch");
+    auto settingsLabel = tgui::Label::create("Settings for the menu and video.");
     settingsLabel->setWidgetName("settingsLabel");
     settingsLabel->setTextSize(18);
     settingsLabel->setPosition({0.f, 6.f});
@@ -620,23 +636,30 @@ void Menu::initializeSettingsWindow()
     settingsLabel->setHorizontalAlignment(tgui::HorizontalAlignment::Center);
     settingsWindow->add(settingsLabel);
 
+    fullscreenToggleButton = tgui::Button::create();
+    fullscreenToggleButton->setSize({360.f, 42.f});
+    fullscreenToggleButton->setPosition({14.f, 70.f});
+    fullscreenToggleButton->setTextSize(22);
+    fullscreenToggleButton->onClick([this]() { toggleFullscreen(); });
+    settingsWindow->add(fullscreenToggleButton);
+
     vsyncToggleButton = tgui::Button::create();
     vsyncToggleButton->setSize({360.f, 42.f});
-    vsyncToggleButton->setPosition({14.f, 70.f});
+    vsyncToggleButton->setPosition({14.f, 120.f});
     vsyncToggleButton->setTextSize(22);
     vsyncToggleButton->onClick([this]() { toggleVsync(); });
     settingsWindow->add(vsyncToggleButton);
 
     particleToggleButton = tgui::Button::create();
     particleToggleButton->setSize({360.f, 42.f});
-    particleToggleButton->setPosition({14.f, 120.f});
+    particleToggleButton->setPosition({14.f, 170.f});
     particleToggleButton->setTextSize(22);
     particleToggleButton->onClick([this]() { toggleMenuParticles(); });
     settingsWindow->add(particleToggleButton);
 
     resetProgressButton = tgui::Button::create();
     resetProgressButton->setSize({360.f, 42.f});
-    resetProgressButton->setPosition({14.f, 170.f});
+    resetProgressButton->setPosition({14.f, 220.f});
     resetProgressButton->setText("Reset saved progress");
     resetProgressButton->setTextSize(22);
     resetProgressButton->onClick([this]() { resetProgressButtonOnClick(); });
@@ -645,7 +668,7 @@ void Menu::initializeSettingsWindow()
     auto closeButton = tgui::Button::create();
     closeButton->setWidgetName("settingsCloseButton");
     closeButton->setSize({360.f, 42.f});
-    closeButton->setPosition({14.f, 220.f});
+    closeButton->setPosition({14.f, 270.f});
     closeButton->setText("Close");
     closeButton->setTextSize(22);
     closeButton->onClick([this]() {
@@ -660,7 +683,7 @@ void Menu::initializeSettingsWindow()
 void Menu::initializeControlsWindow()
 {
     controlsWindow = tgui::ChildWindow::create();
-    controlsWindow->setTitle("Traveler's Codex");
+    controlsWindow->setTitle("Controls");
     controlsWindow->setClientSize({470.f, 388.f});
     controlsWindow->setPosition({
         window_m->getSize().x / 2.f - 235.f,
@@ -679,6 +702,7 @@ void Menu::initializeControlsWindow()
         "X - Shoot\n"
         "R - Open portal\n"
         "E - Destination menu\n"
+        "Q / W - Change destination\n"
         "Enter - Confirm\n\n"
         "Menus\n"
         "Escape - Pause\n"
@@ -759,12 +783,12 @@ void Menu::setCanRestartLevel(bool enabled)
 std::string Menu::buildLevelSelectorLabel(const std::string& levelName) const
 {
     const auto displayNameIt = state_.levelDisplayNames.find(levelName);
-    if (displayNameIt == state_.levelDisplayNames.end() || displayNameIt->second.empty() || displayNameIt->second == levelName)
+    if (displayNameIt == state_.levelDisplayNames.end() || displayNameIt->second.empty())
     {
-        return levelName;
+        return getLevelTitle(levelName);
     }
 
-    return displayNameIt->second + "  [" + levelName + "]";
+    return displayNameIt->second;
 }
 
 void Menu::refreshLevelSelector()
@@ -834,87 +858,48 @@ void Menu::selectAdjacentLevel(int direction)
     state_.selectedLevelName = state_.availableLevels[nextIndex];
     if (levelSelector && levelSelector->isVisible())
     {
-        levelSelector->setSelectedItem(state_.selectedLevelName);
+        const auto selectedLabelIt = levelIdToSelectorLabel_.find(state_.selectedLevelName);
+        if (selectedLabelIt != levelIdToSelectorLabel_.end())
+        {
+            levelSelector->setSelectedItem(selectedLabelIt->second);
+        }
     }
     refreshMenuContext();
 }
 
 void Menu::selectRandomLevel()
 {
-    if (state_.availableLevels.empty())
-    {
-        return;
-    }
-
-    const std::size_t nextIndex = static_cast<std::size_t>(std::rand() % state_.availableLevels.size());
-    state_.selectedLevelName = state_.availableLevels[nextIndex];
-    if (levelSelector && levelSelector->isVisible())
-    {
-        levelSelector->setSelectedItem(state_.selectedLevelName);
-    }
-    refreshMenuContext();
 }
 
 std::string Menu::buildSelectionInfoText() const
 {
     const std::string selectedLevel = state_.selectedLevelName.empty() ? "None" : state_.selectedLevelName;
-    const std::string currentLevel = state_.currentLevelName.empty() ? "Dormant" : state_.currentLevelName;
 
     if (mode_ == MenuMode::Pause)
     {
-        return std::string("Current Realm\n") +
-            getLevelTitle(state_, currentLevel) +
-            "\n" + getLevelFlavor(state_, currentLevel);
+        return std::string("Current Level\n") + getLevelTitle(state_, state_.currentLevelName);
     }
 
-    return std::string("Selected Gate\n") +
-        getLevelTitle(state_, selectedLevel) +
-        "\n" + getLevelFlavor(state_, selectedLevel);
+    return std::string("Selected Level\n") + getLevelTitle(state_, selectedLevel);
 }
 
 std::string Menu::buildSystemInfoText() const
 {
-    const std::string currentLevel = state_.currentLevelName.empty() ? "Dormant" : state_.currentLevelName;
-    const std::string runState = state_.canContinue ? "Active" : "Dormant";
-    const std::string selectedLevel = state_.selectedLevelName.empty() ? "None" : state_.selectedLevelName;
-
-    if (mode_ == MenuMode::Pause)
-    {
-        return std::string("Session   ") +
-            "State: " + runState +
-            "   VSync: " + std::string(vsyncEnabled ? "ON" : "OFF") +
-            "   Ash: " + getAshDensityLabel(menuParticleCount);
-    }
-
-    return std::string("Session\n") +
-        "Current run: " + getLevelTitle(state_, currentLevel) + "\n" +
-        "Selected gate: " + getLevelTitle(state_, selectedLevel) + "\n" +
-        "Level id: " + selectedLevel + "\n" +
-        "VSync: " + std::string(vsyncEnabled ? "ON" : "OFF") + "\n" +
-        "Menu ash: " + getAshDensityLabel(menuParticleCount) + "\n" +
-        "Known gates: " + std::to_string(state_.availableLevels.size()) + "\n" +
-        "Continue: " + std::string(state_.canContinue ? "Ready" : "No active run");
+    return "";
 }
 
 std::string Menu::buildShortcutInfoText() const
 {
-    if (mode_ == MenuMode::Pause)
-    {
-        return std::string("Quick Rites   Enter Resume   T Restart   M Main menu\n") +
-            "S / C Popups   V / P Toggles   Esc Close";
-    }
-
-    return std::string("Quick Rites\n") +
-        "Left / Right  Change gate\n" +
-        "R             Random omen\n" +
-        "Enter         Start selected\n" +
-        "Space         Continue run\n" +
-        "S / C         Popups\n" +
-        "V / P         Toggles";
+    return "";
 }
 
 void Menu::refreshMenuContext()
 {
+    if (fullscreenToggleButton)
+    {
+        fullscreenToggleButton->setText(fullscreenEnabled ? "Fullscreen: ON" : "Fullscreen: OFF");
+    }
+
     if (vsyncToggleButton)
     {
         vsyncToggleButton->setText(vsyncEnabled ? "VSync: ON" : "VSync: OFF");
@@ -928,16 +913,10 @@ void Menu::refreshMenuContext()
     if (mode_ == MenuMode::Pause)
     {
         titleLabel->setText("PAUSED");
-        if (state_.currentLevelName.empty())
-        {
-            subtitleLabel->setText("The world waits behind the veil");
-        }
-        else
-        {
-            subtitleLabel->setText("The world waits on: " + getLevelTitle(state_, state_.currentLevelName));
-        }
-
-        footerLabel->setText("Choose a rite, then return to the world");
+        subtitleLabel->setText(state_.currentLevelName.empty()
+            ? "Game paused"
+            : getLevelTitle(state_, state_.currentLevelName));
+        footerLabel->setText("");
     }
     else
     {
@@ -945,37 +924,31 @@ void Menu::refreshMenuContext()
 
         if (state_.availableLevels.empty())
         {
-            subtitleLabel->setText("No playable levels were found in the ash");
-        }
-        else if (state_.currentLevelName.empty())
-        {
-            subtitleLabel->setText("Choose where the journey begins");
+            subtitleLabel->setText("No playable levels found");
         }
         else
         {
-            subtitleLabel->setText(
-                std::string("Current level: ") + getLevelTitle(state_, state_.currentLevelName) +
-                "\nSelected start: " + getLevelTitle(state_, state_.selectedLevelName)
-            );
+            subtitleLabel->setText("Choose a level");
         }
 
-        footerLabel->setText(state_.canContinue
-            ? "Resume the hunt, switch gates, or keep feeding the Heart Lantern"
-            : "Farm grave-gold, buy relics and choose which gate to reopen first");
+        footerLabel->setText("");
     }
 
     continueButton->setText(mode_ == MenuMode::Pause ? BASE_RESUME_BUTTON_TEXT : BASE_PLAY_BUTTON_TEXT);
     if (selectionInfoLabel)
     {
         selectionInfoLabel->setText(buildSelectionInfoText());
+        selectionInfoLabel->setVisible(true);
     }
     if (systemInfoLabel)
     {
         systemInfoLabel->setText(buildSystemInfoText());
+        systemInfoLabel->setVisible(false);
     }
     if (shortcutInfoLabel)
     {
         shortcutInfoLabel->setText(buildShortcutInfoText());
+        shortcutInfoLabel->setVisible(false);
     }
 
     if (levelSelector->isVisible() && !state_.selectedLevelName.empty() && levelSelector->getSelectedItem().empty())
@@ -1000,6 +973,8 @@ void Menu::applyModeLayout()
 
 void Menu::updateWidgetLayout()
 {
+    background.setSize(static_cast<int>(window_m->getSize().x), static_cast<int>(window_m->getSize().y));
+
     const bool isMainMenu = mode_ == MenuMode::Main;
     const float panelWidth = getPanelWidth(mode_);
     const float panelHeight = getPanelHeight(mode_);
@@ -1013,13 +988,13 @@ void Menu::updateWidgetLayout()
     const float subtitleWidth = panelWidth - 116.f;
     const float footerWidth = panelWidth - 132.f;
 
-    titleLabel->setSize({titleWidth, isMainMenu ? 84.f : 58.f});
-    titleLabel->setPosition({centerX - titleWidth / 2.f, panelTop + (isMainMenu ? 10.f : 8.f)});
-    titleLabel->setTextSize(isMainMenu ? 54 : 38);
+    titleLabel->setSize({titleWidth, isMainMenu ? 72.f : 46.f});
+    titleLabel->setPosition({centerX - titleWidth / 2.f, panelTop + (isMainMenu ? 12.f : 14.f)});
+    titleLabel->setTextSize(isMainMenu ? 52 : 32);
 
-    subtitleLabel->setSize({subtitleWidth, isMainMenu ? 74.f : 34.f});
-    subtitleLabel->setPosition({centerX - subtitleWidth / 2.f, panelTop + (isMainMenu ? 80.f : 56.f)});
-    subtitleLabel->setTextSize(isMainMenu ? 18 : 15);
+    subtitleLabel->setSize({subtitleWidth, isMainMenu ? 34.f : 40.f});
+    subtitleLabel->setPosition({centerX - subtitleWidth / 2.f, panelTop + (isMainMenu ? 84.f : 60.f)});
+    subtitleLabel->setTextSize(isMainMenu ? 17 : 13);
 
     footerLabel->setSize({footerWidth, 22.f});
     footerLabel->setPosition({centerX - footerWidth / 2.f, panelTop + panelHeight - (isMainMenu ? 34.f : 40.f)});
@@ -1029,73 +1004,53 @@ void Menu::updateWidgetLayout()
 
     if (isMainMenu)
     {
-        const float leftColumnX = panelLeft + 52.f;
-        const float leftColumnWidth = 238.f;
-        const float rightColumnX = panelLeft + 348.f;
-        const float rightColumnWidth = 426.f;
-        const float cardTop = panelTop + 178.f;
+        const float contentWidth = 432.f;
+        const float contentLeft = centerX - contentWidth / 2.f;
+        const float selectorTop = panelTop + 198.f;
 
-        selectionInfoLabel->setMaximumTextWidth(leftColumnWidth);
-        selectionInfoLabel->setPosition({leftColumnX + 12.f, cardTop + 10.f});
-        selectionInfoLabel->setTextSize(18);
-
-        systemInfoLabel->setMaximumTextWidth(leftColumnWidth);
-        systemInfoLabel->setPosition({leftColumnX + 12.f, cardTop + 142.f});
-        systemInfoLabel->setTextSize(16);
-
-        shortcutInfoLabel->setMaximumTextWidth(leftColumnWidth);
-        shortcutInfoLabel->setPosition({leftColumnX + 12.f, cardTop + 252.f});
-        shortcutInfoLabel->setTextSize(14);
+        selectionInfoLabel->setMaximumTextWidth(contentWidth);
+        selectionInfoLabel->setSize({contentWidth, 58.f});
+        selectionInfoLabel->setPosition({contentLeft, panelTop + 134.f});
+        selectionInfoLabel->setTextSize(17);
 
         levelPrevButton->setVisible(true);
         levelNextButton->setVisible(true);
-        randomLevelButton->setVisible(true);
+        randomLevelButton->setVisible(false);
         levelSelector->setVisible(true);
         startLevelButton->setVisible(true);
         mainMenuButton->setVisible(false);
 
         levelPrevButton->setSize({46.f, 44.f});
-        levelPrevButton->setPosition({rightColumnX, cardTop});
-        levelSelector->setSize({260.f, 44.f});
-        levelSelector->setPosition({rightColumnX + 56.f, cardTop});
+        levelPrevButton->setPosition({contentLeft, selectorTop});
+        levelSelector->setSize({320.f, 44.f});
+        levelSelector->setPosition({contentLeft + 56.f, selectorTop});
         levelNextButton->setSize({46.f, 44.f});
-        levelNextButton->setPosition({rightColumnX + 324.f, cardTop});
-        randomLevelButton->setSize({140.f, 44.f});
-        randomLevelButton->setPosition({rightColumnX + 56.f, cardTop + 56.f});
+        levelNextButton->setPosition({contentLeft + 386.f, selectorTop});
 
-        continueButton->setSize({rightColumnWidth, 50.f});
-        startLevelButton->setSize({rightColumnWidth, 50.f});
-        restartLevelButton->setSize({rightColumnWidth, 50.f});
-        settingsButton->setSize({rightColumnWidth, 50.f});
-        controlsButton->setSize({rightColumnWidth, 50.f});
-        exitButton->setSize({rightColumnWidth, 50.f});
+        continueButton->setSize({contentWidth, 48.f});
+        startLevelButton->setSize({contentWidth, 48.f});
+        restartLevelButton->setSize({contentWidth, 48.f});
+        settingsButton->setSize({contentWidth, 48.f});
+        controlsButton->setSize({contentWidth, 48.f});
+        exitButton->setSize({contentWidth, 48.f});
 
-        continueButton->setPosition({rightColumnX, cardTop + 104.f});
-        startLevelButton->setPosition({rightColumnX, cardTop + 160.f});
-        restartLevelButton->setPosition({rightColumnX, cardTop + 216.f});
-        settingsButton->setPosition({rightColumnX, cardTop + 272.f});
-        controlsButton->setPosition({rightColumnX, cardTop + 328.f});
-        exitButton->setPosition({rightColumnX, cardTop + 384.f});
+        continueButton->setPosition({contentLeft, selectorTop + 70.f});
+        startLevelButton->setPosition({contentLeft, selectorTop + 124.f});
+        restartLevelButton->setPosition({contentLeft, selectorTop + 178.f});
+        settingsButton->setPosition({contentLeft, selectorTop + 232.f});
+        controlsButton->setPosition({contentLeft, selectorTop + 286.f});
+        exitButton->setPosition({contentLeft, selectorTop + 340.f});
     }
     else
     {
-        const float contentLeft = panelLeft + 44.f;
-        const float contentWidth = panelWidth - 88.f;
-        const float infoTop = panelTop + 108.f;
-        const float infoWidth = contentWidth - 28.f;
-        const float buttonsX = centerX - 202.f;
+        const float contentWidth = 404.f;
+        const float contentLeft = centerX - contentWidth / 2.f;
+        const float infoTop = panelTop + 132.f;
 
-        selectionInfoLabel->setMaximumTextWidth(infoWidth);
-        selectionInfoLabel->setPosition({contentLeft + 14.f, infoTop});
-        selectionInfoLabel->setTextSize(16);
-
-        systemInfoLabel->setMaximumTextWidth(infoWidth);
-        systemInfoLabel->setPosition({contentLeft + 14.f, infoTop + 76.f});
-        systemInfoLabel->setTextSize(13);
-
-        shortcutInfoLabel->setMaximumTextWidth(infoWidth);
-        shortcutInfoLabel->setPosition({contentLeft + 14.f, infoTop + 110.f});
-        shortcutInfoLabel->setTextSize(12);
+        selectionInfoLabel->setMaximumTextWidth(contentWidth);
+        selectionInfoLabel->setSize({contentWidth, 58.f});
+        selectionInfoLabel->setPosition({contentLeft, infoTop});
+        selectionInfoLabel->setTextSize(17);
 
         levelPrevButton->setVisible(false);
         levelNextButton->setVisible(false);
@@ -1104,19 +1059,37 @@ void Menu::updateWidgetLayout()
         startLevelButton->setVisible(false);
         mainMenuButton->setVisible(true);
 
-        continueButton->setSize({404.f, 46.f});
-        restartLevelButton->setSize({404.f, 46.f});
-        mainMenuButton->setSize({404.f, 46.f});
-        settingsButton->setSize({404.f, 46.f});
-        controlsButton->setSize({404.f, 46.f});
-        exitButton->setSize({404.f, 46.f});
+        continueButton->setSize({contentWidth, 46.f});
+        restartLevelButton->setSize({contentWidth, 46.f});
+        mainMenuButton->setSize({contentWidth, 46.f});
+        settingsButton->setSize({contentWidth, 46.f});
+        controlsButton->setSize({contentWidth, 46.f});
+        exitButton->setSize({contentWidth, 46.f});
 
-        continueButton->setPosition({buttonsX, panelTop + 288.f});
-        restartLevelButton->setPosition({buttonsX, panelTop + 340.f});
-        mainMenuButton->setPosition({buttonsX, panelTop + 392.f});
-        settingsButton->setPosition({buttonsX, panelTop + 444.f});
-        controlsButton->setPosition({buttonsX, panelTop + 496.f});
-        exitButton->setPosition({buttonsX, panelTop + 548.f});
+        continueButton->setPosition({contentLeft, panelTop + 202.f});
+        restartLevelButton->setPosition({contentLeft, panelTop + 254.f});
+        mainMenuButton->setPosition({contentLeft, panelTop + 306.f});
+        settingsButton->setPosition({contentLeft, panelTop + 358.f});
+        controlsButton->setPosition({contentLeft, panelTop + 410.f});
+        exitButton->setPosition({contentLeft, panelTop + 462.f});
+    }
+
+    if (settingsWindow)
+    {
+        const tgui::Vector2f settingsSize = settingsWindow->getSize();
+        settingsWindow->setPosition({
+            window_m->getSize().x * 0.5f - settingsSize.x * 0.5f,
+            window_m->getSize().y * 0.5f - settingsSize.y * 0.5f
+        });
+    }
+
+    if (controlsWindow)
+    {
+        const tgui::Vector2f controlsSize = controlsWindow->getSize();
+        controlsWindow->setPosition({
+            window_m->getSize().x * 0.5f - controlsSize.x * 0.5f,
+            window_m->getSize().y * 0.5f - controlsSize.y * 0.5f
+        });
     }
 }
 
@@ -1141,7 +1114,12 @@ void Menu::applyModeTheme()
     styleButton(exitButton, ButtonStyleRole::Danger);
     styleButton(levelPrevButton, ButtonStyleRole::Secondary);
     styleButton(levelNextButton, ButtonStyleRole::Secondary);
-    styleButton(randomLevelButton, ButtonStyleRole::Secondary);
+    if (randomLevelButton)
+    {
+        randomLevelButton->setVisible(false);
+        randomLevelButton->setEnabled(false);
+    }
+    styleButton(fullscreenToggleButton, ButtonStyleRole::Secondary);
     styleButton(vsyncToggleButton, ButtonStyleRole::Secondary);
     styleButton(particleToggleButton, ButtonStyleRole::Secondary);
     styleButton(resetProgressButton, ButtonStyleRole::Danger);
@@ -1203,7 +1181,10 @@ void Menu::syncPopupInteractivity()
     exitButton->setEnabled(!popupOpen);
     levelPrevButton->setEnabled(!popupOpen && !state_.availableLevels.empty() && levelPrevButton->isVisible());
     levelNextButton->setEnabled(!popupOpen && !state_.availableLevels.empty() && levelNextButton->isVisible());
-    randomLevelButton->setEnabled(!popupOpen && !state_.availableLevels.empty() && randomLevelButton->isVisible());
+    if (randomLevelButton)
+    {
+        randomLevelButton->setEnabled(false);
+    }
 
     if (levelSelector)
     {
@@ -1261,10 +1242,8 @@ void Menu::updateDecorativeLayout()
     footerBand_.setPosition({centerX, panelTop + panelHeight - 16.f});
     footerBand_.setFillColor(sf::Color(theme.titleBand.r, theme.titleBand.g, theme.titleBand.b, 140));
 
-    verticalDivider_.setSize({2.f, 446.f});
-    verticalDivider_.setOrigin({verticalDivider_.getSize().x / 2.f, verticalDivider_.getSize().y / 2.f});
-    verticalDivider_.setPosition({centerX - 104.f, centerY + 48.f});
-    verticalDivider_.setFillColor(sf::Color(theme.ornament.r, theme.ornament.g, theme.ornament.b, 126));
+    verticalDivider_.setSize({0.f, 0.f});
+    verticalDivider_.setFillColor(sf::Color::Transparent);
 
     if (levelSelector && levelSelector->isVisible())
     {
@@ -1288,6 +1267,12 @@ void Menu::updateDecorativeLayout()
     for (std::size_t i = 0; i < infoLabels.size(); ++i)
     {
         const auto& label = infoLabels[i];
+        if (!label->isVisible())
+        {
+            infoCardGlows_[i].setSize({0.f, 0.f});
+            infoCards_[i].setSize({0.f, 0.f});
+            continue;
+        }
         const tgui::Vector2f labelPos = label->getPosition();
         const tgui::Vector2f labelSize = label->getSize();
 
@@ -1308,91 +1293,20 @@ void Menu::updateDecorativeLayout()
         infoCards_[i].setOutlineColor(brighten(theme.infoCardBorder, static_cast<int>(pulse * 10.f), theme.infoCardBorder.a));
     }
 
-    for (std::size_t i = 0; i < ornamentLines_.size(); ++i)
-    {
-        auto& line = ornamentLines_[i];
-        line.setSize({2.f, panelHeight - 160.f});
-        line.setOrigin({line.getSize().x / 2.f, line.getSize().y / 2.f});
-        line.setPosition({
-            centerX + (i == 0 ? -(panelWidth * 0.38f) : panelWidth * 0.38f),
-            centerY + std::sin(menuVisualTime_ * 0.8f + static_cast<float>(i)) * 5.f
-        });
-        line.setFillColor(theme.ornament);
-    }
-
-    sigilOuterRing_.setRadius(mode_ == MenuMode::Main ? 142.f : 104.f);
-    sigilOuterRing_.setPointCount(mode_ == MenuMode::Main ? 8u : 20u);
-    sigilOuterRing_.setOrigin({sigilOuterRing_.getRadius(), sigilOuterRing_.getRadius()});
-    sigilOuterRing_.setPosition({centerX, centerY + (mode_ == MenuMode::Main ? 12.f : -6.f)});
-    sigilOuterRing_.setScale({1.02f + pulse * 0.03f, 0.96f + pulse * 0.03f});
-    sigilOuterRing_.setFillColor(sf::Color::Transparent);
-    sigilOuterRing_.setOutlineThickness(mode_ == MenuMode::Main ? 2.f : 1.5f);
-    sigilOuterRing_.setOutlineColor(theme.sigil);
-    sigilOuterRing_.setRotation(sf::degrees(menuVisualTime_ * (mode_ == MenuMode::Main ? 7.f : 1.4f)));
-
-    sigilInnerRing_.setRadius(mode_ == MenuMode::Main ? 84.f : 64.f);
-    sigilInnerRing_.setPointCount(mode_ == MenuMode::Main ? 6u : 16u);
-    sigilInnerRing_.setOrigin({sigilInnerRing_.getRadius(), sigilInnerRing_.getRadius()});
-    sigilInnerRing_.setPosition(sigilOuterRing_.getPosition());
-    sigilInnerRing_.setScale({0.96f + pulse * 0.04f, 0.94f + pulse * 0.04f});
-    sigilInnerRing_.setFillColor(sf::Color::Transparent);
-    sigilInnerRing_.setOutlineThickness(1.5f);
-    sigilInnerRing_.setOutlineColor(theme.sigilSoft);
-    sigilInnerRing_.setRotation(sf::degrees(-menuVisualTime_ * (mode_ == MenuMode::Main ? 10.f : 2.2f)));
-
-    sigilVerticalBar_.setSize({2.f, mode_ == MenuMode::Main ? 166.f : 122.f});
-    sigilVerticalBar_.setOrigin({sigilVerticalBar_.getSize().x / 2.f, sigilVerticalBar_.getSize().y / 2.f});
-    sigilVerticalBar_.setPosition(sigilOuterRing_.getPosition());
-    sigilVerticalBar_.setRotation(sf::degrees(menuVisualTime_ * (mode_ == MenuMode::Main ? 7.f : 1.4f)));
-    sigilVerticalBar_.setFillColor(theme.sigilSoft);
-
-    sigilHorizontalBar_.setSize({mode_ == MenuMode::Main ? 166.f : 122.f, 2.f});
-    sigilHorizontalBar_.setOrigin({sigilHorizontalBar_.getSize().x / 2.f, sigilHorizontalBar_.getSize().y / 2.f});
-    sigilHorizontalBar_.setPosition(sigilOuterRing_.getPosition());
-    sigilHorizontalBar_.setRotation(sf::degrees(menuVisualTime_ * (mode_ == MenuMode::Main ? 7.f : 1.4f)));
-    sigilHorizontalBar_.setFillColor(theme.sigilSoft);
-
-    for (std::size_t i = 0; i < emberNodes_.size(); ++i)
-    {
-        auto& ember = emberNodes_[i];
-        ember.setRadius(mode_ == MenuMode::Main ? 10.f : 8.f);
-        ember.setPointCount(32u);
-        ember.setOrigin({ember.getRadius(), ember.getRadius()});
-        ember.setPosition({
-            centerX + (i == 0 ? -panelWidth * 0.34f : panelWidth * 0.34f),
-            panelTop + 68.f + std::sin(menuVisualTime_ * 1.2f + static_cast<float>(i)) * 5.f
-        });
-        ember.setFillColor(sf::Color(
-            theme.primaryButtonBorder.r,
-            theme.primaryButtonBorder.g,
-            theme.primaryButtonBorder.b,
-            static_cast<std::uint8_t>(120 + pulse * 64.f)
-        ));
-    }
+    verticalDivider_.setSize({0.f, 0.f});
+    selectorBand_.setFillColor(sf::Color(theme.infoCardGlow.r, theme.infoCardGlow.g, theme.infoCardGlow.b, 36));
 }
 
 void Menu::drawDecorativeLayout(sf::RenderWindow& window)
 {
     window.draw(panelShadow_);
     window.draw(panelFrame_);
-    window.draw(sigilOuterRing_);
-    window.draw(sigilInnerRing_);
-    window.draw(sigilVerticalBar_);
-    window.draw(sigilHorizontalBar_);
     window.draw(panelInset_);
     window.draw(titleBand_);
     window.draw(dividerLine_);
     if (mode_ == MenuMode::Main && levelSelector->isVisible())
     {
         window.draw(selectorBand_);
-    }
-    if (mode_ == MenuMode::Main)
-    {
-        window.draw(verticalDivider_);
-    }
-    for (auto& line : ornamentLines_)
-    {
-        window.draw(line);
     }
     for (auto& glow : infoCardGlows_)
     {
@@ -1401,10 +1315,6 @@ void Menu::drawDecorativeLayout(sf::RenderWindow& window)
     for (auto& card : infoCards_)
     {
         window.draw(card);
-    }
-    for (auto& ember : emberNodes_)
-    {
-        window.draw(ember);
     }
     window.draw(footerBand_);
 }
@@ -1496,6 +1406,34 @@ void Menu::controlsButtonOnClick()
     }
     controlsWindow->setVisible(true);
     syncPopupInteractivity();
+}
+
+void Menu::toggleFullscreen()
+{
+    const bool newFullscreenEnabled = !fullscreenEnabled;
+    const bool applied = callbacks_.onSetFullscreen(newFullscreenEnabled);
+    if (!applied)
+    {
+        callbacks_.onNotify(
+            "Settings error",
+            "Fullscreen mode could not be applied.",
+            NotificationTone::Warning
+        );
+        refreshMenuContext();
+        return;
+    }
+
+    fullscreenEnabled = newFullscreenEnabled;
+    if (gameData_m)
+    {
+        gameData_m->setFullscreenEnabled(fullscreenEnabled);
+    }
+    callbacks_.onNotify(
+        "Settings saved",
+        fullscreenEnabled ? "Fullscreen enabled." : "Fullscreen disabled.",
+        NotificationTone::Info
+    );
+    refreshMenuContext();
 }
 
 void Menu::toggleVsync()
@@ -1692,11 +1630,6 @@ void Menu::menuHandleEvents(const sf::Event& ev)
                 if (code == sf::Keyboard::Scancode::Right || code == sf::Keyboard::Scancode::D || code == sf::Keyboard::Scancode::W)
                 {
                     selectAdjacentLevel(1);
-                    return;
-                }
-                if (code == sf::Keyboard::Scancode::R)
-                {
-                    selectRandomLevel();
                     return;
                 }
                 if (code == sf::Keyboard::Scancode::Enter)

@@ -230,6 +230,11 @@ void Bullet::registerHitTarget(const void* target)
         --remainingHits_;
     }
 
+    if (config_.beamLike)
+    {
+        return;
+    }
+
     if (!config_.keepAliveOnHit || remainingHits_ <= 0)
     {
         isSheduledToBeDestroyed = true;

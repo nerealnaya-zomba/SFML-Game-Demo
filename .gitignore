@@ -7,6 +7,14 @@
 /Makefile
 /cmake_install.cmake
 /compile_commands.json
+/build-clean
+
+_deps
+CMakeFiles
+.ninja_deps
+.ninja_log
+build.ninja
+cmake_install
 
 *.a
 *.cache

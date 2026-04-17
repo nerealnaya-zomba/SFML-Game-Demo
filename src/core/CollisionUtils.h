@@ -9,6 +9,10 @@
 
 namespace collision
 {
+constexpr float kPlatformLandingHorizontalInset = 1.f;
+constexpr float kPlatformSupportHorizontalInset = 1.f;
+constexpr float kGroundHorizontalInset = 2.f;
+
 struct MoveResult
 {
     bool landed = false;
@@ -79,7 +83,7 @@ inline const sf::RectangleShape* findSupportingPlatform(
         }
 
         const sf::FloatRect platformBounds = platform->getGlobalBounds();
-        if (!overlapsHorizontally(bodyBounds, platformBounds, 4.f))
+        if (!overlapsHorizontally(bodyBounds, platformBounds, kPlatformSupportHorizontalInset))
         {
             continue;
         }
@@ -103,7 +107,7 @@ inline bool isStandingOnGround(
 {
     const sf::FloatRect bodyBounds = body.getGlobalBounds();
     const sf::FloatRect groundBounds = ground.getGlobalBounds();
-    return overlapsHorizontally(bodyBounds, groundBounds, 2.f) &&
+    return overlapsHorizontally(bodyBounds, groundBounds, kGroundHorizontalInset) &&
         std::abs(bottom(bodyBounds) - top(groundBounds)) <= tolerance;
 }
 
@@ -142,11 +146,11 @@ inline MoveResult moveBodyWithWorldCollisions(
                 {
                     const sf::FloatRect groundBounds = ground->getGlobalBounds();
                     const bool crossedGroundTop =
-                        overlapsHorizontally(movedBounds, groundBounds, 2.f) &&
+                        overlapsHorizontally(movedBounds, groundBounds, kGroundHorizontalInset) &&
                         bottom(previousBounds) <= top(groundBounds) + 0.75f &&
                         bottom(movedBounds) >= top(groundBounds) - 0.75f;
                     const bool intersectsGround =
-                        overlapsHorizontally(movedBounds, groundBounds, 2.f) &&
+                        overlapsHorizontally(movedBounds, groundBounds, kGroundHorizontalInset) &&
                         bottom(movedBounds) >= top(groundBounds) &&
                         top(movedBounds) < top(groundBounds);
 
@@ -165,11 +169,11 @@ inline MoveResult moveBodyWithWorldCollisions(
 
                     const sf::FloatRect platformBounds = platform->getGlobalBounds();
                     const bool crossedPlatformTop =
-                        overlapsHorizontally(movedBounds, platformBounds, 4.f) &&
+                        overlapsHorizontally(movedBounds, platformBounds, kPlatformLandingHorizontalInset) &&
                         bottom(previousBounds) <= top(platformBounds) + 0.75f &&
                         bottom(movedBounds) >= top(platformBounds) - 0.75f;
                     const bool intersectsPlatform =
-                        overlapsHorizontally(movedBounds, platformBounds, 4.f) &&
+                        overlapsHorizontally(movedBounds, platformBounds, kPlatformLandingHorizontalInset) &&
                         bottom(movedBounds) >= top(platformBounds) &&
                         top(movedBounds) < top(platformBounds) &&
                         movedBounds.findIntersection(platformBounds).has_value();

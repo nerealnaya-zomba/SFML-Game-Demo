@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+option(SFML_GAME_DEMO_ENABLE_FFMPEG "Link FFmpeg when available" ON)
 
 include(FetchContent)
 
@@ -55,7 +56,7 @@ set(IMGUI_SFML_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
     imgui_sfml
     GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git
-    GIT_TAG ab6b5cfeddb4eb980a42b526dc66901a0976ff6d
+    GIT_TAG v3.0
     GIT_SHALLOW ON
     EXCLUDE_FROM_ALL
     SYSTEM
@@ -73,7 +74,9 @@ FetchContent_Declare(
 FetchContent_GetProperties(selbaward)
 if(NOT selbaward_POPULATED)
     cmake_policy(PUSH)
-    cmake_policy(SET CMP0169 OLD)
+    if(POLICY CMP0169)
+        cmake_policy(SET CMP0169 OLD)
+    endif()
     FetchContent_Populate(selbaward)
     cmake_policy(POP)
 endif()
@@ -115,22 +118,44 @@ target_include_directories(game_core PUBLIC
     ${CMAKE_SOURCE_DIR}/src/utils
 )
 
-if(WIN32)
-    target_include_directories(game_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/include)
-    target_link_directories(game_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/lib)
-endif()
-
 target_link_libraries(game_core PUBLIC
     SFML::Graphics
     nlohmann_json::nlohmann_json
-    avcodec
-    avformat
-    swscale
-    avutil
     tgui
     ImGui-SFML::ImGui-SFML
     SelbaWard::SelbaWard
 )
+
+set(SFML_GAME_DEMO_FFMPEG_FOUND OFF)
+
+if(SFML_GAME_DEMO_ENABLE_FFMPEG)
+    if(WIN32 AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/include" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/lib")
+        target_include_directories(game_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/include)
+        target_link_directories(game_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/libs/ffmpeg/lib)
+        target_link_libraries(game_core PUBLIC
+            avcodec
+            avformat
+            swscale
+            avutil
+        )
+        set(SFML_GAME_DEMO_FFMPEG_FOUND ON)
+        message(STATUS "Using bundled FFmpeg from libs/ffmpeg")
+    else()
+        find_package(PkgConfig QUIET)
+        if(PkgConfig_FOUND)
+            pkg_check_modules(FFMPEG IMPORTED_TARGET libavcodec libavformat libswscale libavutil)
+            if(FFMPEG_FOUND)
+                target_link_libraries(game_core PUBLIC PkgConfig::FFMPEG)
+                set(SFML_GAME_DEMO_FFMPEG_FOUND ON)
+                message(STATUS "Using system FFmpeg via pkg-config")
+            endif()
+        endif()
+    endif()
+endif()
+
+if(NOT SFML_GAME_DEMO_FFMPEG_FOUND)
+    message(STATUS "FFmpeg not found; continuing without FFmpeg linkage")
+endif()
 
 add_executable(main
     ${CMAKE_SOURCE_DIR}/src/main.cpp
@@ -161,7 +186,7 @@ foreach(asset_dir IN LISTS SFML_GAME_DEMO_RUNTIME_ASSETS)
     )
 endforeach()
 
-if(WIN32 AND EXISTS "${CMAKE_SOURCE_DIR}/libs/ffmpeg/bin")
+if(WIN32 AND SFML_GAME_DEMO_FFMPEG_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/libs/ffmpeg/bin")
     file(GLOB SFML_GAME_DEMO_FFMPEG_DLLS CONFIGURE_DEPENDS
         "${CMAKE_SOURCE_DIR}/libs/ffmpeg/bin/*.dll"
     )
