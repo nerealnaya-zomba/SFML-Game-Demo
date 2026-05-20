@@ -164,6 +164,8 @@ public:
     // Portal green
     std::vector<sf::Texture> portalGreenTextures;
     texturesIterHelper portalGreen;
+    std::vector<sf::Texture> portalVioletTextures;
+    texturesIterHelper portalViolet;
 
     // Ground texture
     std::map<std::string,sf::Texture> TileSetGreenTextures;
@@ -294,6 +296,7 @@ private:
     std::string cat1Path{"images/decoration/sleepingCat/cat/RetroCatsFree_"};
     std::string groundTileSetGreenPath{"images/Ground/TileSetGreen/TileSetGreen_"};
     std::string portalGreenPath{"images/decoration/PortalGreen/portal_green_"};
+    std::string portalVioletPath{"images/decoration/PortalViolet/portal1_frame_"};
     std::string MossyBackgroundDecorationsPath{"images/decoration/MossyBackgroundDecorations/MossyBackgroundDecoration_"};
     std::string MossyDecorationsHazardsPath{"images/decoration/MossyDecorationsHazards/MossyDecorationHazard_"};
     std::string MossyHangingPlantsPath{"images/decoration/MossyHangingPlants/MossyHangingPlants_"};

@@ -10,11 +10,14 @@
 #include <SFML/Graphics.hpp>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <map>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <vector>
+
+#include <NotificationFeed.h>
 
 class Background;
 class Decoration;
@@ -97,6 +100,30 @@ private:
         sf::Color emberColor = sf::Color(255, 238, 190, 255);
     };
 
+    struct LevelEventZone
+    {
+        std::string title;
+        std::string body;
+        sf::FloatRect bounds{};
+        NotificationTone tone = NotificationTone::Info;
+        bool fireOnce = true;
+        bool requireAlive = true;
+        bool triggered = false;
+    };
+
+    struct SharedDrawEntry
+    {
+        enum class Kind
+        {
+            Platform,
+            Decoration
+        };
+
+        Kind kind = Kind::Decoration;
+        std::size_t index = 0u;
+        int order = 0;
+    };
+
     sf::Vector2i size{};
     std::shared_ptr<Platform> platforms;
     std::shared_ptr<Decoration> decorations;
@@ -107,6 +134,8 @@ private:
     std::vector<GeneratedMiniReward> generatedMiniRewards;
     std::vector<GeneratedMiniBarrier> generatedMiniBarriers;
     std::vector<GeneratedMiniHazard> generatedMiniHazards;
+    std::vector<LevelEventZone> levelEventZones;
+    std::vector<SharedDrawEntry> sharedWorldDrawOrder_;
     sf::Clock miniLocationEffectsClock;
 
     Player* player = nullptr;
@@ -123,6 +152,10 @@ private:
 
     bool doResetToBase = true;
     bool isConstant = true;
+    bool useSharedWorldDrawOrder_ = false;
+    bool introNotificationPending_ = false;
+    std::string weatherThemeId_{};
+    std::string weatherThemeTitle_{};
 
     void initializePlatforms(const nlohmann::json& data);
     void initializeDecorations(const nlohmann::json& data);
@@ -130,13 +163,18 @@ private:
     void initializeGround(const nlohmann::json& data);
     void initializeEnemyManager(const nlohmann::json& data);
     void initializeInteractives(const nlohmann::json& data);
+    void initializePortals(const nlohmann::json& data);
     void initializeExplicitMiniLocations(const nlohmann::json& data);
     void generateMiniLocations();
     void tryInitializeEnemyManager();
     void tryInitializeInteractives();
+    void initializeEventZones(const nlohmann::json& data);
+    void initializeSharedDrawOrder(const nlohmann::json& data);
     void updateMiniLocationHazards();
+    void updateLevelEvents();
     void drawMiniLocationBarriers();
     void drawMiniLocationHazards();
+    void queueNotification(std::string title, std::string body, NotificationTone tone) const;
 
 public:
     GameLevel(GameData& d, GameCamera& c, GameLevelManager& m, sf::RenderWindow& w, const LevelDescriptor& descriptor);
@@ -162,6 +200,7 @@ public:
     void drawGrounds();
     void drawEnemyManager();
     void drawInteractives();
+    void drawInteractiveOverlays();
 
     void loadLevelData(const LevelDescriptor& descriptor);
     void clearLevel();
@@ -181,6 +220,7 @@ public:
     bool hasBlockingInteractiveModal() const;
     void setPlayerSpawnPos(const sf::Vector2f& pos);
     LevelDescriptor getLevelDescriptor() const;
+    void onPlayerEnteredLevel();
 
     void attachPlayer(Player& p);
 };
@@ -199,6 +239,8 @@ private:
     std::map<std::string, std::shared_ptr<GameLevel>> levels;
     std::map<std::string, std::shared_ptr<GameLevel>>::iterator levelIt;
     std::vector<std::unique_ptr<DeathRecovery>> deathRecoveries;
+    std::function<void(std::string, std::string, NotificationTone)> notificationSink_ =
+        [](std::string, std::string, NotificationTone) {};
 
     void initializeLevels(const std::string& levelsFolder);
     void updateDeathRecoveries();
@@ -230,6 +272,7 @@ public:
     void drawGrounds();
     void drawEnemyManager();
     void drawInteractives();
+    void drawInteractiveOverlays();
 
     sf::Vector2i getCurrentLevelSize() const;
     sf::FloatRect getCurrentCameraBoundsForPosition(const sf::Vector2f& position) const;
@@ -247,8 +290,12 @@ public:
     std::string getLevelDisplayName(const std::string& levelIdentifier) const;
     bool hasBlockingInteractiveModal() const;
     void setCurrentLevelSpawn(const sf::Vector2f& pos);
+    bool teleportPlayerToCurrentLevelPosition(const sf::Vector2f& pos);
+    bool teleportPlayerToLevelPosition(const std::string& levelName, const sf::Vector2f& pos);
 
     void attachPlayer(Player& p);
+    void setNotificationSink(std::function<void(std::string, std::string, NotificationTone)> sink);
+    void pushNotification(std::string title, std::string body, NotificationTone tone) const;
     void clearDeathRecoveries();
     void registerDeathRecovery(const sf::Vector2f& position, int goldAmount);
     bool handleEvent(const sf::Event& event);

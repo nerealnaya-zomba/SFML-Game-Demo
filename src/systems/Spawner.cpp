@@ -1,106 +1,219 @@
 #include "Spawner.h"
-#include<EnemyManager.h>
-#include<GameLevel.h>
 
-Spawner::Spawner(EnemyManager &m, GameLevel& gl, std::string n, int ea, int sc, int eps, float minX1, float maxX2, float minY1, float maxY2,
-    GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w) 
-    : manager(&m),enemyName(n), enemyAmount(ea), spawnCooldown(sc), enemyPerSpawn(eps), spawnArea{{minX1,maxX2},{minY1,maxY2}}, 
-    data(&d), platform(&p), ground(&g), player(&pl),window(&w)
+#include <EnemyManager.h>
+#include <GameLevel.h>
+
+namespace
 {
-    // Линковка внешних ссылок к указателям
-    this->gameLevel = &gl;
+sf::FloatRect makeActivationBounds(const sf::Vector2f spawnArea[2])
+{
+    const float left = std::min(spawnArea[0].x, spawnArea[0].y);
+    const float right = std::max(spawnArea[0].x, spawnArea[0].y);
+    const float top = std::min(spawnArea[1].x, spawnArea[1].y);
+    const float bottom = std::max(spawnArea[1].x, spawnArea[1].y);
 
-    runSpawnCooldownClockIfNotRunning();
+    return sf::FloatRect(
+        {left - 120.f, top - 120.f},
+        {std::max(0.f, right - left) + 240.f, std::max(0.f, bottom - top) + 240.f}
+    );
+}
 }
 
-Spawner::Spawner(EnemyManager &m, GameLevel& gl, std::string n, int ea, int sc, int eps, sf::Vector2f sa[2],
-    GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w)
-    : manager(&m),enemyName(n), enemyAmount(ea), spawnCooldown(sc), enemyPerSpawn(eps), spawnArea{sa[0],sa[1]}, 
-    data(&d), platform(&p), ground(&g), player(&pl),window(&w)
+Spawner::Spawner(
+    EnemyManager& m,
+    GameLevel& gl,
+    std::string n,
+    int ea,
+    int sc,
+    int eps,
+    float minX1,
+    float maxX2,
+    float minY1,
+    float maxY2,
+    GameData& d,
+    Platform& p,
+    Ground& g,
+    Player& pl,
+    sf::RenderWindow& w,
+    EncounterConfig encounterConfig)
+    : manager(&m)
+    , data(&d)
+    , gameLevel(&gl)
+    , platform(&p)
+    , ground(&g)
+    , player(&pl)
+    , window(&w)
+    , enemyName(std::move(n))
+    , spawnArea{{minX1, maxX2}, {minY1, maxY2}}
+    , enemyAmount(ea)
+    , enemyPerSpawn(eps)
+    , spawnCooldown(sc)
+    , activateOnPlayerEnter_(encounterConfig.activateOnPlayerEnter)
+    , activated_(!encounterConfig.activateOnPlayerEnter)
+    , firstSpawnPending_(encounterConfig.initialSpawnDelayMs > 0)
+    , initialSpawnDelayMs_(std::max(encounterConfig.initialSpawnDelayMs, 0))
+    , activationBounds_(makeActivationBounds(spawnArea))
 {
-    // Линковка внешних ссылок к указателям
-    this->gameLevel = &gl;
-    
-    runSpawnCooldownClockIfNotRunning();
-}
-
-Spawner::~Spawner()
-{
-    // Деструктор
-}
-
-void Spawner::update() {
-    if(isEmpty) return;
-
-    //Спавним enemyPerSecond противников, если прошел кулдаун
-    if(checkInterval(spawnCooldownTimer, spawnCooldown)) {
-        spawnCountOfEnemies();
+    if (activated_)
+    {
+        runSpawnCooldownClockIfNotRunning();
     }
 }
 
-void Spawner::attachPlayer(Player &p)
+Spawner::Spawner(
+    EnemyManager& m,
+    GameLevel& gl,
+    std::string n,
+    int ea,
+    int sc,
+    int eps,
+    sf::Vector2f sa[2],
+    GameData& d,
+    Platform& p,
+    Ground& g,
+    Player& pl,
+    sf::RenderWindow& w,
+    EncounterConfig encounterConfig)
+    : manager(&m)
+    , data(&d)
+    , gameLevel(&gl)
+    , platform(&p)
+    , ground(&g)
+    , player(&pl)
+    , window(&w)
+    , enemyName(std::move(n))
+    , spawnArea{sa[0], sa[1]}
+    , enemyAmount(ea)
+    , enemyPerSpawn(eps)
+    , spawnCooldown(sc)
+    , activateOnPlayerEnter_(encounterConfig.activateOnPlayerEnter)
+    , activated_(!encounterConfig.activateOnPlayerEnter)
+    , firstSpawnPending_(encounterConfig.initialSpawnDelayMs > 0)
+    , initialSpawnDelayMs_(std::max(encounterConfig.initialSpawnDelayMs, 0))
+    , activationBounds_(makeActivationBounds(spawnArea))
+{
+    if (activated_)
+    {
+        runSpawnCooldownClockIfNotRunning();
+    }
+}
+
+Spawner::~Spawner() = default;
+
+void Spawner::update()
+{
+    if (isEmpty)
+    {
+        return;
+    }
+
+    if (!activated_)
+    {
+        if (activateOnPlayerEnter_ && isPlayerInsideActivationBounds())
+        {
+            activated_ = true;
+            spawnCooldownTimer.restart();
+            if (initialSpawnDelayMs_ <= 0)
+            {
+                spawnCountOfEnemies();
+                firstSpawnPending_ = false;
+            }
+        }
+        else
+        {
+            return;
+        }
+    }
+
+    const int currentInterval = firstSpawnPending_ ? initialSpawnDelayMs_ : spawnCooldown;
+    if (currentInterval <= 0)
+    {
+        spawnCountOfEnemies();
+        firstSpawnPending_ = false;
+        return;
+    }
+
+    if (checkInterval(spawnCooldownTimer, currentInterval))
+    {
+        spawnCountOfEnemies();
+        firstSpawnPending_ = false;
+    }
+}
+
+void Spawner::attachPlayer(Player& p)
 {
     this->player = &p;
 }
 
-/////////////////////////////////////////////////////////////////////
-// Utils
-/////////////////////////////////////////////////////////////////////
-void Spawner::runSpawnCooldownClockIfNotRunning() {
-    if(!spawnCooldownTimer.isRunning()) {
+void Spawner::runSpawnCooldownClockIfNotRunning()
+{
+    if (!spawnCooldownTimer.isRunning())
+    {
         spawnCooldownTimer.restart();
     }
 }
 
+bool Spawner::isPlayerInsideActivationBounds() const
+{
+    return player != nullptr && activationBounds_.contains(player->getCenterPosition());
+}
+
 void Spawner::spawnCountOfEnemies()
-{   
-    if(isEmpty) return;
+{
+    if (isEmpty)
+    {
+        return;
+    }
 
     const auto spawnEnemyAt = [&](const sf::Vector2f& randomPos) {
-        if(enemyName == "SkeletonWhite")
+        if (enemyName == "SkeletonWhite")
         {
-            manager->addSkeleton(*data,*window,*ground,*platform,*player,"white",randomPos);
+            manager->addSkeleton(*data, *window, *ground, *platform, *player, "white", randomPos);
         }
-        else if(enemyName == "SkeletonYellow")
+        else if (enemyName == "SkeletonYellow")
         {
-            manager->addSkeleton(*data,*window,*ground,*platform,*player,"yellow",randomPos);
+            manager->addSkeleton(*data, *window, *ground, *platform, *player, "yellow", randomPos);
         }
-        else if(enemyName == "WraithBat")
+        else if (enemyName == "WraithBat")
         {
             manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "wraith-bat", randomPos);
         }
-        else if(enemyName == "VoidSlime")
+        else if (enemyName == "VoidSlime")
         {
             manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "void-slime", randomPos);
         }
-        else if(enemyName == "DreadScorpion")
+        else if (enemyName == "DreadScorpion")
         {
             manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "dread-scorpion", randomPos);
         }
     };
 
-    // Спавним пачку и отнимаем значение пачки от общего кол-ва оставшихся противников
-    if((enemyAmount-enemyPerSpawn)>=0){
-        for (unsigned int i = 0; i < enemyPerSpawn; i++) 
+    if ((enemyAmount - enemyPerSpawn) >= 0)
+    {
+        for (int i = 0; i < enemyPerSpawn; ++i)
         {
-            sf::Vector2f randomPos = {random(spawnArea[0].x,spawnArea[0].y),random(spawnArea[1].x,spawnArea[1].y)};
+            const sf::Vector2f randomPos = {
+                random(spawnArea[0].x, spawnArea[0].y),
+                random(spawnArea[1].x, spawnArea[1].y)
+            };
             spawnEnemyAt(randomPos);
         }
-        // Уменьшаем кол-во противников после спавна
-        enemyAmount-=enemyPerSpawn;
-    } 
-    // Если противников мало для спавна пачки enemyPerSpawn, то спавним оставшееся количество и сбрасываем enemyAmount до 0
-    else if((enemyAmount-enemyPerSpawn)<0 && enemyAmount!= 0){
-        for (unsigned int i = 0; i < enemyAmount; i++) 
+        enemyAmount -= enemyPerSpawn;
+    }
+    else if ((enemyAmount - enemyPerSpawn) < 0 && enemyAmount != 0)
+    {
+        for (int i = 0; i < enemyAmount; ++i)
         {
-            sf::Vector2f randomPos = {random(spawnArea[0].x,spawnArea[0].y),random(spawnArea[1].x,spawnArea[1].y)};
+            const sf::Vector2f randomPos = {
+                random(spawnArea[0].x, spawnArea[0].y),
+                random(spawnArea[1].x, spawnArea[1].y)
+            };
             spawnEnemyAt(randomPos);
         }
-        // Уменьшаем кол-во противников до нуля после спавна
         enemyAmount = 0;
     }
-    // Если противники закончились, помечаем спавнер как "опустошенный"
-    else{
+    else
+    {
         isEmpty = true;
     }
 }

@@ -48,6 +48,7 @@ public:
     ~Trader() = default;
 
     void draw(sf::RenderWindow& window)         override;
+    void drawOverlay(sf::RenderWindow& window)  override;
     void update()                               override;
     bool handleEvent(const sf::Event& event)    override;
     bool blocksPlayerInput() const              override;

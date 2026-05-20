@@ -35,6 +35,10 @@ public:
         bool restoreVitality = false;
         bool hasCustomSpawnOffset = false;
         sf::Vector2f spawnOffset{0.f, 0.f};
+        bool hiddenUntilNearby = false;
+        float revealRadius = 170.f;
+        std::string revealTitle;
+        std::string revealBody;
         std::string prompt;
         std::string title;
         std::string body;
@@ -57,6 +61,11 @@ private:
     bool restoreVitality_ = false;
     bool hasCustomSpawnOffset_ = false;
     sf::Vector2f spawnOffset_{0.f, 0.f};
+    bool hiddenUntilNearby_ = false;
+    bool discovered_ = true;
+    float revealRadius_ = 170.f;
+    std::string revealTitle_;
+    std::string revealBody_;
     bool activated_ = false;
     bool panelOpen_ = false;
 
@@ -84,6 +93,7 @@ private:
     void openPanel();
     void closePanel();
     void performActivation();
+    void revealIfNearby();
     sf::Vector2f calculateSpawnPoint() const;
     static std::string wrapText(const std::string& text, std::size_t maxLineLength);
 
@@ -92,6 +102,7 @@ public:
     ~WorldInteractable() override;
 
     void draw(sf::RenderWindow& window) override;
+    void drawOverlay(sf::RenderWindow& window) override;
     void update() override;
     bool handleEvent(const sf::Event& event) override;
     bool blocksPlayerInput() const override;

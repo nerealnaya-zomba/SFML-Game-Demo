@@ -74,6 +74,11 @@ WorldInteractable::WorldInteractable(
     , restoreVitality_(config.restoreVitality)
     , hasCustomSpawnOffset_(config.hasCustomSpawnOffset)
     , spawnOffset_(config.spawnOffset)
+    , hiddenUntilNearby_(config.hiddenUntilNearby)
+    , discovered_(!config.hiddenUntilNearby)
+    , revealRadius_(config.revealRadius)
+    , revealTitle_(config.revealTitle)
+    , revealBody_(config.revealBody)
     , promptText_(*gameData.gameFont)
     , titleText_(*gameData.gameFont)
     , bodyText_(*gameData.gameFont)
@@ -184,6 +189,14 @@ std::string WorldInteractable::wrapText(const std::string& text, std::size_t max
 
 void WorldInteractable::updateInteractionState()
 {
+    revealIfNearby();
+
+    if (!discovered_)
+    {
+        isCanInteract = false;
+        return;
+    }
+
     if (panelOpen_)
     {
         isCanInteract = true;
@@ -191,6 +204,35 @@ void WorldInteractable::updateInteractionState()
     }
 
     isCanInteract = isInAreaOfInteraction(player->getCenterPosition());
+}
+
+void WorldInteractable::revealIfNearby()
+{
+    if (!hiddenUntilNearby_ || discovered_ || !player)
+    {
+        return;
+    }
+
+    const sf::Vector2f playerCenter = player->getCenterPosition();
+    const sf::Vector2f delta = playerCenter - anchorPosition_;
+    const float distanceSquared = delta.x * delta.x + delta.y * delta.y;
+    if (distanceSquared > revealRadius_ * revealRadius_)
+    {
+        return;
+    }
+
+    discovered_ = true;
+    if (manager)
+    {
+        const std::string revealTitle = revealTitle_.empty()
+            ? titleText_.getString().toAnsiString()
+            : revealTitle_;
+        manager->pushNotification(
+            revealTitle,
+            revealBody_.empty() ? "A hidden object reveals itself nearby." : revealBody_,
+            NotificationTone::Success
+        );
+    }
 }
 
 void WorldInteractable::updateAmbientMotion()
@@ -343,15 +385,37 @@ void WorldInteractable::performActivation()
         activated_ = true;
     }
 
+    if (manager)
+    {
+        manager->pushNotification(
+            titleText_.getString().toAnsiString(),
+            activated_ && singleUse_ ? "The find has been woven into your current run." : "Its echo answers again.",
+            NotificationTone::Info
+        );
+    }
+
     openPanel();
 }
 
 void WorldInteractable::draw(sf::RenderWindow& window)
 {
+    if (!discovered_)
+    {
+        return;
+    }
+
     window.draw(shadow_);
     window.draw(halo_);
     window.draw(innerHalo_);
     window.draw(*sprite);
+}
+
+void WorldInteractable::drawOverlay(sf::RenderWindow& window)
+{
+    if (!discovered_)
+    {
+        return;
+    }
 
     if (isCanInteract && !panelOpen_)
     {
@@ -385,6 +449,11 @@ void WorldInteractable::update()
 
 bool WorldInteractable::handleEvent(const sf::Event& event)
 {
+    if (!discovered_)
+    {
+        return false;
+    }
+
     if (panelOpen_)
     {
         if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())

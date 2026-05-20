@@ -300,11 +300,29 @@
       "Color": [255, 255, 255, 255],
       "AccentColor": [255, 210, 122, 255],
       "InteractRadius": 94.0,
+      "HiddenUntilNearby": true,
+      "RevealRadius": 220.0,
+      "RevealTitle": "Beam Lens Cache",
+      "RevealBody": "A burial seam loosens under your steps. There is a hidden case set into the reliquary wall.",
       "RewardGold": 135,
       "SingleUse": true,
       "Prompt": "Enter to claim beam lens",
       "Title": "Beam Lens Cache",
       "Body": "A brass case clicks open around a rare lens and a purse of marked coin. Whoever carried it expected to pierce armor, not vanish."
+    }
+  ],
+  "Events": [
+    {
+      "Bounds": [1180.0, 620.0, 2420.0, 280.0],
+      "Body": "This reliquary teaches patience. Let grounded threats come to you before taking the next rise.",
+      "Title": "Buried approach",
+      "Tone": "Info"
+    },
+    {
+      "Bounds": [4520.0, 200.0, 2740.0, 520.0],
+      "Body": "The crypt opens overhead here. Expect pressure from both the floor and the rafters.",
+      "Title": "Reliquary crossfire",
+      "Tone": "Warning"
     }
   ],
   "Background": [
@@ -345,22 +363,37 @@
   ],
   "Spawners": [
     {
+      "Archetype": "Siege",
+      "ActivationMode": "OnEnter",
+      "EncounterTitle": "Burial guard",
+      "EncounterBody": "The reliquary opens with a layered patrol. Win the floor before climbing into the central crypt.",
       "EnemyName": "SkeletonWhite",
       "EnemyAmount": 4,
+      "FirstSpawnDelayMs": 720,
       "SpawnCooldown": 5000,
       "EnemyPerSpawn": 2,
       "SpawnArea": [[2500, 4000], [600, 850]]
     },
     {
+      "Archetype": "Ambush",
+      "ActivationMode": "OnEnter",
+      "EncounterTitle": "Floor hunters",
+      "EncounterBody": "Scorpions own the lower stones and punish indecision. Kite them into broader spaces before finishing them.",
       "EnemyName": "DreadScorpion",
       "EnemyAmount": 4,
+      "FirstSpawnDelayMs": 260,
       "SpawnCooldown": 5400,
       "EnemyPerSpawn": 1,
       "SpawnArea": [[1200, 3200], [660, 860]]
     },
     {
+      "Archetype": "Ambush",
+      "ActivationMode": "OnEnter",
+      "EncounterTitle": "Crypt rafters",
+      "EncounterBody": "The upper crypt comes alive once you enter it. Expect pressure from above while you hold the crossing.",
       "EnemyName": "WraithBat",
       "EnemyAmount": 4,
+      "FirstSpawnDelayMs": 340,
       "SpawnCooldown": 6000,
       "EnemyPerSpawn": 2,
       "SpawnArea": [[4600, 7200], [220, 620]]

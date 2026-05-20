@@ -158,6 +158,8 @@ public:
     void updateTextures();
     void drawByZOrder(sf::RenderWindow& window);
     void draw(sf::RenderWindow& window);
+    void drawInstance(sf::RenderWindow& window, std::size_t index) const;
+    std::size_t getInstanceCount() const;
     void clearDecorations();
 
 private:
@@ -195,6 +197,8 @@ private:
     texturesIterHelper catHelper;
     std::vector<sf::Texture>* portalGreenTextures{};
     texturesIterHelper portalGreen;
+    std::vector<sf::Texture>* portalVioletTextures{};
+    texturesIterHelper portalViolet;
     std::vector<sf::Texture>* portalBlue1Textures{};
     texturesIterHelper portalBlue1;
     std::vector<sf::Texture>* portalBlue2Textures{};
@@ -229,6 +233,7 @@ private:
     DecorationSpriteMap plant8PoisonSprites;
     DecorationSpriteMap cat1Sprites;
     DecorationSpriteMap portalGreenSprites;
+    DecorationSpriteMap portalVioletSprites;
     DecorationSpriteMap portal1BlueSprites;
     DecorationSpriteMap portal2BlueSprites;
     DecorationSpriteMap portal3BlueSprites;
@@ -244,6 +249,7 @@ private:
     std::vector<DecorationSpriteMap*> spriteMaps;
     std::unordered_map<const sf::Sprite*, DecorationMotionState> motionStates;
     std::set<int> all_Z;
+    std::vector<const sf::Sprite*> orderedSprites;
 
     void registerAnimatedGroup(const std::string& name,
                                std::vector<sf::Texture>* textures,

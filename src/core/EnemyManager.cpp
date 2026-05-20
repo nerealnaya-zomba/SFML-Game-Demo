@@ -1,25 +1,62 @@
 #include "EnemyManager.h"
-#include<Spawner.h>
-#include<Skeleton.h>
-#include<BestiaryEnemy.h>
-#include<Bullet.h>
-#include<enemyPortal.h>
-#include<GameLevel.h>
-#include<cmath>
+
+#include <Spawner.h>
+#include <Skeleton.h>
+#include <BestiaryEnemy.h>
+#include <Bullet.h>
+#include <enemyPortal.h>
+#include <GameLevel.h>
+
+#include <cmath>
+
+namespace
+{
+void applySpawnerArchetype(
+    const std::string& archetype,
+    int& enemyAmount,
+    int& spawnCooldown,
+    int& enemyPerSpawn)
+{
+    if (archetype == "Ambush")
+    {
+        enemyPerSpawn = std::max(enemyPerSpawn + 1, 2);
+        spawnCooldown = std::max(1600, spawnCooldown - 1800);
+    }
+    else if (archetype == "Siege")
+    {
+        enemyAmount += 2;
+        spawnCooldown = std::max(2200, spawnCooldown - 900);
+    }
+    else if (archetype == "Swarm")
+    {
+        enemyAmount += 3;
+        enemyPerSpawn = std::max(enemyPerSpawn + 2, 3);
+        spawnCooldown = std::max(1400, spawnCooldown - 2400);
+    }
+    else if (archetype == "Duel")
+    {
+        enemyPerSpawn = 1;
+        spawnCooldown = std::max(2800, spawnCooldown + 600);
+    }
+
+    enemyAmount = std::max(enemyAmount, 0);
+    enemyPerSpawn = std::max(enemyPerSpawn, 1);
+    spawnCooldown = std::max(spawnCooldown, 900);
+}
+}
 
 void EnemyManager::updateSpawner()
 {
-    for (Spawner &spawner : spawners)
+    for (Spawner& spawner : spawners)
     {
         spawner.update();
     }
-    
 }
 
 void EnemyManager::removeIfNotAlive()
 {
     skeletons.erase(
-        std::remove_if(skeletons.begin(), skeletons.end(), 
+        std::remove_if(skeletons.begin(), skeletons.end(),
             [](auto& enemy) {
                 return !enemy->isAlive;
             }),
@@ -37,34 +74,52 @@ void EnemyManager::removeIfNotAlive()
 
 void EnemyManager::loadSpawnerData()
 {
+    for (const auto& spawner : (*data)["Spawners"])
+    {
+        int enemyAmount = spawner["EnemyAmount"];
+        int spawnCooldown = spawner["SpawnCooldown"];
+        int enemyPerSpawn = spawner["EnemyPerSpawn"];
+        applySpawnerArchetype(
+            spawner.value("Archetype", std::string{}),
+            enemyAmount,
+            spawnCooldown,
+            enemyPerSpawn
+        );
 
-    for (const auto &spawner : (*data)["Spawners"])
-    {   
-        // Координаты спавна
+        if (enemyAmount <= 0)
+        {
+            continue;
+        }
+
         sf::Vector2f spawnArea[2] = {
-            {spawner["SpawnArea"][0][0],spawner["SpawnArea"][0][1]},
-            {spawner["SpawnArea"][1][0],spawner["SpawnArea"][1][1]}
+            {spawner["SpawnArea"][0][0], spawner["SpawnArea"][0][1]},
+            {spawner["SpawnArea"][1][0], spawner["SpawnArea"][1][1]}
         };
-        // Вставляем спавнер
+
         spawners.emplace_back(
             *this,
             *this->gameLevel,
             spawner["EnemyName"],
-            spawner["EnemyAmount"],
-            spawner["SpawnCooldown"],
-            spawner["EnemyPerSpawn"],
+            enemyAmount,
+            spawnCooldown,
+            enemyPerSpawn,
             spawnArea,
             *this->gameData,
             *this->platform,
             *this->ground,
             *this->player,
-            *this->window);
+            *this->window,
+            Spawner::EncounterConfig{
+                spawner.value("ActivationMode", std::string{}) == "OnEnter",
+                spawner.value("FirstSpawnDelayMs", 0)
+            }
+        );
     }
 }
 
 void EnemyManager::updateCoins()
 {
-    if(!ground || !platform || !player || !gameLevel)
+    if (!ground || !platform || !player || !gameLevel)
     {
         return;
     }
@@ -88,17 +143,31 @@ void EnemyManager::updateCoins()
     );
 }
 
-void EnemyManager::addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos)
+void EnemyManager::addSkeleton(
+    GameData& data,
+    sf::RenderWindow& window,
+    Ground& ground,
+    Platform& platform,
+    Player& player,
+    std::string type,
+    sf::Vector2f pos)
 {
-    skeletons.push_back(std::make_shared<Skeleton>(data,*this,*this->gameLevel,window,ground,platform,player,type,pos)); 
-}   
+    skeletons.push_back(std::make_shared<Skeleton>(data, *this, *this->gameLevel, window, ground, platform, player, type, pos));
+}
 
-void EnemyManager::addBestiaryEnemy(GameData& data, sf::RenderWindow& window, Ground& ground, Platform& platform, Player& player, std::string type, sf::Vector2f pos)
+void EnemyManager::addBestiaryEnemy(
+    GameData& data,
+    sf::RenderWindow& window,
+    Ground& ground,
+    Platform& platform,
+    Player& player,
+    std::string type,
+    sf::Vector2f pos)
 {
     bestiaryEnemies.push_back(std::make_shared<BestiaryEnemy>(data, *this, *this->gameLevel, window, ground, platform, player, type, pos));
 }
 
-void EnemyManager::dropGold(const sf::Vector2f &position, const std::string& enemyType)
+void EnemyManager::dropGold(const sf::Vector2f& position, const std::string& enemyType)
 {
     int coinCount = random(3, 5);
     int minValue = 4;
@@ -174,33 +243,39 @@ void EnemyManager::applySplashDamage(const sf::Vector2f& impactCenter, float spl
 
 void EnemyManager::updateAI_all()
 {
-    for (auto &&enemy : skeletons) {
+    for (auto&& enemy : skeletons)
+    {
         enemy->updateAI();
     }
 
-    for (auto&& enemy : bestiaryEnemies) {
+    for (auto&& enemy : bestiaryEnemies)
+    {
         enemy->updateAI();
     }
 }
 
 void EnemyManager::updateControls_all()
 {
-    for (auto &&enemy : skeletons) {
+    for (auto&& enemy : skeletons)
+    {
         enemy->updateControl();
     }
 
-    for (auto&& enemy : bestiaryEnemies) {
+    for (auto&& enemy : bestiaryEnemies)
+    {
         enemy->updateControl();
     }
 }
 
 void EnemyManager::updatePhysics_all()
 {
-    for (auto &&enemy : skeletons) {
+    for (auto&& enemy : skeletons)
+    {
         enemy->updatePhysics();
     }
 
-    for (auto&& enemy : bestiaryEnemies) {
+    for (auto&& enemy : bestiaryEnemies)
+    {
         enemy->updatePhysics();
     }
 
@@ -209,33 +284,36 @@ void EnemyManager::updatePhysics_all()
 
 void EnemyManager::updateTextures_all()
 {
-    for (auto &&enemy : skeletons) {
+    for (auto&& enemy : skeletons)
+    {
         enemy->updateTextures();
     }
 
-    for (auto&& enemy : bestiaryEnemies) {
+    for (auto&& enemy : bestiaryEnemies)
+    {
         enemy->updateTextures();
     }
 
-    this->removeIfNotAlive();
+    removeIfNotAlive();
 }
 
 void EnemyManager::updateSpawners_all()
 {
-    for (auto &&i : spawners)
+    for (auto&& spawner : spawners)
     {
-        i.update();
+        spawner.update();
     }
-    
 }
 
 void EnemyManager::draw_all()
 {
-    for (auto &&enemy : skeletons) {
+    for (auto&& enemy : skeletons)
+    {
         enemy->draw();
     }
 
-    for (auto&& enemy : bestiaryEnemies) {
+    for (auto&& enemy : bestiaryEnemies)
+    {
         enemy->draw();
     }
 
@@ -257,12 +335,22 @@ void EnemyManager::addSpawner(std::string enemyName)
 {
 }
 
-EnemyManager::EnemyManager(const nlohmann::json& d, GameData& gd, GameLevel& gl, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w)
-    : data(&d), gameData(&gd), platform(&p), ground(&g), player(&pl), window(&w)
+EnemyManager::EnemyManager(
+    const nlohmann::json& d,
+    GameData& gd,
+    GameLevel& gl,
+    Platform& p,
+    Ground& g,
+    Player& pl,
+    sf::RenderWindow& w)
+    : data(&d)
+    , gameData(&gd)
+    , platform(&p)
+    , ground(&g)
+    , player(&pl)
+    , window(&w)
 {
-    // Линковка внешних ссылок к указателям
     this->gameLevel = &gl;
-
     loadSpawnerData();
 }
 
@@ -270,17 +358,16 @@ EnemyManager::~EnemyManager()
 {
 }
 
-void EnemyManager::attachPlayer(Player &p)
+void EnemyManager::attachPlayer(Player& p)
 {
     this->player = &p;
 
-    for (auto &&spawner : spawners)
+    for (auto&& spawner : spawners)
     {
         spawner.attachPlayer(p);
     }
-    
 
-    for (auto &&skeleton : skeletons)
+    for (auto&& skeleton : skeletons)
     {
         skeleton->attachPlayer(p);
     }
@@ -289,7 +376,6 @@ void EnemyManager::attachPlayer(Player &p)
     {
         enemy->attachPlayer(p);
     }
-    
 }
 
 const std::vector<std::shared_ptr<Skeleton>>& EnemyManager::getSkeletons() const

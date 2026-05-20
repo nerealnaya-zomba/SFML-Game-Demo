@@ -155,6 +155,11 @@ Trader::Trader(GameData& data, Player& p,sf::Vector2f& pos)
 
 void Trader::draw(sf::RenderWindow &window)
 {
+    window.draw(*sprite);
+}
+
+void Trader::drawOverlay(sf::RenderWindow &window)
+{
     if (shouldDrawDialogue_)
     {
         window.draw(dialogueShadow);
@@ -163,8 +168,6 @@ void Trader::draw(sf::RenderWindow &window)
         window.draw(dialogueTitleText);
         window.draw(dialogueBodyText);
     }
-
-    window.draw(*sprite);
 
     shop->draw(window);
 }

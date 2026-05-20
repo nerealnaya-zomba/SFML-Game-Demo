@@ -236,11 +236,29 @@
       "Color": [255, 255, 255, 255],
       "AccentColor": [246, 198, 112, 255],
       "InteractRadius": 92.0,
+      "HiddenUntilNearby": true,
+      "RevealRadius": 205.0,
+      "RevealTitle": "Abyssal Stash",
+      "RevealBody": "A rain-dark seam parts in the wall. Something hidden waited here for a careful return.",
       "RewardGold": 125,
       "SingleUse": true,
       "Prompt": "Enter to recover abyssal stash",
       "Title": "Abyssal Stash",
       "Body": "Cold-metal trinkets and travel coin survive inside the sealed pouch. It feels like whoever hid it expected never to come back."
+    }
+  ],
+  "Events": [
+    {
+      "Bounds": [920.0, 420.0, 1180.0, 300.0],
+      "Body": "The returning veil starts with stacked jumps and narrow recovery windows. Save your momentum for the upper chain.",
+      "Title": "Veil ascent",
+      "Tone": "Info"
+    },
+    {
+      "Bounds": [3320.0, 700.0, 1420.0, 260.0],
+      "Body": "This rain-swept span punishes hesitation. Clear the lane, then commit to the crossing in one push.",
+      "Title": "Midnight span",
+      "Tone": "Warning"
     }
   ],
   "Background": [
@@ -281,9 +299,14 @@
   ],
   "Spawners": [
     {
+      "Archetype": "Duel",
+      "ActivationMode": "OnEnter",
+      "EncounterTitle": "Returning watcher",
+      "EncounterBody": "The veil's opening climb is guarded by a patient patrol. Clear it cleanly before the long midnight span.",
       "EnemyName": "SkeletonWhite",
-      "EnemyAmount": 0,
-      "SpawnCooldown": 7000,
+      "EnemyAmount": 3,
+      "FirstSpawnDelayMs": 520,
+      "SpawnCooldown": 5600,
       "EnemyPerSpawn": 1,
       "SpawnArea": [[200, 700], [700, 800]]
     }

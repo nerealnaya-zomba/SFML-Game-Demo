@@ -80,6 +80,7 @@ Decoration::Decoration(GameData& gameTextures, GameCamera& c)
     attachTexture(gameTextures.plant8PoisonTextures, plant8PoisonTextures, gameTextures.plant8Poison, plant8Poison);
     attachTexture(gameTextures.cat1Textures, cat1Textures, gameTextures.catHelper, catHelper);
     attachTexture(gameTextures.portalGreenTextures, portalGreenTextures, gameTextures.portalGreen, portalGreen);
+    attachTexture(gameTextures.portalVioletTextures, portalVioletTextures, gameTextures.portalViolet, portalViolet);
     attachTexture(gameTextures.portalBlue1Textures, portalBlue1Textures, gameTextures.portalBlue1Helper, portalBlue1);
     attachTexture(gameTextures.portalBlue2Textures, portalBlue2Textures, gameTextures.portalBlue2Helper, portalBlue2);
     attachTexture(gameTextures.portalBlue3Textures, portalBlue3Textures, gameTextures.portalBlue3Helper, portalBlue3);
@@ -105,6 +106,7 @@ Decoration::Decoration(GameData& gameTextures, GameCamera& c)
     registerAnimatedGroup("poisonPlant", plant8PoisonTextures, plant8Poison, plant8PoisonSprites, makePlantMotion(7.2f, 0.84f, 2.3f, 0.98f, 3.8f, 0.66f, 0.014f, 1.18f), {"plant8", "plant8Poison", "poisonPlant8"});
     registerAnimatedGroup("cat", cat1Textures, catHelper, cat1Sprites, makePlantMotion(0.4f, 0.24f, 0.0f, 0.0f, 1.6f, 0.34f, 0.012f, 0.78f));
     registerAnimatedGroup("portalGreen", portalGreenTextures, portalGreen, portalGreenSprites, makePortalMotion(2.0f, 6.0f, 0.96f, 0.030f, 1.52f));
+    registerAnimatedGroup("portalViolet", portalVioletTextures, portalViolet, portalVioletSprites, makePortalMotion(2.0f, 6.0f, 0.96f, 0.030f, 1.52f));
     registerAnimatedGroup("portalBlue1", portalBlue1Textures, portalBlue1, portal1BlueSprites, makePortalMotion(1.8f, 6.6f, 1.02f, 0.032f, 1.58f));
     registerAnimatedGroup("portalBlue2", portalBlue2Textures, portalBlue2, portal2BlueSprites, makePortalMotion(1.8f, 6.4f, 1.04f, 0.031f, 1.60f));
     registerAnimatedGroup("portalBlue3", portalBlue3Textures, portalBlue3, portal3BlueSprites, makePortalMotion(1.9f, 6.7f, 1.06f, 0.033f, 1.62f));
@@ -176,7 +178,8 @@ void Decoration::initAnimatedDecoration(sf::Vector2f position,
     registerMotionState(*sprite, position, scale, z, group.motion);
 
     all_Z.insert(z);
-    group.sprites->emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
+    auto inserted = group.sprites->emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
+    orderedSprites.push_back(inserted->second.get());
 }
 
 void Decoration::initStaticDecoration(const std::string& name,
@@ -206,7 +209,8 @@ void Decoration::initStaticDecoration(const std::string& name,
     registerMotionState(*sprite, position, scale, z, resolveStaticMotionProfile(name));
 
     all_Z.insert(z);
-    staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
+    auto inserted = staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
+    orderedSprites.push_back(inserted->second.get());
 }
 
 void Decoration::registerMotionState(const sf::Sprite& sprite,
@@ -421,6 +425,21 @@ void Decoration::draw(sf::RenderWindow& window)
     drawByZOrder(window);
 }
 
+void Decoration::drawInstance(sf::RenderWindow& window, const std::size_t index) const
+{
+    if (index >= orderedSprites.size() || orderedSprites[index] == nullptr)
+    {
+        return;
+    }
+
+    window.draw(*orderedSprites[index]);
+}
+
+std::size_t Decoration::getInstanceCount() const
+{
+    return orderedSprites.size();
+}
+
 void Decoration::clearDecorations()
 {
     for (DecorationSpriteMap* spriteMap : spriteMaps)
@@ -430,4 +449,5 @@ void Decoration::clearDecorations()
 
     motionStates.clear();
     all_Z.clear();
+    orderedSprites.clear();
 }

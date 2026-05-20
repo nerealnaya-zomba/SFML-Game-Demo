@@ -230,11 +230,29 @@
       "Color": [255, 255, 255, 255],
       "AccentColor": [255, 186, 116, 255],
       "InteractRadius": 94.0,
+      "HiddenUntilNearby": true,
+      "RevealRadius": 210.0,
+      "RevealTitle": "Prism Shards",
+      "RevealBody": "A crimson shimmer catches under the ledge. There is a cache tucked into the stone.",
       "RewardGold": 120,
       "SingleUse": true,
       "Prompt": "Enter to gather prism shards",
       "Title": "Prism Shards",
       "Body": "A velvet wrap protects a cache of sharp-edged prisms. Even cracked, they buy a surprising amount of ammunition and favor."
+    }
+  ],
+  "Events": [
+    {
+      "Bounds": [880.0, 700.0, 1880.0, 240.0],
+      "Body": "This nave pushes you to alternate between low cover and aggressive climbs. Staying in one lane too long gets expensive.",
+      "Title": "Crimson pressure",
+      "Tone": "Warning"
+    },
+    {
+      "Bounds": [3280.0, 460.0, 1960.0, 280.0],
+      "Body": "The upper span opens the level. Clear the bats here and the rest of the route becomes easier to read.",
+      "Title": "High-choir opening",
+      "Tone": "Info"
     }
   ],
   "Background": [
@@ -269,22 +287,37 @@
   ],
   "Spawners": [
     {
+      "Archetype": "Siege",
+      "ActivationMode": "OnEnter",
+      "EncounterTitle": "Nave procession",
+      "EncounterBody": "The first hall mixes grounded pressure and awkward footing. Win the center before moving on.",
       "EnemyName": "SkeletonWhite",
       "EnemyAmount": 3,
+      "FirstSpawnDelayMs": 680,
       "SpawnCooldown": 6000,
       "EnemyPerSpawn": 1,
       "SpawnArea": [[2000, 3000], [700, 850]]
     },
     {
+      "Archetype": "Ambush",
+      "ActivationMode": "OnEnter",
+      "EncounterTitle": "Red seep",
+      "EncounterBody": "Slimes begin to spill through the lower route as soon as you commit to it. Keep momentum and don't overstay.",
       "EnemyName": "VoidSlime",
       "EnemyAmount": 3,
+      "FirstSpawnDelayMs": 260,
       "SpawnCooldown": 5600,
       "EnemyPerSpawn": 1,
       "SpawnArea": [[900, 2600], [660, 860]]
     },
     {
+      "Archetype": "Ambush",
+      "ActivationMode": "OnEnter",
+      "EncounterTitle": "Choir bats",
+      "EncounterBody": "The upper nave becomes dangerous the moment the bats stir. Clear the air before taking the next bridge.",
       "EnemyName": "WraithBat",
       "EnemyAmount": 3,
+      "FirstSpawnDelayMs": 320,
       "SpawnCooldown": 6100,
       "EnemyPerSpawn": 1,
       "SpawnArea": [[3300, 5200], [240, 620]]

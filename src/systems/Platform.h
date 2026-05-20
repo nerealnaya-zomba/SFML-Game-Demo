@@ -41,11 +41,14 @@ public:
 
     void update();
     void draw(sf::RenderWindow& window);
+    void drawInstance(sf::RenderWindow& window, std::size_t index) const;
+    void drawAtmosphere(sf::RenderWindow& window) const;
     void addPlatform(sf::Vector2f position, std::string name);
     void addPlatform(sf::Vector2f position, std::string name, InstanceOverrides overrides);
     void applyImpact(const sf::RectangleShape& rect, float fallSpeed);
 
     std::vector<std::shared_ptr<sf::RectangleShape>>& getRects();
+    std::size_t getInstanceCount() const;
     void clearPlatforms();
 
     static bool hasType(const std::string& name);

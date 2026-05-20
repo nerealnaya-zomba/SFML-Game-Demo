@@ -956,6 +956,22 @@ void Player::addGold(int amount)
     {
         recalculateStatsFromInventory();
     }
+
+    const sf::Vector2f center = getCenterPosition();
+    pushRing(center, sf::Color(236, 196, 96, 150), 7.f, 34.f, 2.8f, 1.8f, 150.f);
+    if (amount >= 40)
+    {
+        spawnParticleBurst(
+            center,
+            sf::Color(246, 214, 128, 188),
+            6,
+            42.f,
+            96.f,
+            1.8f,
+            -16.f,
+            0.38f
+        );
+    }
 }
 
 bool Player::spendGold(int amount)
@@ -1055,16 +1071,34 @@ void Player::beginMiniLocationTransition(
     const sf::Color& portalColor
 )
 {
+    beginPortalTransition(
+        [this, destinationSupportPoint]() {
+            teleportToSupportPoint(destinationSupportPoint);
+            return true;
+        },
+        portalCenter,
+        portalColor
+    );
+}
+
+bool Player::beginPortalTransition(
+    std::function<bool()> teleportCallback,
+    const sf::Vector2f& portalCenter,
+    const sf::Color& portalColor
+)
+{
     if (!isAlive || isPlayingDieAnimation || miniLocationTransition_.active)
     {
-        return;
+        return false;
     }
 
     miniLocationTransition_.active = true;
+    miniLocationTransition_.phase = MiniLocationTransitionState::Phase::Enter;
     miniLocationTransition_.startCenter = getCenterPosition();
     miniLocationTransition_.portalCenter = portalCenter;
-    miniLocationTransition_.destinationSupportPoint = destinationSupportPoint;
+    miniLocationTransition_.destinationSupportPoint = getCenterPosition();
     miniLocationTransition_.portalColor = portalColor;
+    miniLocationTransition_.teleportCallback = std::move(teleportCallback);
     miniLocationTransition_.drawRotation = 0.f;
     miniLocationTransition_.drawScaleFactor = 1.f;
     miniLocationTransition_.drawAlpha = 255.f;
@@ -1096,6 +1130,7 @@ void Player::beginMiniLocationTransition(
         0.62f
     );
     triggerCameraImpact({0.f, -0.18f}, 20.f, 0.08f, 0.012f);
+    return true;
 }
 
 bool Player::updateMiniLocationTransition()
@@ -1106,8 +1141,12 @@ bool Player::updateMiniLocationTransition()
     }
 
     const sf::Color portalColor = miniLocationTransition_.portalColor;
+    const bool isExitPhase = miniLocationTransition_.phase == MiniLocationTransitionState::Phase::Exit;
+    const float duration = isExitPhase
+        ? miniLocationTransition_.exitDurationSeconds
+        : miniLocationTransition_.durationSeconds;
     const float rawProgress = std::clamp(
-        miniLocationTransition_.clock.getElapsedTime().asSeconds() / miniLocationTransition_.durationSeconds,
+        miniLocationTransition_.clock.getElapsedTime().asSeconds() / std::max(duration, 0.01f),
         0.f,
         1.f
     );
@@ -1117,16 +1156,21 @@ bool Player::updateMiniLocationTransition()
         miniLocationTransition_.portalCenter.x,
         miniLocationTransition_.portalCenter.y + 6.f
     };
-    const sf::Vector2f currentCenter = lerpVector(
-        miniLocationTransition_.startCenter,
-        targetCenter,
-        travelProgress
-    );
+    const sf::Vector2f currentCenter = isExitPhase
+        ? getCenterPosition()
+        : lerpVector(
+            miniLocationTransition_.startCenter,
+            targetCenter,
+            travelProgress
+        );
 
-    setPosition({
-        currentCenter.x - playerRectangle_->getSize().x / 2.f,
-        currentCenter.y - playerRectangle_->getSize().y / 2.f
-    });
+    if (!isExitPhase)
+    {
+        setPosition({
+            currentCenter.x - playerRectangle_->getSize().x / 2.f,
+            currentCenter.y - playerRectangle_->getSize().y / 2.f
+        });
+    }
 
     initialWalkSpeed = 0.f;
     fallingSpeed = 0.f;
@@ -1135,9 +1179,18 @@ bool Player::updateMiniLocationTransition()
     isFliesUp = false;
     isJumped = false;
 
-    miniLocationTransition_.drawRotation = 540.f * travelProgress + std::sin(rawProgress * kPi * 4.f) * 10.f;
-    miniLocationTransition_.drawScaleFactor = std::max(0.04f, 1.f - shrinkProgress * 0.94f);
-    miniLocationTransition_.drawAlpha = std::max(18.f, 255.f - shrinkProgress * 210.f);
+    if (isExitPhase)
+    {
+        miniLocationTransition_.drawRotation = 540.f * (1.f - travelProgress) + std::sin(rawProgress * kPi * 4.f) * 8.f;
+        miniLocationTransition_.drawScaleFactor = std::max(0.04f, 0.08f + easeOutCubic(rawProgress) * 0.92f);
+        miniLocationTransition_.drawAlpha = std::min(255.f, 42.f + rawProgress * 213.f);
+    }
+    else
+    {
+        miniLocationTransition_.drawRotation = 540.f * travelProgress + std::sin(rawProgress * kPi * 4.f) * 10.f;
+        miniLocationTransition_.drawScaleFactor = std::max(0.04f, 1.f - shrinkProgress * 0.94f);
+        miniLocationTransition_.drawAlpha = std::max(18.f, 255.f - shrinkProgress * 210.f);
+    }
 
     if (miniLocationTransition_.particleClock.getElapsedTime().asMilliseconds() >= 60)
     {
@@ -1163,6 +1216,18 @@ bool Player::updateMiniLocationTransition()
         return true;
     }
 
+    if (isExitPhase)
+    {
+        miniLocationTransition_.active = false;
+        miniLocationTransition_.phase = MiniLocationTransitionState::Phase::Enter;
+        miniLocationTransition_.drawRotation = 0.f;
+        miniLocationTransition_.drawScaleFactor = 1.f;
+        miniLocationTransition_.drawAlpha = 255.f;
+        miniLocationTransition_.teleportCallback = {};
+        unblockControls();
+        return true;
+    }
+
     spawnParticleBurst(
         miniLocationTransition_.portalCenter,
         sf::Color(portalColor.r, static_cast<std::uint8_t>(std::min(255, portalColor.g + 12)), portalColor.b, 200),
@@ -1174,13 +1239,30 @@ bool Player::updateMiniLocationTransition()
         0.38f
     );
 
-    const sf::Vector2f destinationSupportPoint = miniLocationTransition_.destinationSupportPoint;
-    miniLocationTransition_.active = false;
-    miniLocationTransition_.drawRotation = 0.f;
-    miniLocationTransition_.drawScaleFactor = 1.f;
-    miniLocationTransition_.drawAlpha = 255.f;
-    teleportToSupportPoint(destinationSupportPoint);
-    unblockControls();
+    const bool teleported = miniLocationTransition_.teleportCallback
+        ? miniLocationTransition_.teleportCallback()
+        : false;
+    if (!teleported)
+    {
+        miniLocationTransition_.active = false;
+        miniLocationTransition_.phase = MiniLocationTransitionState::Phase::Enter;
+        miniLocationTransition_.drawRotation = 0.f;
+        miniLocationTransition_.drawScaleFactor = 1.f;
+        miniLocationTransition_.drawAlpha = 255.f;
+        miniLocationTransition_.teleportCallback = {};
+        unblockControls();
+        return true;
+    }
+
+    miniLocationTransition_.phase = MiniLocationTransitionState::Phase::Exit;
+    miniLocationTransition_.startCenter = getCenterPosition();
+    miniLocationTransition_.portalCenter = getCenterPosition();
+    miniLocationTransition_.drawRotation = 540.f;
+    miniLocationTransition_.drawScaleFactor = 0.08f;
+    miniLocationTransition_.drawAlpha = 42.f;
+    miniLocationTransition_.clock.restart();
+    miniLocationTransition_.particleClock.restart();
+    spawnTeleportEffect(false);
 
     return true;
 }
@@ -1937,7 +2019,8 @@ void Player::jump()
     playerRectangle_->setPosition({playerRectangle_->getPosition().x,playerRectangle_->getPosition().y-1.f});
     fallingSpeed = -jumpImpulse_;
     spawnJumpEffect();
-    triggerCameraImpact({0.f, -1.f}, isFalling ? 24.f : 16.f, isFalling ? 0.12f : 0.08f, 0.015f);
+    pushRing(getFeetPosition(), sf::Color(194, 228, 255, 104), 8.f, isFalling ? 34.f : 28.f, 2.6f, 1.6f, 104.f);
+    triggerCameraImpact({0.f, -1.f}, isFalling ? 30.f : 18.f, isFalling ? 0.16f : 0.09f, isFalling ? 0.022f : 0.015f);
 }
 
 void Player::fallDown()
@@ -1969,6 +2052,8 @@ void Player::dash()
         }
 
         spawnDashBurst();
+        pushRing(getCenterPosition(), sf::Color(214, 142, 124, 108), 10.f, 52.f, 3.8f, 2.0f, 108.f);
+        triggerCameraImpact({playerSprite->getScale().x > 0 ? 1.f : -1.f, 0.f}, 36.f, 0.16f, 0.022f);
     }
 }
 
@@ -2121,6 +2206,9 @@ bool Player::shoot(bool direction)
     }
 
     spawnShootEffect(direction);
+    triggerCameraImpact({direction ? 1.f : -1.f, -0.08f}, weapon.weaponStats.kind == Item::WeaponKind::NightfallBeam ? 26.f : 14.f,
+        weapon.weaponStats.kind == Item::WeaponKind::NightfallBeam ? 0.12f : 0.05f,
+        weapon.weaponStats.kind == Item::WeaponKind::NightfallBeam ? 0.024f : 0.008f);
 
     energy-=shootCost;
     if(energy<0) energy = 0;
@@ -2199,6 +2287,7 @@ bool Player::takeDMG(int count, sf::Vector2f knockback, bool side)
             0.48f
         );
         triggerCameraImpact({side ? -1.f : 1.f, -0.16f}, 72.f, 0.5f, 0.065f);
+        pushRing(getCenterPosition(), sf::Color(255, 196, 164, 92), 16.f, 82.f, 5.2f, 2.5f, 92.f);
 
         //Cooldown
         takeDMG_isOnCooldown = true;

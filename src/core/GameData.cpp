@@ -6,7 +6,7 @@
 namespace
 {
 constexpr const char* kLaunchSettingsPath = "data/launchSettings.json";
-constexpr int kDefaultLoadingOperationsCount = 62;
+constexpr int kDefaultLoadingOperationsCount = 63;
 constexpr bool kDefaultFullscreenEnabled = false;
 constexpr bool kDefaultVsyncEnabled = false;
 constexpr int kDefaultMenuParticleCount = 200;
@@ -158,6 +158,7 @@ GameData::GameData(sf::Font* font, std::shared_ptr<LoadingProgress> loadingProgr
     loadAnimatedTextures("Breathing through the closed flower", blueFlower2Textures, blueFlower2Path, blueFlower2, 2, true, true);
     loadAnimatedTextures("Stirring the poison bloom", plant8PoisonTextures, plant8PoisonPath, plant8Poison, 4, true, true);
     loadAnimatedTextures("Opening the green portal", portalGreenTextures, portalGreenPath, portalGreen, 5, true, true);
+    loadAnimatedTextures("Opening the violet portal", portalVioletTextures, portalVioletPath, portalViolet, 5, true, true);
 
     constexpr int portalBluePauseTillSwitch = 2;
     loadAnimatedTextures("Charging blue portal I", portalBlue1Textures, PortalBlue1Path, portalBlue1Helper, portalBluePauseTillSwitch, true, true);

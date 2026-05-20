@@ -124,6 +124,25 @@ void Platform::draw(sf::RenderWindow& window)
     atmosphere_.draw(window);
 }
 
+void Platform::drawInstance(sf::RenderWindow& window, const std::size_t index) const
+{
+    if (index >= instances_.size())
+    {
+        return;
+    }
+
+    const PlatformInstance& instance = instances_[index];
+    if (instance.sprite)
+    {
+        window.draw(*instance.sprite);
+    }
+}
+
+void Platform::drawAtmosphere(sf::RenderWindow& window) const
+{
+    atmosphere_.draw(window);
+}
+
 void Platform::update()
 {
     const float deltaSeconds = std::min(0.05f, deltaClock_.restart().asSeconds());
@@ -258,6 +277,11 @@ void Platform::applyImpact(const sf::RectangleShape& rect, const float fallSpeed
 std::vector<std::shared_ptr<sf::RectangleShape>>& Platform::getRects()
 {
     return rects;
+}
+
+std::size_t Platform::getInstanceCount() const
+{
+    return instances_.size();
 }
 
 void Platform::clearPlatforms()

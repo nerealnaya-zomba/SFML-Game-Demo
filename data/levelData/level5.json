@@ -178,11 +178,23 @@
       "Color": [255, 255, 255, 255],
       "AccentColor": [255, 210, 122, 255],
       "InteractRadius": 96.0,
+      "HiddenUntilNearby": true,
+      "RevealRadius": 190.0,
+      "RevealTitle": "Night Relic Bundle",
+      "RevealBody": "The trial shifts and a hidden bundle becomes visible near the shrine path.",
       "RewardGold": 110,
       "SingleUse": true,
       "Prompt": "Enter to gather night relics",
       "Title": "Night Relic Bundle",
       "Body": "Moon-silver fittings, old seals and a roll of survivor's coin rest in the bundle. Someone planned to buy safety and ran out of road first."
+    }
+  ],
+  "Events": [
+    {
+      "Bounds": [720.0, 360.0, 520.0, 300.0],
+      "Body": "This is a compact combat room. Expect the shrine, jump timing and reward to chain together quickly.",
+      "Title": "Rift trial",
+      "Tone": "Info"
     }
   ],
   "Background": [
@@ -223,9 +235,14 @@
   ],
   "Spawners": [
     {
+      "Archetype": "Duel",
+      "ActivationMode": "OnEnter",
+      "EncounterTitle": "Trial keeper",
+      "EncounterBody": "This compact arena is meant to test control under pressure. Win the first duel, then stabilize at the shrine.",
       "EnemyName": "SkeletonWhite",
-      "EnemyAmount": 0,
-      "SpawnCooldown": 7000,
+      "EnemyAmount": 2,
+      "FirstSpawnDelayMs": 500,
+      "SpawnCooldown": 5200,
       "EnemyPerSpawn": 1,
       "SpawnArea": [[200, 700], [700, 800]]
     }

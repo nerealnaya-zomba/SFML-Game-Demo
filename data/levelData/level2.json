@@ -560,6 +560,10 @@
                 910
             ],
             "Prompt": "Enter to pry open cache",
+            "HiddenUntilNearby": true,
+            "RevealRadius": 210.0,
+            "RevealTitle": "Hunter's Purse",
+            "RevealBody": "A wet leather purse slides loose from the stone after your approach.",
             "RewardGold": 105,
             "Scale": [
                 3.5,
@@ -573,6 +577,30 @@
             "Texture": "Item_20.png",
             "Title": "Hunter's Purse",
             "Type": "GoldCache"
+        }
+    ],
+    "Events": [
+        {
+            "Bounds": [
+                780.0,
+                240.0,
+                1560.0,
+                520.0
+            ],
+            "Body": "Flying threats dominate this air lane. Commit to high ground only if you can clear it quickly.",
+            "Title": "Open sky pressure",
+            "Tone": "Warning"
+        },
+        {
+            "Bounds": [
+                1880.0,
+                640.0,
+                1860.0,
+                300.0
+            ],
+            "Body": "The storm path rewards short resets. Dash through gaps, then recover on the broad stones.",
+            "Title": "Storm crossing",
+            "Tone": "Info"
         }
     ],
     "MiniLocations": [],
@@ -667,9 +695,14 @@
     },
     "Spawners": [
         {
-            "EnemyAmount": 100,
+            "Archetype": "Swarm",
+            "ActivationMode": "OnEnter",
+            "EncounterBody": "The rookery entrance erupts fast. Break the first wave immediately or the ledge becomes a trap.",
+            "EncounterTitle": "Rookery burst",
+            "EnemyAmount": 8,
             "EnemyName": "SkeletonYellow",
             "EnemyPerSpawn": 10,
+            "FirstSpawnDelayMs": 180,
             "SpawnArea": [
                 [
                     200,
@@ -683,9 +716,14 @@
             "SpawnCooldown": 7000
         },
         {
+            "Archetype": "Ambush",
+            "ActivationMode": "OnEnter",
+            "EncounterBody": "Wraiths own the air pocket ahead. Enter ready to shoot upward while repositioning between landings.",
+            "EncounterTitle": "Air pocket",
             "EnemyAmount": 5,
             "EnemyName": "WraithBat",
             "EnemyPerSpawn": 2,
+            "FirstSpawnDelayMs": 300,
             "SpawnArea": [
                 [
                     900,
@@ -699,9 +737,14 @@
             "SpawnCooldown": 5400
         },
         {
+            "Archetype": "Siege",
+            "ActivationMode": "OnEnter",
+            "EncounterBody": "Ground hunters dominate the long descent. Take the broad stones and deny them easy flanks.",
+            "EncounterTitle": "Storm descent",
             "EnemyAmount": 4,
             "EnemyName": "DreadScorpion",
             "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 720,
             "SpawnArea": [
                 [
                     1800,

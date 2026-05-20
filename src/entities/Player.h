@@ -17,6 +17,7 @@
 #include <LevelPortal.h>
 #include <CampaignProgress.h>
 #include <ChooseDestinationMenu.h>
+#include <functional>
 
 class GameLevelManager;
 class LevelPortal;
@@ -199,6 +200,11 @@ public:
         const sf::Vector2f& portalCenter,
         const sf::Color& portalColor = sf::Color(110, 224, 164, 255)
     );
+    bool beginPortalTransition(
+        std::function<bool()> teleportCallback,
+        const sf::Vector2f& portalCenter,
+        const sf::Color& portalColor = sf::Color(110, 224, 164, 255)
+    );
     void forceKill();
     void respawnAt(sf::Vector2f pos);
     void notifyLevelEntered(const std::string& levelName);
@@ -251,14 +257,23 @@ private:
 
     struct MiniLocationTransitionState
     {
+        enum class Phase
+        {
+            Enter,
+            Exit
+        };
+
         bool active = false;
+        Phase phase = Phase::Enter;
         sf::Clock clock;
         sf::Clock particleClock;
         sf::Vector2f startCenter{0.f, 0.f};
         sf::Vector2f portalCenter{0.f, 0.f};
         sf::Vector2f destinationSupportPoint{0.f, 0.f};
         sf::Color portalColor{110, 224, 164, 255};
+        std::function<bool()> teleportCallback{};
         float durationSeconds = 0.5f;
+        float exitDurationSeconds = 0.28f;
         float drawRotation = 0.f;
         float drawScaleFactor = 1.f;
         float drawAlpha = 255.f;

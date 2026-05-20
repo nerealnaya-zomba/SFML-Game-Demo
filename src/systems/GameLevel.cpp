@@ -3,6 +3,7 @@
 #include "nlohmann/json_fwd.hpp"
 #include <GameLevel.h>
 #include <MiniLocationEntrance.h>
+#include <WorldPortal.h>
 #include <WorldInteractable.h>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Text.hpp>
@@ -14,15 +15,18 @@
 #include <TGUI/TGUI.hpp>
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
 #include <limits>
+#include <map>
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include <Player.h>
 
@@ -221,6 +225,215 @@ sf::Color readColor(const nlohmann::json& value, const sf::Color fallback = sf::
         value[2].get<std::uint8_t>(),
         value[3].get<std::uint8_t>()
     };
+}
+
+nlohmann::json withOffsetPosition(nlohmann::json object, const sf::Vector2f offset)
+{
+    if (object.contains("Position"))
+    {
+        const sf::Vector2f position = readVector2f(object["Position"]);
+        object["Position"] = nlohmann::json::array({position.x + offset.x, position.y + offset.y});
+    }
+    if (object.contains("Target") && object["Target"].is_object())
+    {
+        auto& target = object["Target"];
+        const std::string targetType = target.value("Type", std::string{"Position"});
+        if (targetType != "Level")
+        {
+            if (target.contains("Position"))
+            {
+                const sf::Vector2f position = readVector2f(target["Position"]);
+                target["Position"] = nlohmann::json::array({position.x + offset.x, position.y + offset.y});
+            }
+            if (target.contains("SpawnPosition"))
+            {
+                const sf::Vector2f position = readVector2f(target["SpawnPosition"]);
+                target["SpawnPosition"] = nlohmann::json::array({position.x + offset.x, position.y + offset.y});
+            }
+        }
+    }
+
+    return object;
+}
+
+sf::FloatRect offsetRect(const sf::FloatRect& rect, const sf::Vector2f offset)
+{
+    return sf::FloatRect(rect.position + offset, rect.size);
+}
+
+void appendMiniLocationDeadAreas(nlohmann::json& target, const nlohmann::json& location, const sf::Vector2f origin)
+{
+    if (!target.contains("DeadAreas") || !target["DeadAreas"].is_array())
+    {
+        target["DeadAreas"] = nlohmann::json::array();
+    }
+
+    if (location.contains("DeadAreas") && location["DeadAreas"].is_array())
+    {
+        for (auto deadArea : location["DeadAreas"])
+        {
+            const sf::FloatRect rect = offsetRect(readRect(deadArea.value("Rect", nlohmann::json::array())), origin);
+            deadArea["Rect"] = nlohmann::json::array({rect.position.x, rect.position.y, rect.size.x, rect.size.y});
+            target["DeadAreas"].push_back(deadArea);
+        }
+    }
+
+    if (location.contains("Hazard") && location["Hazard"].is_object())
+    {
+        auto deadArea = location["Hazard"];
+        deadArea["Id"] = deadArea.value("Id", std::string{"legacy_hazard"});
+        target["DeadAreas"].push_back(deadArea);
+    }
+}
+
+void appendNestedMiniLocationContent(nlohmann::json& target, const nlohmann::json& location, const char* key, const sf::Vector2f origin)
+{
+    if (!location.contains(key) || !location[key].is_array())
+    {
+        return;
+    }
+
+    if (!target.contains(key) || !target[key].is_array())
+    {
+        target[key] = nlohmann::json::array();
+    }
+
+    for (const auto& nestedObject : location[key])
+    {
+        target[key].push_back(withOffsetPosition(nestedObject, origin));
+    }
+}
+
+nlohmann::json expandMiniLocationContent(const nlohmann::json& source)
+{
+    nlohmann::json expanded = source;
+    if (!expanded.contains("MiniLocations") || !expanded["MiniLocations"].is_array())
+    {
+        return expanded;
+    }
+
+    for (const auto& location : expanded["MiniLocations"])
+    {
+        const sf::FloatRect bounds = readRect(location.value("Bounds", nlohmann::json::array()));
+        if (bounds.size.x <= 0.f || bounds.size.y <= 0.f)
+        {
+            continue;
+        }
+
+        const sf::Vector2f origin = bounds.position;
+        appendNestedMiniLocationContent(expanded, location, "Platforms", origin);
+        appendNestedMiniLocationContent(expanded, location, "Decorations", origin);
+        appendNestedMiniLocationContent(expanded, location, "Interactives", origin);
+        appendNestedMiniLocationContent(expanded, location, "Portals", origin);
+        appendMiniLocationDeadAreas(expanded, location, origin);
+    }
+
+    return expanded;
+}
+
+WorldPortal::Target parseWorldPortalTarget(const nlohmann::json& portalData, const std::map<std::string, sf::Vector2f>& miniLocationEntrances)
+{
+    const nlohmann::json targetData = portalData.value("Target", nlohmann::json::object());
+    const std::string targetType = targetData.value("Type", std::string{"Position"});
+
+    WorldPortal::Target target;
+    if (targetType == "Level")
+    {
+        target.type = WorldPortal::TargetType::Level;
+        target.levelId = targetData.value("LevelId", std::string{});
+        if (targetData.contains("SpawnPosition"))
+        {
+            target.spawnPosition = readVector2f(targetData["SpawnPosition"]);
+        }
+        return target;
+    }
+
+    if (targetType == "MiniLocation")
+    {
+        target.type = WorldPortal::TargetType::MiniLocation;
+        target.miniLocationId = targetData.value("MiniLocationId", std::string{});
+        if (targetData.contains("SpawnPosition"))
+        {
+            target.spawnPosition = readVector2f(targetData["SpawnPosition"]);
+        }
+        else if (const auto locationIt = miniLocationEntrances.find(target.miniLocationId); locationIt != miniLocationEntrances.end())
+        {
+            target.position = locationIt->second;
+        }
+        else if (!miniLocationEntrances.empty())
+        {
+            target.miniLocationId = miniLocationEntrances.begin()->first;
+            target.position = miniLocationEntrances.begin()->second;
+        }
+        else
+        {
+            target.position = readVector2f(targetData.value("Position", portalData.value("Position", nlohmann::json::array())));
+        }
+        return target;
+    }
+
+    target.type = WorldPortal::TargetType::Position;
+    target.position = readVector2f(targetData.value("Position", nlohmann::json::array()));
+    return target;
+}
+
+NotificationTone parseNotificationTone(const std::string& tone)
+{
+    if (tone == "Success" || tone == "success")
+    {
+        return NotificationTone::Success;
+    }
+    if (tone == "Warning" || tone == "warning")
+    {
+        return NotificationTone::Warning;
+    }
+    return NotificationTone::Info;
+}
+
+std::string humanizeThemeName(const std::string& value)
+{
+    if (value.empty())
+    {
+        return {};
+    }
+
+    std::string result;
+    result.reserve(value.size() + 6u);
+    bool previousWasSeparator = true;
+    for (const char symbol : value)
+    {
+        if (symbol == '_' || symbol == '-')
+        {
+            result.push_back(' ');
+            previousWasSeparator = true;
+            continue;
+        }
+
+        if (std::isupper(static_cast<unsigned char>(symbol)) && !previousWasSeparator)
+        {
+            result.push_back(' ');
+        }
+
+        result.push_back(symbol);
+        previousWasSeparator = false;
+    }
+
+    if (!result.empty())
+    {
+        result.front() = static_cast<char>(std::toupper(static_cast<unsigned char>(result.front())));
+    }
+
+    return result;
+}
+
+int readEditorDrawOrder(const nlohmann::json& object, const int fallback)
+{
+    if (object.contains("EditorDrawOrder") && object["EditorDrawOrder"].is_number_integer())
+    {
+        return object["EditorDrawOrder"].get<int>();
+    }
+
+    return fallback;
 }
 
 float seededNoise(sf::Vector2f position, int saltA, float saltB)
@@ -452,6 +665,16 @@ GameLevelManager::GameLevelManager(GameData& d, GameCamera& c, sf::RenderWindow&
 
 GameLevelManager::~GameLevelManager() = default;
 
+void GameLevelManager::setNotificationSink(std::function<void(std::string, std::string, NotificationTone)> sink)
+{
+    notificationSink_ = sink ? std::move(sink) : [](std::string, std::string, NotificationTone) {};
+}
+
+void GameLevelManager::pushNotification(std::string title, std::string body, const NotificationTone tone) const
+{
+    notificationSink_(std::move(title), std::move(body), tone);
+}
+
 void GameLevelManager::setPlayerPositionToBase()
 {
     if (!player || levels.empty() || levelIt == levels.end())
@@ -501,6 +724,7 @@ bool GameLevelManager::goToLevel(std::optional<std::string> levelName, const boo
         player->setPosition(spawnPos);
         player->notifyLevelEntered(levelIt->second->levelName);
         camera->setCenterPosition(spawnPos);
+        levelIt->second->onPlayerEnteredLevel();
     }
 
     return true;
@@ -523,6 +747,7 @@ bool GameLevelManager::restartCurrentLevel()
         player->respawnAt(spawnPos);
         player->notifyLevelEntered(levelIt->second->levelName);
         camera->setCenterPosition(spawnPos);
+        levelIt->second->onPlayerEnteredLevel();
     }
 
     return true;
@@ -661,6 +886,14 @@ void GameLevelManager::drawInteractives()
     }
 }
 
+void GameLevelManager::drawInteractiveOverlays()
+{
+    if (levelIt != levels.end())
+    {
+        levelIt->second->drawInteractiveOverlays();
+    }
+}
+
 sf::Vector2i GameLevelManager::getCurrentLevelSize() const
 {
     return levelIt != levels.end() ? levelIt->second->getLevelSize() : sf::Vector2i{};
@@ -778,6 +1011,28 @@ void GameLevelManager::setCurrentLevelSpawn(const sf::Vector2f& pos)
     levelIt->second->setPlayerSpawnPos(pos);
 }
 
+bool GameLevelManager::teleportPlayerToCurrentLevelPosition(const sf::Vector2f& pos)
+{
+    if (!player || levelIt == levels.end() || !levelIt->second)
+    {
+        return false;
+    }
+
+    player->setPosition(pos);
+    camera->setCenterPosition(pos);
+    return true;
+}
+
+bool GameLevelManager::teleportPlayerToLevelPosition(const std::string& levelName, const sf::Vector2f& pos)
+{
+    if (!goToLevel(levelName, true))
+    {
+        return false;
+    }
+
+    return teleportPlayerToCurrentLevelPosition(pos);
+}
+
 void GameLevelManager::attachPlayer(Player& p)
 {
     player = &p;
@@ -790,6 +1045,7 @@ void GameLevelManager::attachPlayer(Player& p)
     if (levelIt != levels.end())
     {
         player->notifyLevelEntered(levelIt->second->levelName);
+        levelIt->second->onPlayerEnteredLevel();
     }
 }
 
@@ -977,6 +1233,7 @@ void GameLevel::update()
     updateGrounds();
     updateInteractives();
     updateMiniLocationHazards();
+    updateLevelEvents();
 }
 
 void GameLevel::drawPlatforms()
@@ -1015,6 +1272,43 @@ void GameLevel::drawGrounds()
     drawMiniLocationHazards();
 }
 
+void GameLevel::draw()
+{
+    drawBackgrounds();
+
+    if (useSharedWorldDrawOrder_ && platforms && decorations)
+    {
+        for (const SharedDrawEntry& entry : sharedWorldDrawOrder_)
+        {
+            if (entry.kind == SharedDrawEntry::Kind::Decoration)
+            {
+                decorations->drawInstance(*window, entry.index);
+            }
+            else
+            {
+                platforms->drawInstance(*window, entry.index);
+            }
+        }
+    }
+    else
+    {
+        drawDecorations();
+    }
+
+    drawGrounds();
+    drawInteractives();
+
+    if (useSharedWorldDrawOrder_ && platforms)
+    {
+        platforms->drawAtmosphere(*window);
+        drawMiniLocationBarriers();
+    }
+    else
+    {
+        drawPlatforms();
+    }
+}
+
 void GameLevel::drawEnemyManager()
 {
     if (enemyManager)
@@ -1031,6 +1325,14 @@ void GameLevel::drawInteractives()
     }
 }
 
+void GameLevel::drawInteractiveOverlays()
+{
+    for (auto& interactive : interactives)
+    {
+        interactive->drawOverlay(*window);
+    }
+}
+
 void GameLevel::updateMiniLocationHazards()
 {
     if (!player || !player->isAlive || player->isPlayingDieAnimation)
@@ -1039,6 +1341,16 @@ void GameLevel::updateMiniLocationHazards()
     }
 
     const sf::Vector2f feet = player->getFeetPosition();
+
+    for (const auto& hazard : generatedMiniHazards)
+    {
+        if (feet.x >= hazard.leftX && feet.x <= hazard.rightX &&
+            feet.y >= hazard.topY && feet.y <= hazard.bottomY)
+        {
+            player->forceKill();
+            return;
+        }
+    }
 
     for (const auto& generatedLocation : generatedMiniLocations)
     {
@@ -1347,6 +1659,30 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
 
 void GameLevel::initializeGround(const nlohmann::json& data)
 {
+    const auto makeFallbackGround = [&]() {
+        const unsigned int levelWidth = static_cast<unsigned int>(std::max(size.x, 0));
+        const unsigned int fallbackY = size.y > 40 ? static_cast<unsigned int>(size.y - 40) : 0u;
+
+        std::cerr << "Level " << levelName << " has no ground strips. Using fallback ground.\n";
+        ground = std::make_shared<Ground>(
+            *this->data,
+            *this,
+            "TileSetGreen_02.png",
+            0u,
+            levelWidth,
+            fallbackY,
+            BASE_GROUND_OFFSET
+        );
+        ground->setVisualDepthRows(3u);
+        ground->setStyle("VerdantKeep");
+    };
+
+    if (!data.contains("Ground") || !data["Ground"].is_array() || data["Ground"].empty())
+    {
+        makeFallbackGround();
+        return;
+    }
+
     for (const auto& groundData : data["Ground"])
     {
         const std::string groundName = groundData["GroundName"];
@@ -1375,6 +1711,11 @@ void GameLevel::initializeGround(const nlohmann::json& data)
         {
             ground->setStyle(groundStyle);
         }
+    }
+
+    if (!ground)
+    {
+        makeFallbackGround();
     }
 }
 
@@ -1454,6 +1795,10 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
             config.singleUse = interactiveData.value("SingleUse", true);
             config.grantsCheckpoint = interactiveData.value("GrantsCheckpoint", config.type == WorldInteractable::Type::RestShrine);
             config.restoreVitality = interactiveData.value("RestoreVitality", config.type == WorldInteractable::Type::RestShrine);
+            config.hiddenUntilNearby = interactiveData.value("HiddenUntilNearby", false);
+            config.revealRadius = interactiveData.value("RevealRadius", 170.f);
+            config.revealTitle = interactiveData.value("RevealTitle", std::string{"Hidden path revealed"});
+            config.revealBody = interactiveData.value("RevealBody", std::string{"Something concealed answered your approach."});
             config.prompt = interactiveData.value("Prompt", std::string{"Enter to interact"});
             config.title = interactiveData.value("Title", std::string{"Forgotten Relic"});
             config.body = interactiveData.value("Body", std::string{"The dead left a trace here."});
@@ -1550,6 +1895,10 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
         config.restoreVitality = generatedReward.restoreVitality;
         config.hasCustomSpawnOffset = generatedReward.hasCustomSpawnOffset;
         config.spawnOffset = generatedReward.spawnOffset;
+        config.hiddenUntilNearby = true;
+        config.revealRadius = 210.f;
+        config.revealTitle = generatedReward.title;
+        config.revealBody = "A hidden reward stirs nearby. Search the pocket space carefully.";
         config.prompt = generatedReward.prompt;
         config.title = generatedReward.title;
         config.body = generatedReward.body;
@@ -1688,41 +2037,57 @@ void GameLevel::initializeExplicitMiniLocations(const nlohmann::json& data)
             });
         }
 
-        if (locationData.contains("Hazard"))
-        {
-            const auto& hazardData = locationData["Hazard"];
-            if (hazardData.value("Enabled", true))
+        const auto addDeadArea = [&](const nlohmann::json& hazardData, const bool rectIsRelative) {
+            if (!hazardData.value("Enabled", true))
             {
-                const sf::FloatRect hazardRect = readRect(
-                    hazardData.value("Rect", nlohmann::json::array()),
-                    sf::FloatRect(
-                        {bounds.position.x, bounds.position.y + bounds.size.y + 64.f},
-                        {bounds.size.x, 64.f}
-                    )
-                );
-
-                generatedMiniHazards.push_back({
-                    hazardRect.position.x,
-                    hazardRect.position.x + hazardRect.size.x,
-                    hazardRect.position.y,
-                    hazardRect.position.y + hazardRect.size.y,
-                    randomFloat(0.f, 6.28318f),
-                    hazardData.contains("CoreColor")
-                        ? readColor(hazardData["CoreColor"], sf::Color(242, 104, 56, 255))
-                        : sf::Color(242, 104, 56, 255),
-                    hazardData.contains("GlowColor")
-                        ? readColor(hazardData["GlowColor"], sf::Color(255, 182, 96, 255))
-                        : sf::Color(255, 182, 96, 255),
-                    hazardData.contains("EmberColor")
-                        ? readColor(hazardData["EmberColor"], sf::Color(255, 236, 188, 255))
-                        : sf::Color(255, 236, 188, 255)
-                });
-
-                if (!locationData.contains("DeathY"))
-                {
-                    location.deathY = hazardRect.position.y;
-                }
+                return;
             }
+
+            sf::FloatRect hazardRect = readRect(
+                hazardData.value("Rect", nlohmann::json::array()),
+                sf::FloatRect(
+                    {bounds.position.x, bounds.position.y + bounds.size.y + 64.f},
+                    {bounds.size.x, 64.f}
+                )
+            );
+            if (rectIsRelative)
+            {
+                hazardRect.position += bounds.position;
+            }
+
+            generatedMiniHazards.push_back({
+                hazardRect.position.x,
+                hazardRect.position.x + hazardRect.size.x,
+                hazardRect.position.y,
+                hazardRect.position.y + hazardRect.size.y,
+                randomFloat(0.f, 6.28318f),
+                hazardData.contains("CoreColor")
+                    ? readColor(hazardData["CoreColor"], sf::Color(242, 104, 56, 255))
+                    : sf::Color(242, 104, 56, 255),
+                hazardData.contains("GlowColor")
+                    ? readColor(hazardData["GlowColor"], sf::Color(255, 182, 96, 255))
+                    : sf::Color(255, 182, 96, 255),
+                hazardData.contains("EmberColor")
+                    ? readColor(hazardData["EmberColor"], sf::Color(255, 236, 188, 255))
+                    : sf::Color(255, 236, 188, 255)
+            });
+
+            if (!locationData.contains("DeathY"))
+            {
+                location.deathY = std::min(location.deathY, hazardRect.position.y);
+            }
+        };
+
+        if (locationData.contains("DeadAreas") && locationData["DeadAreas"].is_array())
+        {
+            for (const auto& deadAreaData : locationData["DeadAreas"])
+            {
+                addDeadArea(deadAreaData, true);
+            }
+        }
+        else if (locationData.contains("Hazard"))
+        {
+            addDeadArea(locationData["Hazard"], false);
         }
 
         generatedMiniLocations.push_back(location);
@@ -2095,13 +2460,295 @@ void GameLevel::tryInitializeInteractives()
     }
 }
 
-void GameLevel::draw()
+void GameLevel::queueNotification(std::string title, std::string body, const NotificationTone tone) const
 {
-    drawBackgrounds();
-    drawDecorations();
-    drawGrounds();
-    drawInteractives();
-    drawPlatforms();
+    if (levelManager)
+    {
+        levelManager->pushNotification(std::move(title), std::move(body), tone);
+    }
+}
+
+void GameLevel::initializePortals(const nlohmann::json& data)
+{
+    if (!player || !levelManager || !camera || !data.contains("Portals") || !data["Portals"].is_array())
+    {
+        return;
+    }
+
+    std::map<std::string, sf::Vector2f> miniLocationEntrances;
+    for (const auto& location : generatedMiniLocations)
+    {
+        miniLocationEntrances[location.title] = location.entranceDestinationSupport;
+    }
+
+    if (data.contains("MiniLocations") && data["MiniLocations"].is_array())
+    {
+        for (const auto& locationData : data["MiniLocations"])
+        {
+            const std::string id = locationData.value("Id", locationData.value("Title", std::string{}));
+            if (id.empty())
+            {
+                continue;
+            }
+
+            const sf::FloatRect bounds = readRect(locationData.value("Bounds", nlohmann::json::array()));
+            const sf::Vector2f defaultSpawn{bounds.position.x + bounds.size.x * 0.5f, bounds.position.y + bounds.size.y - 42.f};
+            if (locationData.contains("SpawnPosition"))
+            {
+                miniLocationEntrances[id] = bounds.position + readVector2f(locationData["SpawnPosition"], {bounds.size.x * 0.5f, bounds.size.y - 42.f});
+            }
+            else
+            {
+                const nlohmann::json entryData = locationData.value("Entry", nlohmann::json::object());
+                miniLocationEntrances[id] = readVector2f(
+                    entryData.value("DestinationSupport", nlohmann::json::array()),
+                    defaultSpawn
+                );
+            }
+        }
+    }
+
+    for (const auto& portalData : data["Portals"])
+    {
+        WorldPortal::Config config;
+        config.id = portalData.value("Id", std::string{});
+        config.position = readVector2f(portalData.value("Position", nlohmann::json::array()));
+        config.scale = readVector2f(portalData.value("Scale", nlohmann::json::array()), {0.36f, 0.36f});
+        config.color = readColor(portalData.value("Color", nlohmann::json::array()), sf::Color(212, 236, 255, 245));
+        config.accentColor = readColor(portalData.value("AccentColor", nlohmann::json::array()), sf::Color(112, 208, 255, 255));
+        config.interactRadius = portalData.value("InteractRadius", 130.f);
+        config.portalTexture = portalData.value("PortalTexture", portalData.value("Texture", std::string{"portalGreen"}));
+        config.prompt = portalData.value("Prompt", std::string{"Enter portal"});
+        config.title = portalData.value("Title", std::string{"World Portal"});
+        config.target = parseWorldPortalTarget(portalData, miniLocationEntrances);
+
+        interactives.push_back(std::make_unique<WorldPortal>(
+            *this->data,
+            *this->camera,
+            *this->levelManager,
+            *player,
+            config
+        ));
+    }
+}
+
+void GameLevel::initializeSharedDrawOrder(const nlohmann::json& data)
+{
+    sharedWorldDrawOrder_.clear();
+    useSharedWorldDrawOrder_ = false;
+
+    int fallbackOrder = 0;
+
+    if (data.contains("Platforms") && data["Platforms"].is_array())
+    {
+        for (std::size_t index = 0; index < data["Platforms"].size(); ++index)
+        {
+            sharedWorldDrawOrder_.push_back({
+                SharedDrawEntry::Kind::Platform,
+                index,
+                readEditorDrawOrder(data["Platforms"][index], fallbackOrder++)
+            });
+        }
+    }
+
+    if (data.contains("Decorations") && data["Decorations"].is_array())
+    {
+        for (std::size_t index = 0; index < data["Decorations"].size(); ++index)
+        {
+            sharedWorldDrawOrder_.push_back({
+                SharedDrawEntry::Kind::Decoration,
+                index,
+                readEditorDrawOrder(data["Decorations"][index], fallbackOrder++)
+            });
+        }
+    }
+
+    if (sharedWorldDrawOrder_.empty() || !platforms || !decorations)
+    {
+        sharedWorldDrawOrder_.clear();
+        return;
+    }
+
+    bool foundCustomOrder = false;
+    for (std::size_t index = 0; index < sharedWorldDrawOrder_.size(); ++index)
+    {
+        if (sharedWorldDrawOrder_[index].order != static_cast<int>(index))
+        {
+            foundCustomOrder = true;
+            break;
+        }
+    }
+
+    if (!foundCustomOrder)
+    {
+        sharedWorldDrawOrder_.clear();
+        return;
+    }
+
+    std::sort(sharedWorldDrawOrder_.begin(), sharedWorldDrawOrder_.end(), [](const SharedDrawEntry& lhs, const SharedDrawEntry& rhs) {
+        if (lhs.order != rhs.order)
+        {
+            return lhs.order < rhs.order;
+        }
+        if (lhs.kind != rhs.kind)
+        {
+            return lhs.kind == SharedDrawEntry::Kind::Decoration;
+        }
+        return lhs.index < rhs.index;
+    });
+
+    const std::size_t platformCount = platforms->getInstanceCount();
+    const std::size_t decorationCount = decorations->getInstanceCount();
+    sharedWorldDrawOrder_.erase(
+        std::remove_if(sharedWorldDrawOrder_.begin(), sharedWorldDrawOrder_.end(),
+            [&](const SharedDrawEntry& entry) {
+                return entry.kind == SharedDrawEntry::Kind::Platform
+                    ? entry.index >= platformCount
+                    : entry.index >= decorationCount;
+            }),
+        sharedWorldDrawOrder_.end()
+    );
+
+    useSharedWorldDrawOrder_ = !sharedWorldDrawOrder_.empty();
+}
+
+void GameLevel::initializeEventZones(const nlohmann::json& data)
+{
+    levelEventZones.clear();
+
+    if (playerSpawnPos != sf::Vector2f{0.f, 0.f})
+    {
+        levelEventZones.push_back({
+            "Checkpoint attuned",
+            "Your return point for this realm has been refreshed.",
+            sf::FloatRect(playerSpawnPos - sf::Vector2f{100.f, 180.f}, {200.f, 260.f}),
+            NotificationTone::Success,
+            true,
+            true,
+            false
+        });
+    }
+
+    if (data.contains("Spawners") && data["Spawners"].is_array())
+    {
+        for (const auto& spawnerData : data["Spawners"])
+        {
+            if (spawnerData.value("EnemyAmount", 0) <= 0)
+            {
+                continue;
+            }
+
+            const sf::FloatRect spawnArea = readRect(spawnerData.value("SpawnArea", nlohmann::json::array()));
+            if (spawnArea.size.x <= 0.f || spawnArea.size.y <= 0.f)
+            {
+                continue;
+            }
+
+            const std::string enemyName = spawnerData.value("EnemyName", std::string{"Enemies"});
+            levelEventZones.push_back({
+                spawnerData.value("EncounterTitle", std::string{"Threat ahead"}),
+                spawnerData.value("EncounterBody", enemyName + " gather in this stretch. Enter prepared."),
+                spawnArea,
+                parseNotificationTone(spawnerData.value("EncounterTone", std::string{"Warning"})),
+                spawnerData.value("EncounterFireOnce", true),
+                true,
+                false
+            });
+        }
+    }
+
+    if (data.contains("Events") && data["Events"].is_array())
+    {
+        for (const auto& eventData : data["Events"])
+        {
+            const sf::FloatRect bounds = readRect(eventData.value("Bounds", nlohmann::json::array()));
+            if (bounds.size.x <= 0.f || bounds.size.y <= 0.f)
+            {
+                continue;
+            }
+
+            levelEventZones.push_back({
+                eventData.value("Title", std::string{"World event"}),
+                eventData.value("Body", std::string{"Something shifts in this place."}),
+                bounds,
+                parseNotificationTone(eventData.value("Tone", std::string{"Info"})),
+                eventData.value("FireOnce", true),
+                eventData.value("RequireAlive", true),
+                false
+            });
+        }
+    }
+
+    for (const auto& generatedLocation : generatedMiniLocations)
+    {
+        levelEventZones.push_back({
+            generatedLocation.title,
+            "A hidden pocket of the realm opens beyond the veil.",
+            sf::FloatRect(
+                {generatedLocation.activeLeftX, generatedLocation.roomCeilingY},
+                {generatedLocation.activeRightX - generatedLocation.activeLeftX, generatedLocation.roomFloorY - generatedLocation.roomCeilingY + 96.f}
+            ),
+            NotificationTone::Info,
+            true,
+            true,
+            false
+        });
+    }
+}
+
+void GameLevel::updateLevelEvents()
+{
+    if (!player)
+    {
+        return;
+    }
+
+    if (introNotificationPending_)
+    {
+        introNotificationPending_ = false;
+        const std::string worldName = levelTitle.empty() ? levelName : levelTitle;
+        queueNotification("Entered realm", worldName + " is now active.", NotificationTone::Info);
+
+        if (!weatherThemeTitle_.empty())
+        {
+            queueNotification(
+                "Weather omen",
+                weatherThemeTitle_ + " shapes the mood of this realm.",
+                NotificationTone::Info
+            );
+        }
+    }
+
+    const sf::Vector2f feet = player->getFeetPosition();
+    for (auto& zone : levelEventZones)
+    {
+        if (zone.fireOnce && zone.triggered)
+        {
+            continue;
+        }
+
+        if (zone.requireAlive && (!player->isAlive || player->isPlayingDieAnimation))
+        {
+            continue;
+        }
+
+        if (!zone.bounds.contains(feet))
+        {
+            continue;
+        }
+
+        queueNotification(zone.title, zone.body, zone.tone);
+        zone.triggered = true;
+    }
+}
+
+void GameLevel::onPlayerEnteredLevel()
+{
+    introNotificationPending_ = true;
+    for (auto& zone : levelEventZones)
+    {
+        zone.triggered = false;
+    }
 }
 
 void GameLevel::loadLevelData(const LevelDescriptor& descriptor)
@@ -2113,12 +2760,18 @@ void GameLevel::loadLevelData(const LevelDescriptor& descriptor)
         std::exit(EXIT_FAILURE);
     }
 
-    loadedLevelData = nlohmann::json::parse(dataFile);
+    loadedLevelData = expandMiniLocationContent(nlohmann::json::parse(dataFile));
 
     levelName = descriptor.id;
     levelTitle = descriptor.title;
     sourceFileName = descriptor.fileName;
     sourceFilePath = descriptor.filePath;
+    playerSpawnPos = {
+        loadedLevelData["Presets"]["PlayerSpawn"][0],
+        loadedLevelData["Presets"]["PlayerSpawn"][1]
+    };
+    weatherThemeId_ = loadedLevelData.value("Presets", nlohmann::json::object()).value("WeatherTheme", std::string{});
+    weatherThemeTitle_ = humanizeThemeName(weatherThemeId_);
 
     size = sf::Vector2i(loadedLevelData["Presets"]["Size"][0], loadedLevelData["Presets"]["Size"][1]);
     primaryWorldWidth = loadedLevelData["Presets"].value("MainWorldWidth", size.x);
@@ -2163,11 +2816,9 @@ void GameLevel::loadLevelData(const LevelDescriptor& descriptor)
     enemyManager.reset();
     tryInitializeEnemyManager();
     tryInitializeInteractives();
-
-    playerSpawnPos = {
-        loadedLevelData["Presets"]["PlayerSpawn"][0],
-        loadedLevelData["Presets"]["PlayerSpawn"][1]
-    };
+    initializePortals(loadedLevelData);
+    initializeEventZones(loadedLevelData);
+    initializeSharedDrawOrder(loadedLevelData);
 }
 
 void GameLevel::clearLevel()
@@ -2190,6 +2841,12 @@ void GameLevel::clearLevel()
     generatedMiniRewards.clear();
     generatedMiniBarriers.clear();
     generatedMiniHazards.clear();
+    levelEventZones.clear();
+    introNotificationPending_ = false;
+    weatherThemeId_.clear();
+    weatherThemeTitle_.clear();
+    sharedWorldDrawOrder_.clear();
+    useSharedWorldDrawOrder_ = false;
 
     background.clear();
     ground.reset();
@@ -2342,4 +2999,8 @@ void GameLevel::attachPlayer(Player& p)
     }
 
     tryInitializeInteractives();
+    if (player && !loadedLevelData.is_null())
+    {
+        initializePortals(loadedLevelData);
+    }
 }

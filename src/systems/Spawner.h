@@ -11,6 +11,13 @@ class EnemyManager;
 class GameLevel;
 
 class Spawner {
+public:
+    struct EncounterConfig
+    {
+        bool activateOnPlayerEnter = false;
+        int initialSpawnDelayMs = 0;
+    };
+
 private:
     /////////////////////////////////////////////////////////////////////
     // Общее
@@ -29,6 +36,11 @@ private:
     int enemyAmount;
     int enemyPerSpawn;
     int spawnCooldown;
+    bool activateOnPlayerEnter_ = false;
+    bool activated_ = true;
+    bool firstSpawnPending_ = false;
+    int initialSpawnDelayMs_ = 0;
+    sf::FloatRect activationBounds_{};
 
     bool isEmpty = false;
 
@@ -37,6 +49,7 @@ private:
     /////////////////////////////////////////////////////////////////////
     void runSpawnCooldownClockIfNotRunning();
     void spawnCountOfEnemies();
+    bool isPlayerInsideActivationBounds() const;
 public:
     /////////////////////////////////////////////////////////////////////
     // &m  - Ссылка на менеджер противников
@@ -47,9 +60,9 @@ public:
     // minX1, maxX2, minY1, maxY2  - Координаты площади где будут спавниться скелеты
     /////////////////////////////////////////////////////////////////////
     Spawner(EnemyManager &m, GameLevel& gl, std::string n, int ea, int sc, int eps, float minX1, float maxX2, float minY1, float maxY2,
-    GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
+    GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w, EncounterConfig encounterConfig);
     Spawner(EnemyManager &m, GameLevel& gl, std::string n, int ea, int sc, int eps, sf::Vector2f sa[2],
-    GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w);
+    GameData& d, Platform& p, Ground& g, Player& pl, sf::RenderWindow& w, EncounterConfig encounterConfig);
     
     ~Spawner();
 

@@ -261,6 +261,9 @@ int main(int argc, char** argv)
     sf::Vector2f traderPosition = {800.f, 940.f};
     Trader trader(*gameData, player, traderPosition);
     DeveloperOverlay developerOverlay(window);
+    auto isTraderActive = [&]() {
+        return levelManager.getCurrentLevelName() == "level1.json";
+    };
 
     bool hasActiveRun = false;
     DeathFlowState deathFlowState = DeathFlowState::Inactive;
@@ -268,6 +271,7 @@ int main(int argc, char** argv)
     auto pushNotification = [&](std::string title, std::string body, const NotificationTone tone = NotificationTone::Info) {
         notificationFeed.push(std::move(title), std::move(body), tone);
     };
+    levelManager.setNotificationSink(pushNotification);
 
     auto syncMenuState = [&]() {
         MenuState state;
@@ -564,7 +568,7 @@ int main(int argc, char** argv)
             const bool levelEventConsumed = levelManager.handleEvent(currentEvent);
             const bool levelModalOpen = levelManager.hasBlockingInteractiveModal();
 
-            if (!levelEventConsumed && !levelModalOpen)
+            if (!levelEventConsumed && !levelModalOpen && isTraderActive())
             {
                 trader.handleEvent(currentEvent);
             }
@@ -600,7 +604,10 @@ int main(int argc, char** argv)
         {
             levelManager.update();
             levelManager.updateEnemyManager();
-            trader.update();
+            if (isTraderActive())
+            {
+                trader.update();
+            }
             camera.update();
         }
         window.setView(view);
@@ -643,12 +650,20 @@ int main(int argc, char** argv)
         levelManager.drawEnemyManager();
         levelManager.drawInteractives();
 
-        trader.draw(window);
+        if (isTraderActive())
+        {
+            trader.draw(window);
+        }
 
         player.draw(window);
         player.drawBullets(window);
 
         levelManager.drawPlatforms();
+        levelManager.drawInteractiveOverlays();
+        if (isTraderActive())
+        {
+            trader.drawOverlay(window);
+        }
         playerUI.draw(window);
         player.chooseDestinationMenuDraw(window);
         player.drawTransition();
