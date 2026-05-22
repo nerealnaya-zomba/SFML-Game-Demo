@@ -97,10 +97,8 @@ private:
     // Parallax
     sf::Vector2f parallaxFactor;            // Растет с удалением от центра спрайта
     sf::Clock animationClock;
-    float animationTime = 0.f;
 
     void applyParallax();
-    sf::Vector2f computeAnimationOffset() const;
     sf::FloatRect getActiveViewRect() const;
     void drawRepeated(sf::RenderWindow& window) const;
 

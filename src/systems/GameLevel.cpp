@@ -436,6 +436,17 @@ int readEditorDrawOrder(const nlohmann::json& object, const int fallback)
     return fallback;
 }
 
+int readPresetDrawOrder(const nlohmann::json& data, const char* key, const int fallback)
+{
+    const nlohmann::json presets = data.value("Presets", nlohmann::json::object());
+    if (presets.contains(key) && presets[key].is_number_integer())
+    {
+        return presets[key].get<int>();
+    }
+
+    return fallback;
+}
+
 float seededNoise(sf::Vector2f position, int saltA, float saltB)
 {
     const float value = std::sin(
@@ -712,6 +723,7 @@ bool GameLevelManager::goToLevel(std::optional<std::string> levelName, const boo
     if (levelIt != levels.end())
     {
         levelIt->second->saveLevelData();
+        levelIt->second->exitMiniLocation();
         levelIt->second->clearLevel();
     }
 
@@ -761,6 +773,7 @@ bool GameLevelManager::respawnPlayerAtCurrentSpawn()
     }
 
     const sf::Vector2f spawnPos = levelIt->second->getPlayerSpawnPos();
+    levelIt->second->exitMiniLocation();
     player->respawnAt(spawnPos);
     camera->setCenterPosition(spawnPos);
     return true;
@@ -834,6 +847,7 @@ void GameLevelManager::draw()
     }
 
     levelIt->second->draw();
+    drawDeathRecoveries();
 }
 
 void GameLevelManager::drawPlatforms()
@@ -907,6 +921,19 @@ sf::FloatRect GameLevelManager::getCurrentCameraBoundsForPosition(const sf::Vect
     }
 
     return levelIt->second->getCameraBoundsForPosition(position);
+}
+
+bool GameLevelManager::enterCurrentMiniLocation(const std::string& id)
+{
+    return levelIt != levels.end() && levelIt->second && levelIt->second->enterMiniLocation(id);
+}
+
+void GameLevelManager::exitCurrentMiniLocation()
+{
+    if (levelIt != levels.end() && levelIt->second)
+    {
+        levelIt->second->exitMiniLocation();
+    }
 }
 
 std::string GameLevelManager::getCurrentLevelName() const
@@ -1023,6 +1050,15 @@ bool GameLevelManager::teleportPlayerToCurrentLevelPosition(const sf::Vector2f& 
     return true;
 }
 
+bool GameLevelManager::teleportPlayerToCurrentMiniLocationPosition(const std::string& miniLocationId, const sf::Vector2f& pos)
+{
+    if (!enterCurrentMiniLocation(miniLocationId))
+    {
+        return false;
+    }
+    return teleportPlayerToCurrentLevelPosition(pos);
+}
+
 bool GameLevelManager::teleportPlayerToLevelPosition(const std::string& levelName, const sf::Vector2f& pos)
 {
     if (!goToLevel(levelName, true))
@@ -1030,6 +1066,7 @@ bool GameLevelManager::teleportPlayerToLevelPosition(const std::string& levelNam
         return false;
     }
 
+    exitCurrentMiniLocation();
     return teleportPlayerToCurrentLevelPosition(pos);
 }
 
@@ -1274,38 +1311,78 @@ void GameLevel::drawGrounds()
 
 void GameLevel::draw()
 {
-    drawBackgrounds();
-
-    if (useSharedWorldDrawOrder_ && platforms && decorations)
+    if (useSharedWorldDrawOrder_)
     {
         for (const SharedDrawEntry& entry : sharedWorldDrawOrder_)
         {
-            if (entry.kind == SharedDrawEntry::Kind::Decoration)
+            drawSharedWorldEntry(entry);
+        }
+        if (platforms)
+        {
+            platforms->drawAtmosphere(*window);
+            drawMiniLocationBarriers();
+        }
+        return;
+    }
+
+    drawBackgrounds();
+    drawDecorations();
+    drawGrounds();
+    drawActors();
+    drawInteractives();
+    drawPlatforms();
+}
+
+void GameLevel::drawActors()
+{
+    drawEnemyManager();
+
+    if (player)
+    {
+        player->draw(*window);
+        player->drawBullets(*window);
+    }
+}
+
+void GameLevel::drawSharedWorldEntry(const SharedDrawEntry& entry)
+{
+    switch (entry.kind)
+    {
+        case SharedDrawEntry::Kind::Background:
+            if (entry.index < background.size() && background[entry.index])
+            {
+                background[entry.index]->draw(*window);
+            }
+            break;
+
+        case SharedDrawEntry::Kind::Decoration:
+            if (decorations)
             {
                 decorations->drawInstance(*window, entry.index);
             }
-            else
+            break;
+
+        case SharedDrawEntry::Kind::Ground:
+            drawGrounds();
+            break;
+
+        case SharedDrawEntry::Kind::Actor:
+            drawActors();
+            break;
+
+        case SharedDrawEntry::Kind::Interactive:
+            if (entry.index < interactives.size() && interactives[entry.index])
+            {
+                interactives[entry.index]->draw(*window);
+            }
+            break;
+
+        case SharedDrawEntry::Kind::Platform:
+            if (platforms)
             {
                 platforms->drawInstance(*window, entry.index);
             }
-        }
-    }
-    else
-    {
-        drawDecorations();
-    }
-
-    drawGrounds();
-    drawInteractives();
-
-    if (useSharedWorldDrawOrder_ && platforms)
-    {
-        platforms->drawAtmosphere(*window);
-        drawMiniLocationBarriers();
-    }
-    else
-    {
-        drawPlatforms();
+            break;
     }
 }
 
@@ -1839,10 +1916,13 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
         entranceConfig.interactRadius = generatedLocation.interactRadius;
         entranceConfig.prompt = generatedLocation.entrancePrompt;
         entranceConfig.subtitle = generatedLocation.title;
+        entranceConfig.exitsMiniLocation = false;
+        entranceConfig.miniLocationId = generatedLocation.id;
 
         interactives.push_back(std::make_unique<MiniLocationEntrance>(
             *this->data,
             *this->camera,
+            *this->levelManager,
             *player,
             entranceConfig
         ));
@@ -1857,10 +1937,13 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
         exitConfig.interactRadius = generatedLocation.interactRadius;
         exitConfig.prompt = generatedLocation.exitPrompt;
         exitConfig.subtitle = "Return to the trail";
+        exitConfig.exitsMiniLocation = true;
+        exitConfig.miniLocationId = generatedLocation.id;
 
         interactives.push_back(std::make_unique<MiniLocationEntrance>(
             *this->data,
             *this->camera,
+            *this->levelManager,
             *player,
             exitConfig
         ));
@@ -1948,7 +2031,9 @@ void GameLevel::initializeExplicitMiniLocations(const nlohmann::json& data)
                     : defaultAccentColor));
 
         GeneratedMiniLocation location;
+        location.id = locationData.value("Id", locationData.value("Title", std::string{"mini_location"}));
         location.title = locationData.value("Title", locationData.value("Id", std::string{"Mini Location"}));
+        location.cameraBounds = bounds;
         location.entranceTexture = entryData.value("Texture", std::string{"MossyDecorationHazard_25.png"});
         location.exitTexture = exitData.value("Texture", std::string{"MossyDecorationHazard_24.png"});
         location.entrancePosition = readVector2f(
@@ -1998,8 +2083,6 @@ void GameLevel::initializeExplicitMiniLocations(const nlohmann::json& data)
         location.roomFloorY = bounds.position.y + bounds.size.y;
         location.deathY = locationData.value("DeathY", std::numeric_limits<float>::max());
 
-        const bool barrierEnabled = locationData.value("BarrierEnabled", true);
-        const float barrierWidth = locationData.value("BarrierWidth", 22.f);
         const sf::Color barrierColor = locationData.contains("BarrierColor")
             ? readColor(locationData["BarrierColor"], accentColor)
             : accentColor;
@@ -2007,34 +2090,49 @@ void GameLevel::initializeExplicitMiniLocations(const nlohmann::json& data)
             ? readColor(locationData["BarrierGlowColor"], brighten(accentColor, 0.2f))
             : brighten(accentColor, 0.2f);
 
-        if (barrierEnabled)
+        const auto addBarrier = [&](const nlohmann::json& barrierData, const bool relativeRect) {
+            if (!barrierData.value("Enabled", true))
+            {
+                return;
+            }
+            sf::FloatRect barrierRect = readRect(barrierData.value("Rect", nlohmann::json::array()));
+            if (relativeRect)
+            {
+                barrierRect.position += bounds.position;
+            }
+            if (barrierRect.size.x <= 0.f || barrierRect.size.y <= 0.f)
+            {
+                return;
+            }
+            if (barrierData.value("BlocksPlayer", true))
+            {
+                addMiniLocationSeal(*platforms, barrierRect.position.x, barrierRect.position.y, barrierRect.position.y + barrierRect.size.y);
+            }
+            generatedMiniBarriers.push_back({
+                barrierRect.position.x + barrierRect.size.x * 0.5f,
+                barrierRect.position.y,
+                barrierRect.position.y + barrierRect.size.y,
+                barrierRect.size.x,
+                randomFloat(0.f, 6.28318f),
+                barrierData.contains("CoreColor") ? readColor(barrierData["CoreColor"], barrierColor) : barrierColor,
+                barrierData.contains("GlowColor") ? readColor(barrierData["GlowColor"], barrierGlowColor) : barrierGlowColor
+            });
+        };
+
+        if (locationData.contains("Barriers") && locationData["Barriers"].is_array())
         {
+            for (const auto& barrierData : locationData["Barriers"])
+            {
+                addBarrier(barrierData, true);
+            }
+        }
+        else if (locationData.value("BarrierEnabled", true))
+        {
+            const float barrierWidth = locationData.value("BarrierWidth", 22.f);
             const float barrierTop = 0.f;
-            const float barrierBottom = static_cast<float>(size.y) + 180.f;
-            const float leftBarrierX = bounds.position.x - 18.f;
-            const float rightBarrierX = bounds.position.x + bounds.size.x + 18.f;
-
-            addMiniLocationSeal(*platforms, leftBarrierX, barrierTop, barrierBottom);
-            addMiniLocationSeal(*platforms, rightBarrierX, barrierTop, barrierBottom);
-
-            generatedMiniBarriers.push_back({
-                leftBarrierX + 36.f,
-                barrierTop,
-                barrierBottom,
-                barrierWidth,
-                randomFloat(0.f, 6.28318f),
-                barrierColor,
-                barrierGlowColor
-            });
-            generatedMiniBarriers.push_back({
-                rightBarrierX + 36.f,
-                barrierTop,
-                barrierBottom,
-                barrierWidth,
-                randomFloat(0.f, 6.28318f),
-                barrierColor,
-                barrierGlowColor
-            });
+            const float barrierHeight = static_cast<float>(size.y) + 180.f;
+            addBarrier({{"Rect", {bounds.position.x - 18.f, barrierTop, barrierWidth, barrierHeight}}, {"BlocksPlayer", true}}, false);
+            addBarrier({{"Rect", {bounds.position.x + bounds.size.x + 18.f, barrierTop, barrierWidth, barrierHeight}}, {"BlocksPlayer", true}}, false);
         }
 
         const auto addDeadArea = [&](const nlohmann::json& hazardData, const bool rectIsRelative) {
@@ -2395,30 +2493,32 @@ void GameLevel::generateMiniLocations()
             candidate.rightX - 28.f
         );
 
-        generatedMiniLocations.push_back({
-            theme.title,
-            theme.entranceTexture,
-            theme.exitTexture,
-            {candidate.centerX, candidate.surfaceY + 18.f},
-            {roomX + 198.f, roomFloorY},
-            kMiniLocationPortalScale,
-            {roomX + 110.f, roomFloorY + 18.f},
-            {returnSupportX, candidate.surfaceY},
-            kMiniLocationPortalScale,
-            theme.entranceColor,
-            theme.exitColor,
-            theme.accentColor,
-            126.f,
-            theme.entrancePrompt,
-            theme.exitPrompt,
-            roomX - 8.f,
-            roomX + roomWidth + 56.f,
-            roomLeftSealX - 28.f,
-            roomRightSealX + 28.f,
-            roomCeilingY,
-            roomFloorY,
-            deathY
-        });
+        GeneratedMiniLocation generatedLocation;
+        generatedLocation.title = theme.title;
+        generatedLocation.id = "procedural_mini_location_" + std::to_string(index + 1u);
+        generatedLocation.cameraBounds = {{roomLeftSealX - 28.f, 0.f}, {roomRightSealX - roomLeftSealX + 56.f, static_cast<float>(size.y)}};
+        generatedLocation.entranceTexture = theme.entranceTexture;
+        generatedLocation.exitTexture = theme.exitTexture;
+        generatedLocation.entrancePosition = {candidate.centerX, candidate.surfaceY + 18.f};
+        generatedLocation.entranceDestinationSupport = {roomX + 198.f, roomFloorY};
+        generatedLocation.entranceScale = kMiniLocationPortalScale;
+        generatedLocation.exitPosition = {roomX + 110.f, roomFloorY + 18.f};
+        generatedLocation.exitDestinationSupport = {returnSupportX, candidate.surfaceY};
+        generatedLocation.exitScale = kMiniLocationPortalScale;
+        generatedLocation.entranceColor = theme.entranceColor;
+        generatedLocation.exitColor = theme.exitColor;
+        generatedLocation.accentColor = theme.accentColor;
+        generatedLocation.interactRadius = 126.f;
+        generatedLocation.entrancePrompt = theme.entrancePrompt;
+        generatedLocation.exitPrompt = theme.exitPrompt;
+        generatedLocation.roomLeftX = roomX - 8.f;
+        generatedLocation.roomRightX = roomX + roomWidth + 56.f;
+        generatedLocation.activeLeftX = roomLeftSealX - 28.f;
+        generatedLocation.activeRightX = roomRightSealX + 28.f;
+        generatedLocation.roomCeilingY = roomCeilingY;
+        generatedLocation.roomFloorY = roomFloorY;
+        generatedLocation.deathY = deathY;
+        generatedMiniLocations.push_back(generatedLocation);
 
         GeneratedMiniReward reward;
         reward.typeName = theme.rewardTypeName;
@@ -2539,14 +2639,14 @@ void GameLevel::initializeSharedDrawOrder(const nlohmann::json& data)
 
     int fallbackOrder = 0;
 
-    if (data.contains("Platforms") && data["Platforms"].is_array())
+    if (data.contains("Background") && data["Background"].is_array())
     {
-        for (std::size_t index = 0; index < data["Platforms"].size(); ++index)
+        for (std::size_t index = 0; index < data["Background"].size(); ++index)
         {
             sharedWorldDrawOrder_.push_back({
-                SharedDrawEntry::Kind::Platform,
+                SharedDrawEntry::Kind::Background,
                 index,
-                readEditorDrawOrder(data["Platforms"][index], fallbackOrder++)
+                readEditorDrawOrder(data["Background"][index], fallbackOrder++)
             });
         }
     }
@@ -2563,48 +2663,127 @@ void GameLevel::initializeSharedDrawOrder(const nlohmann::json& data)
         }
     }
 
-    if (sharedWorldDrawOrder_.empty() || !platforms || !decorations)
+    if (ground)
     {
-        sharedWorldDrawOrder_.clear();
-        return;
+        const nlohmann::json groundData = data.contains("Ground") && data["Ground"].is_array() && !data["Ground"].empty()
+            ? data["Ground"].front()
+            : nlohmann::json::object();
+        sharedWorldDrawOrder_.push_back({
+            SharedDrawEntry::Kind::Ground,
+            0u,
+            readEditorDrawOrder(groundData, fallbackOrder++)
+        });
     }
 
-    bool foundCustomOrder = false;
-    for (std::size_t index = 0; index < sharedWorldDrawOrder_.size(); ++index)
+    sharedWorldDrawOrder_.push_back({
+        SharedDrawEntry::Kind::Actor,
+        0u,
+        readPresetDrawOrder(data, "ActorDrawOrder", fallbackOrder++)
+    });
+
+    const std::size_t explicitInteractiveCount =
+        data.contains("Interactives") && data["Interactives"].is_array()
+            ? data["Interactives"].size()
+            : 0u;
+    const std::size_t explicitPortalCount =
+        data.contains("Portals") && data["Portals"].is_array()
+            ? data["Portals"].size()
+            : 0u;
+    const std::size_t portalStartIndex = interactives.size() >= explicitPortalCount
+        ? interactives.size() - explicitPortalCount
+        : interactives.size();
+
+    for (std::size_t index = 0; index < interactives.size(); ++index)
     {
-        if (sharedWorldDrawOrder_[index].order != static_cast<int>(index))
+        int order = fallbackOrder++;
+        if (index < explicitInteractiveCount)
         {
-            foundCustomOrder = true;
-            break;
+            order = readEditorDrawOrder(data["Interactives"][index], order);
+        }
+        else if (index >= portalStartIndex && data.contains("Portals") && data["Portals"].is_array())
+        {
+            const std::size_t portalIndex = index - portalStartIndex;
+            if (portalIndex < data["Portals"].size())
+            {
+                order = readEditorDrawOrder(data["Portals"][portalIndex], order);
+            }
+        }
+        sharedWorldDrawOrder_.push_back({
+            SharedDrawEntry::Kind::Interactive,
+            index,
+            order
+        });
+    }
+
+    if (data.contains("Platforms") && data["Platforms"].is_array())
+    {
+        for (std::size_t index = 0; index < data["Platforms"].size(); ++index)
+        {
+            sharedWorldDrawOrder_.push_back({
+                SharedDrawEntry::Kind::Platform,
+                index,
+                readEditorDrawOrder(data["Platforms"][index], fallbackOrder++)
+            });
         }
     }
 
-    if (!foundCustomOrder)
+    if (sharedWorldDrawOrder_.empty())
     {
-        sharedWorldDrawOrder_.clear();
         return;
     }
 
-    std::sort(sharedWorldDrawOrder_.begin(), sharedWorldDrawOrder_.end(), [](const SharedDrawEntry& lhs, const SharedDrawEntry& rhs) {
+    const auto kindRank = [](const SharedDrawEntry::Kind kind) {
+        switch (kind)
+        {
+            case SharedDrawEntry::Kind::Background:
+                return 0;
+            case SharedDrawEntry::Kind::Decoration:
+                return 1;
+            case SharedDrawEntry::Kind::Ground:
+                return 2;
+            case SharedDrawEntry::Kind::Actor:
+                return 3;
+            case SharedDrawEntry::Kind::Interactive:
+                return 4;
+            case SharedDrawEntry::Kind::Platform:
+                return 5;
+        }
+        return 6;
+    };
+
+    std::sort(sharedWorldDrawOrder_.begin(), sharedWorldDrawOrder_.end(), [&](const SharedDrawEntry& lhs, const SharedDrawEntry& rhs) {
         if (lhs.order != rhs.order)
         {
             return lhs.order < rhs.order;
         }
         if (lhs.kind != rhs.kind)
         {
-            return lhs.kind == SharedDrawEntry::Kind::Decoration;
+            return kindRank(lhs.kind) < kindRank(rhs.kind);
         }
         return lhs.index < rhs.index;
     });
 
-    const std::size_t platformCount = platforms->getInstanceCount();
-    const std::size_t decorationCount = decorations->getInstanceCount();
+    const std::size_t platformCount = platforms ? platforms->getInstanceCount() : 0u;
+    const std::size_t decorationCount = decorations ? decorations->getInstanceCount() : 0u;
     sharedWorldDrawOrder_.erase(
         std::remove_if(sharedWorldDrawOrder_.begin(), sharedWorldDrawOrder_.end(),
             [&](const SharedDrawEntry& entry) {
-                return entry.kind == SharedDrawEntry::Kind::Platform
-                    ? entry.index >= platformCount
-                    : entry.index >= decorationCount;
+                switch (entry.kind)
+                {
+                    case SharedDrawEntry::Kind::Background:
+                        return entry.index >= background.size();
+                    case SharedDrawEntry::Kind::Decoration:
+                        return !decorations || entry.index >= decorationCount;
+                    case SharedDrawEntry::Kind::Ground:
+                        return !ground;
+                    case SharedDrawEntry::Kind::Actor:
+                        return false;
+                    case SharedDrawEntry::Kind::Interactive:
+                        return entry.index >= interactives.size();
+                    case SharedDrawEntry::Kind::Platform:
+                        return !platforms || entry.index >= platformCount;
+                }
+                return true;
             }),
         sharedWorldDrawOrder_.end()
     );
@@ -2841,6 +3020,7 @@ void GameLevel::clearLevel()
     generatedMiniRewards.clear();
     generatedMiniBarriers.clear();
     generatedMiniHazards.clear();
+    activeMiniLocationId_.reset();
     levelEventZones.clear();
     introNotificationPending_ = false;
     weatherThemeId_.clear();
@@ -2896,6 +3076,18 @@ sf::Vector2i GameLevel::getLevelSize() const
 
 sf::FloatRect GameLevel::getCameraBoundsForPosition(const sf::Vector2f& position) const
 {
+    if (activeMiniLocationId_.has_value())
+    {
+        for (const auto& generatedLocation : generatedMiniLocations)
+        {
+            if (generatedLocation.id == *activeMiniLocationId_ || generatedLocation.title == *activeMiniLocationId_)
+            {
+                return generatedLocation.cameraBounds;
+            }
+        }
+    }
+
+    /*
     for (const auto& generatedLocation : generatedMiniLocations)
     {
         if (position.x >= generatedLocation.activeLeftX && position.x <= generatedLocation.activeRightX)
@@ -2906,12 +3098,31 @@ sf::FloatRect GameLevel::getCameraBoundsForPosition(const sf::Vector2f& position
             );
         }
     }
+    */
 
     const float mainWorldRight = std::max(
         primaryWorldCameraRightEdge > 0.f ? primaryWorldCameraRightEdge : static_cast<float>(primaryWorldWidth),
         0.f
     );
     return sf::FloatRect({0.f, 0.f}, {mainWorldRight, static_cast<float>(size.y)});
+}
+
+bool GameLevel::enterMiniLocation(const std::string& id)
+{
+    for (const auto& generatedLocation : generatedMiniLocations)
+    {
+        if (generatedLocation.id == id || generatedLocation.title == id)
+        {
+            activeMiniLocationId_ = generatedLocation.id.empty() ? generatedLocation.title : generatedLocation.id;
+            return true;
+        }
+    }
+    return false;
+}
+
+void GameLevel::exitMiniLocation()
+{
+    activeMiniLocationId_.reset();
 }
 
 std::vector<std::shared_ptr<sf::RectangleShape>>& GameLevel::getPlatformRects()
@@ -3002,5 +3213,6 @@ void GameLevel::attachPlayer(Player& p)
     if (player && !loadedLevelData.is_null())
     {
         initializePortals(loadedLevelData);
+        initializeSharedDrawOrder(loadedLevelData);
     }
 }

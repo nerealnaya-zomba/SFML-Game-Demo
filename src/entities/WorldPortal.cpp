@@ -182,8 +182,20 @@ bool WorldPortal::activate()
     }
 
     const sf::Vector2f destination = target.spawnPosition.value_or(target.position);
+    if (target.type == TargetType::MiniLocation)
+    {
+        return player_->beginPortalTransition(
+            [this, target, destination]() {
+                return manager_->teleportPlayerToCurrentMiniLocationPosition(target.miniLocationId, destination);
+            },
+            portalCenter,
+            config_.accentColor
+        );
+    }
+
     return player_->beginPortalTransition(
         [this, destination]() {
+            manager_->exitCurrentMiniLocation();
             return manager_->teleportPlayerToCurrentLevelPosition(destination);
         },
         portalCenter,

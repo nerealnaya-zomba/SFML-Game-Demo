@@ -34,6 +34,8 @@ private:
     struct GeneratedMiniLocation
     {
         std::string title;
+        std::string id;
+        sf::FloatRect cameraBounds{};
         std::string entranceTexture;
         std::string exitTexture;
         sf::Vector2f entrancePosition{0.f, 0.f};
@@ -115,8 +117,12 @@ private:
     {
         enum class Kind
         {
+            Background,
+            Decoration,
+            Ground,
+            Actor,
+            Interactive,
             Platform,
-            Decoration
         };
 
         Kind kind = Kind::Decoration;
@@ -149,6 +155,7 @@ private:
     nlohmann::json loadedLevelData{};
     int primaryWorldWidth = 0;
     float primaryWorldCameraRightEdge = 0.f;
+    std::optional<std::string> activeMiniLocationId_{};
 
     bool doResetToBase = true;
     bool isConstant = true;
@@ -174,6 +181,8 @@ private:
     void updateLevelEvents();
     void drawMiniLocationBarriers();
     void drawMiniLocationHazards();
+    void drawActors();
+    void drawSharedWorldEntry(const SharedDrawEntry& entry);
     void queueNotification(std::string title, std::string body, NotificationTone tone) const;
 
 public:
@@ -211,6 +220,8 @@ public:
 
     sf::Vector2i getLevelSize() const;
     sf::FloatRect getCameraBoundsForPosition(const sf::Vector2f& position) const;
+    bool enterMiniLocation(const std::string& id);
+    void exitMiniLocation();
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     Platform& getPlatformSystem();
     sf::RectangleShape& getGroundRect();
@@ -276,6 +287,8 @@ public:
 
     sf::Vector2i getCurrentLevelSize() const;
     sf::FloatRect getCurrentCameraBoundsForPosition(const sf::Vector2f& position) const;
+    bool enterCurrentMiniLocation(const std::string& id);
+    void exitCurrentMiniLocation();
     std::string getCurrentLevelName() const;
     std::string getCurrentLevelTitle() const;
     std::vector<std::string> getLevelNames() const;
@@ -291,6 +304,7 @@ public:
     bool hasBlockingInteractiveModal() const;
     void setCurrentLevelSpawn(const sf::Vector2f& pos);
     bool teleportPlayerToCurrentLevelPosition(const sf::Vector2f& pos);
+    bool teleportPlayerToCurrentMiniLocationPosition(const std::string& miniLocationId, const sf::Vector2f& pos);
     bool teleportPlayerToLevelPosition(const std::string& levelName, const sf::Vector2f& pos);
 
     void attachPlayer(Player& p);

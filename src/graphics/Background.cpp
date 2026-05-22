@@ -2,7 +2,6 @@
 #include <BackgroundAtmosphere.h>
 
 #include <algorithm>
-#include <cmath>
 #include <utility>
 
 class GameCamera;
@@ -51,7 +50,6 @@ Background::~Background() = default;
 void Background::update()
 {
     const float deltaTime = std::clamp(animationClock.restart().asSeconds(), 0.0001f, 0.05f);
-    animationTime += deltaTime;
 
     if (atmosphere)
     {
@@ -94,27 +92,15 @@ void Background::applyParallax()
 {
     const sf::Vector2f baseObjectPos = position;
     const sf::Vector2f cameraOffset = camera->getCameraCenterPos() - BASE_CAMERAPOS;
-    const sf::Vector2f animatedOffset = computeAnimationOffset();
+    const sf::Vector2f viewCompensatedParallax = {
+        1.f - parallaxFactor.x,
+        1.f - parallaxFactor.y
+    };
 
     bgFront->setPosition({
-        baseObjectPos.x + cameraOffset.x * parallaxFactor.x + animatedOffset.x,
-        baseObjectPos.y + cameraOffset.y * parallaxFactor.y + animatedOffset.y
+        baseObjectPos.x + cameraOffset.x * viewCompensatedParallax.x,
+        baseObjectPos.y + cameraOffset.y * viewCompensatedParallax.y
     });
-}
-
-sf::Vector2f Background::computeAnimationOffset() const
-{
-    const float layerProgress = sceneConfig.layerCount <= 1
-        ? 0.f
-        : static_cast<float>(sceneConfig.layerIndex) / static_cast<float>(sceneConfig.layerCount - 1);
-    const float horizontalAmplitude = 2.5f + (1.f - parallaxFactor.x) * 10.f + layerProgress * 2.2f;
-    const float verticalAmplitude = 1.5f + (1.f - parallaxFactor.y) * 4.f;
-    const float phase = static_cast<float>(sceneConfig.layerIndex) * 0.85f;
-
-    return {
-        std::sin(animationTime * (0.18f + layerProgress * 0.07f) + phase) * horizontalAmplitude,
-        std::cos(animationTime * (0.23f + parallaxFactor.y * 0.05f) + phase * 0.7f) * verticalAmplitude
-    };
 }
 
 sf::FloatRect Background::getActiveViewRect() const

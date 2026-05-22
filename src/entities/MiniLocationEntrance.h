@@ -8,6 +8,8 @@
 
 #include <string>
 
+class GameLevelManager;
+
 class MiniLocationEntrance : public InteractiveObject
 {
 public:
@@ -22,10 +24,13 @@ public:
         float interactRadius = 120.f;
         std::string prompt;
         std::string subtitle;
+        bool exitsMiniLocation = false;
+        std::string miniLocationId;
     };
 
 private:
     GameCamera* camera = nullptr;
+    GameLevelManager* levelManager = nullptr;
     Player* player = nullptr;
     std::vector<sf::Texture>* portalTextures_ = nullptr;
     texturesIterHelper portalTextureHelper_{};
@@ -35,6 +40,8 @@ private:
     sf::Vector2f baseScale_{1.f, 1.f};
     sf::Color baseColor_ = sf::Color::White;
     sf::Color accentColor_ = sf::Color(130, 214, 184, 255);
+    bool exitsMiniLocation_ = false;
+    std::string miniLocationId_{};
 
     sf::Clock animationClock_;
     sf::CircleShape shadowMouth_;
@@ -50,7 +57,7 @@ private:
     void updatePromptLayout();
 
 public:
-    MiniLocationEntrance(GameData& data, GameCamera& camera, Player& player, const Config& config);
+    MiniLocationEntrance(GameData& data, GameCamera& camera, GameLevelManager& manager, Player& player, const Config& config);
     ~MiniLocationEntrance() override = default;
 
     void draw(sf::RenderWindow& window) override;

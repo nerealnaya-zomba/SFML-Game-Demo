@@ -1,5 +1,7 @@
 #include <MiniLocationEntrance.h>
 
+#include <GameLevel.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -22,17 +24,21 @@ void configureText(sf::Text& text, unsigned int size, sf::Color color)
 MiniLocationEntrance::MiniLocationEntrance(
     GameData& data,
     GameCamera& gameCamera,
+    GameLevelManager& manager,
     Player& controlledPlayer,
     const Config& config
 )
     : InteractiveObject(config.position, data.portalGreenTextures[0])
     , camera(&gameCamera)
+    , levelManager(&manager)
     , player(&controlledPlayer)
     , anchorPosition_(config.position)
     , destinationSupportPoint_(config.destinationSupportPoint)
     , baseScale_(config.scale)
     , baseColor_(kPortalSpriteColor)
     , accentColor_(kPortalAccentColor)
+    , exitsMiniLocation_(config.exitsMiniLocation)
+    , miniLocationId_(config.miniLocationId)
     , promptText_(*data.gameFont)
     , subtitleText_(*data.gameFont)
 {
@@ -203,12 +209,25 @@ bool MiniLocationEntrance::handleEvent(const sf::Event& event)
     {
         if (keyPressed->scancode == kInteractKey)
         {
-            player->beginMiniLocationTransition(
-                destinationSupportPoint_,
+            return player->beginPortalTransition(
+                [this]() {
+                    if (levelManager != nullptr)
+                    {
+                        if (exitsMiniLocation_)
+                        {
+                            levelManager->exitCurrentMiniLocation();
+                        }
+                        else if (!miniLocationId_.empty())
+                        {
+                            levelManager->enterCurrentMiniLocation(miniLocationId_);
+                        }
+                    }
+                    player->teleportToSupportPoint(destinationSupportPoint_);
+                    return true;
+                },
                 sprite->getGlobalBounds().getCenter(),
                 accentColor_
             );
-            return true;
         }
     }
 

@@ -644,21 +644,13 @@ int main(int argc, char** argv)
 
         window.clear(gameBackGroundColor);
 
-        levelManager.drawBackgrounds();
-        levelManager.drawDecorations();
-        levelManager.drawGrounds();
-        levelManager.drawEnemyManager();
-        levelManager.drawInteractives();
+        levelManager.draw();
 
         if (isTraderActive())
         {
             trader.draw(window);
         }
 
-        player.draw(window);
-        player.drawBullets(window);
-
-        levelManager.drawPlatforms();
         levelManager.drawInteractiveOverlays();
         if (isTraderActive())
         {
