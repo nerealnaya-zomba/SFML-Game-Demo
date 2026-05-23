@@ -420,6 +420,13 @@ void BestiaryEnemy::updateSlimeAI(const sf::Vector2f& center, const sf::Vector2f
     {
         if (isOnGround_ && stateClock_.getElapsedTime().asMilliseconds() >= windupDurationMs_)
         {
+            if (isLeavingPlatformEdge(getFacingSign(), leapAttackX_ + 8.f))
+            {
+                setState(State::Recover);
+                velocityX_ = 0.f;
+                return;
+            }
+
             setState(State::Attack);
             velocityY_ = -leapAttackY_;
             velocityX_ = getFacingSign() * leapAttackX_;
@@ -642,7 +649,7 @@ void BestiaryEnemy::updateBatControl(const sf::Vector2f& center, const sf::Vecto
 
 void BestiaryEnemy::updateSlimeControl(const sf::Vector2f&, const sf::Vector2f& playerCenter)
 {
-    if (collidedHorizontally_ && state_ == State::Patrol)
+    if ((collidedHorizontally_ || (isOnGround_ && isLeavingPlatformEdge(patrolDir_))) && state_ == State::Patrol)
     {
         patrolDir_ *= -1.f;
     }
@@ -660,11 +667,12 @@ void BestiaryEnemy::updateSlimeControl(const sf::Vector2f&, const sf::Vector2f& 
     }
     else if (state_ == State::Chase)
     {
-        facingRight_ = playerCenter.x >= getCenterPosition().x;
+        const float chaseDir = playerCenter.x >= getCenterPosition().x ? 1.f : -1.f;
+        facingRight_ = chaseDir > 0.f;
         if (isOnGround_ && hopClock_.getElapsedTime().asMilliseconds() >= 620.f)
         {
             velocityY_ = -groundHopY_ * 1.05f;
-            velocityX_ = getFacingSign() * groundHopX_ * 1.15f;
+            velocityX_ = isLeavingPlatformEdge(chaseDir) ? 0.f : getFacingSign() * groundHopX_ * 1.15f;
             hopClock_.restart();
             spawnPatrolEffect();
         }
@@ -673,6 +681,8 @@ void BestiaryEnemy::updateSlimeControl(const sf::Vector2f&, const sf::Vector2f& 
     {
         applyGroundFriction();
     }
+
+    keepGroundEnemyOnPlatform();
 }
 
 void BestiaryEnemy::updateScorpionControl(const sf::Vector2f& center, const sf::Vector2f& playerCenter)
@@ -710,6 +720,7 @@ void BestiaryEnemy::updateScorpionControl(const sf::Vector2f& center, const sf::
     }
 
     velocityX_ = approachValue(velocityX_, desiredSpeed, acceleration_);
+    keepGroundEnemyOnPlatform();
 
     if (state_ == State::Patrol || state_ == State::Chase)
     {
@@ -771,18 +782,18 @@ void BestiaryEnemy::updateFlyingPhysics()
     collidedHorizontally_ = false;
     rect_->move({velocityX_, velocityY_});
 
-    const sf::Vector2f levelBounds = static_cast<sf::Vector2f>(gameLevel_->getLevelSize());
+    const sf::FloatRect levelBounds = gameLevel_->getCameraBoundsForPosition(rect_->getGlobalBounds().getCenter());
     sf::Vector2f position = rect_->getPosition();
 
-    if (position.x <= 0.f)
+    if (position.x <= levelBounds.position.x)
     {
-        position.x = 0.f;
+        position.x = levelBounds.position.x;
         velocityX_ = std::abs(velocityX_) * 0.6f;
         collidedHorizontally_ = true;
     }
-    else if (position.x + rect_->getSize().x >= levelBounds.x)
+    else if (position.x + rect_->getSize().x >= levelBounds.position.x + levelBounds.size.x)
     {
-        position.x = levelBounds.x - rect_->getSize().x;
+        position.x = levelBounds.position.x + levelBounds.size.x - rect_->getSize().x;
         velocityX_ = -std::abs(velocityX_) * 0.6f;
         collidedHorizontally_ = true;
     }
@@ -834,13 +845,15 @@ void BestiaryEnemy::updateGroundPhysics()
     isOnGround_ = false;
 
     velocityY_ += gravity_;
-    const sf::Vector2f levelBounds = static_cast<sf::Vector2f>(gameLevel_->getLevelSize());
+    const sf::FloatRect levelBounds = gameLevel_->getCameraBoundsForPosition(rect_->getGlobalBounds().getCenter());
     const collision::MoveResult moveResult = collision::moveBodyWithWorldCollisions(
         *rect_,
         {velocityX_, velocityY_},
         platform_->getRects(),
         &ground_->getRect(),
-        levelBounds.x
+        levelBounds.size.x,
+        6.f,
+        levelBounds.position.x
     );
 
     if (moveResult.blockedLeft || moveResult.blockedRight)
@@ -848,6 +861,8 @@ void BestiaryEnemy::updateGroundPhysics()
         velocityX_ = 0.f;
         collidedHorizontally_ = true;
     }
+
+    keepGroundEnemyOnPlatform();
 
     if (moveResult.hitCeiling && velocityY_ < 0.f)
     {
@@ -988,6 +1003,55 @@ bool BestiaryEnemy::hasGroundAhead(float direction) const
     }
 
     return false;
+}
+
+bool BestiaryEnemy::isLeavingPlatformEdge(float direction, float lookAhead) const
+{
+    if (!rect_ || !platform_ || direction == 0.f)
+    {
+        return false;
+    }
+
+    const sf::RectangleShape* support = collision::findSupportingPlatform(*rect_, platform_->getRects(), 6.f);
+    if (support == nullptr)
+    {
+        return false;
+    }
+
+    const sf::FloatRect enemyBounds = rect_->getGlobalBounds();
+    const sf::FloatRect supportBounds = support->getGlobalBounds();
+    const float sampleX = direction > 0.f
+        ? enemyBounds.position.x + enemyBounds.size.x + lookAhead
+        : enemyBounds.position.x - lookAhead;
+
+    return sampleX < supportBounds.position.x + 4.f ||
+        sampleX > supportBounds.position.x + supportBounds.size.x - 4.f;
+}
+
+void BestiaryEnemy::keepGroundEnemyOnPlatform()
+{
+    if (kind_ == Kind::WraithBat || !isOnGround_ || state_ == State::Die || state_ == State::Hurt)
+    {
+        return;
+    }
+
+    const float direction = velocityX_ >= 0.f ? 1.f : -1.f;
+    if (std::abs(velocityX_) < 0.001f || !isLeavingPlatformEdge(direction, std::abs(velocityX_) + 8.f))
+    {
+        return;
+    }
+
+    if (state_ == State::Patrol)
+    {
+        patrolDir_ = -direction;
+        facingRight_ = patrolDir_ > 0.f;
+        velocityX_ = patrolDir_ * std::min(std::abs(velocityX_), maxSpeed_ * 0.5f);
+        pushRing({getCenterPosition().x, getCenterPosition().y + 8.f}, sf::Color(132, 156, 118, 110), 9.f, 28.f, 2.2f, 2.f, 110.f);
+    }
+    else
+    {
+        velocityX_ = 0.f;
+    }
 }
 
 void BestiaryEnemy::checkBulletCollision()

@@ -27,6 +27,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <Player.h>
 
@@ -923,9 +924,9 @@ sf::FloatRect GameLevelManager::getCurrentCameraBoundsForPosition(const sf::Vect
     return levelIt->second->getCameraBoundsForPosition(position);
 }
 
-bool GameLevelManager::enterCurrentMiniLocation(const std::string& id)
+bool GameLevelManager::enterCurrentMiniLocation(const std::string& id, std::optional<sf::Vector2f> returnSupportPoint)
 {
-    return levelIt != levels.end() && levelIt->second && levelIt->second->enterMiniLocation(id);
+    return levelIt != levels.end() && levelIt->second && levelIt->second->enterMiniLocation(id, returnSupportPoint);
 }
 
 void GameLevelManager::exitCurrentMiniLocation()
@@ -934,6 +935,16 @@ void GameLevelManager::exitCurrentMiniLocation()
     {
         levelIt->second->exitMiniLocation();
     }
+}
+
+sf::Vector2f GameLevelManager::exitCurrentMiniLocation(const sf::Vector2f& fallbackReturnSupportPoint)
+{
+    if (levelIt != levels.end() && levelIt->second)
+    {
+        return levelIt->second->exitMiniLocation(fallbackReturnSupportPoint);
+    }
+
+    return fallbackReturnSupportPoint;
 }
 
 std::string GameLevelManager::getCurrentLevelName() const
@@ -1038,6 +1049,13 @@ void GameLevelManager::setCurrentLevelSpawn(const sf::Vector2f& pos)
     levelIt->second->setPlayerSpawnPos(pos);
 }
 
+sf::Vector2f GameLevelManager::getCurrentTraderPosition() const
+{
+    return levelIt != levels.end() && levelIt->second
+        ? levelIt->second->getTraderPosition()
+        : sf::Vector2f{800.f, 940.f};
+}
+
 bool GameLevelManager::teleportPlayerToCurrentLevelPosition(const sf::Vector2f& pos)
 {
     if (!player || levelIt == levels.end() || !levelIt->second)
@@ -1050,13 +1068,23 @@ bool GameLevelManager::teleportPlayerToCurrentLevelPosition(const sf::Vector2f& 
     return true;
 }
 
-bool GameLevelManager::teleportPlayerToCurrentMiniLocationPosition(const std::string& miniLocationId, const sf::Vector2f& pos)
+bool GameLevelManager::teleportPlayerToCurrentMiniLocationPosition(
+    const std::string& miniLocationId,
+    const sf::Vector2f& pos,
+    std::optional<sf::Vector2f> returnSupportPoint)
 {
-    if (!enterCurrentMiniLocation(miniLocationId))
+    if (!enterCurrentMiniLocation(miniLocationId, returnSupportPoint))
     {
         return false;
     }
-    return teleportPlayerToCurrentLevelPosition(pos);
+
+    if (!player || !camera)
+    {
+        return false;
+    }
+
+    player->teleportToSupportPoint(pos);
+    return true;
 }
 
 bool GameLevelManager::teleportPlayerToLevelPosition(const std::string& levelName, const sf::Vector2f& pos)
@@ -1658,6 +1686,10 @@ void GameLevel::initializePlatforms(const nlohmann::json& data)
         {
             overrides.atmosphereDensity = std::max(platform["AtmosphereDensity"].get<float>(), 0.f);
         }
+        if (platform.contains("BounceEnabled"))
+        {
+            overrides.bounceEnabled = platform.value("BounceEnabled", true);
+        }
 
         platforms->addPlatform(position, remapPlatformTypeForLevel(levelName, type), overrides);
     }
@@ -1680,8 +1712,9 @@ void GameLevel::initializeDecorations(const nlohmann::json& data)
         };
         const sf::Vector2f parallaxFactor = {decoration["ParallaxFactor"][0], decoration["ParallaxFactor"][1]};
         const int zDepth = decoration["Z"];
+        const float rotation = decoration.value("Rotation", 0.f);
 
-        decorations->addDecoration(name, position, scale, parallaxFactor, zDepth, color);
+        decorations->addDecoration(name, position, scale, parallaxFactor, zDepth, color, rotation);
     }
 }
 
@@ -1694,6 +1727,13 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
             : std::string{};
         const auto& backgroundLayers = data["Background"];
         const std::size_t layerCount = backgroundLayers.size();
+        std::vector<std::pair<std::string, sf::Vector2i>> occupiedSingleBackgroundTiles;
+        auto tileIndexForPosition = [](const sf::Vector2f position) {
+            return sf::Vector2i{
+                std::max(0, static_cast<int>(std::floor(position.x / static_cast<float>(WINDOW_WIDTH)))),
+                std::max(0, static_cast<int>(std::floor(position.y / static_cast<float>(WINDOW_HEIGHT))))
+            };
+        };
 
         std::size_t layerIndex = 0;
         for (const auto& backgroundData : backgroundLayers)
@@ -1705,6 +1745,24 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
             };
             const std::string name = backgroundData["BgName"];
             const Type type = backgroundData["Type"];
+            const sf::Vector2i tileIndex = tileIndexForPosition(position);
+            if (type == Type::SingleBackground)
+            {
+                const auto duplicateIt = std::find_if(
+                    occupiedSingleBackgroundTiles.begin(),
+                    occupiedSingleBackgroundTiles.end(),
+                    [&](const auto& entry) {
+                        return entry.first == name && entry.second == tileIndex;
+                    }
+                );
+                if (duplicateIt != occupiedSingleBackgroundTiles.end())
+                {
+                    ++layerIndex;
+                    continue;
+                }
+                occupiedSingleBackgroundTiles.emplace_back(name, tileIndex);
+            }
+
             BackgroundSceneConfig sceneConfig;
             sceneConfig.themeName = backgroundData.value("Theme", backgroundTheme);
             sceneConfig.layerIndex = layerIndex;
@@ -3021,6 +3079,7 @@ void GameLevel::clearLevel()
     generatedMiniBarriers.clear();
     generatedMiniHazards.clear();
     activeMiniLocationId_.reset();
+    activeMiniLocationReturnSupport_.reset();
     levelEventZones.clear();
     introNotificationPending_ = false;
     weatherThemeId_.clear();
@@ -3107,13 +3166,17 @@ sf::FloatRect GameLevel::getCameraBoundsForPosition(const sf::Vector2f& position
     return sf::FloatRect({0.f, 0.f}, {mainWorldRight, static_cast<float>(size.y)});
 }
 
-bool GameLevel::enterMiniLocation(const std::string& id)
+bool GameLevel::enterMiniLocation(const std::string& id, std::optional<sf::Vector2f> returnSupportPoint)
 {
     for (const auto& generatedLocation : generatedMiniLocations)
     {
         if (generatedLocation.id == id || generatedLocation.title == id)
         {
             activeMiniLocationId_ = generatedLocation.id.empty() ? generatedLocation.title : generatedLocation.id;
+            if (returnSupportPoint.has_value())
+            {
+                activeMiniLocationReturnSupport_ = *returnSupportPoint;
+            }
             return true;
         }
     }
@@ -3123,6 +3186,14 @@ bool GameLevel::enterMiniLocation(const std::string& id)
 void GameLevel::exitMiniLocation()
 {
     activeMiniLocationId_.reset();
+    activeMiniLocationReturnSupport_.reset();
+}
+
+sf::Vector2f GameLevel::exitMiniLocation(const sf::Vector2f& fallbackReturnSupportPoint)
+{
+    const sf::Vector2f returnSupportPoint = activeMiniLocationReturnSupport_.value_or(fallbackReturnSupportPoint);
+    exitMiniLocation();
+    return returnSupportPoint;
 }
 
 std::vector<std::shared_ptr<sf::RectangleShape>>& GameLevel::getPlatformRects()
@@ -3143,6 +3214,15 @@ sf::RectangleShape& GameLevel::getGroundRect()
 sf::Vector2f GameLevel::getPlayerSpawnPos()
 {
     return playerSpawnPos;
+}
+
+sf::Vector2f GameLevel::getTraderPosition() const
+{
+    const nlohmann::json presets = loadedLevelData.value("Presets", nlohmann::json::object());
+    return readVector2f(
+        presets.value("TraderPosition", nlohmann::json::array()),
+        {800.f, 940.f}
+    );
 }
 
 sf::Sprite& GameLevel::getLevelBackgroundSprite()

@@ -20,6 +20,7 @@ public:
         std::optional<PlatformAtmosphereStyle> atmosphereStyle{};
         std::optional<sf::Color> atmosphereColor{};
         std::optional<float> atmosphereDensity{};
+        std::optional<bool> bounceEnabled{};
     };
 
     struct TypeDefinition
@@ -70,6 +71,7 @@ private:
         float hoverPhase = 0.f;
         float springOffset = 0.f;
         float springVelocity = 0.f;
+        bool bounceEnabled = true;
         std::size_t emitterIndex = PlatformAtmosphere::InvalidEmitterIndex;
     };
 

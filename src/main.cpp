@@ -258,8 +258,8 @@ int main(int argc, char** argv)
     camera.attachGameLevelManager(levelManager);
     camera.attachPlayer(player);
 
-    sf::Vector2f traderPosition = {800.f, 940.f};
-    Trader trader(*gameData, player, traderPosition);
+    sf::Vector2f traderPosition = levelManager.getCurrentTraderPosition();
+    Trader trader(*gameData, player, camera, traderPosition);
     DeveloperOverlay developerOverlay(window);
     auto isTraderActive = [&]() {
         return levelManager.getCurrentLevelName() == "level1.json";

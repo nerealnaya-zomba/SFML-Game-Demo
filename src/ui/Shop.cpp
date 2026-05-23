@@ -48,6 +48,56 @@ std::string wrapTextByWords(const std::string& text, std::size_t maxLineLength)
     return wrapped.str();
 }
 
+std::string wrapTextToWidth(const std::string& text, const sf::Text& styleSource, const float maxWidth)
+{
+    if (text.empty() || maxWidth <= 0.f)
+    {
+        return text;
+    }
+
+    sf::Text probe(styleSource);
+    std::istringstream words(text);
+    std::ostringstream wrapped;
+    std::string word;
+    std::string line;
+    bool firstLine = true;
+
+    auto textWidth = [&](const std::string& value) {
+        probe.setString(value);
+        return probe.getLocalBounds().size.x;
+    };
+
+    while (words >> word)
+    {
+        const std::string candidate = line.empty() ? word : line + " " + word;
+        if (!line.empty() && textWidth(candidate) > maxWidth)
+        {
+            if (!firstLine)
+            {
+                wrapped << '\n';
+            }
+            wrapped << line;
+            firstLine = false;
+            line = word;
+        }
+        else
+        {
+            line = candidate;
+        }
+    }
+
+    if (!line.empty())
+    {
+        if (!firstLine)
+        {
+            wrapped << '\n';
+        }
+        wrapped << line;
+    }
+
+    return wrapped.str();
+}
+
 sf::Color getQualityColor(Item::Quality quality)
 {
     switch (quality)
@@ -564,7 +614,7 @@ void Shop::updateHeaderTexts()
     merchantAdviceText.setString(wrapTextByWords(campaign.getMerchantAdvice(), 62));
     merchantAdviceText.setPosition({contentBounds.position.x, contentBounds.position.y + 56.f});
 
-    routeHintText.setString("Best next farm: " + recommendedLevel.title);
+    routeHintText.setString("Next marked route: " + recommendedLevel.title);
     routeHintText.setPosition({contentBounds.position.x, contentBounds.position.y + 96.f});
 
     upgradesTabText.setString("Relics");
@@ -1046,16 +1096,28 @@ void Shop::ItemWidget::updateLayout()
     const float top = contentBounds.position.y;
     const float bottom = contentBounds.position.y + contentBounds.size.y;
     const float iconColumnWidth = hasItemIcon ? std::min(BASE_SHOP_WIDGET_ICON_COLUMN_WIDTH, contentBounds.size.x * 0.35f) : 0.f;
+    const float textRight = hasItemIcon ? right - iconColumnWidth - 18.f : right;
+    const float textWidth = std::max(120.f, textRight - left);
     const float iconCenterX = right - iconColumnWidth / 2.f;
+
+    if (attachedItem != nullptr)
+    {
+        descriptionText.setString(wrapTextToWidth(attachedItem->description, descriptionText, textWidth));
+    }
 
     displayNameText.setPosition({left, top});
     categoryText.setPosition({left, top + 34.f});
     qualityText.setPosition({left, top + 58.f});
     priceText.setPosition({left, top + 86.f});
     descriptionText.setPosition({left, top + 120.f});
-    statsText.setPosition({left, top + 172.f});
-    stateText.setPosition({left, bottom - 78.f});
-    hintText.setPosition({left, bottom - 44.f});
+    const float descriptionBottom =
+        descriptionText.getGlobalBounds().position.y + descriptionText.getGlobalBounds().size.y;
+    statsText.setPosition({left, std::max(top + 172.f, descriptionBottom + 18.f)});
+
+    const float statsBottom = statsText.getGlobalBounds().position.y + statsText.getGlobalBounds().size.y;
+    const float stateTop = std::max(bottom - 78.f, statsBottom + 22.f);
+    stateText.setPosition({left, stateTop});
+    hintText.setPosition({left, stateTop + 34.f});
 
     if(hasItemIcon)
     {

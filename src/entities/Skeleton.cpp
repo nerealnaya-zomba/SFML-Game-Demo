@@ -29,9 +29,9 @@ void Skeleton::chasePlayer(sf::Vector2f skeletonPos, sf::Vector2f playerPos) {
     if (std::abs(skeletonPos.x - playerPos.x) < 8.f) {
         action_ = IDLE;
     } else if (skeletonPos.x < playerPos.x) {
-        action_ = WALKRIGHT;
+        action_ = hasGroundAhead(1.f) ? WALKRIGHT : IDLE;
     } else if (skeletonPos.x > playerPos.x) {
-        action_ = WALKLEFT;
+        action_ = hasGroundAhead(-1.f) ? WALKLEFT : IDLE;
     }
 }
 
@@ -247,6 +247,51 @@ void Skeleton::registerBlockedChaseBoundary(bool blockedLeft)
 }
 
 // ========== АТАКА ИГРОКА ==========
+bool Skeleton::hasGroundAhead(float direction) const
+{
+    if (!skeletonRect || !ground_ || !platform_ || direction == 0.f)
+    {
+        return false;
+    }
+
+    const sf::FloatRect skeletonBounds = skeletonRect->getGlobalBounds();
+    const float sampleX = direction > 0.f
+        ? skeletonBounds.position.x + skeletonBounds.size.x + 10.f
+        : skeletonBounds.position.x - 10.f;
+    const float footY = skeletonBounds.position.y + skeletonBounds.size.y + 4.f;
+
+    const sf::RectangleShape* support = collision::findSupportingPlatform(*skeletonRect, platform_->getRects(), 6.f);
+    if (support != nullptr)
+    {
+        const sf::FloatRect supportBounds = support->getGlobalBounds();
+        return sampleX >= supportBounds.position.x + 4.f &&
+            sampleX <= supportBounds.position.x + supportBounds.size.x - 4.f;
+    }
+
+    const sf::FloatRect groundBounds = ground_->getRect().getGlobalBounds();
+    return sampleX >= groundBounds.position.x &&
+        sampleX <= groundBounds.position.x + groundBounds.size.x &&
+        footY >= groundBounds.position.y - 6.f;
+}
+
+void Skeleton::turnAroundAtPlatformEdge(float direction)
+{
+    initialWalkSpeed = 0.f;
+
+    if (hasDetectedPlayer)
+    {
+        registerBlockedChaseBoundary(direction < 0.f);
+        return;
+    }
+
+    pendingPatrolAction_ = direction < 0.f ? WALKRIGHT : WALKLEFT;
+    action_ = pendingPatrolAction_;
+    isPatrolPaused = true;
+    patrolPauseTimer.restart();
+    recentlySwitchedDirection = true;
+    directionSwitchTimer.restart();
+}
+
 void Skeleton::tryAttackPlayer() {
     sf::Vector2f skeletonPos = skeletonRect->getGlobalBounds().getCenter();
     sf::Vector2f playerPos = player_->playerRectangle_->getGlobalBounds().getCenter();
@@ -936,9 +981,17 @@ void Skeleton::updateControl() {
     
     switch (action_) {
         case WALKLEFT:
+            if (!hasGroundAhead(-1.f)) {
+                turnAroundAtPlatformEdge(-1.f);
+                break;
+            }
             walkLeft();
             break;
         case WALKRIGHT:
+            if (!hasGroundAhead(1.f)) {
+                turnAroundAtPlatformEdge(1.f);
+                break;
+            }
             walkRight();
             break;
         // TODO: Добавить прыжки и другие действия
@@ -953,13 +1006,15 @@ void Skeleton::updatePhysics() {
 
     applyFriction(initialWalkSpeed, frictionForce);
 
-    sf::Vector2f levelBounds = static_cast<sf::Vector2f>(gameLevel->getLevelSize());
+    const sf::FloatRect levelBounds = gameLevel->getCameraBoundsForPosition(skeletonRect->getGlobalBounds().getCenter());
     const collision::MoveResult moveResult = collision::moveBodyWithWorldCollisions(
         *skeletonRect,
         {initialWalkSpeed, fallingSpeed},
         platform_->getRects(),
         &ground_->getRect(),
-        levelBounds.x
+        levelBounds.size.x,
+        6.f,
+        levelBounds.position.x
     );
 
     if (moveResult.blockedLeft || moveResult.blockedRight) {

@@ -156,6 +156,7 @@ private:
     int primaryWorldWidth = 0;
     float primaryWorldCameraRightEdge = 0.f;
     std::optional<std::string> activeMiniLocationId_{};
+    std::optional<sf::Vector2f> activeMiniLocationReturnSupport_{};
 
     bool doResetToBase = true;
     bool isConstant = true;
@@ -220,12 +221,14 @@ public:
 
     sf::Vector2i getLevelSize() const;
     sf::FloatRect getCameraBoundsForPosition(const sf::Vector2f& position) const;
-    bool enterMiniLocation(const std::string& id);
+    bool enterMiniLocation(const std::string& id, std::optional<sf::Vector2f> returnSupportPoint = std::nullopt);
     void exitMiniLocation();
+    sf::Vector2f exitMiniLocation(const sf::Vector2f& fallbackReturnSupportPoint);
     std::vector<std::shared_ptr<sf::RectangleShape>>& getPlatformRects();
     Platform& getPlatformSystem();
     sf::RectangleShape& getGroundRect();
     sf::Vector2f getPlayerSpawnPos();
+    sf::Vector2f getTraderPosition() const;
     sf::Sprite& getLevelBackgroundSprite();
     bool handleEvent(const sf::Event& event);
     bool hasBlockingInteractiveModal() const;
@@ -287,8 +290,9 @@ public:
 
     sf::Vector2i getCurrentLevelSize() const;
     sf::FloatRect getCurrentCameraBoundsForPosition(const sf::Vector2f& position) const;
-    bool enterCurrentMiniLocation(const std::string& id);
+    bool enterCurrentMiniLocation(const std::string& id, std::optional<sf::Vector2f> returnSupportPoint = std::nullopt);
     void exitCurrentMiniLocation();
+    sf::Vector2f exitCurrentMiniLocation(const sf::Vector2f& fallbackReturnSupportPoint);
     std::string getCurrentLevelName() const;
     std::string getCurrentLevelTitle() const;
     std::vector<std::string> getLevelNames() const;
@@ -303,8 +307,13 @@ public:
     std::string getLevelDisplayName(const std::string& levelIdentifier) const;
     bool hasBlockingInteractiveModal() const;
     void setCurrentLevelSpawn(const sf::Vector2f& pos);
+    sf::Vector2f getCurrentTraderPosition() const;
     bool teleportPlayerToCurrentLevelPosition(const sf::Vector2f& pos);
-    bool teleportPlayerToCurrentMiniLocationPosition(const std::string& miniLocationId, const sf::Vector2f& pos);
+    bool teleportPlayerToCurrentMiniLocationPosition(
+        const std::string& miniLocationId,
+        const sf::Vector2f& pos,
+        std::optional<sf::Vector2f> returnSupportPoint = std::nullopt
+    );
     bool teleportPlayerToLevelPosition(const std::string& levelName, const sf::Vector2f& pos);
 
     void attachPlayer(Player& p);

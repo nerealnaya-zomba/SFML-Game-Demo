@@ -1,5 +1,7 @@
 #include<Trader.h>
 
+#include <GameCamera.h>
+
 #include <sstream>
 
 namespace
@@ -111,9 +113,10 @@ void Trader::updateDialogue()
     dialogueBodyText.setPosition({bubblePos.x + 16.f, bubblePos.y + 38.f});
 }
 
-Trader::Trader(GameData& data, Player& p,sf::Vector2f& pos)
+Trader::Trader(GameData& data, Player& p, GameCamera& c, sf::Vector2f& pos)
     : InteractiveObject(pos,data.trader_idleTextures[0])
     , player(&p)
+    , camera(&c)
     , dialogueTitleText(*data.gameFont)
     , dialogueBodyText(*data.gameFont)
 {
@@ -184,6 +187,15 @@ void Trader::update()
     updateDialogue();
 
     shop->update();
+
+    const bool shopOpened = shop->getIsOpened();
+    if (camera != nullptr && shopOpened && !wasShopOpened_)
+    {
+        camera->pointCameraAt(shop->getCenterPosition(), [this]() {
+            return shop == nullptr || !shop->getIsOpened();
+        });
+    }
+    wasShopOpened_ = shopOpened;
     
 }
 

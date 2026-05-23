@@ -186,7 +186,11 @@ bool WorldPortal::activate()
     {
         return player_->beginPortalTransition(
             [this, target, destination]() {
-                return manager_->teleportPlayerToCurrentMiniLocationPosition(target.miniLocationId, destination);
+                return manager_->teleportPlayerToCurrentMiniLocationPosition(
+                    target.miniLocationId,
+                    destination,
+                    player_->getFeetPosition()
+                );
             },
             portalCenter,
             config_.accentColor

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(SFMLGameDemo LANGUAGES CXX)
+project(DarkGate LANGUAGES CXX)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(FATAL_ERROR "In-source builds are not supported. Configure with: cmake -S . -B build")
@@ -161,12 +161,14 @@ add_executable(main
     ${CMAKE_SOURCE_DIR}/src/main.cpp
 )
 target_link_libraries(main PRIVATE game_core)
+set_target_properties(main PROPERTIES OUTPUT_NAME "Dark Gate")
 
 add_executable(level_editor
     ${CMAKE_SOURCE_DIR}/src/editor/LevelEditorMain.cpp
 )
 target_link_libraries(level_editor PRIVATE game_core)
 target_compile_definitions(level_editor PRIVATE SFML_GAME_DEMO_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+set_target_properties(level_editor PROPERTIES OUTPUT_NAME "Dark Gate Editor")
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/src FILES ${SFML_GAME_DEMO_ALL_SOURCES} ${SFML_GAME_DEMO_ALL_HEADERS})
 

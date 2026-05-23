@@ -247,7 +247,7 @@ ChooseDestinationMenu::ChooseDestinationMenu(
     titleText.setString("CHOOSE DESTINATION");
 
     configureText(subtitleText, 18, sf::Color(182, 149, 118, 235), 1.16f);
-    subtitleText.setString("Farm grave-gold, forge relics, then reopen deeper hunting grounds.");
+    subtitleText.setString("Follow the trader's marks, open routes, then unlock the Dark Gate.");
 
     configureText(displayingLevelName, 34, sf::Color(244, 230, 210, 255), 1.02f);
     displayingLevelName.setStyle(sf::Text::Bold);
@@ -859,7 +859,7 @@ void ChooseDestinationMenu::updateDisplayedTexts()
     {
         setDisplayingLevelNameString("No destinations revealed");
         destinationStateText.setString("The gate has nowhere to answer.");
-        destinationDescriptionText.setString("Reclaim the farm and deeper routes will reveal themselves here.");
+        destinationDescriptionText.setString("Complete the trader's tasks and new routes will reveal themselves here.");
         legendText.setString("Open a route in the world before you can bind the portal.");
         return;
     }

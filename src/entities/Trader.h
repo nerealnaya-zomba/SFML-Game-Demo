@@ -12,6 +12,7 @@ bool switchToNextSpritePingPong(sf::Sprite* sprite,
     texturesIterHelper& iterHelper);
 
 class Shop;
+class GameCamera;
 
 const sf::Keyboard::Scancode keyToOpenShop          = sf::Keyboard::Scancode::Enter;
 const sf::Vector2f BASE_SHOP_OFFSET                 = {0.f,-200.f};
@@ -20,6 +21,7 @@ class Trader : public InteractiveObject
 {
 private:
     Player* player;
+    GameCamera* camera = nullptr;
 
     std::unique_ptr<Shop> shop;
 
@@ -33,6 +35,7 @@ private:
     sf::Text dialogueTitleText;
     sf::Text dialogueBodyText;
     bool shouldDrawDialogue_ = false;
+    bool wasShopOpened_ = false;
 
     void updateTextures();
 
@@ -44,7 +47,7 @@ private:
     void updateDialogue();
 
 public:
-    Trader(GameData& data, Player& p, sf::Vector2f& pos);
+    Trader(GameData& data, Player& p, GameCamera& camera, sf::Vector2f& pos);
     ~Trader() = default;
 
     void draw(sf::RenderWindow& window)         override;

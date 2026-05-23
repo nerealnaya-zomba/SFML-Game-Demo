@@ -6,7 +6,7 @@
 
 namespace
 {
-constexpr std::size_t kStoryStageCount = 7;
+constexpr std::size_t kStoryStageCount = 6;
 
 const CampaignLevelInfo kFallbackLevelInfo{
     "unknown",
@@ -20,51 +20,51 @@ const CampaignLevelInfo kFallbackLevelInfo{
 const std::array<CampaignLevelInfo, 6> kCampaignLevels{{
     {
         "level1.json",
-        "Ashwake Causeway",
-        "The broken outer terraces where the farm first starts paying for itself.",
-        "Ruined ledges, simple prey and enough grave-gold to wake the Heart Lantern's first ember.",
-        "Best for: early relic money and safe farming laps.",
+        "Dark Gate Sanctuary",
+        "A quiet hub beneath the sealed gate, watched over by the trader.",
+        "No enemies cross this threshold. Return here to buy gear, hear the next task and choose the next opened route.",
+        "Best for: trading, planning and quest handoff.",
         "Open from the first step."
     },
     {
         "level2.json",
         "Obsidian Rookery",
-        "A cold vertical roost full of hungry wings and sharper rewards.",
-        "Basalt scaffolds and bat-haunted spans where the Bone Collector tests whether your first profits became real tools.",
-        "Best for: faster farming and proving your first relic build.",
-        "Harvest 60 grave-gold and buy your first relic."
+        "A cold vertical roost where the trader sends you for the first gate fragment.",
+        "Basalt scaffolds and bat-haunted spans hold the first proof that the Dark Gate can still be opened.",
+        "Best for: the first combat quest and early grave-gold.",
+        "Open from the first step."
     },
     {
         "level3.json",
         "Crimson Nave",
-        "A ceremonial hall where richer prey starts to fight back in earnest.",
-        "The red nave still burns with old ritual heat, and its guardians carry enough coin to fund the next descent.",
-        "Best for: mid-run gold bursts and denser enemy lines.",
-        "Reach Obsidian Rookery and harvest 180 grave-gold total."
+        "A ceremonial hall holding the second gate fragment.",
+        "The red nave still burns with old ritual heat. The trader will not point you here until the Rookery debt is paid.",
+        "Best for: the second quest step and denser enemy lines.",
+        "Complete the Obsidian Rookery task."
     },
     {
         "level4.json",
         "Bone Reliquary",
-        "A pale vault of relic shelves built for serious upgrading.",
-        "This crypt once stored covenant tools. Now it yields the parts and coin needed to turn a scavenger into a proper hunter.",
-        "Best for: relic-focused farming and heavier investment runs.",
-        "Own 3 relics from the trader."
+        "A pale vault where the third fragment waits among old relic shelves.",
+        "This crypt once stored covenant tools. Now it tests whether your kit is strong enough for deeper orders.",
+        "Best for: the third quest step and relic-focused farming.",
+        "Complete the Crimson Nave task."
     },
     {
         "level5.json",
         "Trial of Embers",
-        "A compact proving ground where weak builds go to die quickly.",
-        "The Heart Lantern only opens this route once you arrive armed for a harder harvest. Survive it, and the richest road returns.",
-        "Best for: weapon checks and high-pressure gold bursts.",
-        "Buy your first crafted weapon."
+        "A compact proving ground where the fourth fragment is sealed in flame.",
+        "The trader sends only armed hunters here. Weak builds burn out before the gate hears them.",
+        "Best for: the fourth quest step and weapon checks.",
+        "Complete the Bone Reliquary task."
     },
     {
         "level6.json",
         "The Returning Veil",
-        "The deepest scar in the farm, where the covenant can finally be restored.",
-        "Beyond the last gate the ruined estate folds back on itself. Feed it enough power and the whole hunting loop comes alive again.",
-        "Best for: endgame farming and sealing the story.",
-        "Reach the Trial of Embers and harvest 420 grave-gold total."
+        "The final route before the Dark Gate answers.",
+        "Beyond the last seal the ruined estate folds back on itself. Bring the trader enough proof and the gate will open.",
+        "Best for: the final quest step and endgame farming.",
+        "Complete the Trial of Embers task."
     }
 }};
 
@@ -139,23 +139,23 @@ bool CampaignProgress::isLevelUnlocked(const std::string& levelName) const
     }
     if (levelName == "level2.json")
     {
-        return currentStageIndex_ >= 2;
+        return true;
     }
     if (levelName == "level3.json")
     {
-        return currentStageIndex_ >= 3;
+        return currentStageIndex_ >= 1;
     }
     if (levelName == "level4.json")
     {
-        return currentStageIndex_ >= 4;
+        return currentStageIndex_ >= 2;
     }
     if (levelName == "level5.json")
     {
-        return currentStageIndex_ >= 5;
+        return currentStageIndex_ >= 3;
     }
     if (levelName == "level6.json")
     {
-        return currentStageIndex_ >= 6;
+        return currentStageIndex_ >= 4;
     }
 
     return true;
@@ -180,17 +180,17 @@ std::vector<std::string> CampaignProgress::filterUnlockedLevels(const std::vecto
 CampaignObjectiveSnapshot CampaignProgress::buildSnapshot() const
 {
     CampaignObjectiveSnapshot snapshot;
-    snapshot.campaignTitle = "Restore the Heart Lantern";
+    snapshot.campaignTitle = "Open the Dark Gate";
     snapshot.storyComplete = currentStageIndex_ >= kStoryStageCount;
 
     if (snapshot.storyComplete)
     {
-        snapshot.chapterTitle = "VIII. The Farm Breathes Again";
-        snapshot.narrative = "The covenant lives. Every open route now exists to enrich your build and deepen the hunt.";
-        snapshot.objective = "Keep farming, forging and pushing the restored grounds.";
+        snapshot.chapterTitle = "VII. The Gate Stands Open";
+        snapshot.narrative = "The trader's map is complete. Every route now feeds the open Dark Gate.";
+        snapshot.objective = "Keep farming, forging and pushing the opened routes.";
         snapshot.progressText = std::to_string(weaponsPurchased_) + " weapons forged  |  " +
             std::to_string(totalGoldCollected_) + " grave-gold harvested";
-        snapshot.rewardText = "Reward: free hunt across every attuned route.";
+        snapshot.rewardText = "Reward: free hunt across every opened route.";
         snapshot.progressRatio = 1.f;
         return snapshot;
     }
@@ -210,37 +210,40 @@ std::string CampaignProgress::getLevelUnlockHint(const std::string& levelName) c
 
     if (levelName == "level2.json")
     {
-        stream << "Seal: harvest 60 grave-gold and buy 1 relic.\n"
-               << "Progress: " << std::min(totalGoldCollected_, 60) << "/60 gold, "
-               << std::min(relicsPurchased_, 1) << "/1 relic.";
+        stream << "Seal: open from the hub. This is the trader's first task.\n"
+               << "Progress: route available.";
         return stream.str();
     }
     if (levelName == "level3.json")
     {
-        stream << "Seal: enter Obsidian Rookery and reach 180 total grave-gold.\n"
+        stream << "Seal: finish the Obsidian Rookery task.\n"
                << "Progress: "
                << boolProgressLabel(hasVisitedLevel("level2.json"), "Rookery entered", "Rookery not entered")
-               << ", " << std::min(totalGoldCollected_, 180) << "/180 gold.";
+               << ", " << std::min(totalGoldCollected_, 60) << "/60 gold.";
         return stream.str();
     }
     if (levelName == "level4.json")
     {
-        stream << "Seal: own 3 relics from the trader.\n"
-               << "Progress: " << std::min(relicsPurchased_, 3) << "/3 relics.";
+        stream << "Seal: finish the Crimson Nave task.\n"
+               << "Progress: "
+               << boolProgressLabel(hasVisitedLevel("level3.json"), "Nave entered", "Nave not entered")
+               << ", " << std::min(totalGoldCollected_, 180) << "/180 gold.";
         return stream.str();
     }
     if (levelName == "level5.json")
     {
-        stream << "Seal: buy your first crafted weapon.\n"
-               << "Progress: " << std::min(weaponsPurchased_, 1) << "/1 weapon.";
+        stream << "Seal: finish the Bone Reliquary task.\n"
+               << "Progress: "
+               << boolProgressLabel(hasVisitedLevel("level4.json"), "Reliquary entered", "Reliquary not entered")
+               << ", " << std::min(relicsPurchased_, 3) << "/3 relics.";
         return stream.str();
     }
     if (levelName == "level6.json")
     {
-        stream << "Seal: enter the Trial of Embers and reach 420 total grave-gold.\n"
+        stream << "Seal: finish the Trial of Embers task.\n"
                << "Progress: "
                << boolProgressLabel(hasVisitedLevel("level5.json"), "Trial entered", "Trial not entered")
-               << ", " << std::min(totalGoldCollected_, 420) << "/420 gold.";
+               << ", " << std::min(weaponsPurchased_, 1) << "/1 weapon.";
         return stream.str();
     }
 
@@ -251,25 +254,23 @@ std::string CampaignProgress::getMerchantGreeting() const
 {
     if (currentStageIndex_ >= kStoryStageCount)
     {
-        return "The Bone Collector grins through cracked teeth.";
+        return "The trader grins beneath the opened Dark Gate.";
     }
 
     switch (currentStageIndex_)
     {
     case 0:
-        return "The Bone Collector taps ash from an old ledger.";
+        return "The trader waits under the Dark Gate with a marked map.";
     case 1:
-        return "The trader counts your first honest haul with approval.";
+        return "The trader seals the Rookery mark and opens a red road.";
     case 2:
-        return "The merchant traces a cold rune toward the next gate.";
+        return "The merchant traces a crimson rune toward the Reliquary.";
     case 3:
-        return "He opens another drawer of relics and nods toward the vault roads.";
+        return "He checks your relics, then points at the ember seal.";
     case 4:
-        return "The old scavenger stops smiling. The next road wants a weapon.";
+        return "The old scavenger stops smiling. The last road wants proof.";
     case 5:
-        return "He listens to the embers like they are answering him back.";
-    case 6:
-        return "The merchant says the last gate only opens for a hunter, not a survivor.";
+        return "He listens to the Veil like it is answering him back.";
     default:
         return "The trader waits for your next decision.";
     }
@@ -280,19 +281,17 @@ std::string CampaignProgress::getMerchantAdvice() const
     switch (currentStageIndex_)
     {
     case 0:
-        return "Farm Ashwake until you drag home 60 grave-gold. The lantern wakes on profit, not courage.";
+        return "First job is not here. Take the opened route to Obsidian Rookery and bring back 60 grave-gold.";
     case 1:
-        return "Buy one relic before you chase depth. A farmer without investment is just bait with boots.";
+        return "Good. The Crimson Nave is open. Go there next and push the total haul to 180 gold.";
     case 2:
-        return "Obsidian Rookery is open now. Run it until your lifetime haul reaches 180 gold.";
+        return "The Bone Reliquary is open. Enter it and come back owning 3 relics. The gate likes prepared hands.";
     case 3:
-        return "Stock 3 relics and the Bone Reliquary will answer. This is where the build starts compounding.";
+        return "Trial of Embers is open. Buy or forge a real weapon before you come bragging about progress.";
     case 4:
-        return "Stop polishing trinkets and forge a real weapon. Trial of Embers will break starter gear.";
+        return "The Returning Veil is open. Enter it and bring the total haul to 420 gold.";
     case 5:
-        return "Take your new weapon into the Trial and push the total haul to 420 gold.";
-    case 6:
-        return "Enter the Returning Veil and bring 2 crafted weapons into the covenant. Finish the restoration.";
+        return "One final demand: own 2 crafted weapons. Then the Dark Gate has no excuse left.";
     default:
         return "Every route is open. Buy for greed, comfort or sheer spectacle now.";
     }
@@ -300,28 +299,19 @@ std::string CampaignProgress::getMerchantAdvice() const
 
 const CampaignLevelInfo& CampaignProgress::getRecommendedLevelInfo() const
 {
-    if (currentStageIndex_ <= 1)
+    switch (currentStageIndex_)
     {
-        return getLevelInfo("level1.json");
-    }
-    if (currentStageIndex_ == 2)
-    {
+    case 0:
         return getLevelInfo("level2.json");
-    }
-    if (currentStageIndex_ == 3)
-    {
+    case 1:
         return getLevelInfo("level3.json");
-    }
-    if (currentStageIndex_ == 4)
-    {
+    case 2:
         return getLevelInfo("level4.json");
-    }
-    if (currentStageIndex_ == 5)
-    {
+    case 3:
         return getLevelInfo("level5.json");
+    default:
+        return getLevelInfo("level6.json");
     }
-
-    return getLevelInfo("level6.json");
 }
 
 CampaignBoonState CampaignProgress::getActiveBoonState() const
@@ -330,44 +320,39 @@ CampaignBoonState CampaignProgress::getActiveBoonState() const
 
     if (currentStageIndex_ >= 1)
     {
-        boon.title = "Lantern Spark";
-        boon.description = "The rekindled farm toughens your body.";
+        boon.title = "Rookery Mark";
+        boon.description = "The first gate mark toughens your body.";
         boon.healthBonus += 60;
     }
     if (currentStageIndex_ >= 2)
     {
-        boon.title = "Broker's Habit";
-        boon.description = "Trade and harvest begin feeding your reserves.";
-        boon.energyGainBonus += 1;
+        boon.title = "Nave Tithe";
+        boon.description = "The red road teaches your bolts to hit harder.";
+        boon.damageBonus += 8;
     }
     if (currentStageIndex_ >= 3)
     {
-        boon.title = "Rookery Tithe";
-        boon.description = "Cold hunts teach your bolts to hit harder.";
-        boon.damageBonus += 8;
+        boon.title = "Reliquary Reserve";
+        boon.description = "Recovered relic rites deepen your arcane reserve.";
+        boon.maxEnergyBonus += 140;
+        boon.energyGainBonus += 1;
     }
     if (currentStageIndex_ >= 4)
-    {
-        boon.title = "Reliquary Reserve";
-        boon.description = "The restored vault deepens your arcane reserve.";
-        boon.maxEnergyBonus += 140;
-    }
-    if (currentStageIndex_ >= 5)
     {
         boon.title = "Ember Temper";
         boon.description = "Trial-forged rites carry farther through the ruins.";
         boon.bulletRangeBonus += 80;
     }
-    if (currentStageIndex_ >= 6)
+    if (currentStageIndex_ >= 5)
     {
         boon.title = "Veil Reflex";
-        boon.description = "The returning paths teach swifter release.";
+        boon.description = "The returning path teaches swifter release.";
         boon.shootCooldownReduction += 12;
     }
     if (currentStageIndex_ >= kStoryStageCount)
     {
-        boon.title = "Heart Rekindled";
-        boon.description = "The covenant fully wakes and strengthens every hunt.";
+        boon.title = "Dark Gate Opened";
+        boon.description = "The opened gate strengthens every hunt.";
         boon.healthBonus += 90;
         boon.damageBonus += 10;
     }
@@ -454,19 +439,17 @@ bool CampaignProgress::isStageComplete(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return totalGoldCollected_ >= 60;
+        return hasVisitedLevel("level2.json") && totalGoldCollected_ >= 60;
     case 1:
-        return relicsPurchased_ >= 1;
+        return hasVisitedLevel("level3.json") && totalGoldCollected_ >= 180;
     case 2:
-        return hasVisitedLevel("level2.json") && totalGoldCollected_ >= 180;
+        return hasVisitedLevel("level4.json") && relicsPurchased_ >= 3;
     case 3:
-        return relicsPurchased_ >= 3;
+        return hasVisitedLevel("level5.json") && weaponsPurchased_ >= 1;
     case 4:
-        return weaponsPurchased_ >= 1;
+        return hasVisitedLevel("level6.json") && totalGoldCollected_ >= 420;
     case 5:
-        return hasVisitedLevel("level5.json") && totalGoldCollected_ >= 420;
-    case 6:
-        return hasVisitedLevel("level6.json") && weaponsPurchased_ >= 2;
+        return weaponsPurchased_ >= 2;
     default:
         return true;
     }
@@ -477,19 +460,17 @@ float CampaignProgress::getStageProgressRatio(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return normalizedProgress(totalGoldCollected_, 60);
+        return (normalizedProgress(totalGoldCollected_, 60) + (hasVisitedLevel("level2.json") ? 1.f : 0.f)) * 0.5f;
     case 1:
-        return normalizedProgress(relicsPurchased_, 1);
+        return (normalizedProgress(totalGoldCollected_, 180) + (hasVisitedLevel("level3.json") ? 1.f : 0.f)) * 0.5f;
     case 2:
-        return (normalizedProgress(totalGoldCollected_, 180) + (hasVisitedLevel("level2.json") ? 1.f : 0.f)) * 0.5f;
+        return (normalizedProgress(relicsPurchased_, 3) + (hasVisitedLevel("level4.json") ? 1.f : 0.f)) * 0.5f;
     case 3:
-        return normalizedProgress(relicsPurchased_, 3);
+        return (normalizedProgress(weaponsPurchased_, 1) + (hasVisitedLevel("level5.json") ? 1.f : 0.f)) * 0.5f;
     case 4:
-        return normalizedProgress(weaponsPurchased_, 1);
+        return (normalizedProgress(totalGoldCollected_, 420) + (hasVisitedLevel("level6.json") ? 1.f : 0.f)) * 0.5f;
     case 5:
-        return (normalizedProgress(totalGoldCollected_, 420) + (hasVisitedLevel("level5.json") ? 1.f : 0.f)) * 0.5f;
-    case 6:
-        return (normalizedProgress(weaponsPurchased_, 2) + (hasVisitedLevel("level6.json") ? 1.f : 0.f)) * 0.5f;
+        return normalizedProgress(weaponsPurchased_, 2);
     default:
         return 1.f;
     }
@@ -500,21 +481,19 @@ std::string CampaignProgress::getStageChapterTitle(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return "I. Wake the Lantern";
+        return "I. First Mark: Obsidian Rookery";
     case 1:
-        return "II. First Bargain";
+        return "II. Second Mark: Crimson Nave";
     case 2:
-        return "III. Obsidian Harvest";
+        return "III. Third Mark: Bone Reliquary";
     case 3:
-        return "IV. Stock the Farm";
+        return "IV. Fourth Mark: Trial of Embers";
     case 4:
-        return "V. Forge a True Weapon";
+        return "V. Fifth Mark: The Returning Veil";
     case 5:
-        return "VI. Trial by Embers";
-    case 6:
-        return "VII. Return Through the Veil";
+        return "VI. Final Payment";
     default:
-        return "VIII. Endless Harvest";
+        return "VII. Open Gate";
     }
 }
 
@@ -523,19 +502,17 @@ std::string CampaignProgress::getStageNarrative(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return "The Bone Collector says the ruined farm will breathe again once you feed its Heart Lantern.";
+        return "The Sanctuary is safe, but the Dark Gate will not open from comfort. The trader marks Obsidian Rookery first.";
     case 1:
-        return "Your first haul is enough to stop surviving and start investing in a proper farming loop.";
+        return "The first mark is paid. A red route opens, and the trader wants the next fragment from Crimson Nave.";
     case 2:
-        return "The next gate answers only hunters who can bring wealth back from harsher ground.";
+        return "The Reliquary seal asks for proof that you can turn loot into lasting power.";
     case 3:
-        return "Relics turn raw income into momentum. Stock the covenant before the deeper vaults open.";
+        return "The Trial of Embers wants a weapon, not optimism.";
     case 4:
-        return "The Trial will not respect a peasant's tool. You need a crafted weapon now.";
+        return "Only the Returning Veil remains between the trader's map and the Dark Gate.";
     case 5:
-        return "Trial of Embers is the last price before the richest route returns to the estate.";
-    case 6:
-        return "One more descent and one more forged weapon should be enough to complete the old covenant.";
+        return "The route marks are gathered. The trader demands one final investment before he turns the key.";
     default:
         return "The harvest goes on.";
     }
@@ -546,21 +523,19 @@ std::string CampaignProgress::getStageObjective(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return "Harvest 60 grave-gold from the outer ruins.";
+        return "Enter Obsidian Rookery and return with 60 total grave-gold.";
     case 1:
-        return "Buy your first relic from the trader.";
+        return "Enter Crimson Nave and reach 180 total grave-gold.";
     case 2:
-        return "Enter Obsidian Rookery and reach 180 total grave-gold.";
+        return "Enter Bone Reliquary and own 3 relics.";
     case 3:
-        return "Own 3 relics to stock the covenant.";
+        return "Enter Trial of Embers and own 1 crafted weapon.";
     case 4:
-        return "Buy your first crafted weapon.";
+        return "Enter The Returning Veil and reach 420 total grave-gold.";
     case 5:
-        return "Enter the Trial of Embers and reach 420 total grave-gold.";
-    case 6:
-        return "Enter The Returning Veil and own 2 crafted weapons.";
+        return "Own 2 crafted weapons to open the Dark Gate.";
     default:
-        return "Keep the restored farm rich.";
+        return "Keep the opened routes rich.";
     }
 }
 
@@ -569,22 +544,22 @@ std::string CampaignProgress::getStageProgressText(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return std::to_string(std::min(totalGoldCollected_, 60)) + " / 60 grave-gold";
-    case 1:
-        return std::to_string(std::min(relicsPurchased_, 1)) + " / 1 relic purchased";
-    case 2:
         return boolProgressLabel(hasVisitedLevel("level2.json"), "Rookery entered", "Rookery pending") +
+            std::string("  |  ") + std::to_string(std::min(totalGoldCollected_, 60)) + " / 60 gold";
+    case 1:
+        return boolProgressLabel(hasVisitedLevel("level3.json"), "Nave entered", "Nave pending") +
             std::string("  |  ") + std::to_string(std::min(totalGoldCollected_, 180)) + " / 180 gold";
+    case 2:
+        return boolProgressLabel(hasVisitedLevel("level4.json"), "Reliquary entered", "Reliquary pending") +
+            std::string("  |  ") + std::to_string(std::min(relicsPurchased_, 3)) + " / 3 relics";
     case 3:
-        return std::to_string(std::min(relicsPurchased_, 3)) + " / 3 relics owned";
-    case 4:
-        return std::to_string(std::min(weaponsPurchased_, 1)) + " / 1 crafted weapon";
-    case 5:
         return boolProgressLabel(hasVisitedLevel("level5.json"), "Trial entered", "Trial pending") +
-            std::string("  |  ") + std::to_string(std::min(totalGoldCollected_, 420)) + " / 420 gold";
-    case 6:
+            std::string("  |  ") + std::to_string(std::min(weaponsPurchased_, 1)) + " / 1 weapon";
+    case 4:
         return boolProgressLabel(hasVisitedLevel("level6.json"), "Veil entered", "Veil pending") +
-            std::string("  |  ") + std::to_string(std::min(weaponsPurchased_, 2)) + " / 2 weapons";
+            std::string("  |  ") + std::to_string(std::min(totalGoldCollected_, 420)) + " / 420 gold";
+    case 5:
+        return std::to_string(std::min(weaponsPurchased_, 2)) + " / 2 crafted weapons";
     default:
         return "Every route is open.";
     }
@@ -595,19 +570,17 @@ std::string CampaignProgress::getStageReward(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return "Reward: Lantern Spark (+60 Vitality) and enough leverage for your first bargain.";
+        return "Reward: Level III opens and Rookery Mark grants +60 Vitality.";
     case 1:
-        return "Reward: Level II opens and Broker's Habit grants +1 Energy gain.";
+        return "Reward: Level IV opens and Nave Tithe grants +8 Damage.";
     case 2:
-        return "Reward: Level III opens and Rookery Tithe grants +8 Damage.";
+        return "Reward: Level V opens and Reliquary Reserve grants +140 Energy and +1 Energy gain.";
     case 3:
-        return "Reward: Level IV opens and Reliquary Reserve grants +140 Energy.";
+        return "Reward: Level VI opens and Ember Temper grants +80 Range.";
     case 4:
-        return "Reward: Level V opens and Ember Temper grants +80 Range.";
+        return "Reward: Veil Reflex grants -12 ms Shot CD.";
     case 5:
-        return "Reward: Level VI opens and Veil Reflex grants -12 ms Shot CD.";
-    case 6:
-        return "Reward: Heart Rekindled grants +90 Vitality and +10 Damage.";
+        return "Reward: Dark Gate Opened grants +90 Vitality and +10 Damage.";
     default:
         return "Reward: endless harvest.";
     }

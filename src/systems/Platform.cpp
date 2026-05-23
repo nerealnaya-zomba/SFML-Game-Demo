@@ -212,6 +212,7 @@ void Platform::addPlatform(sf::Vector2f position, std::string name, InstanceOver
     const PlatformAtmosphereStyle atmosphereStyle = overrides.atmosphereStyle.value_or(definition.atmosphereStyle);
     const sf::Color atmosphereColor = overrides.atmosphereColor.value_or(definition.atmosphereColor);
     const float atmosphereDensity = overrides.atmosphereDensity.value_or(definition.atmosphereDensity);
+    const bool bounceEnabled = overrides.bounceEnabled.value_or(true);
     const sf::Texture* texture = nullptr;
     if (!definition.texturePath.empty())
     {
@@ -238,6 +239,7 @@ void Platform::addPlatform(sf::Vector2f position, std::string name, InstanceOver
     instance.hoverAmplitude = definition.texturePath.empty() ? 0.f : definition.hoverAmplitude;
     instance.hoverFrequency = definition.hoverFrequency;
     instance.hoverPhase = randomFloat(0.f, 6.28318f);
+    instance.bounceEnabled = bounceEnabled;
 
     if (texture != nullptr)
     {
@@ -263,7 +265,7 @@ void Platform::applyImpact(const sf::RectangleShape& rect, const float fallSpeed
 {
     for (auto& instance : instances_)
     {
-        if (instance.rect.get() != &rect || instance.hoverAmplitude <= 0.f)
+        if (instance.rect.get() != &rect || instance.hoverAmplitude <= 0.f || !instance.bounceEnabled)
         {
             continue;
         }

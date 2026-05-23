@@ -2,9 +2,28 @@
 #include <BackgroundAtmosphere.h>
 
 #include <algorithm>
+#include <cmath>
 #include <utility>
 
 class GameCamera;
+
+namespace
+{
+constexpr sf::Vector2f kBackgroundTileSize{
+    static_cast<float>(WINDOW_WIDTH),
+    static_cast<float>(WINDOW_HEIGHT)
+};
+
+sf::Vector2f snapBackgroundCenterToTile(sf::Vector2f position)
+{
+    const float column = std::max(0.f, std::floor(position.x / kBackgroundTileSize.x));
+    const float row = std::max(0.f, std::floor(position.y / kBackgroundTileSize.y));
+    return {
+        column * kBackgroundTileSize.x + kBackgroundTileSize.x * 0.5f,
+        row * kBackgroundTileSize.y + kBackgroundTileSize.y * 0.5f
+    };
+}
+}
 
 Background::Background(
     GameData& d,
@@ -90,7 +109,7 @@ void Background::draw(sf::RenderWindow &window)
 
 void Background::applyParallax()
 {
-    const sf::Vector2f baseObjectPos = position;
+    const sf::Vector2f baseObjectPos = snapBackgroundCenterToTile(position);
     const sf::Vector2f cameraOffset = camera->getCameraCenterPos() - BASE_CAMERAPOS;
     const sf::Vector2f viewCompensatedParallax = {
         1.f - parallaxFactor.x,
@@ -128,27 +147,31 @@ void Background::drawRepeated(sf::RenderWindow& window) const
     }
 
     const sf::FloatRect viewRect = getActiveViewRect();
-    const sf::Vector2f center = bgFront->getPosition();
-    const float leftEdge = center.x - repeatedWidth / 2.f;
-    const float topEdge = center.y - repeatedHeight / 2.f;
-    const float rightView = viewRect.position.x + viewRect.size.x;
-    const float bottomView = viewRect.position.y + viewRect.size.y;
+    const sf::Vector2i levelSize = level ? level->getLevelSize() : sf::Vector2i{
+        static_cast<int>(WINDOW_WIDTH),
+        static_cast<int>(WINDOW_HEIGHT)
+    };
+    const int columns = std::max(1, static_cast<int>(std::ceil(static_cast<float>(std::max(levelSize.x, 0)) / kBackgroundTileSize.x)));
+    const int rows = std::max(1, static_cast<int>(std::ceil(static_cast<float>(std::max(levelSize.y, 0)) / kBackgroundTileSize.y)));
+    const sf::Vector2f cameraOffset = camera->getCameraCenterPos() - BASE_CAMERAPOS;
+    const sf::Vector2f viewCompensatedParallax = {
+        1.f - parallaxFactor.x,
+        1.f - parallaxFactor.y
+    };
 
-    const int startX = static_cast<int>(std::floor((viewRect.position.x - leftEdge) / repeatedWidth)) - 1;
-    const int endX = static_cast<int>(std::ceil((rightView - leftEdge) / repeatedWidth)) + 1;
-    const int startY = static_cast<int>(std::floor((viewRect.position.y - topEdge) / repeatedHeight)) - 1;
-    const int endY = static_cast<int>(std::ceil((bottomView - topEdge) / repeatedHeight)) + 1;
-
-    for (int y = startY; y <= endY; ++y)
+    for (int y = 0; y < rows; ++y)
     {
-        for (int x = startX; x <= endX; ++x)
+        for (int x = 0; x < columns; ++x)
         {
             sf::Sprite repeatedSprite = *bgFront;
             repeatedSprite.setPosition({
-                center.x + repeatedWidth * static_cast<float>(x),
-                center.y + repeatedHeight * static_cast<float>(y)
+                kBackgroundTileSize.x * (static_cast<float>(x) + 0.5f) + cameraOffset.x * viewCompensatedParallax.x,
+                kBackgroundTileSize.y * (static_cast<float>(y) + 0.5f) + cameraOffset.y * viewCompensatedParallax.y
             });
-            window.draw(repeatedSprite);
+            if (viewRect.findIntersection(repeatedSprite.getGlobalBounds()).has_value())
+            {
+                window.draw(repeatedSprite);
+            }
         }
     }
 }

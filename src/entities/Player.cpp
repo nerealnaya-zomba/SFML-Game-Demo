@@ -16,6 +16,23 @@ namespace
 {
 constexpr float kPi = 3.14159265f;
 const char* kPlayerProgressPath = "data/playerProgress.json";
+constexpr float kDashImpulseScale = 0.7071f;
+constexpr float kDashCounterDampingScale = 0.55f;
+constexpr float kDashControlSpeedBonusScale = 0.35f;
+constexpr float kDashSpeedLimitScale = 1.2f;
+constexpr float kDashMinimumImpulseRatio = 0.25f;
+
+float dashSpeedLimit(float maxWalkSpeed, float dashForce)
+{
+    return std::max(maxWalkSpeed, std::abs(dashForce) * kDashSpeedLimitScale);
+}
+
+float dashControlStep(float baseStep, float currentSpeed, float dashForce)
+{
+    const float safeDashForce = std::max(std::abs(dashForce), 0.001f);
+    const float speedRatio = std::min(std::abs(currentSpeed) / safeDashForce, 1.f);
+    return baseStep * (1.f + speedRatio * kDashControlSpeedBonusScale);
+}
 
 sf::Vector2f lerpVector(const sf::Vector2f& from, const sf::Vector2f& to, float progress)
 {
@@ -1455,6 +1472,26 @@ void Player::updateTextures()
         return;
     }
 
+    if(isPlayingDashAnimation)
+    {
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && playerSprite->getScale().x > 0 && !isControlsBlocked)
+        {
+            playerSprite->setScale({-(playerSprite->getScale().x), 1.f});
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && playerSprite->getScale().x < 0 && !isControlsBlocked)
+        {
+            playerSprite->setScale({-(playerSprite->getScale().x), 1.f});
+        }
+
+        pulseSprite(*playerSprite, sf::Color(198, 90, 100, 255), 2.4f, sf::seconds(0.2f));
+        if(!switchToNextSprite(this->playerSprite,*this->satiro_dashTextures,satiro_dash_helper,switchSprite_SwitchOption::Single))
+        {
+            isPlayingDashAnimation= false;
+        }
+        dashParticles();
+        return;
+    }
+
     if(isFliesUp)
     {
         switchToNextSprite(this->playerSprite,*this->satiro_jumpTextures,satiro_jump_helper,switchSprite_SwitchOption::Loop);
@@ -1489,17 +1526,6 @@ void Player::updateTextures()
         {
             playerSprite->setScale({-(playerSprite->getScale().x),1.f});
         }
-    }
-
-    if(isPlayingDashAnimation)
-    {
-        pulseSprite(*playerSprite, sf::Color(198, 90, 100, 255), 2.4f, sf::seconds(0.2f));
-        if(!switchToNextSprite(this->playerSprite,*this->satiro_dashTextures,satiro_dash_helper,switchSprite_SwitchOption::Single))
-        {
-            isPlayingDashAnimation= false;
-        }
-        dashParticles();
-        return;
     }
 
     if(isFalling && !isFliesUp)
@@ -1983,24 +2009,30 @@ void Player::updateEnergy()
 
 void Player::walkLeft()
 {
-    if(!this->isAlive || isPlayingDieAnimation || isPlayingDashAnimation) return;       //Locking movement on Die, Dash
+    if(!this->isAlive || isPlayingDieAnimation) return;       //Locking movement on Die
 
-    if(initialWalkSpeed<=(-maxWalkSpeed))
+    const float movementLimit = isPlayingDashAnimation ? dashSpeedLimit(maxWalkSpeed, dashForce) : maxWalkSpeed;
+    if(initialWalkSpeed<=(-movementLimit))
     {
         return; 
     }
-    initialWalkSpeed-=speed;
+
+    const float controlStep = isPlayingDashAnimation ? dashControlStep(speed, initialWalkSpeed, dashForce) : speed;
+    initialWalkSpeed = std::max(-movementLimit, initialWalkSpeed - controlStep);
 }
 
 void Player::walkRight()
 {
-    if(!this->isAlive || isPlayingDieAnimation || isPlayingDashAnimation) return;       //Locking movement on Die, Dash
+    if(!this->isAlive || isPlayingDieAnimation) return;       //Locking movement on Die
 
-    if(initialWalkSpeed>=maxWalkSpeed)
+    const float movementLimit = isPlayingDashAnimation ? dashSpeedLimit(maxWalkSpeed, dashForce) : maxWalkSpeed;
+    if(initialWalkSpeed>=movementLimit)
     {
         return;
     }
-    initialWalkSpeed+=speed;
+
+    const float controlStep = isPlayingDashAnimation ? dashControlStep(speed, initialWalkSpeed, dashForce) : speed;
+    initialWalkSpeed = std::min(movementLimit, initialWalkSpeed + controlStep);
 }
 
 void Player::jump()
@@ -2045,11 +2077,23 @@ void Player::dash()
         isPlayingDashAnimation = true;
         isDashOnCooldown = true;
         dash_Clock.restart();
-        if(playerSprite->getScale().x>0){
-            initialWalkSpeed = dashForce;
-        } else{
-            initialWalkSpeed = -dashForce;
-        }
+        const float dashDirection = playerSprite->getScale().x > 0 ? 1.f : -1.f;
+        const float signedCurrentSpeed = initialWalkSpeed * dashDirection;
+        const float baseImpulse = std::abs(dashForce) * kDashImpulseScale;
+        const float counterDamping = signedCurrentSpeed < 0.f
+            ? std::min(-signedCurrentSpeed * kDashCounterDampingScale, baseImpulse)
+            : 0.f;
+        const float movementLimit = dashSpeedLimit(maxWalkSpeed, dashForce);
+        const float remainingSpeedRoom = std::max(0.f, movementLimit - std::max(0.f, signedCurrentSpeed));
+        const float scaledImpulse = std::min(baseImpulse, remainingSpeedRoom);
+        const float minimumImpulse = std::min(baseImpulse * kDashMinimumImpulseRatio, remainingSpeedRoom);
+        const float impulse = std::max(scaledImpulse, minimumImpulse) + counterDamping;
+
+        initialWalkSpeed = std::clamp(
+            initialWalkSpeed + dashDirection * impulse,
+            -movementLimit,
+            movementLimit
+        );
 
         spawnDashBurst();
         pushRing(getCenterPosition(), sf::Color(214, 142, 124, 108), 10.f, 52.f, 3.8f, 2.0f, 108.f);
@@ -2500,7 +2544,11 @@ void Player::updatePhysics()
     Platform& platformSystem = levelManager->getCurrentPlatformSystem();
     auto& platformRects = platformSystem.getRects();
     sf::RectangleShape& groundRect = levelManager->getGroundRect();
-    const float levelWidth = static_cast<float>(levelManager->getCurrentLevelSize().x);
+    const sf::FloatRect worldBounds = levelManager->getCurrentCameraBoundsForPosition(getCenterPosition());
+    const float levelLeft = worldBounds.position.x;
+    const float levelWidth = worldBounds.size.x > 0.f
+        ? worldBounds.size.x
+        : static_cast<float>(levelManager->getCurrentLevelSize().x);
     const bool wasStandingOnGround = collision::isStandingOnGround(*playerRectangle_, groundRect);
     const sf::RectangleShape* previousSupport = supportPlatform_;
     const bool wasSupportedBeforeMove = wasStandingOnGround || previousSupport != nullptr;
@@ -2527,14 +2575,16 @@ void Player::updatePhysics()
     const float previousFallSpeed = fallingSpeed;
     const sf::Vector2f frameDelta{
         initialWalkSpeed,
-        isPlayingDashAnimation ? 0.f : fallingSpeed
+        fallingSpeed
     };
     const collision::MoveResult moveResult = collision::moveBodyWithWorldCollisions(
         *playerRectangle_,
         frameDelta,
         platformRects,
         &groundRect,
-        levelWidth
+        levelWidth,
+        6.f,
+        levelLeft
     );
 
     if (moveResult.blockedLeft || moveResult.blockedRight)
@@ -2592,14 +2642,7 @@ void Player::updatePhysics()
 
     if (isFalling)
     {
-        if (isPlayingDashAnimation)
-        {
-            fallingSpeed = 0.f;
-        }
-        else
-        {
-            fallingSpeed += gravity_;
-        }
+        fallingSpeed += gravity_;
     }
 
     supportPlatform_ = currentSupport;

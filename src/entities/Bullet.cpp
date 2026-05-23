@@ -106,7 +106,11 @@ void Bullet::alignSpriteToVelocity()
         return;
     }
 
-    const float angleDegrees = std::atan2(velocity.y, velocity.x) * 180.f / kPi;
+    const sf::Vector2f currentScale = bulletSprite_->getScale();
+    const float facingSign = velocity.x < -0.01f ? -1.f : 1.f;
+    bulletSprite_->setScale({std::abs(currentScale.x) * facingSign, currentScale.y});
+
+    const float angleDegrees = std::atan2(velocity.y, std::max(0.01f, std::abs(velocity.x))) * 180.f / kPi;
     bulletSprite_->setRotation(sf::degrees(angleDegrees));
 }
 

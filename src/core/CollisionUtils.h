@@ -117,7 +117,8 @@ inline MoveResult moveBodyWithWorldCollisions(
     const std::vector<std::shared_ptr<sf::RectangleShape>>& platforms,
     const sf::RectangleShape* ground,
     const float worldWidth,
-    const float maxStepDistance = 6.f
+    const float maxStepDistance = 6.f,
+    const float worldLeft = 0.f
 )
 {
     MoveResult result;
@@ -308,10 +309,11 @@ inline MoveResult moveBodyWithWorldCollisions(
             }
         }
 
-        const float maxX = std::max(0.f, worldWidth - body.getSize().x);
-        if (body.getPosition().x < 0.f)
+        const float minX = worldLeft;
+        const float maxX = worldLeft + std::max(0.f, worldWidth - body.getSize().x);
+        if (body.getPosition().x < minX)
         {
-            body.setPosition({0.f, body.getPosition().y});
+            body.setPosition({minX, body.getPosition().y});
             result.blockedLeft = true;
             remainingX = 0.f;
         }

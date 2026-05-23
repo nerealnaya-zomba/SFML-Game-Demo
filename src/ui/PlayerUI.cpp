@@ -43,6 +43,24 @@ const sf::Color kObjectiveSigilCore(255, 206, 116, 255);
 const sf::Color kObjectiveSigilGlow(255, 190, 118, 62);
 const sf::Color kObjectiveToastFill(18, 12, 18, 236);
 const sf::Color kObjectiveToastBorder(188, 123, 72, 255);
+
+struct CooldownDisplayState
+{
+    float progress = 1.f;
+    bool isReady = true;
+};
+
+CooldownDisplayState cooldownDisplayState(const sf::Clock& clock, const int targetCooldown)
+{
+    if (targetCooldown <= 0 || !clock.isRunning())
+    {
+        return {};
+    }
+
+    const float elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+    const float progress = std::clamp(elapsed / static_cast<float>(targetCooldown), 0.f, 1.f);
+    return {progress, progress >= 1.f};
+}
 const sf::Color kObjectiveHintFill(16, 18, 26, 228);
 const sf::Color kObjectiveHintBorder(110, 130, 154, 224);
 const sf::Color kObjectiveHintAccent(232, 162, 88, 255);
@@ -167,14 +185,10 @@ void PlayerUI::updateIterpolation()
 {
     for (auto&& r : cooldownRects)
     {
-        const int currentCooldown = r.currentCooldown->getElapsedTime().asMilliseconds();
-        const int targetCooldown = *r.targetCooldown;
-        const float progress = (targetCooldown <= 0)
-            ? 1.f
-            : std::clamp(static_cast<float>(currentCooldown) / static_cast<float>(targetCooldown), 0.f, 1.f);
+        const CooldownDisplayState state = cooldownDisplayState(*r.currentCooldown, *r.targetCooldown);
 
         r.accent.setSize({
-            BASE_UI_COOLDOWN_INNER_SIZE.x * progress,
+            BASE_UI_COOLDOWN_INNER_SIZE.x * state.progress,
             r.accent.getSize().y
         });
 
@@ -188,12 +202,9 @@ void PlayerUI::updateCooldownRectsColor()
 
     for (auto &&r : cooldownRects)
     {
-        const int currentCooldown = r.currentCooldown->getElapsedTime().asMilliseconds();
-        const int targetCooldown = *r.targetCooldown;
-        const float progress = (targetCooldown <= 0)
-            ? 1.f
-            : std::clamp(static_cast<float>(currentCooldown) / static_cast<float>(targetCooldown), 0.f, 1.f);
-        const bool isReady = (targetCooldown <= 0) || (currentCooldown >= targetCooldown);
+        const CooldownDisplayState state = cooldownDisplayState(*r.currentCooldown, *r.targetCooldown);
+        const float progress = state.progress;
+        const bool isReady = state.isReady;
         const float pulse = 0.85f + std::sin(elapsed * 3.5f + progress * 2.f) * 0.15f;
 
         r.frame.setOutlineColor(isReady ? kCooldownFrameReady : kCooldownFrameInactive);
@@ -1213,7 +1224,7 @@ PlayerUI::PlayerUI(Player &p, GameCamera &c, GameData &d)
     objectiveSigilOrbitRing.setSectorSize(0.38f);
 
     styleHudText(objectiveTitleText, 16, sf::Color(244, 231, 214));
-    objectiveTitleText.setString("Restore the Heart Lantern");
+    objectiveTitleText.setString("Open the Dark Gate");
 
     styleHudText(objectiveChapterText, 14, sf::Color(255, 208, 138));
     styleHudText(objectiveNarrativeText, 11, sf::Color(199, 207, 220));

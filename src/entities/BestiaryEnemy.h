@@ -188,6 +188,8 @@ private:
     void checkBulletCollision();
     void applyGroundFriction();
     bool hasGroundAhead(float direction) const;
+    bool isLeavingPlatformEdge(float direction, float lookAhead = 10.f) const;
+    void keepGroundEnemyOnPlatform();
     void damagePlayerOnContact();
     void syncSpriteToRect();
 

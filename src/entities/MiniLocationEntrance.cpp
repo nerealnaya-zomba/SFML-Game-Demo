@@ -215,11 +215,16 @@ bool MiniLocationEntrance::handleEvent(const sf::Event& event)
                     {
                         if (exitsMiniLocation_)
                         {
-                            levelManager->exitCurrentMiniLocation();
+                            const sf::Vector2f returnSupportPoint = levelManager->exitCurrentMiniLocation(destinationSupportPoint_);
+                            player->teleportToSupportPoint(returnSupportPoint);
+                            return true;
                         }
                         else if (!miniLocationId_.empty())
                         {
-                            levelManager->enterCurrentMiniLocation(miniLocationId_);
+                            if (!levelManager->enterCurrentMiniLocation(miniLocationId_, player->getFeetPosition()))
+                            {
+                                return false;
+                            }
                         }
                     }
                     player->teleportToSupportPoint(destinationSupportPoint_);

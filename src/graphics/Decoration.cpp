@@ -145,16 +145,17 @@ void Decoration::addDecoration(std::string name,
                                sf::Vector2f scale,
                                sf::Vector2f parallaxFactor,
                                int z,
-                               sf::Color color)
+                               sf::Color color,
+                               float rotation)
 {
     const auto animatedIt = animatedGroupLookup.find(name);
     if (animatedIt != animatedGroupLookup.end())
     {
-        initAnimatedDecoration(position, scale, parallaxFactor, z, color, animatedGroups.at(animatedIt->second));
+        initAnimatedDecoration(position, scale, parallaxFactor, z, color, rotation, animatedGroups.at(animatedIt->second));
         return;
     }
 
-    initStaticDecoration(name, position, scale, parallaxFactor, z, color);
+    initStaticDecoration(name, position, scale, parallaxFactor, z, color, rotation);
 }
 
 void Decoration::initAnimatedDecoration(sf::Vector2f position,
@@ -162,6 +163,7 @@ void Decoration::initAnimatedDecoration(sf::Vector2f position,
                                         sf::Vector2f parallaxFactor,
                                         int z,
                                         sf::Color color,
+                                        float rotation,
                                         AnimatedDecorationGroup& group)
 {
     if (!group.textures || group.textures->empty())
@@ -173,9 +175,10 @@ void Decoration::initAnimatedDecoration(sf::Vector2f position,
     setSpriteOriginToMiddle(*sprite);
     sprite->setPosition(position);
     sprite->setScale(scale);
+    sprite->setRotation(sf::degrees(rotation));
     sprite->setColor(color);
 
-    registerMotionState(*sprite, position, scale, z, group.motion);
+    registerMotionState(*sprite, position, scale, rotation, z, group.motion);
 
     all_Z.insert(z);
     auto inserted = group.sprites->emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
@@ -187,7 +190,8 @@ void Decoration::initStaticDecoration(const std::string& name,
                                       sf::Vector2f scale,
                                       sf::Vector2f parallaxFactor,
                                       int z,
-                                      sf::Color color)
+                                      sf::Color color,
+                                      float rotation)
 {
     if (!staticTextures)
     {
@@ -204,9 +208,10 @@ void Decoration::initStaticDecoration(const std::string& name,
     setSpriteOriginToMiddle(*sprite);
     sprite->setPosition(position);
     sprite->setScale(scale);
+    sprite->setRotation(sf::degrees(rotation));
     sprite->setColor(color);
 
-    registerMotionState(*sprite, position, scale, z, resolveStaticMotionProfile(name));
+    registerMotionState(*sprite, position, scale, rotation, z, resolveStaticMotionProfile(name));
 
     all_Z.insert(z);
     auto inserted = staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
@@ -216,6 +221,7 @@ void Decoration::initStaticDecoration(const std::string& name,
 void Decoration::registerMotionState(const sf::Sprite& sprite,
                                      sf::Vector2f position,
                                      sf::Vector2f scale,
+                                     float rotation,
                                      int z,
                                      const DecorationMotionProfile& motion)
 {
@@ -231,6 +237,7 @@ void Decoration::registerMotionState(const sf::Sprite& sprite,
     motionStates.emplace(&sprite, DecorationMotionState{
         motion,
         scale,
+        rotation,
         phase,
         amplitudeMultiplier,
         speedMultiplier
@@ -373,7 +380,7 @@ void Decoration::applyParalaxes(const std::pair<sf::Vector2f, sf::Vector2f>& vec
 
     motionOffset *= state.amplitudeMultiplier;
 
-    const float rotation = std::sin(time * state.profile.tiltSpeed + state.phase * 0.71f)
+    const float rotation = state.baseRotation + std::sin(time * state.profile.tiltSpeed + state.phase * 0.71f)
         * state.profile.tiltAmplitude
         * state.amplitudeMultiplier;
 

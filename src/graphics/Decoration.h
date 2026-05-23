@@ -124,6 +124,7 @@ struct DecorationMotionState
 {
     DecorationMotionProfile profile{};
     sf::Vector2f baseScale{1.f, 1.f};
+    float baseRotation = 0.f;
     float phase{0.f};
     float amplitudeMultiplier{1.f};
     float speedMultiplier{1.f};
@@ -154,7 +155,8 @@ public:
                        sf::Vector2f scale,
                        sf::Vector2f parallaxFactor,
                        int z = 0,
-                       sf::Color color = sf::Color::White);
+                       sf::Color color = sf::Color::White,
+                       float rotation = 0.f);
     void updateTextures();
     void drawByZOrder(sf::RenderWindow& window);
     void draw(sf::RenderWindow& window);
@@ -262,13 +264,15 @@ private:
                                 sf::Vector2f parallaxFactor,
                                 int z,
                                 sf::Color color,
+                                float rotation,
                                 AnimatedDecorationGroup& group);
     void initStaticDecoration(const std::string& name,
                               sf::Vector2f position,
                               sf::Vector2f scale,
                               sf::Vector2f parallaxFactor,
                               int z,
-                              sf::Color color);
+                              sf::Color color,
+                              float rotation);
     void switchToNextSprite(DecorationSpriteMap& spritesArray,
                             std::vector<sf::Texture>& texturesArray,
                             texturesIterHelper& iterHelper);
@@ -278,6 +282,7 @@ private:
     void registerMotionState(const sf::Sprite& sprite,
                              sf::Vector2f position,
                              sf::Vector2f scale,
+                             float rotation,
                              int z,
                              const DecorationMotionProfile& motion);
     DecorationMotionProfile resolveStaticMotionProfile(const std::string& name) const;

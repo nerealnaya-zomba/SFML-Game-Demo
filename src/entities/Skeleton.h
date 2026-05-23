@@ -150,6 +150,8 @@ private:
     void registerBlockedChaseBoundary(bool blockedLeft);
     void updateBlockedChaseBoundaries(float playerX);
     bool isPlayerBeyondBlockedChaseBoundary(float playerX) const;
+    bool hasGroundAhead(float direction) const;
+    void turnAroundAtPlatformEdge(float direction);
     
     // Система патрулирования
     enum PatrolState { PATROL_EXPLORING_LEFT, PATROL_EXPLORING_RIGHT, PATROL_PATROLLING };

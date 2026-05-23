@@ -530,7 +530,7 @@ tgui::Button::Ptr Menu::createMenuButton(const tgui::String& text, float y)
 
 void Menu::setupMainWidgets()
 {
-    titleLabel = tgui::Label::create("SATIRO");
+    titleLabel = tgui::Label::create("DARK GATE");
     titleLabel->setTextSize(52);
     gui.add(titleLabel);
 
@@ -920,7 +920,7 @@ void Menu::refreshMenuContext()
     }
     else
     {
-        titleLabel->setText("SATIRO");
+        titleLabel->setText("DARK GATE");
 
         if (state_.availableLevels.empty())
         {

@@ -45,6 +45,10 @@ constexpr float kPlatformMinHitboxSize = 8.f;
 constexpr float kPlatformMinScale = 0.02f;
 constexpr float kDecorationMinScale = 0.05f;
 constexpr float kCameraArrowSpeed = 1280.f;
+constexpr sf::Vector2f kBackgroundTileSize{
+    static_cast<float>(WINDOW_WIDTH),
+    static_cast<float>(WINDOW_HEIGHT)
+};
 constexpr sf::Vector2f kWorldNameplateScale{0.30f, 0.30f};
 constexpr sf::Color kGridColor(255, 255, 255, 18);
 constexpr sf::Color kPlatformOutlineColor(248, 206, 134, 255);
@@ -137,6 +141,7 @@ enum class SelectionKind
 {
     None,
     Spawn,
+    Trader,
     Platform,
     Decoration,
     Background,
@@ -246,6 +251,16 @@ struct DecorationInteractionState
 };
 
 struct SpawnInteractionState
+{
+    bool active = false;
+
+    void clear()
+    {
+        active = false;
+    }
+};
+
+struct TraderInteractionState
 {
     bool active = false;
 
@@ -827,7 +842,7 @@ public:
     LevelEditorApp()
         : window_(
             sf::VideoMode({1600u, 900u}),
-            "SFML Game Demo Level Editor",
+            "Dark Gate Editor",
             (sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize)
         )
         , worldView_({0.f, 0.f}, {1600.f, 900.f})
@@ -929,6 +944,7 @@ private:
     sf::Vector2i lastDragPixel_{};
     PendingSelectionCycleState pendingSelectionCycle_{};
     SpawnInteractionState spawnInteraction_{};
+    TraderInteractionState traderInteraction_{};
     PlatformInteractionState platformInteraction_{};
     DecorationInteractionState decorationInteraction_{};
     InteractiveInteractionState interactiveInteraction_{};
@@ -1016,7 +1032,7 @@ private:
         sf::Text title(font_);
         title.setCharacterSize(34u);
         title.setFillColor(sf::Color(236, 232, 220, 255));
-        title.setString("Level Editor");
+        title.setString("Dark Gate Editor");
         setTextOriginToMiddle(title);
         title.setPosition({static_cast<float>(size.x) * 0.5f, static_cast<float>(size.y) * 0.5f - 32.f});
         window_.draw(title);
@@ -1343,6 +1359,8 @@ private:
         {
         case SelectionKind::Spawn:
             return "Player spawn";
+        case SelectionKind::Trader:
+            return "Trader";
         case SelectionKind::Platform:
             if (selection_.index < document_["Platforms"].size())
             {
@@ -1621,6 +1639,10 @@ private:
         if (!presets.contains("PlayerSpawn"))
         {
             presets["PlayerSpawn"] = nlohmann::json::array({200.f, 900.f});
+        }
+        if (!presets.contains("TraderPosition") && presets.value("LevelId", currentFilePath_.filename().string()) == "level1.json")
+        {
+            presets["TraderPosition"] = nlohmann::json::array({800.f, 940.f});
         }
         if (!presets.contains("BackgroundTheme"))
         {
@@ -1987,11 +2009,25 @@ private:
                     handleMiniLocationContentLeftClick(worldPosition);
                     return;
                 }
+                const bool cycleModifierHeld =
+                    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl) ||
+                    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RControl);
+                if (!cycleModifierHeld &&
+                    selection_.isValid() &&
+                    selectionContainsPoint(selection_, worldPosition) &&
+                    beginInteractionForSelection(selection_, worldPosition))
+                {
+                    return;
+                }
                 if (startPendingSelectionCycle(worldPosition, mousePressed->position))
                 {
                     return;
                 }
                 if (beginSpawnInteraction(worldPosition))
+                {
+                    return;
+                }
+                if (beginTraderInteraction(worldPosition))
                 {
                     return;
                 }
@@ -2058,6 +2094,7 @@ private:
                     return;
                 }
                 finishSpawnInteraction();
+                finishTraderInteraction();
                 finishInteractiveInteraction();
                 finishSpawnerInteraction();
                 finishPortalInteraction();
@@ -2087,6 +2124,7 @@ private:
 
                     const sf::Vector2f movedWorldPosition = window_.mapPixelToCoords(mouseMoved->position, worldView_);
                     if (beginSpawnInteraction(movedWorldPosition) ||
+                        beginTraderInteraction(movedWorldPosition) ||
                         beginInteractiveInteraction(movedWorldPosition) ||
                         beginSpawnerInteraction(movedWorldPosition) ||
                         beginPortalInteraction(movedWorldPosition) ||
@@ -2103,6 +2141,11 @@ private:
             if (spawnInteraction_.active)
             {
                 updateSpawnInteraction(window_.mapPixelToCoords(mouseMoved->position, worldView_));
+                return;
+            }
+            if (traderInteraction_.active)
+            {
+                updateTraderInteraction(window_.mapPixelToCoords(mouseMoved->position, worldView_));
                 return;
             }
             if (interactiveInteraction_.active())
@@ -2577,11 +2620,11 @@ private:
     {
         const sf::Vector2f position = miniLocationBounds(location).position +
             readVector2f(nestedDecoration.value("Position", nlohmann::json::array()));
-        return textureBoundsAt(
+        return decorationSpriteBounds(
             nestedDecoration.value("Name", std::string{}),
             position,
             decorationScale(nestedDecoration),
-            {72.f, 72.f}
+            decorationRotation(nestedDecoration)
         );
     }
 
@@ -2747,6 +2790,7 @@ private:
             {"Name", name},
             {"Position", toJson(contentRelativePosition(worldPosition, location))},
             {"Scale", {1.f, 1.f}},
+            {"Rotation", 0.f},
             {"Color", {255, 255, 255, 255}},
             {"ParallaxFactor", {1.f, 1.f}},
             {"Z", 0}
@@ -3354,6 +3398,11 @@ private:
         return std::max(platform.value("AtmosphereDensity", definition.has_value() ? definition->atmosphereDensity : 1.f), 0.f);
     }
 
+    bool platformBounceEnabled(const nlohmann::json& platform) const
+    {
+        return platform.value("BounceEnabled", true);
+    }
+
     sf::FloatRect platformBounds(const nlohmann::json& platform) const
     {
         return sf::FloatRect(platformBasePosition(platform) + platformHitboxOffset(platform), platformHitboxSize(platform));
@@ -3484,6 +3533,61 @@ private:
     void finishSpawnInteraction()
     {
         spawnInteraction_.clear();
+    }
+
+    bool isTraderEditable() const
+    {
+        return document_.contains("Presets") &&
+            document_["Presets"].is_object() &&
+            document_["Presets"].value("LevelId", std::string{}) == "level1.json";
+    }
+
+    sf::Vector2f traderPosition() const
+    {
+        return readVector2f(
+            document_["Presets"].value("TraderPosition", nlohmann::json::array()),
+            {800.f, 940.f}
+        );
+    }
+
+    sf::FloatRect traderMarkerBounds() const
+    {
+        const sf::Vector2f position = traderPosition();
+        return sf::FloatRect({position.x - 24.f, position.y - 48.f}, {48.f, 64.f});
+    }
+
+    bool beginTraderInteraction(const sf::Vector2f worldPosition)
+    {
+        if (placementMode_ != SelectionKind::None || !isTraderEditable())
+        {
+            return false;
+        }
+
+        const bool canEditTrader = activeTab_ == EditorTab::Level || selection_.kind == SelectionKind::Trader;
+        if (!canEditTrader || !traderMarkerBounds().contains(worldPosition))
+        {
+            return false;
+        }
+
+        selection_ = {SelectionKind::Trader, 0u};
+        traderInteraction_.active = true;
+        return true;
+    }
+
+    void updateTraderInteraction(const sf::Vector2f worldPosition)
+    {
+        if (!traderInteraction_.active)
+        {
+            return;
+        }
+
+        document_["Presets"]["TraderPosition"] = toJson(worldPosition);
+        markDirty();
+    }
+
+    void finishTraderInteraction()
+    {
+        traderInteraction_.clear();
     }
 
     bool beginPlatformInteraction(const sf::Vector2f worldPosition)
@@ -3621,13 +3725,41 @@ private:
         );
     }
 
+    float decorationRotation(const nlohmann::json& decoration) const
+    {
+        return decoration.value("Rotation", 0.f);
+    }
+
+    sf::FloatRect decorationSpriteBounds(
+        const std::string& textureName,
+        const sf::Vector2f position,
+        const sf::Vector2f scale,
+        const float rotation,
+        const sf::Vector2f fallbackSize = {72.f, 72.f}) const
+    {
+        if (const sf::Texture* texture = findPreviewTexture(textureName); texture != nullptr)
+        {
+            sf::Sprite sprite(*texture);
+            sprite.setOrigin(sprite.getGlobalBounds().getCenter());
+            sprite.setPosition(position);
+            sprite.setScale(scale);
+            sprite.setRotation(sf::degrees(rotation));
+            return sprite.getGlobalBounds();
+        }
+
+        return sf::FloatRect(
+            {position.x - fallbackSize.x * std::abs(scale.x) * 0.5f, position.y - fallbackSize.y * std::abs(scale.y) * 0.5f},
+            {fallbackSize.x * std::abs(scale.x), fallbackSize.y * std::abs(scale.y)}
+        );
+    }
+
     sf::FloatRect decorationBounds(const nlohmann::json& decoration) const
     {
-        return textureBoundsAt(
+        return decorationSpriteBounds(
             decoration.value("Name", std::string{}),
             decorationDisplayPosition(decoration),
             decorationScale(decoration),
-            {72.f, 72.f}
+            decorationRotation(decoration)
         );
     }
 
@@ -3697,6 +3829,11 @@ private:
                 resizeZoneContains(decorationBounds(*currentDecoration), worldPosition))
             {
                 decorationInteraction_.mode = DecorationInteractionMode::ResizeScale;
+                decorationInteraction_.index = selection_.index;
+            }
+            else if (decorationContainsPoint(*currentDecoration, worldPosition))
+            {
+                decorationInteraction_.mode = DecorationInteractionMode::Move;
                 decorationInteraction_.index = selection_.index;
             }
         }
@@ -3773,20 +3910,189 @@ private:
         return readVector2f(background.value("ParallaxFactor", nlohmann::json::array()), {0.08f, 0.06f});
     }
 
+    sf::Vector2f backgroundPreviewParallax(const nlohmann::json& background) const
+    {
+        const sf::Vector2f parallax = backgroundParallax(background);
+        return {1.f - parallax.x, 1.f - parallax.y};
+    }
+
+    sf::Vector2i backgroundTileCount() const
+    {
+        const sf::Vector2f levelSize = readVector2f(
+            document_["Presets"].value("Size", nlohmann::json::array()),
+            {static_cast<float>(WINDOW_WIDTH), static_cast<float>(WINDOW_HEIGHT)}
+        );
+        return {
+            std::max(1, static_cast<int>(std::ceil(std::max(levelSize.x, 1.f) / kBackgroundTileSize.x))),
+            std::max(1, static_cast<int>(std::ceil(std::max(levelSize.y, 1.f) / kBackgroundTileSize.y)))
+        };
+    }
+
+    sf::Vector2i clampBackgroundTile(sf::Vector2i tileIndex) const
+    {
+        const sf::Vector2i count = backgroundTileCount();
+        tileIndex.x = std::clamp(tileIndex.x, 0, count.x - 1);
+        tileIndex.y = std::clamp(tileIndex.y, 0, count.y - 1);
+        return tileIndex;
+    }
+
+    sf::Vector2i backgroundTileIndexForWorldPosition(const sf::Vector2f worldPosition) const
+    {
+        return clampBackgroundTile({
+            static_cast<int>(std::floor(std::max(worldPosition.x, 0.f) / kBackgroundTileSize.x)),
+            static_cast<int>(std::floor(std::max(worldPosition.y, 0.f) / kBackgroundTileSize.y))
+        });
+    }
+
+    sf::Vector2f backgroundTileCenter(const sf::Vector2i tileIndex) const
+    {
+        const sf::Vector2i clampedTile = clampBackgroundTile(tileIndex);
+        return {
+            (static_cast<float>(clampedTile.x) + 0.5f) * kBackgroundTileSize.x,
+            (static_cast<float>(clampedTile.y) + 0.5f) * kBackgroundTileSize.y
+        };
+    }
+
+    sf::Vector2i backgroundTileIndex(const nlohmann::json& background) const
+    {
+        return backgroundTileIndexForWorldPosition(readVector2f(background.value("Position", nlohmann::json::array()), {960.f, 540.f}));
+    }
+
+    void setBackgroundTile(nlohmann::json& background, sf::Vector2i tileIndex)
+    {
+        background["Position"] = toJson(backgroundTileCenter(tileIndex));
+    }
+
     sf::Vector2f backgroundDisplayPosition(const nlohmann::json& background) const
     {
         return applyParallaxPreview(
-            readVector2f(background.value("Position", nlohmann::json::array()), {960.f, 540.f}),
-            backgroundParallax(background)
+            backgroundTileCenter(backgroundTileIndex(background)),
+            backgroundPreviewParallax(background)
         );
+    }
+
+    bool hasSingleBackgroundInTile(const std::string& backgroundName, const sf::Vector2i tileIndex, const std::size_t ignoredIndex = std::numeric_limits<std::size_t>::max()) const
+    {
+        for (std::size_t index = 0; index < document_["Background"].size(); ++index)
+        {
+            if (index == ignoredIndex)
+            {
+                continue;
+            }
+
+            const auto& background = document_["Background"][index];
+            if (background.value("Type", 0) != 1 || background.value("BgName", std::string{}) != backgroundName)
+            {
+                continue;
+            }
+
+            if (backgroundTileIndex(background) == tileIndex)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    std::optional<sf::Vector2i> firstFreeSingleBackgroundTile(
+        const std::string& backgroundName,
+        const std::size_t ignoredIndex = std::numeric_limits<std::size_t>::max()) const
+    {
+        const sf::Vector2i count = backgroundTileCount();
+        for (int y = 0; y < count.y; ++y)
+        {
+            for (int x = 0; x < count.x; ++x)
+            {
+                const sf::Vector2i tile{x, y};
+                if (!hasSingleBackgroundInTile(backgroundName, tile, ignoredIndex))
+                {
+                    return tile;
+                }
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    bool resolveBackgroundTilePlacement(nlohmann::json& background, const std::size_t index)
+    {
+        const int backgroundType = background.value("Type", 0);
+        if (backgroundType == 0)
+        {
+            setBackgroundTile(background, {0, 0});
+            return true;
+        }
+
+        const std::string backgroundName = background.value("BgName", std::string{});
+        sf::Vector2i tile = backgroundTileIndex(background);
+        if (hasSingleBackgroundInTile(backgroundName, tile, index))
+        {
+            const std::optional<sf::Vector2i> freeTile = firstFreeSingleBackgroundTile(backgroundName, index);
+            if (!freeTile.has_value())
+            {
+                return false;
+            }
+            tile = *freeTile;
+        }
+
+        setBackgroundTile(background, tile);
+        return true;
+    }
+
+    bool editBackgroundTileField(const char* label, nlohmann::json& background, const std::size_t index)
+    {
+        int raw[2]{backgroundTileIndex(background).x, backgroundTileIndex(background).y};
+        const sf::Vector2i count = backgroundTileCount();
+        ImGui::TextDisabled("Background tiles are 1920 x 1080. Level grid: %d x %d.", count.x, count.y);
+        if (background.value("Type", 0) == 0)
+        {
+            ImGui::TextUnformatted("Repeated covers the whole level grid from tile 0,0.");
+            const bool changed = backgroundTileIndex(background) != sf::Vector2i{0, 0};
+            setBackgroundTile(background, {0, 0});
+            return changed;
+        }
+
+        if (!ImGui::InputInt2(label, raw))
+        {
+            return false;
+        }
+
+        sf::Vector2i requestedTile = clampBackgroundTile({raw[0], raw[1]});
+        const std::string backgroundName = background.value("BgName", std::string{});
+        if (hasSingleBackgroundInTile(backgroundName, requestedTile, index))
+        {
+            const std::optional<sf::Vector2i> freeTile = firstFreeSingleBackgroundTile(backgroundName, index);
+            if (!freeTile.has_value())
+            {
+                return false;
+            }
+            requestedTile = *freeTile;
+        }
+
+        setBackgroundTile(background, requestedTile);
+        return true;
     }
 
     sf::FloatRect backgroundBounds(const nlohmann::json& background) const
     {
+        if (background.value("Type", 0) == 0)
+        {
+            const sf::Vector2f levelSize = readVector2f(
+                document_["Presets"].value("Size", nlohmann::json::array()),
+                {static_cast<float>(WINDOW_WIDTH), static_cast<float>(WINDOW_HEIGHT)}
+            );
+            const sf::Vector2f cameraOffset = applyParallaxPreview({0.f, 0.f}, backgroundPreviewParallax(background));
+            return sf::FloatRect(
+                cameraOffset,
+                {std::max(levelSize.x, kBackgroundTileSize.x), std::max(levelSize.y, kBackgroundTileSize.y)}
+            );
+        }
+
         const sf::Vector2f center = backgroundDisplayPosition(background);
         return sf::FloatRect(
-            {center.x - WINDOW_WIDTH * 0.5f, center.y - WINDOW_HEIGHT * 0.5f},
-            {static_cast<float>(WINDOW_WIDTH), static_cast<float>(WINDOW_HEIGHT)}
+            {center.x - kBackgroundTileSize.x * 0.5f, center.y - kBackgroundTileSize.y * 0.5f},
+            kBackgroundTileSize
         );
     }
 
@@ -4810,6 +5116,8 @@ private:
             const sf::Vector2f spawn = readVector2f(document_["Presets"].value("PlayerSpawn", nlohmann::json::array()), {0.f, 0.f});
             return sf::FloatRect({spawn.x - 24.f, spawn.y - 48.f}, {48.f, 48.f}).contains(worldPosition);
         }
+        case SelectionKind::Trader:
+            return isTraderEditable() && traderMarkerBounds().contains(worldPosition);
         case SelectionKind::Platform:
             return selection.index < document_["Platforms"].size() &&
                 platformContainsPoint(document_["Platforms"][selection.index], worldPosition);
@@ -4893,6 +5201,37 @@ private:
         }
     }
 
+    bool beginInteractionForSelection(const EditorSelection& selection, const sf::Vector2f worldPosition)
+    {
+        const EditorSelection previousSelection = selection_;
+        selection_ = selection;
+
+        switch (selection.kind)
+        {
+        case SelectionKind::Spawn:
+            return beginSpawnInteraction(worldPosition);
+        case SelectionKind::Trader:
+            return beginTraderInteraction(worldPosition);
+        case SelectionKind::Interactive:
+            return beginInteractiveInteraction(worldPosition);
+        case SelectionKind::Spawner:
+            return beginSpawnerInteraction(worldPosition);
+        case SelectionKind::Portal:
+            return beginPortalInteraction(worldPosition);
+        case SelectionKind::Platform:
+            return beginPlatformInteraction(worldPosition);
+        case SelectionKind::Decoration:
+            return beginDecorationInteraction(worldPosition);
+        case SelectionKind::MiniLocation:
+            return beginMiniLocationInteraction(worldPosition);
+        case SelectionKind::Ground:
+            return beginGroundInteraction(worldPosition);
+        default:
+            selection_ = previousSelection;
+            return false;
+        }
+    }
+
     std::vector<EditorSelection> collectSelectionsAt(const sf::Vector2f worldPosition) const
     {
         std::vector<EditorSelection> candidates;
@@ -4905,13 +5244,18 @@ private:
             document_["Spawners"].size() +
             document_["Portals"].size() +
             document_["Interactives"].size() +
-            1u
+            2u
         );
 
         const sf::Vector2f spawn = readVector2f(document_["Presets"].value("PlayerSpawn", nlohmann::json::array()), {0.f, 0.f});
         if (sf::FloatRect({spawn.x - 24.f, spawn.y - 48.f}, {48.f, 48.f}).contains(worldPosition))
         {
             candidates.push_back({SelectionKind::Spawn, 0u});
+        }
+
+        if (isTraderEditable() && traderMarkerBounds().contains(worldPosition))
+        {
+            candidates.push_back({SelectionKind::Trader, 0u});
         }
 
         for (std::size_t index = document_["Interactives"].size(); index > 0u; --index)
@@ -4987,6 +5331,12 @@ private:
     bool startPendingSelectionCycle(const sf::Vector2f worldPosition, const sf::Vector2i pixelPosition)
     {
         if (placementMode_ != SelectionKind::None || !selection_.isValid())
+        {
+            return false;
+        }
+
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl) &&
+            !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RControl))
         {
             return false;
         }
@@ -5157,7 +5507,10 @@ private:
         }
 
         const nlohmann::json* array = arrayForSelectionKind(selection_.kind);
-        if (array == nullptr || selection_.kind == SelectionKind::Spawn || selection_.index >= array->size())
+        if (array == nullptr ||
+            selection_.kind == SelectionKind::Spawn ||
+            selection_.kind == SelectionKind::Trader ||
+            selection_.index >= array->size())
         {
             return;
         }
@@ -5208,6 +5561,17 @@ private:
 
         selection_.kind = SelectionKind::Spawn;
         selection_.index = 0u;
+        return true;
+    }
+
+    bool trySelectTraderAt(const sf::Vector2f worldPosition)
+    {
+        if (!isTraderEditable() || !traderMarkerBounds().contains(worldPosition))
+        {
+            return false;
+        }
+
+        selection_ = {SelectionKind::Trader, 0u};
         return true;
     }
 
@@ -5285,6 +5649,10 @@ private:
             {
                 return;
             }
+            if (trySelectTraderAt(worldPosition))
+            {
+                return;
+            }
             if (trySelectFromArray(document_["Interactives"], SelectionKind::Interactive, worldPosition, [&](const auto& value) { return interactiveBounds(value); }))
             {
                 return;
@@ -5324,7 +5692,11 @@ private:
 
         if (activeTab_ == EditorTab::Level)
         {
-            trySelectSpawnAt(worldPosition);
+            if (trySelectSpawnAt(worldPosition))
+            {
+                return;
+            }
+            trySelectTraderAt(worldPosition);
             return;
         }
 
@@ -5399,6 +5771,7 @@ private:
             {"Name", decorationName},
             {"Position", toJson(removeParallaxPreview(worldPosition, parallax))},
             {"Scale", {1.f, 1.f}},
+            {"Rotation", 0.f},
             {"Color", {255, 255, 255, 255}},
             {"ParallaxFactor", toJson(parallax)},
             {"Z", 0}
@@ -5416,10 +5789,11 @@ private:
 
         const std::string backgroundName = backgroundOptions_.at(std::clamp(selectedBackgroundIndex_, 0, static_cast<int>(backgroundOptions_.size()) - 1));
         const sf::Vector2f parallax{0.08f, 0.06f};
+        (void)worldPosition;
         document_["Background"].push_back({
             {"EditorDrawOrder", nextWorldDrawOrder()},
             {"BgName", backgroundName},
-            {"Position", toJson(removeParallaxPreview(worldPosition, parallax))},
+            {"Position", toJson(backgroundTileCenter({0, 0}))},
             {"ParallaxFactor", toJson(parallax)},
             {"Type", 0}
         });
@@ -5530,8 +5904,8 @@ private:
             {"Decorations", nlohmann::json::array({
                 {{"Name", "MossyBackgroundDecoration_07.png"}, {"Position", {centerX, floorY - 118.f}}, {"Scale", {1.04f, 1.04f}}, {"ParallaxFactor", {1.f, 1.f}}, {"Z", -4}, {"Color", {255, 255, 255, 96}}},
                 {{"Name", "MossyHills_06.png"}, {"Position", {centerX, floorY + 34.f}}, {"Scale", {0.84f, 0.84f}}, {"ParallaxFactor", {1.f, 1.f}}, {"Z", -3}, {"Color", {176, 198, 204, 162}}},
-                {{"Name", "MossyDecorationHazard_03.png"}, {"Position", {86.f, floorY - 10.f}}, {"Scale", {0.22f, 0.22f}}, {"ParallaxFactor", {1.f, 1.f}}, {"Z", 1}, {"Color", {255, 255, 255, 220}}},
-                {{"Name", "MossyDecorationHazard_19.png"}, {"Position", {bounds.size.x - 80.f, floorY - 6.f}}, {"Scale", {0.20f, 0.20f}}, {"ParallaxFactor", {1.f, 1.f}}, {"Z", 1}, {"Color", {255, 255, 255, 216}}}
+                {{"Name", "MossyDecorationHazard_03.png"}, {"Position", {86.f, floorY - 10.f}}, {"Scale", {0.22f, 0.22f}}, {"Rotation", 0.f}, {"ParallaxFactor", {1.f, 1.f}}, {"Z", 1}, {"Color", {255, 255, 255, 220}}},
+                {{"Name", "MossyDecorationHazard_19.png"}, {"Position", {bounds.size.x - 80.f, floorY - 6.f}}, {"Scale", {0.20f, 0.20f}}, {"Rotation", 0.f}, {"ParallaxFactor", {1.f, 1.f}}, {"Z", 1}, {"Color", {255, 255, 255, 216}}}
             })},
             {"Interactives", nlohmann::json::array()},
             {"Portals", nlohmann::json::array()},
@@ -5721,27 +6095,26 @@ private:
             static_cast<float>(WINDOW_WIDTH) / static_cast<float>(texture->getSize().x),
             static_cast<float>(WINDOW_HEIGHT) / static_cast<float>(texture->getSize().y)
         });
-        sprite.setPosition(backgroundDisplayPosition(background));
         sprite.setColor(selected ? sf::Color(255, 255, 255, 220) : sf::Color(255, 255, 255, 180));
 
         const int backgroundType = background.value("Type", 0);
         if (backgroundType == 0)
         {
-            const float worldWidth = document_["Presets"]["Size"][0].get<float>();
-            const float repeatedWidth = sprite.getGlobalBounds().size.x;
-            const int repeatCount = std::max(1, static_cast<int>(std::ceil(worldWidth / repeatedWidth)) + 2);
-            for (int index = -1; index < repeatCount; ++index)
+            const sf::Vector2i count = backgroundTileCount();
+            const sf::Vector2f parallax = backgroundPreviewParallax(background);
+            for (int y = 0; y < count.y; ++y)
             {
-                sf::Sprite repeatedSprite(sprite);
-                repeatedSprite.setPosition({
-                    sprite.getPosition().x + repeatedWidth * static_cast<float>(index),
-                    sprite.getPosition().y
-                });
-                window_.draw(repeatedSprite);
+                for (int x = 0; x < count.x; ++x)
+                {
+                    sf::Sprite repeatedSprite(sprite);
+                    repeatedSprite.setPosition(applyParallaxPreview(backgroundTileCenter({x, y}), parallax));
+                    window_.draw(repeatedSprite);
+                }
             }
         }
         else
         {
+            sprite.setPosition(backgroundDisplayPosition(background));
             window_.draw(sprite);
         }
     }
@@ -6084,6 +6457,7 @@ private:
             sprite.setOrigin(sprite.getGlobalBounds().getCenter());
             sprite.setPosition(position);
             sprite.setScale(decorationScale(decoration));
+            sprite.setRotation(sf::degrees(decorationRotation(decoration)));
             sprite.setColor(color);
             window_.draw(sprite);
         }
@@ -6384,11 +6758,17 @@ private:
                         sprite.setOrigin(sprite.getGlobalBounds().getCenter());
                         sprite.setPosition(position);
                         sprite.setScale(decorationScale(absoluteDecoration));
+                        sprite.setRotation(sf::degrees(decorationRotation(absoluteDecoration)));
                         sprite.setColor(color);
                         window_.draw(sprite);
                     }
 
-                    const sf::FloatRect decorationRect = textureBoundsAt(textureName, position, decorationScale(absoluteDecoration), {72.f, 72.f});
+                    const sf::FloatRect decorationRect = decorationSpriteBounds(
+                        textureName,
+                        position,
+                        decorationScale(absoluteDecoration),
+                        decorationRotation(absoluteDecoration)
+                    );
                     sf::RectangleShape marker(decorationRect.size);
                     marker.setPosition(decorationRect.position);
                     marker.setFillColor(sf::Color(kDecorationOutlineColor.r, kDecorationOutlineColor.g, kDecorationOutlineColor.b, 18));
@@ -6551,6 +6931,40 @@ private:
         layerLabel.setString(label + "\nplayer + enemies");
         layerLabel.setPosition({spawn.x + 22.f, spawn.y - 62.f});
         window_.draw(layerLabel);
+
+        if (document_["Presets"].value("LevelId", std::string{}) == "level1.json")
+        {
+            const sf::Vector2f traderPosition = this->traderPosition();
+            const bool selectedTrader = selection_.kind == SelectionKind::Trader;
+
+            sf::CircleShape traderMarker(18.f);
+            traderMarker.setOrigin({18.f, 18.f});
+            traderMarker.setPosition(traderPosition);
+            traderMarker.setFillColor(selectedTrader ? sf::Color(220, 144, 76, 82) : sf::Color(220, 144, 76, 48));
+            traderMarker.setOutlineThickness(selectedTrader ? kSelectionOutlineThickness : 2.f);
+            traderMarker.setOutlineColor(selectedTrader ? sf::Color(255, 236, 150, 255) : sf::Color(220, 144, 76, 230));
+            window_.draw(traderMarker);
+
+            sf::VertexArray traderCross(sf::PrimitiveType::Lines, 4u);
+            traderCross[0].position = {traderPosition.x - 16.f, traderPosition.y};
+            traderCross[1].position = {traderPosition.x + 16.f, traderPosition.y};
+            traderCross[2].position = {traderPosition.x, traderPosition.y - 20.f};
+            traderCross[3].position = {traderPosition.x, traderPosition.y + 20.f};
+            for (std::size_t index = 0; index < traderCross.getVertexCount(); ++index)
+            {
+                traderCross[index].color = selectedTrader ? sf::Color(255, 236, 150, 255) : sf::Color(220, 144, 76, 220);
+            }
+            window_.draw(traderCross);
+
+            sf::Text traderLabel(font_);
+            traderLabel.setCharacterSize(14u);
+            traderLabel.setFillColor(sf::Color(255, 211, 158, 235));
+            traderLabel.setOutlineThickness(2.f);
+            traderLabel.setOutlineColor(sf::Color(18, 16, 18, 220));
+            traderLabel.setString("Trader");
+            traderLabel.setPosition({traderPosition.x + 24.f, traderPosition.y - 26.f});
+            window_.draw(traderLabel);
+        }
     }
 
     void drawUi()
@@ -6651,6 +7065,17 @@ private:
                 ImGui::CloseCurrentPopup();
             }
         }
+        else if (selection_.kind == SelectionKind::Trader)
+        {
+            ImGui::TextUnformatted("Trader");
+            ImGui::Separator();
+            changed |= editVector2Field("Position##trader_context", document_["Presets"], "TraderPosition", {800.f, 940.f});
+            if (ImGui::MenuItem("Focus Inspector Level Tab"))
+            {
+                activeTab_ = EditorTab::Level;
+                ImGui::CloseCurrentPopup();
+            }
+        }
         else if (selection_.kind == SelectionKind::Platform)
         {
             if (auto* platform = selectedPlatform(); platform != nullptr)
@@ -6679,6 +7104,13 @@ private:
                 {
                     changed |= editVector2Field("Hitbox Offset##platform_context", *platform, "HitboxOffset", platformHitboxOffset(*platform));
                     changed |= editVector2Field("Hitbox##platform_context", *platform, "HitboxSize", platformHitboxSize(*platform));
+                }
+
+                bool bounceEnabled = platformBounceEnabled(*platform);
+                if (ImGui::Checkbox("Bounce##platform_context", &bounceEnabled))
+                {
+                    (*platform)["BounceEnabled"] = bounceEnabled;
+                    changed = true;
                 }
 
                 std::string atmosphereMode = platformAtmosphereMode(*platform);
@@ -6729,6 +7161,12 @@ private:
                     decorationParallax(*decoration)
                 );
                 changed |= editVector2Field("Scale##decoration_context", *decoration, "Scale", decorationScale(*decoration));
+                float rotation = decorationRotation(*decoration);
+                if (ImGui::InputFloat("Rotation##decoration_context", &rotation, 1.f, 15.f, "%.2f"))
+                {
+                    (*decoration)["Rotation"] = rotation;
+                    changed = true;
+                }
                 changed |= drawParallaxControls(
                     "Parallax##decoration_context",
                     "decoration_context",
@@ -6755,30 +7193,45 @@ private:
                 std::string bgName = background->value("BgName", backgroundOptions_.empty() ? std::string{} : backgroundOptions_.front());
                 if (comboFromStrings("Texture##background_context", backgroundOptions_, bgName))
                 {
+                    const nlohmann::json previousBackground = *background;
                     (*background)["BgName"] = bgName;
-                    changed = true;
+                    if (resolveBackgroundTilePlacement(*background, selection_.index))
+                    {
+                        changed = true;
+                    }
+                    else
+                    {
+                        *background = previousBackground;
+                    }
                 }
 
-                changed |= editDisplayedParallaxPositionField(
-                    "Scene Position##background_context",
-                    *background,
-                    backgroundDisplayPosition(*background),
-                    backgroundParallax(*background)
-                );
-                changed |= drawParallaxControls(
+                changed |= editBackgroundTileField("Tile X/Y##background_context", *background, selection_.index);
+                if (drawParallaxControls(
                     "Parallax##background_context",
                     "background_context",
                     *background,
                     backgroundDisplayPosition(*background),
                     {0.08f, 0.06f}
-                );
+                ))
+                {
+                    resolveBackgroundTilePlacement(*background, selection_.index);
+                    changed = true;
+                }
                 changed |= editStringField("Theme Override##background_context", *background, "Theme", 128u);
 
                 int backgroundType = background->value("Type", 0);
                 if (ImGui::Combo("Type##background_context", &backgroundType, "Repeated\0Single\0"))
                 {
+                    const nlohmann::json previousBackground = *background;
                     (*background)["Type"] = backgroundType;
-                    changed = true;
+                    if (resolveBackgroundTilePlacement(*background, selection_.index))
+                    {
+                        changed = true;
+                    }
+                    else
+                    {
+                        *background = previousBackground;
+                    }
                 }
 
                 drawSelectedDrawOrderControls("background_context");
@@ -6993,7 +7446,7 @@ private:
         ImGui::SetNextWindowPos(ImVec2(0.f, 0.f), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(displaySize.x, topVisibleHeight()), ImGuiCond_Always);
         if (!ImGui::Begin(
-                "Level Editor",
+                "Dark Gate Editor",
                 nullptr,
                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
             ))
@@ -7008,7 +7461,7 @@ private:
             topDrawerExpanded_ = !topDrawerExpanded_;
         }
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.96f, 0.82f, 0.58f, 1.f), "Level Editor");
+        ImGui::TextColored(ImVec4(0.96f, 0.82f, 0.58f, 1.f), "Dark Gate Editor");
         ImGui::SameLine();
         ImGui::TextDisabled("workspace shell");
 
@@ -7255,6 +7708,22 @@ private:
             changed = true;
         }
 
+        const bool isFirstLevel = presets.value("LevelId", std::string{}) == "level1.json";
+        if (isFirstLevel)
+        {
+            sf::Vector2f traderPosition = readVector2f(presets.value("TraderPosition", nlohmann::json::array()), {800.f, 940.f});
+            float traderRaw[2]{traderPosition.x, traderPosition.y};
+            if (ImGui::InputFloat2("Trader Position", traderRaw))
+            {
+                presets["TraderPosition"] = nlohmann::json::array({traderRaw[0], traderRaw[1]});
+                changed = true;
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("Trader is only spawned on level1.json.");
+        }
+
         std::string weatherTheme = presets.value("BackgroundTheme", std::string{"VerdantDawn"});
         if (comboFromStrings("Weather Theme", weatherThemeOptions_, weatherTheme))
         {
@@ -7367,6 +7836,13 @@ private:
                 ImGui::TextDisabled("Enable Edit Hitbox in RMB to move the hitbox separately.");
             }
 
+            bool bounceEnabled = platformBounceEnabled(platform);
+            if (ImGui::Checkbox("Bounce", &bounceEnabled))
+            {
+                platform["BounceEnabled"] = bounceEnabled;
+                changed = true;
+            }
+
             std::string atmosphereMode = platformAtmosphereMode(platform);
             if (comboFromStrings("Platform FX", atmosphereOptions, atmosphereMode))
             {
@@ -7431,6 +7907,12 @@ private:
                 decorationParallax(decoration)
             );
             changed |= editVector2Field("Scale", decoration, "Scale", {1.f, 1.f});
+            float rotation = decorationRotation(decoration);
+            if (ImGui::InputFloat("Rotation", &rotation, 1.f, 15.f, "%.2f"))
+            {
+                decoration["Rotation"] = rotation;
+                changed = true;
+            }
             changed |= drawParallaxControls(
                 "Parallax",
                 "decoration_inspector",
@@ -7476,29 +7958,44 @@ private:
             std::string bgName = background.value("BgName", backgroundOptions_.empty() ? std::string{} : backgroundOptions_.front());
             if (comboFromStrings("Texture", backgroundOptions_, bgName))
             {
+                const nlohmann::json previousBackground = background;
                 background["BgName"] = bgName;
-                changed = true;
+                if (resolveBackgroundTilePlacement(background, selection_.index))
+                {
+                    changed = true;
+                }
+                else
+                {
+                    background = previousBackground;
+                }
             }
-            changed |= editDisplayedParallaxPositionField(
-                "Scene Position",
-                background,
-                backgroundDisplayPosition(background),
-                backgroundParallax(background)
-            );
-            changed |= drawParallaxControls(
+            changed |= editBackgroundTileField("Tile X/Y", background, selection_.index);
+            if (drawParallaxControls(
                 "Parallax",
                 "background_inspector",
                 background,
                 backgroundDisplayPosition(background),
                 {0.08f, 0.06f}
-            );
+            ))
+            {
+                resolveBackgroundTilePlacement(background, selection_.index);
+                changed = true;
+            }
             changed |= editStringField("Theme Override", background, "Theme", 128u);
 
             int backgroundType = background.value("Type", 0);
             if (ImGui::Combo("Type", &backgroundType, "Repeated\0Single\0"))
             {
+                const nlohmann::json previousBackground = background;
                 background["Type"] = backgroundType;
-                changed = true;
+                if (resolveBackgroundTilePlacement(background, selection_.index))
+                {
+                    changed = true;
+                }
+                else
+                {
+                    background = previousBackground;
+                }
             }
 
             if (changed)
@@ -8132,6 +8629,7 @@ private:
                 {"Name", name},
                 {"Position", toJson(center)},
                 {"Scale", {1.f, 1.f}},
+                {"Rotation", 0.f},
                 {"Color", {255, 255, 255, 255}},
                 {"ParallaxFactor", {1.f, 1.f}},
                 {"Z", 0}
@@ -8314,6 +8812,12 @@ private:
                 }
                 changed |= editVector2Field("Position", decoration, "Position", center);
                 changed |= editVector2Field("Scale", decoration, "Scale", {1.f, 1.f});
+                float rotation = decorationRotation(decoration);
+                if (ImGui::InputFloat("Rotation", &rotation, 1.f, 15.f, "%.2f"))
+                {
+                    decoration["Rotation"] = rotation;
+                    changed = true;
+                }
                 changed |= editColorField("Color", decoration, "Color", sf::Color::White);
                 if (ImGui::SmallButton("Delete"))
                 {
@@ -8782,7 +9286,11 @@ private:
             for (std::size_t index = 0; index < document_["Background"].size(); ++index)
             {
                 const auto& background = document_["Background"][index];
-                const std::string label = std::to_string(index + 1u) + ". " + background.value("BgName", std::string{"Background"}) + " @ " + formatPositionLabel(backgroundDisplayPosition(background));
+                const sf::Vector2i tile = backgroundTileIndex(background);
+                const std::string placementLabel = background.value("Type", 0) == 0
+                    ? std::string{" repeated grid"}
+                    : " tile " + std::to_string(tile.x) + "," + std::to_string(tile.y);
+                const std::string label = std::to_string(index + 1u) + ". " + background.value("BgName", std::string{"Background"}) + placementLabel;
                 if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Background && selection_.index == index))
                 {
                     selection_ = {SelectionKind::Background, index};
@@ -8925,9 +9433,17 @@ private:
         }
 
 #ifdef _WIN32
-        const std::filesystem::path executablePath = std::filesystem::current_path() / "main.exe";
+        std::filesystem::path executablePath = std::filesystem::current_path() / "Dark Gate.exe";
+        if (!std::filesystem::exists(executablePath))
+        {
+            executablePath = std::filesystem::current_path() / "main.exe";
+        }
 #else
-        const std::filesystem::path executablePath = std::filesystem::current_path() / "main";
+        std::filesystem::path executablePath = std::filesystem::current_path() / "Dark Gate";
+        if (!std::filesystem::exists(executablePath))
+        {
+            executablePath = std::filesystem::current_path() / "main";
+        }
 #endif
         if (!std::filesystem::exists(executablePath))
         {
