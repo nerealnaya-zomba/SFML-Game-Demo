@@ -30,6 +30,9 @@
 #include <vector>
 
 #include <Player.h>
+#include <Localization.h>
+
+#include <unordered_map>
 
 namespace
 {
@@ -57,6 +60,142 @@ constexpr std::array<const char*, 20> kWorldNameplateTextures{
     "nameplate_19.png",
     "nameplate_20.png"
 };
+
+std::string localizeDataText(const std::string& text)
+{
+    if (!Localization::isRussian() || text.empty())
+    {
+        return text;
+    }
+
+    static const std::unordered_map<std::string, std::string> translations = {
+        {"Ashwake Causeway", "Пепельная дамба"},
+        {"Obsidian Rookery", "Обсидиановое гнездовье"},
+        {"Crimson Nave", "Багровый неф"},
+        {"Bone Reliquary", "Костяной реликварий"},
+        {"Trial of Embers", "Испытание углей"},
+        {"The Returning Veil", "Возвращающаяся вуаль"},
+        {"Opening climb", "Первый подъем"},
+        {"The first ascent is gentle. Use it to settle movement, camera rhythm and your opening shots.", "Первый подъем мягкий. Используйте его, чтобы привыкнуть к движению, ритму камеры и первым выстрелам."},
+        {"Hunter's bottleneck", "Узкое место охотника"},
+        {"The route narrows here. Secure the upper ledges before committing to the longer crossing.", "Здесь путь сужается. Закрепитесь на верхних уступах, прежде чем идти на длинный переход."},
+        {"Enter the hidden route", "Enter - войти на скрытый путь"},
+        {"Enter to return", "Enter - вернуться"},
+        {"Mini Location 1", "Мини-локация 1"},
+        {"Portal 1", "Портал 1"},
+        {"Enter portal", "Enter - войти в портал"},
+        {"Rain-stiffened markings speak of beasts nesting where the path narrows. Draw them into open ground before you spend too much strength climbing.", "Следы, застывшие под дождем, говорят о тварях, гнездящихся там, где путь сужается. Выманите их на открытое место, прежде чем потратите слишком много сил на подъем."},
+        {"Enter to listen", "Enter - слушать"},
+        {"Storm Echo", "Эхо бури"},
+        {"The clasp snaps and a clutch of grave-gold drops into your palm. Whoever hid it never made the return climb.", "Застежка щелкает, и горсть могильного золота падает в ладонь. Тот, кто спрятал его, так и не вернулся наверх."},
+        {"Enter to pry open cache", "Enter - вскрыть тайник"},
+        {"Hunter's Purse", "Кошель охотника"},
+        {"A wet leather purse slides loose from the stone after your approach.", "После вашего приближения мокрый кожаный кошель выскальзывает из камня."},
+        {"Open sky pressure", "Давление открытого неба"},
+        {"Flying threats dominate this air lane. Commit to high ground only if you can clear it quickly.", "Летающие угрозы владеют этой воздушной полосой. Забирайтесь наверх только если сможете быстро ее зачистить."},
+        {"Storm crossing", "Штормовой переход"},
+        {"The storm path rewards short resets. Dash through gaps, then recover on the broad stones.", "Штормовой путь вознаграждает короткие передышки. Рывком проходите разрывы, затем восстанавливайтесь на широких камнях."},
+        {"Rookery burst", "Всплеск Гнездовья"},
+        {"The rookery entrance erupts fast. Break the first wave immediately or the ledge becomes a trap.", "Вход в Гнездовье взрывается быстро. Сломайте первую волну сразу, иначе уступ станет ловушкой."},
+        {"Air pocket", "Воздушный карман"},
+        {"Wraiths own the air pocket ahead. Enter ready to shoot upward while repositioning between landings.", "Призраки владеют воздушным карманом впереди. Входите готовыми стрелять вверх и менять позицию между приземлениями."},
+        {"Storm descent", "Штормовой спуск"},
+        {"Ground hunters dominate the long descent. Take the broad stones and deny them easy flanks.", "Наземные охотники владеют длинным спуском. Держите широкие камни и не давайте им простых флангов."},
+        {"Blood-Moon Shrine", "Святилище кровавой луны"},
+        {"Enter to bind blood-moon shrine", "Enter - привязать святилище кровавой луны"},
+        {"The crimson lamp hums with a low vow. Mark this perch as your return point and draw enough breath to survive the next leap.", "Багровая лампа гудит низкой клятвой. Отметьте этот уступ как точку возврата и вдохните достаточно, чтобы пережить следующий прыжок."},
+        {"Prism Shards", "Осколки призмы"},
+        {"A crimson shimmer catches under the ledge. There is a cache tucked into the stone.", "Под уступом вспыхивает багровый отблеск. В камне спрятан тайник."},
+        {"Enter to gather prism shards", "Enter - собрать осколки призмы"},
+        {"A velvet wrap protects a cache of sharp-edged prisms. Even cracked, they buy a surprising amount of ammunition and favor.", "Бархатная обертка хранит острые призмы. Даже треснувшие, они стоят удивительно много боеприпасов и благосклонности."},
+        {"Crimson pressure", "Багровое давление"},
+        {"This nave pushes you to alternate between low cover and aggressive climbs. Staying in one lane too long gets expensive.", "Этот неф заставляет чередовать низкие укрытия и резкие подъемы. Слишком долго стоять на одной линии дорого обходится."},
+        {"High-choir opening", "Вход верхнего хора"},
+        {"The upper span opens the level. Clear the bats here and the rest of the route becomes easier to read.", "Верхний пролет открывает уровень. Зачистите летучих тварей здесь, и дальше путь станет понятнее."},
+        {"Nave procession", "Процессия нефа"},
+        {"The first hall mixes grounded pressure and awkward footing. Win the center before moving on.", "Первый зал смешивает давление с земли и неудобную опору. Заберите центр, прежде чем идти дальше."},
+        {"Red seep", "Красная течь"},
+        {"Slimes begin to spill through the lower route as soon as you commit to it. Keep momentum and don't overstay.", "Слаймы начинают проливаться через нижний путь, как только вы на него заходите. Держите темп и не задерживайтесь."},
+        {"Choir bats", "Летучие твари хора"},
+        {"The upper nave becomes dangerous the moment the bats stir. Clear the air before taking the next bridge.", "Верхний неф становится опасным, как только шевелятся летучие твари. Зачистите воздух перед следующим мостом."},
+        {"Burial Record", "Погребальная запись"},
+        {"Enter to read burial record", "Enter - прочесть погребальную запись"},
+        {"These names were crossed out one by one. The last line remains: If the crypt grows too wide, leave a shrine of your own and do not trust the quiet.", "Эти имена вычеркивали одно за другим. Осталась последняя строка: если крипта станет слишком широкой, оставь собственное святилище и не доверяй тишине."},
+        {"Crypt-Sanctified Shrine", "Освященное криптой святилище"},
+        {"Enter to sanctify this crossing", "Enter - освятить этот переход"},
+        {"A patient glow settles over the stone span. The shrine remembers you here, patches your wounds and waits in silence for the next fall.", "Терпеливое сияние ложится на каменный пролет. Святилище запоминает вас здесь, залечивает раны и молча ждет следующего падения."},
+        {"Beam Lens Cache", "Тайник линзы луча"},
+        {"A burial seam loosens under your steps. There is a hidden case set into the reliquary wall.", "Погребальный шов расходится под вашими шагами. В стену реликвария вмонтирован скрытый футляр."},
+        {"Enter to claim beam lens", "Enter - забрать линзу луча"},
+        {"A brass case clicks open around a rare lens and a purse of marked coin. Whoever carried it expected to pierce armor, not vanish.", "Латунный футляр щелкает, открывая редкую линзу и кошель меченых монет. Тот, кто нес это, рассчитывал пробивать броню, а не исчезнуть."},
+        {"Buried approach", "Погребальный подход"},
+        {"This reliquary teaches patience. Let grounded threats come to you before taking the next rise.", "Этот реликварий учит терпению. Пусть наземные угрозы подойдут сами, прежде чем брать следующий подъем."},
+        {"Reliquary crossfire", "Перекрестный огонь реликвария"},
+        {"The crypt opens overhead here. Expect pressure from both the floor and the rafters.", "Здесь крипта раскрывается над головой. Ждите давления и с пола, и со стропил."},
+        {"Burial guard", "Погребальная стража"},
+        {"The reliquary opens with a layered patrol. Win the floor before climbing into the central crypt.", "Реликварий открывается многоярусным патрулем. Заберите пол, прежде чем лезть в центральную крипту."},
+        {"Floor hunters", "Охотники пола"},
+        {"Scorpions own the lower stones and punish indecision. Kite them into broader spaces before finishing them.", "Скорпионы владеют нижними камнями и карают нерешительность. Выманивайте их на широкие места, прежде чем добивать."},
+        {"Crypt rafters", "Стропила крипты"},
+        {"The upper crypt comes alive once you enter it. Expect pressure from above while you hold the crossing.", "Верхняя крипта оживает, когда вы входите. Ждите давления сверху, пока держите переход."},
+        {"Rift Shrine", "Святилище разлома"},
+        {"Enter to attune the rift shrine", "Enter - настроить святилище разлома"},
+        {"The shrine drinks the twilight crackle and gives it back as calm. It fixes your return point and restores your strength for the next breach.", "Святилище пьет сумеречный треск и возвращает его покоем. Оно фиксирует точку возврата и восстанавливает силы для следующего разлома."},
+        {"Night Relic Bundle", "Связка ночных реликвий"},
+        {"The trial shifts and a hidden bundle becomes visible near the shrine path.", "Испытание смещается, и возле пути к святилищу становится видна скрытая связка."},
+        {"Enter to gather night relics", "Enter - собрать ночные реликвии"},
+        {"Moon-silver fittings, old seals and a roll of survivor's coin rest in the bundle. Someone planned to buy safety and ran out of road first.", "В связке лежат лунно-серебряные крепления, старые печати и рулон монет выжившего. Кто-то хотел купить безопасность, но путь кончился раньше."},
+        {"Rift trial", "Испытание разлома"},
+        {"This is a compact combat room. Expect the shrine, jump timing and reward to chain together quickly.", "Это компактная боевая комната. Святилище, тайминги прыжков и награда быстро складываются в одну цепочку."},
+        {"Trial keeper", "Хранитель испытания"},
+        {"This compact arena is meant to test control under pressure. Win the first duel, then stabilize at the shrine.", "Эта компактная арена проверяет контроль под давлением. Победите первый поединок, затем закрепитесь у святилища."},
+        {"Midnight Echo", "Полуночное эхо"},
+        {"Enter to read midnight echo", "Enter - прочесть полуночное эхо"},
+        {"The script warns that rain makes every misstep final. Save your strength for the long platforms and spend your gold before the storm spends you.", "Запись предупреждает: дождь делает каждый неверный шаг последним. Берегите силы для длинных платформ и тратьте золото раньше, чем буря потратит вас."},
+        {"Abyssal Stash", "Бездонный тайник"},
+        {"A rain-dark seam parts in the wall. Something hidden waited here for a careful return.", "Дождевой темный шов расходится в стене. Что-то скрытое ждало здесь осторожного возвращения."},
+        {"Enter to recover abyssal stash", "Enter - забрать бездонный тайник"},
+        {"Cold-metal trinkets and travel coin survive inside the sealed pouch. It feels like whoever hid it expected never to come back.", "В запечатанном мешочке уцелели холодные металлические безделушки и дорожные монеты. Похоже, спрятавший их не рассчитывал вернуться."},
+        {"Veil ascent", "Подъем Вуали"},
+        {"The returning veil starts with stacked jumps and narrow recovery windows. Save your momentum for the upper chain.", "Возвращающаяся вуаль начинается с цепочки прыжков и узких окон восстановления. Берегите импульс для верхней цепи."},
+        {"Midnight span", "Полуночный пролет"},
+        {"This rain-swept span punishes hesitation. Clear the lane, then commit to the crossing in one push.", "Этот залитый дождем пролет карает колебания. Зачистите линию и проходите переход одним решительным рывком."},
+        {"Returning watcher", "Возвращающийся смотритель"},
+        {"The veil's opening climb is guarded by a patient patrol. Clear it cleanly before the long midnight span.", "Первый подъем Вуали охраняет терпеливый патруль. Зачистите его чисто перед длинным полуночным пролетом."},
+        {"Checkpoint attuned", "Точка возврата настроена"},
+        {"Your return point for this realm has been refreshed.", "Ваша точка возврата для этой области обновлена."},
+        {"Hidden path revealed", "Скрытый путь найден"},
+        {"Something concealed answered your approach.", "Что-то скрытое откликнулось на ваше приближение."},
+        {"Enter to interact", "Enter - взаимодействовать"},
+        {"Forgotten Relic", "Забытая реликвия"},
+        {"The dead left a trace here.", "Мертвые оставили здесь след."},
+        {"Threat ahead", "Впереди угроза"},
+        {"World event", "Событие мира"},
+        {"Something shifts in this place.", "Что-то в этом месте меняется."},
+        {"A hidden pocket of the realm opens beyond the veil.", "За вуалью открывается скрытый карман области."}
+        ,{"Sunken Grotto", "Затонувший грот"},
+        {"Enter to descend into grotto", "Enter - спуститься в грот"},
+        {"Enter to climb back", "Enter - подняться обратно"},
+        {"Enter to claim the flooded cache", "Enter - забрать затопленный тайник"},
+        {"Flooded Reliquary", "Затопленный реликварий"},
+        {"Coins and moon-bright tokens survived where the roots kept the chamber sealed. Something down here waited to be remembered.", "Монеты и лунно-светлые жетоны уцелели там, где корни держали комнату запечатанной. Что-то внизу ждало, чтобы о нем вспомнили."},
+        {"Root Burrow", "Корневая нора"},
+        {"Enter the root burrow", "Enter - войти в корневую нору"},
+        {"Enter to return outside", "Enter - вернуться наружу"},
+        {"Enter to read the root-etched tablet", "Enter - прочесть табличку на корнях"},
+        {"Root-Etched Tablet", "Табличка на корнях"},
+        {"The tunnel walls whisper of hunters who marked side-paths with buried stone. They hid warnings where only the curious would find them.", "Стены туннеля шепчут об охотниках, отмечавших боковые тропы погребенным камнем. Они прятали предупреждения там, где их нашли бы только любопытные."},
+        {"Forgotten Reliquary", "Забытый реликварий"},
+        {"Enter the sealed reliquary", "Enter - войти в запечатанный реликварий"},
+        {"Enter to leave the reliquary", "Enter - покинуть реликварий"},
+        {"Enter to attune reliquary flame", "Enter - настроить пламя реликвария"},
+        {"Reliquary Flame", "Пламя реликвария"},
+        {"A hidden ember still keeps watch beneath the stone. It can hold your return here and steady the breath you carry deeper underground.", "Скрытый уголек все еще сторожит под камнем. Он может удержать вашу точку возврата здесь и выровнять дыхание, с которым вы идете глубже под землю."}
+    };
+
+    const auto it = translations.find(text);
+    return it != translations.end() ? it->second : text;
+}
 
 struct MiniLocationCandidate
 {
@@ -257,6 +396,66 @@ nlohmann::json withOffsetPosition(nlohmann::json object, const sf::Vector2f offs
     return object;
 }
 
+sf::Vector2f removeParallaxPreview(const sf::Vector2f displayPosition, const sf::Vector2f parallaxFactor, const sf::Vector2f cameraCenter)
+{
+    const sf::Vector2f cameraOffset = cameraCenter - BASE_CAMERAPOS;
+    return {
+        displayPosition.x - cameraOffset.x * parallaxFactor.x,
+        displayPosition.y - cameraOffset.y * parallaxFactor.y
+    };
+}
+
+sf::Vector2f readMiniLocationPoint(const nlohmann::json& object, const char* key, const sf::FloatRect& bounds, const sf::Vector2f fallback)
+{
+    const sf::Vector2f point = readVector2f(object.value(key, nlohmann::json::array()), fallback);
+    const bool looksRelative =
+        point.x > -bounds.size.x &&
+        point.y > -bounds.size.y &&
+        point.x < bounds.size.x * 2.f &&
+        point.y < bounds.size.y * 2.f;
+    return looksRelative ? bounds.position + point : point;
+}
+
+sf::Vector2f miniLocationParallaxReferencePoint(const nlohmann::json& location, const sf::FloatRect& bounds)
+{
+    if (location.contains("SpawnPosition") && location["SpawnPosition"].is_array())
+    {
+        return bounds.position + readVector2f(
+            location["SpawnPosition"],
+            {bounds.size.x * 0.5f, bounds.size.y - 42.f}
+        );
+    }
+
+    const nlohmann::json entryData = location.value("Entry", nlohmann::json::object());
+    return readMiniLocationPoint(
+        entryData,
+        "DestinationSupport",
+        bounds,
+        {bounds.position.x + bounds.size.x * 0.5f, bounds.position.y + bounds.size.y - 42.f}
+    );
+}
+
+nlohmann::json withMiniLocationDecorationPosition(nlohmann::json object, const sf::Vector2f origin, const sf::FloatRect& bounds, const sf::Vector2f parallaxReferencePoint)
+{
+    if (!object.contains("Position"))
+    {
+        return object;
+    }
+
+    const sf::Vector2f relativeDisplayPosition = readVector2f(object["Position"]);
+    const sf::Vector2f displayPosition = origin + relativeDisplayPosition;
+    object["Position"] = nlohmann::json::array({
+        displayPosition.x,
+        displayPosition.y
+    });
+    object["MiniLocationParallaxReference"] = nlohmann::json::array({
+        parallaxReferencePoint.x,
+        parallaxReferencePoint.y
+    });
+
+    return object;
+}
+
 sf::FloatRect offsetRect(const sf::FloatRect& rect, const sf::Vector2f offset)
 {
     return sf::FloatRect(rect.position + offset, rect.size);
@@ -301,7 +500,22 @@ void appendNestedMiniLocationContent(nlohmann::json& target, const nlohmann::jso
 
     for (const auto& nestedObject : location[key])
     {
-        target[key].push_back(withOffsetPosition(nestedObject, origin));
+        if (std::string(key) == "Decorations")
+        {
+            const sf::FloatRect bounds = readRect(location.value("Bounds", nlohmann::json::array()));
+            nlohmann::json object = withMiniLocationDecorationPosition(
+                nestedObject,
+                origin,
+                bounds,
+                miniLocationParallaxReferencePoint(location, bounds)
+            );
+            object["MiniLocationId"] = location.value("Id", location.value("Title", std::string{}));
+            target[key].push_back(object);
+        }
+        else
+        {
+            target[key].push_back(withOffsetPosition(nestedObject, origin));
+        }
     }
 }
 
@@ -924,6 +1138,11 @@ sf::FloatRect GameLevelManager::getCurrentCameraBoundsForPosition(const sf::Vect
     return levelIt->second->getCameraBoundsForPosition(position);
 }
 
+bool GameLevelManager::isCurrentMiniLocationActive() const
+{
+    return levelIt != levels.end() && levelIt->second && levelIt->second->isMiniLocationActive();
+}
+
 bool GameLevelManager::enterCurrentMiniLocation(const std::string& id, std::optional<sf::Vector2f> returnSupportPoint)
 {
     return levelIt != levels.end() && levelIt->second && levelIt->second->enterMiniLocation(id, returnSupportPoint);
@@ -1084,6 +1303,7 @@ bool GameLevelManager::teleportPlayerToCurrentMiniLocationPosition(
     }
 
     player->teleportToSupportPoint(pos);
+    camera->setCenterPosition(pos);
     return true;
 }
 
@@ -1253,6 +1473,7 @@ void GameLevel::updateDecorations()
 {
     if (decorations)
     {
+        decorations->setActiveMiniLocation(activeMiniLocationId_);
         decorations->updateTextures();
     }
 }
@@ -1713,8 +1934,21 @@ void GameLevel::initializeDecorations(const nlohmann::json& data)
         const sf::Vector2f parallaxFactor = {decoration["ParallaxFactor"][0], decoration["ParallaxFactor"][1]};
         const int zDepth = decoration["Z"];
         const float rotation = decoration.value("Rotation", 0.f);
+        std::optional<DecorationMiniLocationContext> miniLocationContext;
+        const std::string miniLocationId = decoration.value("MiniLocationId", std::string{});
+        if (!miniLocationId.empty())
+        {
+            miniLocationContext = DecorationMiniLocationContext{
+                miniLocationId,
+                position,
+                readVector2f(
+                    decoration.value("MiniLocationParallaxReference", nlohmann::json::array()),
+                    position
+                )
+            };
+        }
 
-        decorations->addDecoration(name, position, scale, parallaxFactor, zDepth, color, rotation);
+        decorations->addDecoration(name, position, scale, parallaxFactor, zDepth, color, rotation, miniLocationContext);
     }
 }
 
@@ -1932,11 +2166,11 @@ void GameLevel::initializeInteractives(const nlohmann::json& data)
             config.restoreVitality = interactiveData.value("RestoreVitality", config.type == WorldInteractable::Type::RestShrine);
             config.hiddenUntilNearby = interactiveData.value("HiddenUntilNearby", false);
             config.revealRadius = interactiveData.value("RevealRadius", 170.f);
-            config.revealTitle = interactiveData.value("RevealTitle", std::string{"Hidden path revealed"});
-            config.revealBody = interactiveData.value("RevealBody", std::string{"Something concealed answered your approach."});
-            config.prompt = interactiveData.value("Prompt", std::string{"Enter to interact"});
-            config.title = interactiveData.value("Title", std::string{"Forgotten Relic"});
-            config.body = interactiveData.value("Body", std::string{"The dead left a trace here."});
+            config.revealTitle = localizeDataText(interactiveData.value("RevealTitle", std::string{"Hidden path revealed"}));
+            config.revealBody = localizeDataText(interactiveData.value("RevealBody", std::string{"Something concealed answered your approach."}));
+            config.prompt = localizeDataText(interactiveData.value("Prompt", std::string{"Enter to interact"}));
+            config.title = localizeDataText(interactiveData.value("Title", std::string{"Forgotten Relic"}));
+            config.body = localizeDataText(interactiveData.value("Body", std::string{"The dead left a trace here."}));
 
             if (shouldUseAutomaticNameplate(interactiveData, typeName) || config.textureName.empty())
             {
@@ -2094,20 +2328,27 @@ void GameLevel::initializeExplicitMiniLocations(const nlohmann::json& data)
         location.cameraBounds = bounds;
         location.entranceTexture = entryData.value("Texture", std::string{"MossyDecorationHazard_25.png"});
         location.exitTexture = exitData.value("Texture", std::string{"MossyDecorationHazard_24.png"});
-        location.entrancePosition = readVector2f(
-            entryData.value("Position", nlohmann::json::array()),
+        location.entrancePosition = readMiniLocationPoint(
+            entryData,
+            "Position",
+            bounds,
             {bounds.position.x + 64.f, bounds.position.y + bounds.size.y - 20.f}
         );
-        location.exitPosition = readVector2f(
-            exitData.value("Position", nlohmann::json::array()),
-            {bounds.position.x + 96.f, bounds.position.y + bounds.size.y - 20.f}
+        const sf::Vector2f portalSpawnPosition = bounds.position + readVector2f(
+            locationData.value("SpawnPosition", nlohmann::json::array()),
+            {bounds.size.x * 0.5f, bounds.size.y - 42.f}
         );
-        location.entranceDestinationSupport = readVector2f(
-            entryData.value("DestinationSupport", nlohmann::json::array()),
-            {bounds.position.x + 156.f, bounds.position.y + bounds.size.y - 18.f}
+        location.exitPosition = portalSpawnPosition;
+        location.entranceDestinationSupport = readMiniLocationPoint(
+            entryData,
+            "DestinationSupport",
+            bounds,
+            portalSpawnPosition
         );
-        location.exitDestinationSupport = readVector2f(
-            exitData.value("DestinationSupport", nlohmann::json::array()),
+        location.exitDestinationSupport = readMiniLocationPoint(
+            exitData,
+            "DestinationSupport",
+            bounds,
             {location.entrancePosition.x, location.entrancePosition.y - 18.f}
         );
         location.entranceScale = readVector2f(
@@ -2131,8 +2372,8 @@ void GameLevel::initializeExplicitMiniLocations(const nlohmann::json& data)
             "InteractRadius",
             exitData.value("InteractRadius", 126.f)
         );
-        location.entrancePrompt = entryData.value("Prompt", std::string{"Enter the hidden route"});
-        location.exitPrompt = exitData.value("Prompt", std::string{"Enter to return"});
+        location.entrancePrompt = localizeDataText(entryData.value("Prompt", std::string{"Enter the hidden route"}));
+        location.exitPrompt = localizeDataText(exitData.value("Prompt", std::string{"Enter to return"}));
         location.roomLeftX = bounds.position.x;
         location.roomRightX = bounds.position.x + bounds.size.x;
         location.activeLeftX = location.roomLeftX;
@@ -2552,7 +2793,7 @@ void GameLevel::generateMiniLocations()
         );
 
         GeneratedMiniLocation generatedLocation;
-        generatedLocation.title = theme.title;
+        generatedLocation.title = localizeDataText(theme.title);
         generatedLocation.id = "procedural_mini_location_" + std::to_string(index + 1u);
         generatedLocation.cameraBounds = {{roomLeftSealX - 28.f, 0.f}, {roomRightSealX - roomLeftSealX + 56.f, static_cast<float>(size.y)}};
         generatedLocation.entranceTexture = theme.entranceTexture;
@@ -2567,8 +2808,8 @@ void GameLevel::generateMiniLocations()
         generatedLocation.exitColor = theme.exitColor;
         generatedLocation.accentColor = theme.accentColor;
         generatedLocation.interactRadius = 126.f;
-        generatedLocation.entrancePrompt = theme.entrancePrompt;
-        generatedLocation.exitPrompt = theme.exitPrompt;
+        generatedLocation.entrancePrompt = localizeDataText(theme.entrancePrompt);
+        generatedLocation.exitPrompt = localizeDataText(theme.exitPrompt);
         generatedLocation.roomLeftX = roomX - 8.f;
         generatedLocation.roomRightX = roomX + roomWidth + 56.f;
         generatedLocation.activeLeftX = roomLeftSealX - 28.f;
@@ -2590,9 +2831,9 @@ void GameLevel::generateMiniLocations()
         reward.singleUse = true;
         reward.grantsCheckpoint = theme.grantsCheckpoint;
         reward.restoreVitality = theme.restoreVitality;
-        reward.prompt = theme.rewardPrompt;
-        reward.title = theme.rewardTitle;
-        reward.body = theme.rewardBody;
+        reward.prompt = localizeDataText(theme.rewardPrompt);
+        reward.title = localizeDataText(theme.rewardTitle);
+        reward.body = localizeDataText(theme.rewardBody);
         if (theme.grantsCheckpoint)
         {
             reward.hasCustomSpawnOffset = true;
@@ -2856,8 +3097,8 @@ void GameLevel::initializeEventZones(const nlohmann::json& data)
     if (playerSpawnPos != sf::Vector2f{0.f, 0.f})
     {
         levelEventZones.push_back({
-            "Checkpoint attuned",
-            "Your return point for this realm has been refreshed.",
+            localizeDataText("Checkpoint attuned"),
+            localizeDataText("Your return point for this realm has been refreshed."),
             sf::FloatRect(playerSpawnPos - sf::Vector2f{100.f, 180.f}, {200.f, 260.f}),
             NotificationTone::Success,
             true,
@@ -2883,8 +3124,8 @@ void GameLevel::initializeEventZones(const nlohmann::json& data)
 
             const std::string enemyName = spawnerData.value("EnemyName", std::string{"Enemies"});
             levelEventZones.push_back({
-                spawnerData.value("EncounterTitle", std::string{"Threat ahead"}),
-                spawnerData.value("EncounterBody", enemyName + " gather in this stretch. Enter prepared."),
+                localizeDataText(spawnerData.value("EncounterTitle", std::string{"Threat ahead"})),
+                localizeDataText(spawnerData.value("EncounterBody", enemyName + " gather in this stretch. Enter prepared.")),
                 spawnArea,
                 parseNotificationTone(spawnerData.value("EncounterTone", std::string{"Warning"})),
                 spawnerData.value("EncounterFireOnce", true),
@@ -2905,8 +3146,8 @@ void GameLevel::initializeEventZones(const nlohmann::json& data)
             }
 
             levelEventZones.push_back({
-                eventData.value("Title", std::string{"World event"}),
-                eventData.value("Body", std::string{"Something shifts in this place."}),
+                localizeDataText(eventData.value("Title", std::string{"World event"})),
+                localizeDataText(eventData.value("Body", std::string{"Something shifts in this place."})),
                 bounds,
                 parseNotificationTone(eventData.value("Tone", std::string{"Info"})),
                 eventData.value("FireOnce", true),
@@ -2919,8 +3160,8 @@ void GameLevel::initializeEventZones(const nlohmann::json& data)
     for (const auto& generatedLocation : generatedMiniLocations)
     {
         levelEventZones.push_back({
-            generatedLocation.title,
-            "A hidden pocket of the realm opens beyond the veil.",
+            localizeDataText(generatedLocation.title),
+            localizeDataText("A hidden pocket of the realm opens beyond the veil."),
             sf::FloatRect(
                 {generatedLocation.activeLeftX, generatedLocation.roomCeilingY},
                 {generatedLocation.activeRightX - generatedLocation.activeLeftX, generatedLocation.roomFloorY - generatedLocation.roomCeilingY + 96.f}
@@ -2944,13 +3185,17 @@ void GameLevel::updateLevelEvents()
     {
         introNotificationPending_ = false;
         const std::string worldName = levelTitle.empty() ? levelName : levelTitle;
-        queueNotification("Entered realm", worldName + " is now active.", NotificationTone::Info);
+        queueNotification(
+            Localization::isRussian() ? Localization::tr("world.entered_realm") : "Entered realm",
+            worldName + " " + (Localization::isRussian() ? Localization::tr("world.realm_active") : "is now active."),
+            NotificationTone::Info
+        );
 
         if (!weatherThemeTitle_.empty())
         {
             queueNotification(
-                "Weather omen",
-                weatherThemeTitle_ + " shapes the mood of this realm.",
+                Localization::isRussian() ? Localization::tr("world.weather_title") : "Weather omen",
+                weatherThemeTitle_ + " " + (Localization::isRussian() ? Localization::tr("world.weather_body") : "shapes the mood of this realm."),
                 NotificationTone::Info
             );
         }
@@ -3000,7 +3245,7 @@ void GameLevel::loadLevelData(const LevelDescriptor& descriptor)
     loadedLevelData = expandMiniLocationContent(nlohmann::json::parse(dataFile));
 
     levelName = descriptor.id;
-    levelTitle = descriptor.title;
+    levelTitle = localizeDataText(descriptor.title);
     sourceFileName = descriptor.fileName;
     sourceFilePath = descriptor.filePath;
     playerSpawnPos = {
@@ -3105,7 +3350,7 @@ void GameLevel::runErrorScreen(std::string errorString)
 {
     sf::Text text(*data->gameFont);
     text.setCharacterSize(50u);
-    text.setString(errorString + "\n Press 'Q' to exit");
+    Localization::setText(text, errorString + (Localization::isRussian() ? "\n Нажмите 'Q' для выхода" : "\n Press 'Q' to exit"));
     setTextOriginToMiddle(text);
     text.setPosition({WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2});
 
@@ -3164,6 +3409,11 @@ sf::FloatRect GameLevel::getCameraBoundsForPosition(const sf::Vector2f& position
         0.f
     );
     return sf::FloatRect({0.f, 0.f}, {mainWorldRight, static_cast<float>(size.y)});
+}
+
+bool GameLevel::isMiniLocationActive() const
+{
+    return activeMiniLocationId_.has_value();
 }
 
 bool GameLevel::enterMiniLocation(const std::string& id, std::optional<sf::Vector2f> returnSupportPoint)

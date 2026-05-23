@@ -1,5 +1,7 @@
 #include <WorldPortal.h>
 
+#include <Localization.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -66,7 +68,9 @@ WorldPortal::WorldPortal(
 
     promptText_.setCharacterSize(14u);
     promptText_.setFillColor(sf::Color(244, 250, 255, 255));
-    promptText_.setString(config_.prompt.empty() ? "Enter portal" : config_.prompt);
+    Localization::setText(promptText_, config_.prompt.empty()
+        ? (Localization::isRussian() ? Localization::tr("world.enter_portal") : "Enter portal")
+        : config_.prompt);
 
     updateVisuals();
     updatePromptLayout();

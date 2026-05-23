@@ -2673,6 +2673,221 @@ private:
         }
     }
 
+    static bool miniLocationCollectionUsesDrawOrder(const MiniLocationContentCollection collection)
+    {
+        return collection == MiniLocationContentCollection::Platforms ||
+            collection == MiniLocationContentCollection::Decorations ||
+            collection == MiniLocationContentCollection::Interactives ||
+            collection == MiniLocationContentCollection::Portals;
+    }
+
+    int fallbackMiniLocationDrawOrder(const MiniLocationContentCollection collection, const std::size_t index) const
+    {
+        int order = nextWorldDrawOrder();
+        if (collection == MiniLocationContentCollection::Decorations)
+        {
+            return order + static_cast<int>(index);
+        }
+        if (document_.contains("MiniLocations") && document_["MiniLocations"].is_array())
+        {
+            for (const auto& location : document_["MiniLocations"])
+            {
+                if (location.contains("Decorations") && location["Decorations"].is_array())
+                {
+                    order += static_cast<int>(location["Decorations"].size());
+                }
+            }
+        }
+        if (collection == MiniLocationContentCollection::Interactives)
+        {
+            return order + static_cast<int>(index);
+        }
+        if (document_.contains("MiniLocations") && document_["MiniLocations"].is_array())
+        {
+            for (const auto& location : document_["MiniLocations"])
+            {
+                if (location.contains("Interactives") && location["Interactives"].is_array())
+                {
+                    order += static_cast<int>(location["Interactives"].size());
+                }
+            }
+        }
+        if (collection == MiniLocationContentCollection::Portals)
+        {
+            return order + static_cast<int>(index);
+        }
+        if (document_.contains("MiniLocations") && document_["MiniLocations"].is_array())
+        {
+            for (const auto& location : document_["MiniLocations"])
+            {
+                if (location.contains("Portals") && location["Portals"].is_array())
+                {
+                    order += static_cast<int>(location["Portals"].size());
+                }
+            }
+        }
+        return order + static_cast<int>(index);
+    }
+
+    int miniLocationDrawOrder(const nlohmann::json& location, const MiniLocationContentCollection collection, const std::size_t index) const
+    {
+        const char* key = miniLocationCollectionKey(collection);
+        if (key[0] == '\0' || !location.contains(key) || !location[key].is_array() || index >= location[key].size())
+        {
+            return fallbackMiniLocationDrawOrder(collection, index);
+        }
+
+        const auto& object = location[key][index];
+        if (object.contains("EditorDrawOrder") && object["EditorDrawOrder"].is_number_integer())
+        {
+            return object["EditorDrawOrder"].get<int>();
+        }
+
+        return fallbackMiniLocationDrawOrder(collection, index);
+    }
+
+    void setMiniLocationDrawOrder(nlohmann::json& location, const MiniLocationContentCollection collection, const std::size_t index, const int order)
+    {
+        const char* key = miniLocationCollectionKey(collection);
+        if (key[0] == '\0' || !location.contains(key) || !location[key].is_array() || index >= location[key].size())
+        {
+            return;
+        }
+
+        location[key][index]["EditorDrawOrder"] = order;
+    }
+
+    std::vector<MiniLocationObjectRef> miniLocationDrawOrderEntries(const std::size_t locationIndex) const
+    {
+        std::vector<MiniLocationObjectRef> entries;
+        if (!document_.contains("MiniLocations") || !document_["MiniLocations"].is_array() ||
+            locationIndex >= document_["MiniLocations"].size())
+        {
+            return entries;
+        }
+
+        const nlohmann::json& location = document_["MiniLocations"][locationIndex];
+        const auto pushCollection = [&](const MiniLocationContentCollection collection) {
+            const char* key = miniLocationCollectionKey(collection);
+            if (key[0] == '\0' || !location.contains(key) || !location[key].is_array())
+            {
+                return;
+            }
+            for (std::size_t index = 0; index < location[key].size(); ++index)
+            {
+                entries.push_back({locationIndex, collection, index, MiniLocationSubTarget::Body});
+            }
+        };
+
+        pushCollection(MiniLocationContentCollection::Decorations);
+        pushCollection(MiniLocationContentCollection::Interactives);
+        pushCollection(MiniLocationContentCollection::Portals);
+        pushCollection(MiniLocationContentCollection::Platforms);
+
+        std::stable_sort(entries.begin(), entries.end(), [&](const MiniLocationObjectRef& lhs, const MiniLocationObjectRef& rhs) {
+            return miniLocationDrawOrder(location, lhs.collection, lhs.index) <
+                miniLocationDrawOrder(location, rhs.collection, rhs.index);
+        });
+
+        return entries;
+    }
+
+    int nextMiniLocationDrawOrder(const nlohmann::json& location) const
+    {
+        int nextOrder = nextWorldDrawOrder();
+        const auto scanCollection = [&](const MiniLocationContentCollection collection) {
+            const char* key = miniLocationCollectionKey(collection);
+            if (key[0] == '\0' || !location.contains(key) || !location[key].is_array())
+            {
+                return;
+            }
+            for (std::size_t index = 0; index < location[key].size(); ++index)
+            {
+                nextOrder = std::max(nextOrder, miniLocationDrawOrder(location, collection, index) + 1);
+            }
+        };
+
+        scanCollection(MiniLocationContentCollection::Decorations);
+        scanCollection(MiniLocationContentCollection::Interactives);
+        scanCollection(MiniLocationContentCollection::Portals);
+        scanCollection(MiniLocationContentCollection::Platforms);
+        return nextOrder;
+    }
+
+    bool moveMiniLocationDrawOrder(nlohmann::json& location, const MiniLocationObjectRef& ref, const int delta)
+    {
+        if (!miniLocationCollectionUsesDrawOrder(ref.collection) ||
+            !document_.contains("MiniLocations") || !document_["MiniLocations"].is_array() ||
+            ref.locationIndex >= document_["MiniLocations"].size())
+        {
+            return false;
+        }
+
+        std::vector<MiniLocationObjectRef> entries = miniLocationDrawOrderEntries(ref.locationIndex);
+        const auto currentIt = std::find_if(entries.begin(), entries.end(), [&](const MiniLocationObjectRef& entry) {
+            return entry.sameObject(ref);
+        });
+        if (currentIt == entries.end())
+        {
+            return false;
+        }
+
+        const long long currentIndex = static_cast<long long>(std::distance(entries.begin(), currentIt));
+        const long long newIndex = std::clamp(
+            currentIndex + static_cast<long long>(delta),
+            0ll,
+            static_cast<long long>(entries.size()) - 1ll
+        );
+        if (newIndex == currentIndex)
+        {
+            return false;
+        }
+
+        const MiniLocationObjectRef target = entries[static_cast<std::size_t>(newIndex)];
+        const int currentOrder = miniLocationDrawOrder(location, ref.collection, ref.index);
+        const int targetOrder = miniLocationDrawOrder(location, target.collection, target.index);
+        setMiniLocationDrawOrder(location, ref.collection, ref.index, targetOrder);
+        setMiniLocationDrawOrder(location, target.collection, target.index, currentOrder);
+        return true;
+    }
+
+    bool moveMiniLocationToDrawOrderEdge(nlohmann::json& location, const MiniLocationObjectRef& ref, const bool toFront)
+    {
+        if (!miniLocationCollectionUsesDrawOrder(ref.collection))
+        {
+            return false;
+        }
+
+        std::vector<MiniLocationObjectRef> entries = miniLocationDrawOrderEntries(ref.locationIndex);
+        if (entries.empty())
+        {
+            return false;
+        }
+
+        const auto currentIt = std::find_if(entries.begin(), entries.end(), [&](const MiniLocationObjectRef& entry) {
+            return entry.sameObject(ref);
+        });
+        if (currentIt == entries.end())
+        {
+            return false;
+        }
+
+        const std::size_t currentIndex = static_cast<std::size_t>(std::distance(entries.begin(), currentIt));
+        const std::size_t targetIndex = toFront ? entries.size() - 1u : 0u;
+        if (currentIndex == targetIndex)
+        {
+            return false;
+        }
+
+        const int edgeOrder = miniLocationDrawOrder(
+            location,
+            entries[targetIndex].collection,
+            entries[targetIndex].index
+        );
+        setMiniLocationDrawOrder(location, ref.collection, ref.index, toFront ? edgeOrder + 1 : edgeOrder - 1);
+        return true;
+    }
+
     void selectMiniLocationContent(const MiniLocationContentCollection collection, const std::size_t nestedIndex = 0u, const MiniLocationSubTarget subTarget = MiniLocationSubTarget::Body)
     {
         if (selection_.kind != SelectionKind::MiniLocation || selection_.index >= document_["MiniLocations"].size())
@@ -2773,7 +2988,11 @@ private:
         }
         const std::string typeName = platformTypes_.at(std::clamp(selectedPlatformTypeIndex_, 0, static_cast<int>(platformTypes_.size()) - 1));
         ensureMiniLocationNestedArrays(location);
-        location["Platforms"].push_back({{"Type", typeName}, {"Position", toJson(contentRelativePosition(worldPosition, location))}});
+        location["Platforms"].push_back({
+            {"Type", typeName},
+            {"Position", toJson(contentRelativePosition(worldPosition, location))},
+            {"EditorDrawOrder", nextMiniLocationDrawOrder(location)}
+        });
         selectMiniLocationContent(MiniLocationContentCollection::Platforms, location["Platforms"].size() - 1u);
         markDirty();
     }
@@ -2793,7 +3012,8 @@ private:
             {"Rotation", 0.f},
             {"Color", {255, 255, 255, 255}},
             {"ParallaxFactor", {1.f, 1.f}},
-            {"Z", 0}
+            {"Z", 0},
+            {"EditorDrawOrder", nextMiniLocationDrawOrder(location)}
         });
         selectMiniLocationContent(MiniLocationContentCollection::Decorations, location["Decorations"].size() - 1u);
         markDirty();
@@ -2814,7 +3034,8 @@ private:
             {"SingleUse", true},
             {"Prompt", "Enter to interact"},
             {"Title", "Pocket Relic"},
-            {"Body", "The pocket space keeps this memory close."}
+            {"Body", "The pocket space keeps this memory close."},
+            {"EditorDrawOrder", nextMiniLocationDrawOrder(location)}
         });
         selectMiniLocationContent(MiniLocationContentCollection::Interactives, location["Interactives"].size() - 1u);
         markDirty();
@@ -2834,7 +3055,8 @@ private:
             {"AccentColor", {112, 208, 255, 255}},
             {"InteractRadius", 130.f},
             {"Prompt", "Enter portal"},
-            {"Target", {{"Type", "Position"}, {"Position", toJson(worldPosition)}}}
+            {"Target", {{"Type", "Position"}, {"Position", toJson(worldPosition)}}},
+            {"EditorDrawOrder", nextMiniLocationDrawOrder(location)}
         });
         selectMiniLocationContent(MiniLocationContentCollection::Portals, location["Portals"].size() - 1u);
         markDirty();
@@ -4613,7 +4835,23 @@ private:
 
         const float dx = worldPosition.x - miniEditor_.lastHitWorld.x;
         const float dy = worldPosition.y - miniEditor_.lastHitWorld.y;
-        const bool sameSpot = (dx * dx + dy * dy) <= 64.f && hits.size() == miniEditor_.lastHits.size();
+        const bool cycleRequested = ImGui::GetIO().KeyCtrl;
+        if (!cycleRequested && miniEditor_.selected.isValid() && miniEditor_.selected.locationIndex == selection_.index)
+        {
+            const auto selectedHit = std::find_if(hits.begin(), hits.end(), [&](const MiniLocationHit& hit) {
+                return hit.ref.sameObject(miniEditor_.selected);
+            });
+            if (selectedHit != hits.end())
+            {
+                miniEditor_.selected = selectedHit->ref;
+                miniEditor_.lastHitWorld = worldPosition;
+                miniEditor_.lastHits = hits;
+                miniEditor_.cycleIndex = static_cast<std::size_t>(std::distance(hits.begin(), selectedHit));
+                return;
+            }
+        }
+
+        const bool sameSpot = cycleRequested && (dx * dx + dy * dy) <= 64.f && hits.size() == miniEditor_.lastHits.size();
         if (sameSpot)
         {
             miniEditor_.cycleIndex = (miniEditor_.cycleIndex + 1u) % hits.size();
@@ -6976,6 +7214,199 @@ private:
         drawWorldContextMenu();
     }
 
+    nlohmann::json* selectedMiniLocationContentObject(nlohmann::json& location)
+    {
+        if (!miniEditor_.selected.isValid() || miniEditor_.selected.locationIndex != selection_.index)
+        {
+            return nullptr;
+        }
+
+        const char* key = miniLocationCollectionKey(miniEditor_.selected.collection);
+        if (key[0] == '\0' || !location.contains(key) || !location[key].is_array() ||
+            miniEditor_.selected.index >= location[key].size())
+        {
+            return nullptr;
+        }
+
+        return &location[key][miniEditor_.selected.index];
+    }
+
+    void drawMiniLocationContentDrawOrderControls(nlohmann::json& location, const char* idSuffix, bool& changed)
+    {
+        const MiniLocationContentCollection collection = miniEditor_.selected.collection;
+        if (!miniLocationCollectionUsesDrawOrder(collection))
+        {
+            return;
+        }
+
+        const std::vector<MiniLocationObjectRef> drawEntries = miniLocationDrawOrderEntries(selection_.index);
+        const auto currentEntryIt = std::find_if(drawEntries.begin(), drawEntries.end(), [&](const MiniLocationObjectRef& entry) {
+            return entry.sameObject(miniEditor_.selected);
+        });
+        const std::size_t currentLayerIndex = currentEntryIt == drawEntries.end()
+            ? 0u
+            : static_cast<std::size_t>(std::distance(drawEntries.begin(), currentEntryIt));
+        int layer = miniLocationDrawOrder(location, collection, miniEditor_.selected.index);
+
+        ImGui::SeparatorText("Draw Order");
+        ImGui::TextDisabled(
+            "Layer %zu of %zu. Lower number is drawn earlier.",
+            currentEntryIt == drawEntries.end() ? 0u : currentLayerIndex + 1u,
+            drawEntries.size()
+        );
+        if (ImGui::InputInt((std::string("Layer Number##") + idSuffix).c_str(), &layer))
+        {
+            setMiniLocationDrawOrder(location, collection, miniEditor_.selected.index, layer);
+            changed = true;
+        }
+
+        const bool canMoveBackward = currentEntryIt != drawEntries.end() && currentLayerIndex > 0u;
+        const bool canMoveForward = currentEntryIt != drawEntries.end() && currentLayerIndex + 1u < drawEntries.size();
+        ImGui::BeginDisabled(!canMoveBackward);
+        if (ImGui::Button((std::string("To Back##") + idSuffix).c_str()))
+        {
+            changed |= moveMiniLocationToDrawOrderEdge(location, miniEditor_.selected, false);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button((std::string("Backward##") + idSuffix).c_str()))
+        {
+            changed |= moveMiniLocationDrawOrder(location, miniEditor_.selected, -1);
+        }
+        ImGui::EndDisabled();
+
+        ImGui::BeginDisabled(!canMoveForward);
+        if (ImGui::Button((std::string("Forward##") + idSuffix).c_str()))
+        {
+            changed |= moveMiniLocationDrawOrder(location, miniEditor_.selected, 1);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button((std::string("To Front##") + idSuffix).c_str()))
+        {
+            changed |= moveMiniLocationToDrawOrderEdge(location, miniEditor_.selected, true);
+        }
+        ImGui::EndDisabled();
+    }
+
+    void drawMiniLocationContentContextControls()
+    {
+        nlohmann::json* location = selectedMiniLocationForContent();
+        if (location == nullptr)
+        {
+            return;
+        }
+
+        nlohmann::json* object = selectedMiniLocationContentObject(*location);
+        if (object == nullptr)
+        {
+            return;
+        }
+
+        bool changed = false;
+        const MiniLocationContentCollection collection = miniEditor_.selected.collection;
+        drawMiniLocationContentDrawOrderControls(*location, "mini_context", changed);
+
+        if (collection == MiniLocationContentCollection::Platforms)
+        {
+            ImGui::TextUnformatted("Platform");
+            std::string type = object->value("Type", platformTypes_.empty() ? std::string{"Single-flat"} : platformTypes_.front());
+            if (comboFromStrings("Type##mini_context", platformTypes_, type))
+            {
+                (*object)["Type"] = type;
+                changed = true;
+            }
+            changed |= editVector2Field("Position##mini_context", *object, "Position");
+            bool bounceEnabled = platformBounceEnabled(*object);
+            if (ImGui::Checkbox("Bounce##mini_context", &bounceEnabled))
+            {
+                (*object)["BounceEnabled"] = bounceEnabled;
+                changed = true;
+            }
+        }
+        else if (collection == MiniLocationContentCollection::Decorations)
+        {
+            ImGui::TextUnformatted("Decoration");
+            std::string name = object->value("Name", decorationOptions_.empty() ? std::string{"plant1"} : decorationOptions_.front());
+            if (comboFromStrings("Name##mini_context", decorationOptions_, name))
+            {
+                (*object)["Name"] = name;
+                changed = true;
+            }
+            changed |= editVector2Field("Position##mini_context", *object, "Position");
+            changed |= editVector2Field("Scale##mini_context", *object, "Scale", {1.f, 1.f});
+            float rotation = decorationRotation(*object);
+            if (ImGui::InputFloat("Rotation##mini_context", &rotation, 1.f, 15.f, "%.2f"))
+            {
+                (*object)["Rotation"] = rotation;
+                changed = true;
+            }
+            changed |= editParallaxFactorField("Parallax##mini_context", *object, {1.f, 1.f});
+            changed |= editColorField("Color##mini_context", *object, "Color", sf::Color::White);
+        }
+        else if (collection == MiniLocationContentCollection::Interactives)
+        {
+            ImGui::TextUnformatted("Interactive / Sign");
+            std::string type = object->value("Type", std::string{"EchoTablet"});
+            if (comboFromStrings("Type##mini_context", interactiveTypeOptions_, type))
+            {
+                (*object)["Type"] = type;
+                changed = true;
+            }
+            changed |= editVector2Field("Position##mini_context", *object, "Position");
+            changed |= editVector2Field("Scale##mini_context", *object, "Scale", {1.f, 1.f});
+            changed |= editStringField("Prompt##mini_context", *object, "Prompt", 256u);
+            changed |= editStringField("Title##mini_context", *object, "Title", 256u);
+            changed |= editMultilineStringField("Body##mini_context", *object, "Body", ImVec2(320.f, 96.f), 2048u);
+        }
+        else if (collection == MiniLocationContentCollection::Portals)
+        {
+            ImGui::TextUnformatted("Portal");
+            changed |= editStringField("Id##mini_context", *object, "Id", 256u);
+            changed |= editStringField("Title##mini_context", *object, "Title", 256u);
+            changed |= editVector2Field("Position##mini_context", *object, "Position");
+            changed |= editVector2Field("Scale##mini_context", *object, "Scale", {0.36f, 0.36f});
+            std::string portalTexture = object->value("PortalTexture", object->value("Texture", std::string{"portalGreen"}));
+            const std::vector<std::string> portalTextures{"portalGreen", "portalViolet"};
+            if (comboFromStrings("Portal Texture##mini_context", portalTextures, portalTexture))
+            {
+                (*object)["PortalTexture"] = portalTexture;
+                changed = true;
+            }
+            drawPortalTargetControls(*object, changed);
+        }
+        else if (collection == MiniLocationContentCollection::DeadAreas || collection == MiniLocationContentCollection::Barriers)
+        {
+            ImGui::TextUnformatted(collection == MiniLocationContentCollection::Barriers ? "Barrier" : "DeadArea");
+            changed |= editStringField("Id##mini_context", *object, "Id", 256u);
+            bool enabled = object->value("Enabled", true);
+            if (ImGui::Checkbox("Enabled##mini_context", &enabled))
+            {
+                (*object)["Enabled"] = enabled;
+                changed = true;
+            }
+            if (collection == MiniLocationContentCollection::Barriers)
+            {
+                bool blocksPlayer = object->value("BlocksPlayer", true);
+                if (ImGui::Checkbox("Blocks Player##mini_context", &blocksPlayer))
+                {
+                    (*object)["BlocksPlayer"] = blocksPlayer;
+                    changed = true;
+                }
+            }
+            sf::FloatRect rect = readRect(object->value("Rect", nlohmann::json::array()));
+            float raw[4]{rect.position.x, rect.position.y, rect.size.x, rect.size.y};
+            if (ImGui::InputFloat4("Rect##mini_context", raw))
+            {
+                (*object)["Rect"] = nlohmann::json::array({raw[0], raw[1], std::max(raw[2], 1.f), std::max(raw[3], 1.f)});
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            markDirty();
+        }
+    }
+
     void drawMiniLocationContextMenu()
     {
         if (openMiniLocationContextMenu_)
@@ -7007,6 +7438,12 @@ private:
             ImGui::TextDisabled("No content under cursor");
         }
         ImGui::Separator();
+
+        if (hasSelection)
+        {
+            drawMiniLocationContentContextControls();
+            ImGui::Separator();
+        }
 
         if (ImGui::MenuItem("Copy", "Ctrl+C", false, canCopy))
         {
@@ -7640,7 +8077,11 @@ private:
         {
             drawSectionSelector();
 
-            switch (activeTab_)
+            if (selectedMiniLocationForContent() != nullptr)
+            {
+                drawMiniLocationsInspector();
+            }
+            else switch (activeTab_)
             {
             case EditorTab::Level:
                 drawLevelInspector();
@@ -8446,6 +8887,8 @@ private:
         toolButton("Decoration", MiniLocationTool::Decoration);
         toolButton("Interactive", MiniLocationTool::Interactive);
         toolButton("Portal", MiniLocationTool::Portal);
+        ImGui::TextDisabled("Hazards:");
+        ImGui::SameLine();
         toolButton("DeadArea", MiniLocationTool::DeadArea);
         toolButton("Barrier", MiniLocationTool::Barrier);
         toolButton("Spawn", MiniLocationTool::Spawn);
@@ -8474,6 +8917,55 @@ private:
             {
                 auto& object = location[key][miniEditor_.selected.index];
                 changed |= editStringField("EditorId", object, "EditorId", 256u);
+                if (miniLocationCollectionUsesDrawOrder(collection))
+                {
+                    const std::vector<MiniLocationObjectRef> drawEntries = miniLocationDrawOrderEntries(selection_.index);
+                    const auto currentEntryIt = std::find_if(drawEntries.begin(), drawEntries.end(), [&](const MiniLocationObjectRef& entry) {
+                        return entry.sameObject(miniEditor_.selected);
+                    });
+                    const std::size_t currentLayerIndex = currentEntryIt == drawEntries.end()
+                        ? 0u
+                        : static_cast<std::size_t>(std::distance(drawEntries.begin(), currentEntryIt));
+                    int layer = miniLocationDrawOrder(location, collection, miniEditor_.selected.index);
+
+                    ImGui::SeparatorText("Draw Order");
+                    ImGui::TextDisabled(
+                        "Shared world layer after room expansion. Lower number is drawn earlier. Current sorted position %zu of %zu.",
+                        currentEntryIt == drawEntries.end() ? 0u : currentLayerIndex + 1u,
+                        drawEntries.size()
+                    );
+                    if (ImGui::InputInt("Layer Number##mini_content_layer", &layer))
+                    {
+                        object["EditorDrawOrder"] = layer;
+                        changed = true;
+                    }
+
+                    const bool canMoveBackward = currentEntryIt != drawEntries.end() && currentLayerIndex > 0u;
+                    const bool canMoveForward = currentEntryIt != drawEntries.end() && currentLayerIndex + 1u < drawEntries.size();
+                    ImGui::BeginDisabled(!canMoveBackward);
+                    if (ImGui::Button("To Back##mini_content_layer"))
+                    {
+                        changed |= moveMiniLocationToDrawOrderEdge(location, miniEditor_.selected, false);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Backward##mini_content_layer"))
+                    {
+                        changed |= moveMiniLocationDrawOrder(location, miniEditor_.selected, -1);
+                    }
+                    ImGui::EndDisabled();
+
+                    ImGui::BeginDisabled(!canMoveForward);
+                    if (ImGui::Button("Forward##mini_content_layer"))
+                    {
+                        changed |= moveMiniLocationDrawOrder(location, miniEditor_.selected, 1);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("To Front##mini_content_layer"))
+                    {
+                        changed |= moveMiniLocationToDrawOrderEdge(location, miniEditor_.selected, true);
+                    }
+                    ImGui::EndDisabled();
+                }
                 if (collection == MiniLocationContentCollection::Platforms)
                 {
                     std::string type = object.value("Type", platformTypes_.empty() ? std::string{"Single-flat"} : platformTypes_.front());
@@ -8483,6 +8975,12 @@ private:
                         changed = true;
                     }
                     changed |= editVector2Field("Relative Position", object, "Position", center);
+                    bool bounceEnabled = platformBounceEnabled(object);
+                    if (ImGui::Checkbox("Bounce", &bounceEnabled))
+                    {
+                        object["BounceEnabled"] = bounceEnabled;
+                        changed = true;
+                    }
                 }
                 else if (collection == MiniLocationContentCollection::Decorations)
                 {
@@ -8494,6 +8992,13 @@ private:
                     }
                     changed |= editVector2Field("Relative Position", object, "Position", center);
                     changed |= editVector2Field("Scale", object, "Scale", {1.f, 1.f});
+                    float rotation = decorationRotation(object);
+                    if (ImGui::InputFloat("Rotation", &rotation, 1.f, 15.f, "%.2f"))
+                    {
+                        object["Rotation"] = rotation;
+                        changed = true;
+                    }
+                    changed |= editParallaxFactorField("Parallax", object, {1.f, 1.f});
                     changed |= editColorField("Color", object, "Color", sf::Color::White);
                 }
                 else if (collection == MiniLocationContentCollection::Interactives)
@@ -8506,6 +9011,32 @@ private:
                     }
                     changed |= editVector2Field("Relative Position", object, "Position", center);
                     changed |= editVector2Field("Scale", object, "Scale", {1.f, 1.f});
+                    std::string texture = object.value("Texture", previewTextureOptions_.empty() ? std::string{} : previewTextureOptions_.front());
+                    if (comboFromStrings("Texture", previewTextureOptions_, texture))
+                    {
+                        object["Texture"] = texture;
+                        changed = true;
+                    }
+                    changed |= editColorField("Color", object, "Color", sf::Color(255, 255, 255, 255));
+                    changed |= editColorField("Accent", object, "AccentColor", sf::Color(220, 184, 122, 255));
+                    float interactRadius = object.value("InteractRadius", 120.f);
+                    if (ImGui::InputFloat("Interact Radius", &interactRadius, 1.f, 20.f, "%.1f"))
+                    {
+                        object["InteractRadius"] = std::max(0.f, interactRadius);
+                        changed = true;
+                    }
+                    int rewardGold = object.value("RewardGold", 0);
+                    if (ImGui::InputInt("Reward Gold", &rewardGold))
+                    {
+                        object["RewardGold"] = std::max(0, rewardGold);
+                        changed = true;
+                    }
+                    bool singleUse = object.value("SingleUse", true);
+                    if (ImGui::Checkbox("Single Use", &singleUse))
+                    {
+                        object["SingleUse"] = singleUse;
+                        changed = true;
+                    }
                     changed |= editStringField("Title", object, "Title", 256u);
                     changed |= editStringField("Prompt", object, "Prompt", 256u);
                     changed |= editMultilineStringField("Body", object, "Body", ImVec2(-1.f, 64.f), 2048u);
@@ -8523,6 +9054,15 @@ private:
                         object["PortalTexture"] = portalTexture;
                         changed = true;
                     }
+                    changed |= editColorField("Color", object, "Color", sf::Color(212, 236, 255, 245));
+                    changed |= editColorField("Accent", object, "AccentColor", sf::Color(112, 208, 255, 255));
+                    float interactRadius = object.value("InteractRadius", 130.f);
+                    if (ImGui::InputFloat("Interact Radius", &interactRadius, 1.f, 20.f, "%.1f"))
+                    {
+                        object["InteractRadius"] = std::max(0.f, interactRadius);
+                        changed = true;
+                    }
+                    changed |= editStringField("Prompt", object, "Prompt", 256u);
                     drawPortalTargetControls(object, changed);
                 }
                 else if (collection == MiniLocationContentCollection::DeadAreas || collection == MiniLocationContentCollection::Barriers)
@@ -8617,7 +9157,8 @@ private:
             const std::string typeName = platformTypes_.empty() ? "Single-flat" : platformTypes_.front();
             location["Platforms"].push_back({
                 {"Type", typeName},
-                {"Position", toJson(center)}
+                {"Position", toJson(center)},
+                {"EditorDrawOrder", nextMiniLocationDrawOrder(location)}
             });
             markDirty();
         }
@@ -8632,7 +9173,8 @@ private:
                 {"Rotation", 0.f},
                 {"Color", {255, 255, 255, 255}},
                 {"ParallaxFactor", {1.f, 1.f}},
-                {"Z", 0}
+                {"Z", 0},
+                {"EditorDrawOrder", nextMiniLocationDrawOrder(location)}
             });
             markDirty();
         }
@@ -8651,7 +9193,8 @@ private:
                 {"SingleUse", true},
                 {"Prompt", "Enter to interact"},
                 {"Title", "Pocket Relic"},
-                {"Body", "The pocket space keeps this memory close."}
+                {"Body", "The pocket space keeps this memory close."},
+                {"EditorDrawOrder", nextMiniLocationDrawOrder(location)}
             });
             markDirty();
         }
@@ -8669,11 +9212,13 @@ private:
                 {"AccentColor", {112, 208, 255, 255}},
                 {"InteractRadius", 130.f},
                 {"Prompt", "Enter portal"},
-                {"Target", {{"Type", "Position"}, {"Position", toJson(center)}}}
+                {"Target", {{"Type", "Position"}, {"Position", toJson(center)}}},
+                {"EditorDrawOrder", nextMiniLocationDrawOrder(location)}
             });
             markDirty();
         }
-        ImGui::SameLine();
+
+        ImGui::SeparatorText("Hazards");
         if (ImGui::Button("Add DeadArea"))
         {
             const int deadAreaIndex = static_cast<int>(location["DeadAreas"].size()) + 1;
@@ -8719,6 +9264,7 @@ private:
         drawCountAndClear("Decorations", "Decorations");
         drawCountAndClear("Interactives", "Interactives");
         drawCountAndClear("Portals", "Portals");
+        ImGui::SeparatorText("Hazards");
         drawCountAndClear("DeadAreas", "DeadAreas");
         drawCountAndClear("Barriers", "Barriers");
 
@@ -8765,8 +9311,12 @@ private:
         drawOutlinerCollection("Decorations", "Decorations", MiniLocationContentCollection::Decorations);
         drawOutlinerCollection("Interactives", "Interactives", MiniLocationContentCollection::Interactives);
         drawOutlinerCollection("Portals", "Portals", MiniLocationContentCollection::Portals);
-        drawOutlinerCollection("DeadAreas", "DeadAreas", MiniLocationContentCollection::DeadAreas);
-        drawOutlinerCollection("Barriers", "Barriers", MiniLocationContentCollection::Barriers);
+        if (ImGui::TreeNode("Hazards"))
+        {
+            drawOutlinerCollection("DeadAreas", "DeadAreas", MiniLocationContentCollection::DeadAreas);
+            drawOutlinerCollection("Barriers", "Barriers", MiniLocationContentCollection::Barriers);
+            ImGui::TreePop();
+        }
 
         if (ImGui::TreeNode("Nested Platforms"))
         {
@@ -8906,8 +9456,9 @@ private:
             ImGui::TreePop();
         }
 
-        if (ImGui::TreeNode("DeadAreas"))
+        if (ImGui::TreeNode("Hazards Details"))
         {
+            ImGui::SeparatorText("DeadAreas");
             for (std::size_t index = 0; index < location["DeadAreas"].size(); ++index)
             {
                 ImGui::PushID(static_cast<int>(index));
@@ -8938,6 +9489,54 @@ private:
                 if (ImGui::SmallButton("Delete"))
                 {
                     location["DeadAreas"].erase(location["DeadAreas"].begin() + static_cast<nlohmann::json::difference_type>(index));
+                    markDirty();
+                    ImGui::PopID();
+                    break;
+                }
+                if (changed)
+                {
+                    markDirty();
+                }
+                ImGui::Separator();
+                ImGui::PopID();
+            }
+
+            ImGui::SeparatorText("Barriers");
+            for (std::size_t index = 0; index < location["Barriers"].size(); ++index)
+            {
+                ImGui::PushID(static_cast<int>(index + 10000u));
+                auto& barrier = location["Barriers"][index];
+                bool changed = false;
+                changed |= editStringField("Id", barrier, "Id", 256u);
+                bool enabled = barrier.value("Enabled", true);
+                if (ImGui::Checkbox("Enabled", &enabled))
+                {
+                    barrier["Enabled"] = enabled;
+                    changed = true;
+                }
+                bool blocksPlayer = barrier.value("BlocksPlayer", true);
+                if (ImGui::Checkbox("Blocks Player", &blocksPlayer))
+                {
+                    barrier["BlocksPlayer"] = blocksPlayer;
+                    changed = true;
+                }
+                sf::FloatRect rect = readRect(barrier.value("Rect", nlohmann::json::array()), sf::FloatRect({center.x - 12.f, center.y - 110.f}, {24.f, 220.f}));
+                float raw[4]{rect.position.x, rect.position.y, rect.size.x, rect.size.y};
+                if (ImGui::InputFloat4("Rect", raw))
+                {
+                    barrier["Rect"] = nlohmann::json::array({raw[0], raw[1], std::max(raw[2], 1.f), std::max(raw[3], 1.f)});
+                    changed = true;
+                }
+                changed |= editColorField("Core", barrier, "CoreColor", sf::Color(130, 214, 184, 255));
+                changed |= editColorField("Glow", barrier, "GlowColor", sf::Color(156, 238, 208, 255));
+                if (ImGui::SmallButton("Select"))
+                {
+                    selectMiniLocationContent(MiniLocationContentCollection::Barriers, index);
+                }
+                ImGui::SameLine();
+                if (ImGui::SmallButton("Delete"))
+                {
+                    location["Barriers"].erase(location["Barriers"].begin() + static_cast<nlohmann::json::difference_type>(index));
                     markDirty();
                     ImGui::PopID();
                     break;
@@ -9110,18 +9709,26 @@ private:
                 ? "Content mode: clicks edit this room's nested objects, even outside Bounds. Tab cycles overlaps."
                 : "Enable content mode to edit room objects on the scene.");
 
+            if (miniEditor_.contentMode)
+            {
+                drawMiniLocationContentEditor(location);
+                if (ImGui::Button("Focus Room"))
+                {
+                    focusMiniLocation(selection_.index);
+                }
+                if (changed)
+                {
+                    markDirty();
+                }
+                return;
+            }
+
             sf::FloatRect bounds = readRect(location.value("Bounds", nlohmann::json::array()), sf::FloatRect({0.f, 0.f}, {920.f, 340.f}));
             float rectRaw[4]{bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y};
-            ImGui::BeginDisabled(miniEditor_.contentMode);
             if (ImGui::InputFloat4("Camera Visibility Area", rectRaw))
             {
                 location["Bounds"] = nlohmann::json::array({rectRaw[0], rectRaw[1], std::max(rectRaw[2], 64.f), std::max(rectRaw[3], 64.f)});
                 changed = true;
-            }
-            ImGui::EndDisabled();
-            if (miniEditor_.contentMode)
-            {
-                ImGui::TextDisabled("Camera Visibility Area is locked in sandbox mode. Disable Edit Contents to resize it.");
             }
 
             changed |= editVector2Field(
@@ -9186,11 +9793,6 @@ private:
             changed |= editColorField("Exit Color", location["Exit"], "Color", sf::Color(212, 232, 255, 255));
             changed |= editColorField("Exit Accent", location["Exit"], "AccentColor", sf::Color(130, 214, 184, 255));
             changed |= editStringField("Exit Prompt", location["Exit"], "Prompt", 256u);
-
-            if (miniEditor_.contentMode)
-            {
-                drawMiniLocationContentEditor(location);
-            }
 
             if (ImGui::Button("Focus Room"))
             {

@@ -1,6 +1,7 @@
 #include <DeathRecovery.h>
 
 #include <GameData.h>
+#include <Localization.h>
 #include <Mounting.h>
 #include <Player.h>
 
@@ -57,10 +58,12 @@ DeathRecovery::DeathRecovery(GameData& data, std::string levelName, sf::Vector2f
     promptBackground_.setOutlineColor(sf::Color(116, 142, 176, 180));
 
     styleRecoveryText(amountText_, 20, sf::Color(255, 227, 140));
-    amountText_.setString("Lost " + std::to_string(goldAmount_) + " gold");
+    Localization::setText(amountText_, Localization::isRussian()
+        ? Localization::tr("recovery.lost_gold") + ": " + std::to_string(goldAmount_)
+        : "Lost " + std::to_string(goldAmount_) + " gold");
 
     styleRecoveryText(promptText_, 17, sf::Color(235, 241, 255));
-    promptText_.setString("F - Reclaim");
+    Localization::setText(promptText_, Localization::isRussian() ? Localization::tr("recovery.reclaim") : "F - Reclaim");
 
     for (auto& orbitCoin : orbitCoins_)
     {

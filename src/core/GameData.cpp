@@ -1,5 +1,7 @@
 #include "GameData.h"
 
+#include <Localization.h>
+
 #include <algorithm>
 #include <stdexcept>
 
@@ -10,6 +12,7 @@ constexpr int kDefaultLoadingOperationsCount = 63;
 constexpr bool kDefaultFullscreenEnabled = false;
 constexpr bool kDefaultVsyncEnabled = false;
 constexpr int kDefaultMenuParticleCount = 200;
+constexpr const char* kDefaultLanguage = "en";
 
 nlohmann::json loadLaunchSettingsDocument()
 {
@@ -347,6 +350,7 @@ void GameData::saveLaunchSettings() const
     document["video"]["fullscreenEnabled"] = launchPreferences_.fullscreenEnabled;
     document["video"]["vsyncEnabled"] = launchPreferences_.vsyncEnabled;
     document["menu"]["particleCount"] = launchPreferences_.menuParticleCount;
+    document["language"] = Localization::languageToString(launchPreferences_.language);
 
     std::ofstream output(kLaunchSettingsPath);
     output << document.dump(4);
@@ -376,6 +380,8 @@ void GameData::loadData()
             document.value("menuParticleCount", kDefaultMenuParticleCount)
         )
     );
+    launchPreferences_.language = Localization::languageFromString(document.value("language", std::string{kDefaultLanguage}));
+    Localization::setLanguage(launchPreferences_.language);
 }
 
 void GameData::loadEnemySettings()
@@ -402,6 +408,11 @@ bool GameData::isVsyncEnabled() const
 int GameData::getMenuParticleCount() const
 {
     return launchPreferences_.menuParticleCount;
+}
+
+Language GameData::getLanguage() const
+{
+    return launchPreferences_.language;
 }
 
 GameData::LaunchPreferences GameData::getLaunchPreferences() const
@@ -440,6 +451,18 @@ void GameData::setMenuParticleCount(const int count)
     }
 
     launchPreferences_.menuParticleCount = clampedCount;
+    saveLaunchSettings();
+}
+
+void GameData::setLanguage(const Language language)
+{
+    if (launchPreferences_.language == language)
+    {
+        return;
+    }
+
+    launchPreferences_.language = language;
+    Localization::setLanguage(language);
     saveLaunchSettings();
 }
 

@@ -20,7 +20,7 @@
 
 inline const tgui::String BASE_PLAY_BUTTON_TEXT = "Continue";
 inline const tgui::String BASE_RESUME_BUTTON_TEXT = "Resume";
-inline const tgui::String BASE_START_BUTTON_TEXT = "Start Level";
+inline const tgui::String BASE_START_BUTTON_TEXT = "Start";
 inline const tgui::String BASE_RESTART_BUTTON_TEXT = "Restart Current Level";
 inline const tgui::String BASE_RETURN_TO_MAIN_MENU_BUTTON_TEXT = "Main Menu";
 inline const tgui::String BASE_CONTROLS_BUTTON_TEXT = "Controls";
@@ -126,6 +126,7 @@ private:
     tgui::Button::Ptr fullscreenToggleButton;
     tgui::Button::Ptr vsyncToggleButton;
     tgui::Button::Ptr particleToggleButton;
+    tgui::Button::Ptr languageToggleButton;
     tgui::Button::Ptr resetProgressButton;
     std::map<std::string, std::string> selectorLabelToLevelId_;
     std::map<std::string, std::string> levelIdToSelectorLabel_;
@@ -195,6 +196,7 @@ private:
     void toggleFullscreen();
     void toggleVsync();
     void toggleMenuParticles();
+    void toggleLanguage();
     void resetProgressButtonOnClick();
     void exitButtonOnClick();
 };

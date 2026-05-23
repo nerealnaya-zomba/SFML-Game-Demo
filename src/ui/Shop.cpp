@@ -1,4 +1,5 @@
 #include<Shop.h>
+#include<Localization.h>
 
 #include<nlohmann/json.hpp>
 
@@ -7,9 +8,56 @@
 #include<iomanip>
 #include<sstream>
 #include<stdexcept>
+#include<unordered_map>
 
 namespace
 {
+const std::unordered_map<std::string, std::pair<std::string, std::string>>& russianItemText()
+{
+    static const std::unordered_map<std::string, std::pair<std::string, std::string>> text = {
+        {"Item_01.png", {"Карта троп", "Схема погребальных путей, прошитая серебряной нитью. Ваши заряды летят дальше, прежде чем тьма их проглотит."}},
+        {"Item_03.png", {"Быстрая шпора", "Наездничья шпора, благословленная для коротких рывков по старым могильным дорогам."}},
+        {"Item_04.png", {"Железный оберег", "Тяжелый и старый, но защищенный. Он помогает телу пережить еще несколько дурных пророчеств."}},
+        {"Item_06.png", {"Угольные чернила", "Черно-красный пигмент, превращающий простые заряды в горящие сигилы при ударе."}},
+        {"Item_08.png", {"Соколиное перо", "Все еще легкое настолько, что дрожит в мертвом воздухе. Движение становится резче и увереннее."}},
+        {"Item_09.png", {"Охотничья линза", "Шлифованный кристалл, через который даже охотник на ведьм измерил бы дистанцию одним взглядом."}},
+        {"Item_10.png", {"Руководство шквала", "Тонкий кодекс о том, как выпустить выстрел до того, как страх успеет лечь в руки."}},
+        {"Item_12.png", {"Шипастый гримуар", "Поля исписаны жестокими заметками. Каждый снаряд попадает с более злой силой."}},
+        {"Item_13.png", {"Печать стража", "Холодная печать забытого смотрителя крипты. Она укрепляет плоть и делает шаг ровнее."}},
+        {"Item_14.png", {"Теневые шпоры", "Шпоры всадников, научившихся прорываться между надгробиями быстрее, чем луна их заметит."}},
+        {"Item_15.png", {"Лунное сухожилие", "Упругое серебряное сухожилие, позволяющее прыжку чуть выше вгрызаться в ночь."}},
+        {"Item_16.png", {"Плащ мотылька", "Сшит из крыльев пепельных мотыльков. Падение перестает быть капитуляцией и становится выбором."}},
+        {"Item_17.png", {"Браслет двух клыков", "Ритуальный браслет, отвечающий панике еще одним прыжком, когда первый должен был стать последним."}},
+        {"Item_18.png", {"Бездонная шпора", "Почерневшая шпора всадника, которого похоронили все еще пытающимся обогнать пророчество."}},
+        {"Item_19.png", {"Соборные пружины", "Реликвии с заведенным напряжением из механизма колокольни. Дают еще один прыжок и более чистый взлет."}},
+        {"Item_31.png", {"Пика Могилобоя", "Костяно-белый ритуал, который просверливает одного врага и летит дальше. Быстро, холодно и беспощадно."}},
+        {"Item_32.png", {"Скипетр Пиросферы", "Выплевывает медленную угольную сферу, которая взрывается при касании и обжигает кости вокруг."}},
+        {"Item_33.png", {"Штормовой игольник", "Три осколочных заряда за один вдох. Он ощущается зло быстрым и рисует экран электрическими полосами."}},
+        {"Item_34.png", {"Призма ужаса", "Расколотый ритуальный фокус, веером выпускающий заряды в призрачный клин. Его владения - тесные коридоры."}},
+        {"Item_35.png", {"Луч сумерек", "Финальный ритуал только для богатых охотников. Он прорезает комнату лазерным шрамом и прошивает целые ряды врагов."}}
+    };
+    return text;
+}
+
+std::string readLocalizedString(const nlohmann::json& data, const char* englishKey, const char* russianKey, const std::string& iconName)
+{
+    if (Localization::isRussian())
+    {
+        const std::string russianValue = data.value(russianKey, std::string{});
+        if (!russianValue.empty())
+        {
+            return russianValue;
+        }
+        const auto it = russianItemText().find(iconName);
+        if (it != russianItemText().end())
+        {
+            return std::string{englishKey} == "ItemName" ? it->second.first : it->second.second;
+        }
+    }
+
+    return data.value(englishKey, std::string{});
+}
+
 std::string wrapTextByWords(const std::string& text, std::size_t maxLineLength)
 {
     if (text.empty() || maxLineLength == 0)
@@ -63,7 +111,7 @@ std::string wrapTextToWidth(const std::string& text, const sf::Text& styleSource
     bool firstLine = true;
 
     auto textWidth = [&](const std::string& value) {
-        probe.setString(value);
+        Localization::setText(probe, value);
         return probe.getLocalBounds().size.x;
     };
 
@@ -96,6 +144,19 @@ std::string wrapTextToWidth(const std::string& text, const sf::Text& styleSource
     }
 
     return wrapped.str();
+}
+
+float getTextBottom(const sf::Text& text)
+{
+    const sf::FloatRect bounds = text.getGlobalBounds();
+    return bounds.position.y + bounds.size.y;
+}
+
+float getShopGridStartYOffset()
+{
+    return Localization::isRussian()
+        ? 300.f
+        : BASE_SHOP_HEADER_SECTION_HEIGHT + BASE_SHOP_GRID_SECTION_GAP + 34.f;
 }
 
 sf::Color getQualityColor(Item::Quality quality)
@@ -135,16 +196,16 @@ std::string getQualityLabel(Item::Quality quality)
     switch (quality)
     {
         case Item::COMMON:
-            return "Common relic";
+            return Localization::isRussian() ? Localization::tr("shop.common_relic") : "Common relic";
         case Item::RARE:
-            return "Rare relic";
+            return Localization::isRussian() ? Localization::tr("shop.rare_relic") : "Rare relic";
         case Item::MYTH:
-            return "Myth relic";
+            return Localization::isRussian() ? Localization::tr("shop.myth_relic") : "Myth relic";
         case Item::LEGENDARY:
-            return "Legendary relic";
+            return Localization::isRussian() ? Localization::tr("shop.legendary_relic") : "Legendary relic";
     }
 
-    return "Relic";
+    return Localization::isRussian() ? Localization::tr("shop.relic") : "Relic";
 }
 
 std::string getCategoryLabel(Item::Category category)
@@ -152,12 +213,12 @@ std::string getCategoryLabel(Item::Category category)
     switch (category)
     {
         case Item::Category::Upgrade:
-            return "Relic upgrade";
+            return Localization::isRussian() ? Localization::tr("shop.relic_upgrade") : "Relic upgrade";
         case Item::Category::Weapon:
-            return "Weapon rite";
+            return Localization::isRussian() ? Localization::tr("shop.weapon_rite") : "Weapon rite";
     }
 
-    return "Relic";
+    return Localization::isRussian() ? Localization::tr("shop.relic") : "Relic";
 }
 
 std::string getWeaponKindLabel(Item::WeaponKind kind)
@@ -165,20 +226,20 @@ std::string getWeaponKindLabel(Item::WeaponKind kind)
     switch (kind)
     {
         case Item::WeaponKind::AshenBolt:
-            return "Ashen Bolt";
+            return Localization::weaponName("Ashen Bolt");
         case Item::WeaponKind::Gravepiercer:
-            return "Gravepiercer";
+            return Localization::weaponName("Gravepiercer Pike");
         case Item::WeaponKind::PyreOrb:
-            return "Pyre Orb";
+            return Localization::weaponName("Pyre Orb Scepter");
         case Item::WeaponKind::StormNeedler:
-            return "Storm Needler";
+            return Localization::weaponName("Storm Needler");
         case Item::WeaponKind::DreadPrism:
-            return "Dread Prism";
+            return Localization::weaponName("Dread Prism");
         case Item::WeaponKind::NightfallBeam:
-            return "Nightfall Beam";
+            return Localization::weaponName("Nightfall Beam");
     }
 
-    return "Relic";
+    return Localization::isRussian() ? Localization::tr("shop.relic") : "Relic";
 }
 
 std::string buildStatsText(const Item& item)
@@ -188,33 +249,33 @@ std::string buildStatsText(const Item& item)
 
     if(item.category == Item::Category::Weapon)
     {
-        stream << "Form: " << getWeaponKindLabel(item.weaponStats.kind) << '\n';
-        stream << "Damage +" << item.weaponStats.damageBonus << '\n';
-        stream << "Cooldown " << item.weaponStats.cooldownMs << " ms\n";
-        stream << "Energy cost " << item.weaponStats.energyCost << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.form") : "Form") << ": " << getWeaponKindLabel(item.weaponStats.kind) << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.damage") : "Damage") << " +" << item.weaponStats.damageBonus << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.cooldown") : "Cooldown") << " " << item.weaponStats.cooldownMs << " ms\n";
+        stream << (Localization::isRussian() ? Localization::tr("shop.energy_cost") : "Energy cost") << " " << item.weaponStats.energyCost << '\n';
         if(item.weaponStats.projectileSpeed != 0)
         {
-            stream << "Shot speed +" << item.weaponStats.projectileSpeed << '\n';
+            stream << (Localization::isRussian() ? Localization::tr("shop.shot_speed") : "Shot speed") << " +" << item.weaponStats.projectileSpeed << '\n';
         }
         if(item.weaponStats.projectileRange != 0)
         {
-            stream << "Range +" << item.weaponStats.projectileRange << '\n';
+            stream << (Localization::isRussian() ? Localization::tr("hud.range") : "Range") << " +" << item.weaponStats.projectileRange << '\n';
         }
         if(item.weaponStats.projectileCount > 1)
         {
-            stream << "Projectiles x" << item.weaponStats.projectileCount << '\n';
+            stream << (Localization::isRussian() ? Localization::tr("shop.projectiles") : "Projectiles") << " x" << item.weaponStats.projectileCount << '\n';
         }
         if(item.weaponStats.pierceCount > 0)
         {
-            stream << "Pierce +" << item.weaponStats.pierceCount << '\n';
+            stream << (Localization::isRussian() ? Localization::tr("shop.pierce") : "Pierce") << " +" << item.weaponStats.pierceCount << '\n';
         }
         if(item.weaponStats.splashRadius > 0)
         {
-            stream << "Splash " << item.weaponStats.splashRadius << '\n';
+            stream << (Localization::isRussian() ? Localization::tr("shop.splash") : "Splash") << " " << item.weaponStats.splashRadius << '\n';
         }
         if(item.weaponStats.spread > 0)
         {
-            stream << "Fan spread " << item.weaponStats.spread << '\n';
+            stream << (Localization::isRussian() ? Localization::tr("shop.fan_spread") : "Fan spread") << " " << item.weaponStats.spread << '\n';
         }
 
         return stream.str();
@@ -224,57 +285,57 @@ std::string buildStatsText(const Item& item)
 
     if(stats.health != 0)
     {
-        stream << "Health +" << stats.health << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.health") : "Health") << " +" << stats.health << '\n';
     }
     if(stats.damage != 0)
     {
-        stream << "Damage +" << stats.damage << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.damage") : "Damage") << " +" << stats.damage << '\n';
     }
     if(stats.bulletSpeed != 0)
     {
-        stream << "Bullet speed +" << stats.bulletSpeed << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.bullet_speed") : "Bullet speed") << " +" << stats.bulletSpeed << '\n';
     }
     if(stats.bulletDistance != 0)
     {
-        stream << "Bullet range +" << stats.bulletDistance << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.bullet_range") : "Bullet range") << " +" << stats.bulletDistance << '\n';
     }
     if(stats.initialSpeed != 0)
     {
-        stream << "Agility +" << static_cast<float>(stats.initialSpeed) / 100.f << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.agility") : "Agility") << " +" << static_cast<float>(stats.initialSpeed) / 100.f << '\n';
     }
     if(stats.maxSpeed != 0)
     {
-        stream << "Top speed +" << static_cast<float>(stats.maxSpeed) / 10.f << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.top_speed") : "Top speed") << " +" << static_cast<float>(stats.maxSpeed) / 10.f << '\n';
     }
     if(stats.shootSpeedCooldownReduction != 0)
     {
-        stream << "Shoot cooldown -" << stats.shootSpeedCooldownReduction << " ms\n";
+        stream << (Localization::isRussian() ? Localization::tr("shop.shoot_cooldown") : "Shoot cooldown") << " -" << stats.shootSpeedCooldownReduction << " ms\n";
     }
     if(stats.dashForce != 0)
     {
-        stream << "Dash force +" << static_cast<float>(stats.dashForce) / 10.f << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.dash_force") : "Dash force") << " +" << static_cast<float>(stats.dashForce) / 10.f << '\n';
     }
     if(stats.dashCooldownReduction != 0)
     {
-        stream << "Dash cooldown -" << stats.dashCooldownReduction << " ms\n";
+        stream << (Localization::isRussian() ? Localization::tr("shop.dash_cooldown") : "Dash cooldown") << " -" << stats.dashCooldownReduction << " ms\n";
     }
     if(stats.extraJumpCount != 0)
     {
-        stream << "Extra jump +" << stats.extraJumpCount << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.extra_jump") : "Extra jump") << " +" << stats.extraJumpCount << '\n';
     }
     if(stats.jumpPower != 0)
     {
-        stream << "Jump height +" << static_cast<float>(stats.jumpPower) / 10.f << '\n';
+        stream << (Localization::isRussian() ? Localization::tr("shop.jump_height") : "Jump height") << " +" << static_cast<float>(stats.jumpPower) / 10.f << '\n';
     }
     if(stats.slowFallPercent != 0)
     {
-        stream << "Fall speed -" << stats.slowFallPercent << "%\n";
+        stream << (Localization::isRussian() ? Localization::tr("shop.fall_speed") : "Fall speed") << " -" << stats.slowFallPercent << "%\n";
     }
 
     const std::string builtText = stream.str();
     if(builtText.empty())
     {
-        return "A curious trinket with no direct stat bonus.";
+        return Localization::isRussian() ? Localization::tr("shop.no_bonus") : "A curious trinket with no direct stat bonus.";
     }
 
     return builtText;
@@ -363,6 +424,7 @@ void Shop::setActiveTab(ShopTab tab)
     closeSelectedItemWidget();
     clampSelection();
     updateBackgroundLayout(sprite->getPosition());
+    alignItemsOnGrid();
 }
 
 void Shop::switchTab(int direction)
@@ -494,14 +556,14 @@ void Shop::initializeItems()
     for (auto &&itemData : loadedData)
     {
         std::string iconName = itemData["IconName"];
-        std::string itemName = itemData["ItemName"];
+        std::string itemName = readLocalizedString(itemData, "ItemName", "ItemNameRu", iconName);
         Item::Quality quality = itemData["Quality"];
         const std::string categoryName = itemData.value("Category", "Upgrade");
         const Item::Category category = categoryName == "Weapon"
             ? Item::Category::Weapon
             : Item::Category::Upgrade;
         int price = itemData["Price"];
-        const std::string description = itemData.value("Description", "");
+        const std::string description = readLocalizedString(itemData, "Description", "DescriptionRu", iconName);
 
         Item::Stats stats =
         {
@@ -599,29 +661,41 @@ void Shop::updateHeaderTexts()
     const CampaignProgress& campaign = player->getCampaignProgress();
     const CampaignLevelInfo& recommendedLevel = campaign.getRecommendedLevelInfo();
 
-    titleText.setString(activeTab_ == ShopTab::Weapons ? "Arsenal of rites" : "Merchant's stock");
+    Localization::setText(titleText, activeTab_ == ShopTab::Weapons
+        ? (Localization::isRussian() ? Localization::tr("shop.arsenal") : "Arsenal of rites")
+        : (Localization::isRussian() ? Localization::tr("shop.stock") : "Merchant's stock"));
     titleText.setPosition({contentBounds.position.x, contentBounds.position.y});
 
-    goldText.setString("Gold: " + std::to_string(player->getGold()));
+    Localization::setText(goldText, (Localization::isRussian() ? Localization::tr("shop.gold") : "Gold") + std::string(": ") + std::to_string(player->getGold()));
     goldText.setPosition({
         contentBounds.position.x + contentBounds.size.x - goldText.getGlobalBounds().size.x,
         contentBounds.position.y
     });
 
-    merchantTitleText.setString(campaign.getMerchantGreeting());
-    merchantTitleText.setPosition({contentBounds.position.x, contentBounds.position.y + 34.f});
+    float cursorY = contentBounds.position.y + 34.f;
+    const float textMaxWidth = std::max(160.f, contentBounds.size.x - 8.f);
 
-    merchantAdviceText.setString(wrapTextByWords(campaign.getMerchantAdvice(), 62));
-    merchantAdviceText.setPosition({contentBounds.position.x, contentBounds.position.y + 56.f});
+    Localization::setText(merchantTitleText, wrapTextToWidth(campaign.getMerchantGreeting(), merchantTitleText, textMaxWidth));
+    merchantTitleText.setPosition({contentBounds.position.x, cursorY});
+    cursorY = getTextBottom(merchantTitleText) + 7.f;
 
-    routeHintText.setString("Next marked route: " + recommendedLevel.title);
-    routeHintText.setPosition({contentBounds.position.x, contentBounds.position.y + 96.f});
+    Localization::setText(merchantAdviceText, wrapTextToWidth(campaign.getMerchantAdvice(), merchantAdviceText, textMaxWidth));
+    merchantAdviceText.setPosition({contentBounds.position.x, cursorY});
+    cursorY = getTextBottom(merchantAdviceText) + 9.f;
 
-    upgradesTabText.setString("Relics");
-    weaponsTabText.setString("Weapons");
-    tabHintText.setString("Q/W - Tabs");
+    Localization::setText(routeHintText, wrapTextToWidth(
+        (Localization::isRussian() ? Localization::tr("shop.next_route") : "Next marked route") + std::string(": ") + recommendedLevel.title,
+        routeHintText,
+        textMaxWidth));
+    routeHintText.setPosition({contentBounds.position.x, cursorY});
+    cursorY = getTextBottom(routeHintText) + 12.f;
 
-    const sf::Vector2f tabsOrigin = {contentBounds.position.x, contentBounds.position.y + 120.f};
+    Localization::setText(upgradesTabText, Localization::isRussian() ? Localization::tr("shop.relics") : "Relics");
+    Localization::setText(weaponsTabText, Localization::isRussian() ? Localization::tr("shop.weapons") : "Weapons");
+    Localization::setText(tabHintText, Localization::isRussian() ? Localization::tr("shop.tabs") : "Q/W - Tabs");
+
+    const float maxTabsY = contentBounds.position.y + getShopGridStartYOffset() - 110.f;
+    const sf::Vector2f tabsOrigin = {contentBounds.position.x, std::min(cursorY, maxTabsY)};
     const sf::Vector2f tabSize = {124.f, 28.f};
     const bool upgradesActive = activeTab_ == ShopTab::Upgrades;
 
@@ -639,10 +713,20 @@ void Shop::updateHeaderTexts()
 
     upgradesTabText.setPosition({tabsOrigin.x + 18.f, tabsOrigin.y + 4.f});
     weaponsTabText.setPosition({tabsOrigin.x + tabSize.x + 28.f, tabsOrigin.y + 4.f});
-    tabHintText.setPosition({
-        contentBounds.position.x + contentBounds.size.x - tabHintText.getGlobalBounds().size.x,
-        tabsOrigin.y + 5.f
-    });
+    const float tabsRight = weaponsTabPlate.getPosition().x + weaponsTabPlate.getSize().x;
+    const float hintWidth = tabHintText.getGlobalBounds().size.x;
+    const float hintX = contentBounds.position.x + contentBounds.size.x - hintWidth;
+    if (hintX > tabsRight + 14.f)
+    {
+        tabHintText.setPosition({hintX, tabsOrigin.y + 5.f});
+    }
+    else
+    {
+        tabHintText.setPosition({
+            contentBounds.position.x + contentBounds.size.x - hintWidth,
+            tabsOrigin.y + tabSize.y + 6.f
+        });
+    }
 }
 
 void Shop::updateItemFrameStates()
@@ -683,7 +767,7 @@ void Shop::alignItemsOnGrid()
     );
     const float gridWidth = columns * cellSize.x + (columns - 1) * static_cast<float>(itemsMargin.x);
     const float gridStartX = contentBounds.position.x + std::max(0.f, (contentBounds.size.x - gridWidth) / 2.f);
-    const float gridStartY = contentBounds.position.y + BASE_SHOP_HEADER_SECTION_HEIGHT + BASE_SHOP_GRID_SECTION_GAP + 34.f;
+    const float gridStartY = contentBounds.position.y + getShopGridStartYOffset();
     
     int iterationCount = 0;
     int countingForNextRow = 0;
@@ -757,7 +841,8 @@ void Shop::onShopClosed()
 void Shop::onShopOpened()
 {
     clampSelection();
-    updateHeaderTexts();
+    updateBackgroundLayout(sprite->getPosition());
+    alignItemsOnGrid();
 }
 
 bool Shop::buySelectedItem()
@@ -1005,7 +1090,7 @@ void Shop::updateBackgroundLayout(const sf::Vector2f& pos)
     const float requiredGridWidth = cellSize.x * columns + itemsMargin.x * (columns - 1);
     const float requiredGridHeight = cellSize.y * requiredRows + itemsMargin.y * (requiredRows - 1);
     const float requiredInnerWidth = requiredGridWidth;
-    const float requiredInnerHeight = BASE_SHOP_HEADER_SECTION_HEIGHT + BASE_SHOP_GRID_SECTION_GAP + 34.f + requiredGridHeight;
+    const float requiredInnerHeight = getShopGridStartYOffset() + requiredGridHeight;
     const float usableWidthRatio = 1.f - BASE_SHOP_FRAME_INSET_RATIO_X * 2.f;
     const float usableHeightRatio = 1.f - BASE_SHOP_FRAME_INSET_RATIO_Y * 2.f;
 
@@ -1058,27 +1143,29 @@ void Shop::ItemWidget::refreshState()
         return;
     }
 
-    priceText.setString("Price: " + std::to_string(attachedItem->price) + " gold");
+    Localization::setText(priceText, (Localization::isRussian() ? Localization::tr("shop.price") : "Price") +
+        std::string(": ") + std::to_string(attachedItem->price) +
+        (Localization::isRussian() ? " золота" : " gold"));
 
     if(attachedItem->isPurchased())
     {
-        stateText.setString("Already purchased");
+        Localization::setText(stateText, Localization::isRussian() ? Localization::tr("shop.already_purchased") : "Already purchased");
         stateText.setFillColor(sf::Color(132, 231, 170));
-        hintText.setString("X - Close");
+        Localization::setText(hintText, Localization::isRussian() ? Localization::tr("shop.close_hint") : "X - Close");
     }
     else if(owner->player->canAfford(attachedItem->price))
     {
-        stateText.setString("You have enough gold");
+        Localization::setText(stateText, Localization::isRussian() ? Localization::tr("shop.enough_gold") : "You have enough gold");
         stateText.setFillColor(sf::Color(255, 215, 102));
-        hintText.setString(attachedItem->category == Item::Category::Weapon
-            ? "Z - Buy and equip    X - Close"
-            : "Z - Buy    X - Close");
+        Localization::setText(hintText, attachedItem->category == Item::Category::Weapon
+            ? (Localization::isRussian() ? Localization::tr("shop.buy_equip_hint") : "Z - Buy and equip    X - Close")
+            : (Localization::isRussian() ? Localization::tr("shop.buy_hint") : "Z - Buy    X - Close"));
     }
     else
     {
-        stateText.setString("Not enough gold");
+        Localization::setText(stateText, Localization::isRussian() ? Localization::tr("shop.not_enough_gold") : "Not enough gold");
         stateText.setFillColor(sf::Color(255, 135, 135));
-        hintText.setString("X - Close");
+        Localization::setText(hintText, Localization::isRussian() ? Localization::tr("shop.close_hint") : "X - Close");
     }
 
     updateLayout();
@@ -1095,35 +1182,58 @@ void Shop::ItemWidget::updateLayout()
     const float right = contentBounds.position.x + contentBounds.size.x;
     const float top = contentBounds.position.y;
     const float bottom = contentBounds.position.y + contentBounds.size.y;
-    const float iconColumnWidth = hasItemIcon ? std::min(BASE_SHOP_WIDGET_ICON_COLUMN_WIDTH, contentBounds.size.x * 0.35f) : 0.f;
-    const float textRight = hasItemIcon ? right - iconColumnWidth - 18.f : right;
-    const float textWidth = std::max(120.f, textRight - left);
+    const bool isWeapon = attachedItem != nullptr && attachedItem->category == Item::Category::Weapon;
+    const float maxIconColumnWidth = isWeapon ? 78.f : BASE_SHOP_WIDGET_ICON_COLUMN_WIDTH;
+    const float iconColumnRatio = isWeapon ? 0.26f : 0.35f;
+    const float iconColumnWidth = hasItemIcon ? std::min(maxIconColumnWidth, contentBounds.size.x * iconColumnRatio) : 0.f;
+    const float textRight = hasItemIcon ? right - iconColumnWidth - (isWeapon ? 10.f : 18.f) : right;
+    const float textWidth = std::max(isWeapon ? 190.f : 120.f, textRight - left);
     const float iconCenterX = right - iconColumnWidth / 2.f;
 
     if (attachedItem != nullptr)
     {
-        descriptionText.setString(wrapTextToWidth(attachedItem->description, descriptionText, textWidth));
+        Localization::setText(displayNameText, wrapTextToWidth(attachedItem->displayName, displayNameText, textWidth));
+        Localization::setText(descriptionText, wrapTextToWidth(attachedItem->description, descriptionText, textWidth));
     }
 
-    displayNameText.setPosition({left, top});
-    categoryText.setPosition({left, top + 34.f});
-    qualityText.setPosition({left, top + 58.f});
-    priceText.setPosition({left, top + 86.f});
-    descriptionText.setPosition({left, top + 120.f});
-    const float descriptionBottom =
-        descriptionText.getGlobalBounds().position.y + descriptionText.getGlobalBounds().size.y;
-    statsText.setPosition({left, std::max(top + 172.f, descriptionBottom + 18.f)});
+    const float smallGap = isWeapon ? 5.f : 7.f;
+    float cursorY = top;
 
-    const float statsBottom = statsText.getGlobalBounds().position.y + statsText.getGlobalBounds().size.y;
-    const float stateTop = std::max(bottom - 78.f, statsBottom + 22.f);
+    displayNameText.setPosition({left, cursorY});
+    cursorY = getTextBottom(displayNameText) + smallGap;
+
+    categoryText.setPosition({left, cursorY});
+    cursorY = getTextBottom(categoryText) + smallGap;
+
+    qualityText.setPosition({left, cursorY});
+    cursorY = getTextBottom(qualityText) + smallGap;
+
+    priceText.setPosition({left, cursorY});
+    cursorY = getTextBottom(priceText) + (isWeapon ? 9.f : 12.f);
+
+    descriptionText.setPosition({left, cursorY});
+    cursorY = getTextBottom(descriptionText) + (isWeapon ? 10.f : 16.f);
+
+    statsText.setPosition({left, cursorY});
+    float statsBottom = getTextBottom(statsText);
+    const float stateReserve = isWeapon ? 66.f : 78.f;
+    if (isWeapon && statsBottom > bottom - stateReserve - 8.f)
+    {
+        statsText.setCharacterSize(11);
+        statsText.setLineSpacing(0.88f);
+        statsText.setPosition({left, cursorY});
+        statsBottom = getTextBottom(statsText);
+    }
+
+    const float stateTop = std::min(bottom - stateReserve, std::max(statsBottom + 12.f, bottom - stateReserve));
     stateText.setPosition({left, stateTop});
-    hintText.setPosition({left, stateTop + 34.f});
+    hintText.setPosition({left, stateTop + (isWeapon ? 29.f : 34.f)});
 
     if(hasItemIcon)
     {
         itemIcon->setPosition({
             iconCenterX,
-            top + 78.f
+            top + (isWeapon ? 70.f : 78.f)
         });
     }
 }
@@ -1206,22 +1316,37 @@ bool Shop::ItemWidget::getIsOpened()
 void Shop::ItemWidget::attachItemStats(Item& item)
 {
     attachedItem = &item;
-    displayNameText.setString(item.displayName);
+    const bool isWeapon = item.category == Item::Category::Weapon;
+
+    background.setScale(isWeapon ? sf::Vector2f{9.4f, 7.45f} : BASE_SHOP_WIDGET_SPRITE_SCALE);
+    setSpriteOriginToMiddle(background);
+
+    displayNameText.setCharacterSize(isWeapon ? 19 : 23);
+    categoryText.setCharacterSize(isWeapon ? 13 : 15);
+    qualityText.setCharacterSize(isWeapon ? 14 : 17);
+    priceText.setCharacterSize(isWeapon ? 15 : 18);
+    statsText.setCharacterSize(isWeapon ? 12 : 16);
+    descriptionText.setCharacterSize(isWeapon ? 13 : 15);
+    stateText.setCharacterSize(isWeapon ? 15 : 18);
+    hintText.setCharacterSize(isWeapon ? 13 : 15);
+    statsText.setLineSpacing(isWeapon ? 0.9f : 1.f);
+
+    Localization::setText(displayNameText, item.displayName);
     displayNameText.setFillColor(sf::Color(245, 239, 227));
-    categoryText.setString(getCategoryLabel(item.category));
-    qualityText.setString(getQualityLabel(item.quality));
+    Localization::setText(categoryText, getCategoryLabel(item.category));
+    Localization::setText(qualityText, getQualityLabel(item.quality));
     qualityText.setFillColor(getQualityColor(item.quality));
     priceText.setFillColor(sf::Color(255, 215, 102));
-    statsText.setString(buildStatsText(item));
-    descriptionText.setString(item.description);
-    descriptionText.setLineSpacing(1.15f);
+    Localization::setText(statsText, buildStatsText(item));
+    Localization::setText(descriptionText, item.description);
+    descriptionText.setLineSpacing(isWeapon ? 1.05f : 1.15f);
 
     itemIcon = std::make_unique<sf::Sprite>(item.getTexture());
     setSpriteOriginToMiddle(*itemIcon);
     itemIcon->setColor(item.isPurchased() ? sf::Color(190, 190, 190, 220) : sf::Color::White);
 
     const sf::Vector2u textureSize = item.getTexture().getSize();
-    const sf::Vector2f maxIconSize = {76.f, 76.f};
+    const sf::Vector2f maxIconSize = isWeapon ? sf::Vector2f{58.f, 58.f} : sf::Vector2f{76.f, 76.f};
     const float scaleX = maxIconSize.x / static_cast<float>(textureSize.x);
     const float scaleY = maxIconSize.y / static_cast<float>(textureSize.y);
     const float iconScale = std::min(scaleX, scaleY);

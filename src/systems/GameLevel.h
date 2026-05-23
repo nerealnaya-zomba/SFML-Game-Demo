@@ -221,6 +221,7 @@ public:
 
     sf::Vector2i getLevelSize() const;
     sf::FloatRect getCameraBoundsForPosition(const sf::Vector2f& position) const;
+    bool isMiniLocationActive() const;
     bool enterMiniLocation(const std::string& id, std::optional<sf::Vector2f> returnSupportPoint = std::nullopt);
     void exitMiniLocation();
     sf::Vector2f exitMiniLocation(const sf::Vector2f& fallbackReturnSupportPoint);
@@ -290,6 +291,7 @@ public:
 
     sf::Vector2i getCurrentLevelSize() const;
     sf::FloatRect getCurrentCameraBoundsForPosition(const sf::Vector2f& position) const;
+    bool isCurrentMiniLocationActive() const;
     bool enterCurrentMiniLocation(const std::string& id, std::optional<sf::Vector2f> returnSupportPoint = std::nullopt);
     void exitCurrentMiniLocation();
     sf::Vector2f exitCurrentMiniLocation(const sf::Vector2f& fallbackReturnSupportPoint);

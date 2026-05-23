@@ -2,6 +2,7 @@
 #include <Defines.h>
 #include <DeveloperOverlay.h>
 #include <DeathScreen.h>
+#include <Localization.h>
 #include <NotificationFeed.h>
 #include <PlayerUI.h>
 #include <ScreenTransition.h>
@@ -300,16 +301,19 @@ int main(int argc, char** argv)
             player.playFadeInAnimation();
             syncMenuState();
             pushNotification(
-                "Gate opened",
-                levelManager.getLevelDisplayName(levelName) + " awaits.",
+                Localization::isRussian() ? "Врата открыты" : "Gate opened",
+                levelManager.getLevelDisplayName(levelName) +
+                    (Localization::isRussian() ? " ждет." : " awaits."),
                 NotificationTone::Success
             );
         }
         else
         {
             pushNotification(
-                "Gate sealed",
-                "That realm cannot be opened right now.",
+                Localization::isRussian() ? "Врата запечатаны" : "Gate sealed",
+                Localization::isRussian()
+                    ? "Эту область сейчас нельзя открыть."
+                    : "That realm cannot be opened right now.",
                 NotificationTone::Warning
             );
         }
@@ -322,21 +326,22 @@ int main(int argc, char** argv)
 
     syncMenuState();
     menu.openMainMenu();
-    if (requestedLevelIdentifier.has_value() && startLevelByNameInternal(*requestedLevelIdentifier, true))
-    {
-        menu.close();
-    }
-
     developerOverlay.setActions(DeveloperOverlayActions{
         .onRestoreVitals = [&]() {
             player.restoreVitalResources();
-            pushNotification("Ritual Console", "Vital resources restored.", NotificationTone::Success);
+            pushNotification(
+                Localization::isRussian() ? "Консоль ритуала" : "Ritual Console",
+                Localization::isRussian() ? "Жизненные ресурсы восстановлены." : "Vital resources restored.",
+                NotificationTone::Success
+            );
         },
         .onGrantGold = [&](int amount) {
             player.addGold(amount);
             pushNotification(
-                "Ritual Console",
-                "Granted " + std::to_string(amount) + " grave-gold.",
+                Localization::isRussian() ? "Консоль ритуала" : "Ritual Console",
+                Localization::isRussian()
+                    ? "Выдано " + std::to_string(amount) + " могильного золота."
+                    : "Granted " + std::to_string(amount) + " grave-gold.",
                 NotificationTone::Success
             );
         },
@@ -346,7 +351,11 @@ int main(int argc, char** argv)
                 hasActiveRun = true;
                 player.playFadeInAnimation();
                 syncMenuState();
-                pushNotification("Ritual Console", "Current realm reloaded.", NotificationTone::Info);
+                pushNotification(
+                    Localization::isRussian() ? "Консоль ритуала" : "Ritual Console",
+                    Localization::isRussian() ? "Текущая область перезагружена." : "Current realm reloaded.",
+                    NotificationTone::Info
+                );
             }
         },
         .onRespawnAtSpawn = [&]() {
@@ -355,7 +364,11 @@ int main(int argc, char** argv)
                 hasActiveRun = true;
                 player.playFadeInAnimation();
                 syncMenuState();
-                pushNotification("Ritual Console", "Respawned at the current checkpoint.", NotificationTone::Info);
+                pushNotification(
+                    Localization::isRussian() ? "Консоль ритуала" : "Ritual Console",
+                    Localization::isRussian() ? "Возрождение на текущей контрольной точке." : "Respawned at the current checkpoint.",
+                    NotificationTone::Info
+                );
             }
         },
         .onReturnToBase = [&]() {
@@ -364,7 +377,11 @@ int main(int argc, char** argv)
             hasActiveRun = true;
             player.playFadeInAnimation();
             syncMenuState();
-            pushNotification("Ritual Console", "Returned to the level base.", NotificationTone::Info);
+            pushNotification(
+                Localization::isRussian() ? "Консоль ритуала" : "Ritual Console",
+                Localization::isRussian() ? "Возврат к базе уровня." : "Returned to the level base.",
+                NotificationTone::Info
+            );
         },
         .onGoToLevel = [&](const std::string& levelName) {
             return startLevelByName(levelName);
@@ -374,16 +391,19 @@ int main(int argc, char** argv)
             window.setVerticalSyncEnabled(enabled);
             window.setFramerateLimit(enabled ? 0u : WINDOW_FPS);
             pushNotification(
-                "Ritual Console",
-                enabled ? "VSync enabled." : "VSync disabled.",
+                Localization::isRussian() ? "Консоль ритуала" : "Ritual Console",
+                enabled
+                    ? (Localization::isRussian() ? Localization::tr("settings.vsync_enabled") : "VSync enabled.")
+                    : (Localization::isRussian() ? Localization::tr("settings.vsync_disabled") : "VSync disabled."),
                 NotificationTone::Info
             );
         },
         .onSetMenuParticleCount = [&](int count) {
             gameData->setMenuParticleCount(count);
             pushNotification(
-                "Ritual Console",
-                std::string("Menu ash density: ") + getAshDensityLabel(count) + ".",
+                Localization::isRussian() ? "Консоль ритуала" : "Ritual Console",
+                (Localization::isRussian() ? Localization::tr("settings.ash_saved") : "Menu ash density") +
+                    std::string(": ") + getAshDensityLabel(count) + ".",
                 NotificationTone::Info
             );
         }
@@ -393,14 +413,20 @@ int main(int argc, char** argv)
         .onResumeGame = [&]() {
             player.playFadeInAnimation();
         },
-        .onStartSelectedLevel = startLevelByName,
+        .onStartSelectedLevel = [&](const std::string&) {
+            return startLevelByNameInternal("level1.json", true);
+        },
         .onRestartCurrentLevel = [&]() {
             const bool restarted = hasActiveRun && levelManager.restartCurrentLevel();
             if (restarted)
             {
                 player.playFadeInAnimation();
                 syncMenuState();
-                pushNotification("Run reset", "The current realm has been restarted.", NotificationTone::Info);
+                pushNotification(
+                    Localization::isRussian() ? "Забег сброшен" : "Run reset",
+                    Localization::isRussian() ? "Текущая область перезапущена." : "The current realm has been restarted.",
+                    NotificationTone::Info
+                );
             }
             return restarted;
         },
@@ -420,8 +446,10 @@ int main(int argc, char** argv)
             resetViewForMenu(window, view);
             syncMenuState();
             pushNotification(
-                "Progress reset",
-                "Gold, relics and unlocked gates were returned to the first rite.",
+                Localization::isRussian() ? "Прогресс сброшен" : "Progress reset",
+                Localization::isRussian()
+                    ? "Золото, реликвии и открытые врата возвращены к первому ритуалу."
+                    : "Gold, relics and unlocked gates were returned to the first rite.",
                 NotificationTone::Warning
             );
             return true;

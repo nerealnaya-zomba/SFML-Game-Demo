@@ -55,8 +55,8 @@
                 0.18
             ],
             "Position": [
-                558.6538696289063,
-                973.8294067382813
+                559.9488525390625,
+                976.4193725585938
             ],
             "Rotation": 3.0,
             "Scale": [
@@ -128,7 +128,7 @@
             ],
             "Position": [
                 1402.456787109375,
-                880.5118408203125
+                879.3273315429688
             ],
             "Scale": [
                 0.30000001192092896,
@@ -344,10 +344,10 @@
                     ],
                     "Id": "left_barrier",
                     "Rect": [
-                        -18.0,
-                        -90.0,
-                        22.0,
-                        520.0
+                        -255.826171875,
+                        -231.6563720703125,
+                        29.7978515625,
+                        805.9119873046875
                     ]
                 },
                 {
@@ -368,10 +368,10 @@
                     ],
                     "Id": "right_barrier",
                     "Rect": [
-                        938.0,
-                        -90.0,
-                        22.0,
-                        520.0
+                        1153.7333984375,
+                        -230.35678100585938,
+                        27.1982421875,
+                        807.2116088867188
                     ]
                 }
             ],
@@ -405,10 +405,10 @@
                     ],
                     "Id": "legacy_hazard",
                     "Rect": [
-                        -8.0,
-                        412.0,
-                        976.0,
-                        96.0
+                        -223.7333984375,
+                        487.3509521484375,
+                        1374.9775390625,
+                        93.4007568359375
                     ]
                 }
             ],
@@ -443,21 +443,22 @@
                         204,
                         162
                     ],
+                    "EditorDrawOrder": 24,
                     "EditorId": "decoration_2",
                     "Name": "MossyHills_06.png",
                     "ParallaxFactor": [
-                        1.0,
-                        1.0
+                        0.5199999809265137,
+                        0.5199999809265137
                     ],
                     "Position": [
-                        461.2431640625,
-                        352.0
+                        326.8916015625,
+                        523.5316772460938
                     ],
                     "Scale": [
-                        0.8399999737739563,
-                        0.8399999737739563
+                        0.9909912347793579,
+                        0.9592071175575256
                     ],
-                    "Z": -3
+                    "Z": -13
                 },
                 {
                     "Color": [
@@ -466,15 +467,16 @@
                         188,
                         204
                     ],
+                    "EditorDrawOrder": 24,
                     "EditorId": "decoration_3",
                     "Name": "MossyHangingPlants_01.png",
                     "ParallaxFactor": [
-                        1.0,
-                        1.0
+                        0.5,
+                        0.5
                     ],
                     "Position": [
-                        460.0,
-                        16.56964111328125
+                        555.1005859375,
+                        -16.026123046875
                     ],
                     "Scale": [
                         0.5799999833106995,
@@ -489,6 +491,7 @@
                         255,
                         220
                     ],
+                    "EditorDrawOrder": 25,
                     "EditorId": "decoration_4",
                     "Name": "MossyDecorationHazard_03.png",
                     "ParallaxFactor": [
@@ -496,35 +499,12 @@
                         1.0
                     ],
                     "Position": [
-                        86.0,
-                        308.0
+                        272.9921875,
+                        321.666015625
                     ],
                     "Scale": [
                         0.2199999988079071,
                         0.2199999988079071
-                    ],
-                    "Z": 1
-                },
-                {
-                    "Color": [
-                        255,
-                        255,
-                        255,
-                        216
-                    ],
-                    "EditorId": "decoration_5",
-                    "Name": "MossyDecorationHazard_19.png",
-                    "ParallaxFactor": [
-                        1.0,
-                        1.0
-                    ],
-                    "Position": [
-                        840.0,
-                        312.0
-                    ],
-                    "Scale": [
-                        0.20000000298023224,
-                        0.20000000298023224
                     ],
                     "Z": 1
                 }
@@ -577,8 +557,8 @@
                 ],
                 "InteractRadius": 126.0,
                 "Position": [
-                    9735.8564453125,
-                    735.4395141601563
+                    9751.4521484375,
+                    728.9414672851563
                 ],
                 "Prompt": "Enter to return",
                 "Scale": [
@@ -591,52 +571,31 @@
             "Interactives": [],
             "Platforms": [
                 {
+                    "BounceEnabled": false,
                     "EditorId": "platform_1",
                     "Position": [
-                        92.0,
-                        318.0
+                        23.12109375,
+                        398.5751953125
                     ],
                     "Type": "Quadruple"
                 },
                 {
+                    "BounceEnabled": false,
                     "EditorId": "platform_2",
                     "Position": [
-                        392.0,
-                        316.5279541015625
+                        384.333984375,
+                        398.97869873046875
                     ],
                     "Type": "Quadruple"
                 },
                 {
+                    "BounceEnabled": false,
                     "EditorId": "platform_3",
                     "Position": [
-                        668.0,
-                        318.0
+                        730.1708984375,
+                        398.7225341796875
                     ],
                     "Type": "Quadruple"
-                },
-                {
-                    "EditorId": "platform_4",
-                    "Position": [
-                        10.6396484375,
-                        170.11181640625
-                    ],
-                    "Type": "Crypt-pillar"
-                },
-                {
-                    "EditorId": "platform_5",
-                    "Position": [
-                        875.857421875,
-                        174.5279541015625
-                    ],
-                    "Type": "Crypt-pillar"
-                },
-                {
-                    "EditorId": "platform_6",
-                    "Position": [
-                        295.5341796875,
-                        60.08612060546875
-                    ],
-                    "Type": "Fallen-arcade"
                 },
                 {
                     "EditorId": "platform_7",
@@ -650,7 +609,7 @@
                     "EditorId": "platform_8",
                     "Position": [
                         664.423828125,
-                        188.68341064453125
+                        187.3837890625
                     ],
                     "Type": "Double-horizontal-1"
                 }
@@ -691,7 +650,7 @@
         {
             "EditorDrawOrder": 33,
             "Position": [
-                255.20135498046875,
+                255.84884643554688,
                 679.6024780273438
             ],
             "Scale": [
@@ -703,8 +662,8 @@
         {
             "EditorDrawOrder": 34,
             "Position": [
-                1572.9578857421875,
-                763.714599609375
+                1549.4312744140625,
+                764.6556396484375
             ],
             "Scale": [
                 0.20000000298023224,
@@ -715,8 +674,8 @@
         {
             "EditorDrawOrder": 35,
             "Position": [
-                1237.7283935546875,
-                545.5107421875
+                1214.734375,
+                621.3746948242188
             ],
             "Scale": [
                 0.20000000298023224,
@@ -727,8 +686,8 @@
         {
             "EditorDrawOrder": 36,
             "Position": [
-                1568.0814208984375,
-                482.1218566894531
+                1571.635009765625,
+                566.2252197265625
             ],
             "Scale": [
                 0.20000000298023224,
@@ -778,7 +737,40 @@
             "Type": "Single-square"
         }
     ],
-    "Portals": [],
+    "Portals": [
+        {
+            "AccentColor": [
+                112,
+                208,
+                255,
+                255
+            ],
+            "Color": [
+                212,
+                236,
+                255,
+                245
+            ],
+            "EditorDrawOrder": 40,
+            "Id": "portal_1",
+            "InteractRadius": 130.0,
+            "PortalTexture": "portalViolet",
+            "Position": [
+                1590.1875,
+                491.6968078613281
+            ],
+            "Prompt": "Enter portal",
+            "Scale": [
+                1.0,
+                1.0
+            ],
+            "Target": {
+                "MiniLocationId": "mini_location_1",
+                "Type": "MiniLocation"
+            },
+            "Title": "Portal 1"
+        }
+    ],
     "Presets": {
         "ActorDrawOrder": 30,
         "BackgroundTheme": "VerdantDawn",
@@ -787,14 +779,14 @@
         "MainWorldWidth": 1920,
         "MenuOrder": 1,
         "PlayerSpawn": [
-            200,
-            900
+            182.90777587890625,
+            880.9511108398438
         ],
         "Size": [
-            1920,
+            10780,
             1080
         ],
-        "Title": "Dark Gate Sanctuary",
+        "Title": "Ashwake Causeway",
         "TraderPosition": [
             933.06787109375,
             729.8153076171875

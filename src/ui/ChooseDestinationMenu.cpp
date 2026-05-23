@@ -2,6 +2,7 @@
 #include <GameCamera.h>
 #include <GameData.h>
 #include <GameLevel.h>
+#include <Localization.h>
 #include <Player.h>
 
 #include <algorithm>
@@ -106,7 +107,7 @@ std::string formatLevelDisplayName(const std::string& rawLevelName)
 
     if (baseName.rfind("level", 0) == 0 && levelIndex > 0)
     {
-        return "Level " + toRoman(levelIndex);
+        return (Localization::isRussian() ? Localization::tr("destination.level") : std::string("Level")) + " " + toRoman(levelIndex);
     }
 
     return titleCase(baseName);
@@ -158,6 +159,73 @@ void configureText(sf::Text& text, unsigned int size, sf::Color color, float let
     text.setCharacterSize(size);
     text.setFillColor(color);
     text.setLetterSpacing(letterSpacing);
+}
+
+std::string wrapTextToPixelWidth(const sf::Text& prototype, const std::string& source, const float maxWidth)
+{
+    if (source.empty() || maxWidth <= 0.f)
+    {
+        return source;
+    }
+
+    sf::Text probe(prototype);
+    std::istringstream words(source);
+    std::ostringstream wrapped;
+    std::string word;
+    std::string line;
+    bool firstLine = true;
+
+    auto widthOf = [&](const std::string& value) {
+        Localization::setText(probe, value);
+        return probe.getLocalBounds().size.x;
+    };
+
+    while (words >> word)
+    {
+        const std::string candidate = line.empty() ? word : line + " " + word;
+        if (!line.empty() && widthOf(candidate) > maxWidth)
+        {
+            if (!firstLine)
+            {
+                wrapped << '\n';
+            }
+            wrapped << line;
+            firstLine = false;
+            line = word;
+        }
+        else
+        {
+            line = candidate;
+        }
+    }
+
+    if (!line.empty())
+    {
+        if (!firstLine)
+        {
+            wrapped << '\n';
+        }
+        wrapped << line;
+    }
+
+    return wrapped.str();
+}
+
+float textBottom(const sf::Text& text)
+{
+    const sf::FloatRect bounds = text.getGlobalBounds();
+    return bounds.position.y + bounds.size.y;
+}
+
+void setWrappedText(sf::Text& text, const std::string& source, const float maxWidth)
+{
+    Localization::setText(text, wrapTextToPixelWidth(text, source, maxWidth));
+}
+
+std::string toUtf8String(const sf::String& value)
+{
+    const auto bytes = value.toUtf8();
+    return std::string(bytes.begin(), bytes.end());
 }
 }
 
@@ -242,21 +310,29 @@ ChooseDestinationMenu::ChooseDestinationMenu(
         throw std::runtime_error("Font not loaded");
     }
 
-    configureText(titleText, 38, sf::Color(236, 224, 205, 255), 1.08f);
+    configureText(titleText, 30, sf::Color(236, 224, 205, 255), 1.02f);
     titleText.setStyle(sf::Text::Bold);
-    titleText.setString("CHOOSE DESTINATION");
+    Localization::setText(titleText, Localization::isRussian() ? Localization::tr("destination.title") : "CHOOSE DESTINATION");
 
-    configureText(subtitleText, 18, sf::Color(182, 149, 118, 235), 1.16f);
-    subtitleText.setString("Follow the trader's marks, open routes, then unlock the Dark Gate.");
+    configureText(subtitleText, 14, sf::Color(182, 149, 118, 235), 1.f);
+    subtitleText.setLineSpacing(1.18f);
+    Localization::setText(subtitleText, Localization::isRussian()
+        ? Localization::tr("destination.subtitle")
+        : "Follow the trader's marks, open routes, then unlock the Dark Gate.");
 
     configureText(displayingLevelName, 34, sf::Color(244, 230, 210, 255), 1.02f);
     displayingLevelName.setStyle(sf::Text::Bold);
 
-    configureText(destinationStateText, 20, sf::Color(196, 173, 153, 245), 1.02f);
-    configureText(destinationDescriptionText, 18, sf::Color(154, 138, 128, 232), 1.01f);
-    destinationDescriptionText.setString("Choose where the red gate will answer your call.");
+    configureText(destinationStateText, 18, sf::Color(196, 173, 153, 245), 1.01f);
+    destinationStateText.setLineSpacing(1.12f);
+    configureText(destinationDescriptionText, 16, sf::Color(154, 138, 128, 232), 1.f);
+    destinationDescriptionText.setLineSpacing(1.16f);
+    Localization::setText(destinationDescriptionText, Localization::isRussian()
+        ? Localization::tr("destination.default_description")
+        : "Choose where the red gate will answer your call.");
 
-    configureText(legendText, 17, sf::Color(148, 132, 123, 224), 1.02f);
+    configureText(legendText, 14, sf::Color(148, 132, 123, 224), 1.f);
+    legendText.setLineSpacing(1.12f);
 
     updateDisplayedTexts();
 }
@@ -419,7 +495,7 @@ void ChooseDestinationMenu::drawLevelDestinationsLevels(sf::RenderWindow& window
         sf::Text badge(*data->gameFont);
         configureText(badge, 16, sf::Color(238, 223, 205, 240), 1.02f);
         badge.setStyle(sf::Text::Bold);
-        badge.setString(formatLevelBadge(level.leveldestination.level->levelName));
+        Localization::setText(badge, formatLevelBadge(level.leveldestination.level->levelName));
 
         const sf::Vector2f cardPosition = level.selectionRect.getPosition();
         const sf::Vector2f cardSize = level.selectionRect.getSize();
@@ -441,9 +517,9 @@ void ChooseDestinationMenu::update()
 
     animationTime += 1.f / static_cast<float>(WINDOW_FPS);
     syncUnlockedStates();
-    positioningLevelDestinations();
     checkWherePlayer();
     updateDisplayedTexts();
+    positioningLevelDestinations();
 }
 
 void ChooseDestinationMenu::draw(sf::RenderWindow& w)
@@ -603,7 +679,7 @@ void ChooseDestinationMenu::mountCurrentLevelMarkRect(sf::RectangleShape& sr, co
 
 void ChooseDestinationMenu::setDisplayingLevelNameString(const std::string& str)
 {
-    displayingLevelName.setString(str);
+    Localization::setText(displayingLevelName, str);
 }
 
 void ChooseDestinationMenu::applyIconScale(sf::Sprite& icon)
@@ -697,11 +773,11 @@ void ChooseDestinationMenu::positioningLevelDestinationsBackground()
 
     panelSize = {
         std::min(viewSize.x - 150.f, 1180.f),
-        std::min(viewSize.y - 110.f, 420.f)
+        std::clamp(viewSize.y - 70.f, 440.f, 500.f)
     };
     panelPosition = {
         viewCenter.x - panelSize.x / 2.f,
-        viewTopLeft.y + BASE_DESTINATION_BACKGROUND_TOPMARGIN
+        viewTopLeft.y + 18.f
     };
 
     panelShadow.setPosition({panelPosition.x, panelPosition.y + 12.f});
@@ -714,18 +790,18 @@ void ChooseDestinationMenu::positioningLevelDestinationsBackground()
     panelFrame.setOutlineThickness(2.f);
     panelFrame.setOutlineColor(sf::Color(137, 96, 71, 220));
 
-    panelInset.setPosition({panelPosition.x + 14.f, panelPosition.y + 50.f});
-    panelInset.setSize({panelSize.x - 28.f, panelSize.y - 64.f});
+    panelInset.setPosition({panelPosition.x + 14.f, panelPosition.y + 70.f});
+    panelInset.setSize({panelSize.x - 28.f, panelSize.y - 92.f});
     panelInset.setFillColor(sf::Color(9, 6, 8, 156));
     panelInset.setOutlineThickness(1.f);
     panelInset.setOutlineColor(sf::Color(82, 42, 36, 170));
 
     titleBand.setPosition({panelPosition.x + 14.f, panelPosition.y + 12.f});
-    titleBand.setSize({panelSize.x - 28.f, 34.f});
+    titleBand.setSize({panelSize.x - 28.f, 54.f});
     titleBand.setFillColor(sf::Color(52, 13, 15, 220));
 
-    footerBand.setPosition({panelPosition.x + 16.f, panelPosition.y + panelSize.y - 62.f});
-    footerBand.setSize({panelSize.x - 32.f, 34.f});
+    footerBand.setPosition({panelPosition.x + 16.f, panelPosition.y + panelSize.y - 98.f});
+    footerBand.setSize({panelSize.x - 32.f, 86.f});
     footerBand.setFillColor(sf::Color(14, 10, 11, 185));
 
     previewSize = {
@@ -734,7 +810,7 @@ void ChooseDestinationMenu::positioningLevelDestinationsBackground()
     };
     previewPosition = {
         panelPosition.x + 28.f,
-        panelPosition.y + 72.f
+        panelPosition.y + 92.f
     };
 
     previewFrame.setPosition(previewPosition);
@@ -767,7 +843,7 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
     const float cardHeight = std::clamp(cardWidth * 0.58f, 64.f, 86.f);
     const float totalWidth = cardWidth * static_cast<float>(levels.size()) + gap * static_cast<float>(levels.size() - 1);
     const float startX = panelPosition.x + (panelSize.x - totalWidth) / 2.f;
-    const float rowY = panelPosition.y + panelSize.y - 156.f;
+    const float rowY = footerBand.getPosition().y - cardHeight - 16.f;
 
     for (std::size_t index = 0; index < levels.size(); ++index)
     {
@@ -809,16 +885,51 @@ void ChooseDestinationMenu::positioningLevelDestinationsLevels()
 
 void ChooseDestinationMenu::positioningLevelDestinationsText()
 {
-    titleText.setPosition({panelPosition.x + 38.f, panelPosition.y + 14.f});
-    subtitleText.setPosition({panelPosition.x + 38.f, panelPosition.y + 52.f});
+    const float titleWidth = std::max(220.f, panelSize.x - 76.f);
+    const float rightColumnX = previewPosition.x + previewSize.x + 42.f;
+    const float rightColumnWidth = std::max(220.f, panelPosition.x + panelSize.x - rightColumnX - 38.f);
+    const float footerTop = footerBand.getPosition().y;
+    const float legendWidth = std::max(260.f, panelSize.x - 56.f);
 
-    displayingLevelName.setPosition({previewPosition.x + previewSize.x + 42.f, previewPosition.y + 12.f});
-    destinationStateText.setPosition({displayingLevelName.getPosition().x, displayingLevelName.getPosition().y + 52.f});
-    destinationDescriptionText.setPosition({
-        displayingLevelName.getPosition().x,
-        displayingLevelName.getPosition().y + 94.f
-    });
-    legendText.setPosition({panelPosition.x + 28.f, panelPosition.y + panelSize.y - 58.f});
+    setWrappedText(
+        subtitleText,
+        Localization::isRussian()
+            ? Localization::tr("destination.subtitle")
+            : "Follow the trader's marks, open routes, then unlock the Dark Gate.",
+        titleWidth
+    );
+    Localization::setText(displayingLevelName, wrapTextToPixelWidth(
+        displayingLevelName,
+        toUtf8String(displayingLevelName.getString()),
+        rightColumnWidth
+    ));
+    Localization::setText(destinationStateText, wrapTextToPixelWidth(
+        destinationStateText,
+        toUtf8String(destinationStateText.getString()),
+        rightColumnWidth
+    ));
+    Localization::setText(destinationDescriptionText, wrapTextToPixelWidth(
+        destinationDescriptionText,
+        toUtf8String(destinationDescriptionText.getString()),
+        rightColumnWidth
+    ));
+    Localization::setText(legendText, wrapTextToPixelWidth(
+        legendText,
+        toUtf8String(legendText.getString()),
+        legendWidth
+    ));
+
+    titleText.setPosition({panelPosition.x + 38.f, panelPosition.y + 12.f});
+    subtitleText.setPosition({panelPosition.x + 38.f, textBottom(titleText) + 5.f});
+
+    float cursorY = previewPosition.y + 10.f;
+    displayingLevelName.setPosition({rightColumnX, cursorY});
+    cursorY = textBottom(displayingLevelName) + 10.f;
+    destinationStateText.setPosition({rightColumnX, cursorY});
+    cursorY = textBottom(destinationStateText) + 10.f;
+    destinationDescriptionText.setPosition({rightColumnX, cursorY});
+
+    legendText.setPosition({panelPosition.x + 28.f, footerTop + 7.f});
 }
 
 void ChooseDestinationMenu::syncUnlockedStates()
@@ -857,10 +968,14 @@ void ChooseDestinationMenu::updateDisplayedTexts()
 {
     if (levels.empty() || levelIt == levels.end())
     {
-        setDisplayingLevelNameString("No destinations revealed");
-        destinationStateText.setString("The gate has nowhere to answer.");
-        destinationDescriptionText.setString("Complete the trader's tasks and new routes will reveal themselves here.");
-        legendText.setString("Open a route in the world before you can bind the portal.");
+        setDisplayingLevelNameString(Localization::isRussian() ? Localization::tr("destination.none_title") : "No destinations revealed");
+        Localization::setText(destinationStateText, Localization::isRussian() ? Localization::tr("destination.none_state") : "The gate has nowhere to answer.");
+        Localization::setText(destinationDescriptionText, Localization::isRussian()
+            ? Localization::tr("destination.none_body")
+            : "Complete the trader's tasks and new routes will reveal themselves here.");
+        Localization::setText(legendText, Localization::isRussian()
+            ? Localization::tr("destination.none_legend")
+            : "Open a route in the world before you can bind the portal.");
         return;
     }
 
@@ -872,10 +987,12 @@ void ChooseDestinationMenu::updateDisplayedTexts()
         : destination.level->levelTitle;
     const std::string description = hasCampaignInfo
         ? levelInfo.description
-        : "A custom route prepared in the level editor.";
+        : (Localization::isRussian() ? Localization::tr("destination.custom_route") : "A custom route prepared in the level editor.");
     const std::string farmingFocus = hasCampaignInfo
         ? levelInfo.farmingFocus
-        : "Best for: testing layouts, encounters and pocket locations.";
+        : (Localization::isRussian()
+            ? Localization::tr("destination.custom_focus")
+            : "Best for: testing layouts, encounters and pocket locations.");
 
     setDisplayingLevelNameString(displayTitle);
 
@@ -883,31 +1000,57 @@ void ChooseDestinationMenu::updateDisplayedTexts()
     if (!destination.isOpened)
     {
         stateText = "Sealed route  •  the covenant still rejects this gate";
-        destinationDescriptionText.setString(description + "\n" + player->getLevelUnlockHint(destination.level->levelName));
+        Localization::setText(destinationDescriptionText, description + "\n" + player->getLevelUnlockHint(destination.level->levelName));
     }
     else if (destination.isPlayerThere && destination.isChoosed)
     {
         stateText = "Current ground  •  portal already attuned";
-        destinationDescriptionText.setString(description + "\n" + farmingFocus);
+        Localization::setText(destinationDescriptionText, description + "\n" + farmingFocus);
     }
     else if (destination.isPlayerThere)
     {
         stateText = "Current ground";
-        destinationDescriptionText.setString(description + "\n" + farmingFocus);
+        Localization::setText(destinationDescriptionText, description + "\n" + farmingFocus);
     }
     else if (destination.isChoosed)
     {
         stateText = "Portal attuned to this destination";
-        destinationDescriptionText.setString(description + "\n" + farmingFocus);
+        Localization::setText(destinationDescriptionText, description + "\n" + farmingFocus);
     }
     else
     {
         stateText = "Unbound destination";
-        destinationDescriptionText.setString(description + "\n" + farmingFocus);
+        Localization::setText(destinationDescriptionText, description + "\n" + farmingFocus);
     }
 
-    destinationStateText.setString(stateText);
-    legendText.setString("Ash mark: current ground   •   Ember mark: portal binding   •   Sealed cards: story-locked");
+    if (Localization::isRussian())
+    {
+        if (!destination.isOpened)
+        {
+            stateText = Localization::tr("destination.sealed");
+        }
+        else if (destination.isPlayerThere && destination.isChoosed)
+        {
+            stateText = Localization::tr("destination.current_bound");
+        }
+        else if (destination.isPlayerThere)
+        {
+            stateText = Localization::tr("destination.current");
+        }
+        else if (destination.isChoosed)
+        {
+            stateText = Localization::tr("destination.bound");
+        }
+        else
+        {
+            stateText = Localization::tr("destination.unbound");
+        }
+    }
+
+    Localization::setText(destinationStateText, stateText);
+    Localization::setText(legendText, Localization::isRussian()
+        ? Localization::tr("destination.legend")
+        : "Ash mark: current ground   |   Ember mark: portal binding   |   Sealed cards: story-locked");
 }
 
 void ChooseDestinationMenu::drawLevelDestinationsText(sf::RenderWindow& window)
@@ -924,39 +1067,67 @@ void ChooseDestinationMenu::drawLevelDestinationsText(sf::RenderWindow& window)
 void ChooseDestinationMenu::drawControlHints(sf::RenderWindow& window)
 {
     const std::vector<std::pair<std::string, std::string>> hints = {
-        {scanToLabel(moveLeftKey) + " / " + scanToLabel(moveRightKey), "Cycle routes"},
-        {scanToLabel(selectKey), "Attune portal"},
-        {scanToLabel(closeKey) + " / Esc", "Close menu"}
+        {scanToLabel(moveLeftKey) + " / " + scanToLabel(moveRightKey), Localization::isRussian() ? Localization::tr("destination.cycle") : "Cycle routes"},
+        {scanToLabel(selectKey), Localization::isRussian() ? Localization::tr("destination.attune") : "Attune portal"},
+        {scanToLabel(closeKey) + " / Esc", Localization::isRussian() ? Localization::tr("destination.close") : "Close menu"}
     };
 
-    float currentX = panelPosition.x + panelSize.x - 34.f;
-    const float baseY = panelPosition.y + panelSize.y - 46.f;
+    struct HintChip
+    {
+        std::string key;
+        std::string action;
+        float width = 0.f;
+    };
 
-    for (auto hintIt = hints.rbegin(); hintIt != hints.rend(); ++hintIt)
+    std::vector<HintChip> chips;
+    chips.reserve(hints.size());
+    float totalWidth = 0.f;
+    for (const auto& hint : hints)
     {
         sf::Text actionText(*data->gameFont);
-        configureText(actionText, 16, sf::Color(215, 202, 188, 235), 1.01f);
-        actionText.setString(hintIt->second);
-        const auto actionBounds = actionText.getLocalBounds();
+        configureText(actionText, 15, sf::Color(215, 202, 188, 235), 1.f);
+        Localization::setText(actionText, hint.second);
 
         sf::Text keyText(*data->gameFont);
-        configureText(keyText, 16, sf::Color(248, 230, 202, 255), 1.03f);
+        configureText(keyText, 15, sf::Color(248, 230, 202, 255), 1.f);
         keyText.setStyle(sf::Text::Bold);
-        keyText.setString(hintIt->first);
+        Localization::setText(keyText, hint.first);
+
+        const float chipWidth = 30.f + keyText.getLocalBounds().size.x + 14.f + actionText.getLocalBounds().size.x;
+        chips.push_back({hint.first, hint.second, chipWidth});
+        totalWidth += chipWidth;
+    }
+
+    const float chipGap = 10.f;
+    totalWidth += chipGap * static_cast<float>(chips.empty() ? 0 : chips.size() - 1);
+    const float footerLeft = panelPosition.x + 28.f;
+    const float footerRight = panelPosition.x + panelSize.x - 28.f;
+    const float footerWidth = footerRight - footerLeft;
+    const bool splitRows = totalWidth > footerWidth;
+    const float chipHeight = 22.f;
+    const float rowGap = 4.f;
+    const float firstRowY = footerBand.getPosition().y + (splitRows ? 34.f : 54.f);
+
+    auto drawChip = [&](const HintChip& hint, const sf::Vector2f position) {
+        sf::Text actionText(*data->gameFont);
+        configureText(actionText, 15, sf::Color(215, 202, 188, 235), 1.f);
+        Localization::setText(actionText, hint.action);
+
+        sf::Text keyText(*data->gameFont);
+        configureText(keyText, 15, sf::Color(248, 230, 202, 255), 1.f);
+        keyText.setStyle(sf::Text::Bold);
+        Localization::setText(keyText, hint.key);
         const auto keyBounds = keyText.getLocalBounds();
 
-        const float chipWidth = 34.f + keyBounds.size.x + 18.f + actionBounds.size.x;
-        currentX -= chipWidth;
-
-        sf::RectangleShape chip({chipWidth, 24.f});
-        chip.setPosition({currentX, baseY});
+        sf::RectangleShape chip({hint.width, chipHeight});
+        chip.setPosition(position);
         chip.setFillColor(sf::Color(21, 15, 17, 218));
         chip.setOutlineThickness(1.f);
         chip.setOutlineColor(sf::Color(98, 65, 52, 215));
         window.draw(chip);
 
-        sf::RectangleShape keyPlate({keyBounds.size.x + 16.f, 18.f});
-        keyPlate.setPosition({currentX + 8.f, baseY + 3.f});
+        sf::RectangleShape keyPlate({keyBounds.size.x + 14.f, 16.f});
+        keyPlate.setPosition({position.x + 7.f, position.y + 3.f});
         keyPlate.setFillColor(sf::Color(71, 23, 19, 240));
         keyPlate.setOutlineThickness(1.f);
         keyPlate.setOutlineColor(sf::Color(171, 126, 95, 215));
@@ -964,14 +1135,36 @@ void ChooseDestinationMenu::drawControlHints(sf::RenderWindow& window)
 
         keyText.setPosition({
             keyPlate.getPosition().x + keyPlate.getSize().x / 2.f,
-            keyPlate.getPosition().y + 8.f
+            keyPlate.getPosition().y + 7.f
         });
         setTextOriginToMiddle(keyText);
         window.draw(keyText);
 
-        actionText.setPosition({keyPlate.getPosition().x + keyPlate.getSize().x + 10.f, baseY + 3.f});
+        actionText.setPosition({keyPlate.getPosition().x + keyPlate.getSize().x + 8.f, position.y + 2.f});
         window.draw(actionText);
+    };
 
-        currentX -= 12.f;
+    if (!splitRows)
+    {
+        float currentX = footerRight - totalWidth;
+        for (const auto& chip : chips)
+        {
+            drawChip(chip, {currentX, firstRowY});
+            currentX += chip.width + chipGap;
+        }
+        return;
+    }
+
+    float currentX = footerLeft;
+    float currentY = firstRowY;
+    for (const auto& chip : chips)
+    {
+        if (currentX > footerLeft && currentX + chip.width > footerRight)
+        {
+            currentX = footerLeft;
+            currentY += chipHeight + rowGap;
+        }
+        drawChip(chip, {currentX, currentY});
+        currentX += chip.width + chipGap;
     }
 }

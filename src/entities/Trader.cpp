@@ -1,44 +1,56 @@
 #include<Trader.h>
 
 #include <GameCamera.h>
+#include <Localization.h>
 
 #include <sstream>
 
 namespace
 {
-std::string wrapTraderDialogue(const std::string& text, std::size_t maxLineLength)
+std::string wrapTraderDialogue(const std::string& text, const sf::Text& styleSource, const float maxWidth)
 {
-    if (text.empty() || maxLineLength == 0)
+    if (text.empty() || maxWidth <= 0.f)
     {
         return text;
     }
 
+    sf::Text probe(styleSource);
     std::istringstream words(text);
     std::ostringstream wrapped;
     std::string word;
-    std::size_t currentLineLength = 0;
+    std::string line;
+    bool firstLine = true;
+
+    auto widthOf = [&](const std::string& value) {
+        Localization::setText(probe, value);
+        return probe.getLocalBounds().size.x;
+    };
 
     while (words >> word)
     {
-        const std::size_t requiredLength = currentLineLength == 0
-            ? word.size()
-            : currentLineLength + 1 + word.size();
-
-        if (currentLineLength > 0 && requiredLength > maxLineLength)
+        const std::string candidate = line.empty() ? word : line + " " + word;
+        if (!line.empty() && widthOf(candidate) > maxWidth)
         {
-            wrapped << '\n' << word;
-            currentLineLength = word.size();
+            if (!firstLine)
+            {
+                wrapped << '\n';
+            }
+            wrapped << line;
+            firstLine = false;
+            line = word;
             continue;
         }
 
-        if (currentLineLength > 0)
-        {
-            wrapped << ' ';
-            ++currentLineLength;
-        }
+        line = candidate;
+    }
 
-        wrapped << word;
-        currentLineLength += word.size();
+    if (!line.empty())
+    {
+        if (!firstLine)
+        {
+            wrapped << '\n';
+        }
+        wrapped << line;
     }
 
     return wrapped.str();
@@ -88,12 +100,16 @@ void Trader::updateDialogue()
     }
 
     const CampaignProgress& campaign = player->getCampaignProgress();
-    dialogueTitleText.setString(campaign.getMerchantGreeting());
-    dialogueBodyText.setString(wrapTraderDialogue(campaign.getMerchantAdvice(), 36));
+    const sf::Vector2f viewSize = camera != nullptr ? camera->getScreenViewSize() : sf::Vector2f{1280.f, 720.f};
+    const float maxBubbleWidth = std::clamp(viewSize.x * 0.52f, 520.f, 760.f);
+    const float textMaxWidth = maxBubbleWidth - 34.f;
+
+    Localization::setText(dialogueTitleText, campaign.getMerchantGreeting());
+    Localization::setText(dialogueBodyText, wrapTraderDialogue(campaign.getMerchantAdvice(), dialogueBodyText, textMaxWidth));
 
     const sf::FloatRect bodyBounds = dialogueBodyText.getLocalBounds();
     const sf::FloatRect titleBounds = dialogueTitleText.getLocalBounds();
-    const float bubbleWidth = std::max(280.f, std::max(bodyBounds.size.x, titleBounds.size.x) + 34.f);
+    const float bubbleWidth = std::min(maxBubbleWidth, std::max(360.f, std::max(bodyBounds.size.x, titleBounds.size.x) + 34.f));
     const float bubbleHeight = 74.f + bodyBounds.size.y;
     const sf::Vector2f bubblePos = {
         getCenterPosition().x - bubbleWidth / 2.f,

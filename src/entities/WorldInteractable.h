@@ -66,6 +66,8 @@ private:
     float revealRadius_ = 170.f;
     std::string revealTitle_;
     std::string revealBody_;
+    std::string title_;
+    std::string body_;
     bool activated_ = false;
     bool panelOpen_ = false;
 

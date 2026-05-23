@@ -1,6 +1,7 @@
 #include <WorldInteractable.h>
 
 #include <GameLevel.h>
+#include <Localization.h>
 
 #include <algorithm>
 #include <cmath>
@@ -17,6 +18,61 @@ void configureText(sf::Text& text, unsigned int size, sf::Color color)
 {
     text.setCharacterSize(size);
     text.setFillColor(color);
+}
+
+std::string wrapTextToPixelWidth(const std::string& text, const sf::Text& styleSource, const float maxWidth)
+{
+    if (text.empty() || maxWidth <= 0.f)
+    {
+        return text;
+    }
+
+    sf::Text probe(styleSource);
+    std::istringstream words(text);
+    std::ostringstream wrapped;
+    std::string word;
+    std::string line;
+    bool firstLine = true;
+
+    auto widthOf = [&](const std::string& value) {
+        Localization::setText(probe, value);
+        return probe.getLocalBounds().size.x;
+    };
+
+    while (words >> word)
+    {
+        const std::string candidate = line.empty() ? word : line + " " + word;
+        if (!line.empty() && widthOf(candidate) > maxWidth)
+        {
+            if (!firstLine)
+            {
+                wrapped << '\n';
+            }
+            wrapped << line;
+            firstLine = false;
+            line = word;
+            continue;
+        }
+
+        line = candidate;
+    }
+
+    if (!line.empty())
+    {
+        if (!firstLine)
+        {
+            wrapped << '\n';
+        }
+        wrapped << line;
+    }
+
+    return wrapped.str();
+}
+
+float textBottom(const sf::Text& text)
+{
+    const sf::FloatRect bounds = text.getGlobalBounds();
+    return bounds.position.y + bounds.size.y;
 }
 
 const sf::Texture& resolveInteractiveTexture(GameData& data, const std::string& textureName)
@@ -79,6 +135,8 @@ WorldInteractable::WorldInteractable(
     , revealRadius_(config.revealRadius)
     , revealTitle_(config.revealTitle)
     , revealBody_(config.revealBody)
+    , title_(config.title)
+    , body_(config.body)
     , promptText_(*gameData.gameFont)
     , titleText_(*gameData.gameFont)
     , bodyText_(*gameData.gameFont)
@@ -113,7 +171,9 @@ WorldInteractable::WorldInteractable(
     promptPlate_.setOutlineColor(sf::Color(accentColor_.r, accentColor_.g, accentColor_.b, 220));
 
     configureText(promptText_, 14, sf::Color(245, 233, 214, 255));
-    promptText_.setString(config.prompt.empty() ? "Enter to interact" : config.prompt);
+    Localization::setText(promptText_, config.prompt.empty()
+        ? (Localization::isRussian() ? Localization::tr("world.enter_interact") : "Enter to interact")
+        : config.prompt);
 
     panelShadow_.setFillColor(sf::Color(0, 0, 0, 126));
     panelBack_.setFillColor(sf::Color(17, 12, 16, 242));
@@ -123,14 +183,14 @@ WorldInteractable::WorldInteractable(
 
     configureText(titleText_, 26, sf::Color(247, 233, 210, 255));
     titleText_.setStyle(sf::Text::Bold);
-    titleText_.setString(config.title);
+    Localization::setText(titleText_, title_);
 
     configureText(bodyText_, 18, sf::Color(222, 217, 210, 246));
-    bodyText_.setLineSpacing(1.08f);
-    bodyText_.setString(wrapText(config.body, 44));
+    bodyText_.setLineSpacing(1.14f);
+    Localization::setText(bodyText_, body_);
 
     configureText(hintText_, 15, sf::Color(176, 160, 150, 228));
-    hintText_.setString("Enter or Esc to close");
+    Localization::setText(hintText_, Localization::isRussian() ? Localization::tr("world.panel_close") : "Enter or Esc to close");
 
     updatePromptLayout();
     updatePanelLayout();
@@ -225,11 +285,13 @@ void WorldInteractable::revealIfNearby()
     if (manager)
     {
         const std::string revealTitle = revealTitle_.empty()
-            ? titleText_.getString().toAnsiString()
+            ? title_
             : revealTitle_;
         manager->pushNotification(
             revealTitle,
-            revealBody_.empty() ? "A hidden object reveals itself nearby." : revealBody_,
+            revealBody_.empty()
+                ? (Localization::isRussian() ? Localization::tr("world.hidden_body") : "A hidden object reveals itself nearby.")
+                : revealBody_,
             NotificationTone::Success
         );
     }
@@ -300,9 +362,20 @@ void WorldInteractable::updatePanelLayout()
 {
     const sf::Vector2f viewCenter = camera->getCameraCenterPos();
     const sf::Vector2f viewSize = camera->getScreenViewSize();
+    const float panelWidth = std::clamp(viewSize.x - 96.f, 520.f, 840.f);
+    const float textWidth = panelWidth - 40.f;
+
+    Localization::setText(titleText_, wrapTextToPixelWidth(title_, titleText_, textWidth));
+    Localization::setText(bodyText_, wrapTextToPixelWidth(body_, bodyText_, textWidth));
+    Localization::setText(hintText_, Localization::isRussian() ? Localization::tr("world.panel_close") : "Enter or Esc to close");
+
+    const float titleHeight = titleText_.getLocalBounds().size.y;
+    const float bodyHeight = bodyText_.getLocalBounds().size.y;
+    const float hintHeight = hintText_.getLocalBounds().size.y;
+    const float desiredPanelHeight = 20.f + titleHeight + 18.f + bodyHeight + 24.f + hintHeight + 20.f;
     const sf::Vector2f panelSize = {
-        std::min(620.f, viewSize.x - 72.f),
-        244.f
+        panelWidth,
+        std::clamp(desiredPanelHeight, 180.f, std::max(180.f, viewSize.y - 76.f))
     };
     const sf::Vector2f panelPos = {
         viewCenter.x - panelSize.x / 2.f,
@@ -319,8 +392,8 @@ void WorldInteractable::updatePanelLayout()
     panelAccent_.setPosition(panelPos);
 
     titleText_.setPosition({panelPos.x + 20.f, panelPos.y + 16.f});
-    bodyText_.setPosition({panelPos.x + 20.f, panelPos.y + 56.f});
-    hintText_.setPosition({panelPos.x + 20.f, panelPos.y + panelSize.y - 34.f});
+    bodyText_.setPosition({panelPos.x + 20.f, textBottom(titleText_) + 18.f});
+    hintText_.setPosition({panelPos.x + 20.f, panelPos.y + panelSize.y - hintHeight - 18.f});
 }
 
 void WorldInteractable::openPanel()
@@ -388,8 +461,10 @@ void WorldInteractable::performActivation()
     if (manager)
     {
         manager->pushNotification(
-            titleText_.getString().toAnsiString(),
-            activated_ && singleUse_ ? "The find has been woven into your current run." : "Its echo answers again.",
+            title_,
+            activated_ && singleUse_
+                ? (Localization::isRussian() ? "Находка вплетена в ваш текущий забег." : "The find has been woven into your current run.")
+                : (Localization::isRussian() ? "Ее эхо отвечает снова." : "Its echo answers again."),
             NotificationTone::Info
         );
     }

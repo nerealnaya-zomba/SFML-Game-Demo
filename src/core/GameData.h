@@ -10,6 +10,8 @@
 #include <memory>
 #include <string>
 
+enum class Language;
+
 // Central resource manager for textures and game data
 ////////////////////////////////////////////////////// NOTE Гайд по загрузке текстур
 // Как загрузить текстуру: 
@@ -32,6 +34,7 @@ public:
         bool fullscreenEnabled = false;
         bool vsyncEnabled = false;
         int menuParticleCount = 200;
+        Language language;
     };
 
     GameData(sf::Font* font, std::shared_ptr<LoadingProgress> loadingProgress = nullptr);
@@ -183,10 +186,12 @@ public:
     bool isFullscreenEnabled() const;
     bool isVsyncEnabled() const;
     int getMenuParticleCount() const;
+    Language getLanguage() const;
     LaunchPreferences getLaunchPreferences() const;
     void setFullscreenEnabled(bool enabled);
     void setVsyncEnabled(bool enabled);
     void setMenuParticleCount(int count);
+    void setLanguage(Language language);
 
 private:
     // Texture loading and processing

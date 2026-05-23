@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <initializer_list>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -130,6 +131,13 @@ struct DecorationMotionState
     float speedMultiplier{1.f};
 };
 
+struct DecorationMiniLocationContext
+{
+    std::string miniLocationId;
+    sf::Vector2f displayPosition{0.f, 0.f};
+    sf::Vector2f parallaxReference{0.f, 0.f};
+};
+
 struct AnimatedDecorationGroup
 {
     std::vector<sf::Texture>* textures{};
@@ -156,7 +164,9 @@ public:
                        sf::Vector2f parallaxFactor,
                        int z = 0,
                        sf::Color color = sf::Color::White,
-                       float rotation = 0.f);
+                       float rotation = 0.f,
+                       std::optional<DecorationMiniLocationContext> miniLocationContext = std::nullopt);
+    void setActiveMiniLocation(std::optional<std::string> miniLocationId);
     void updateTextures();
     void drawByZOrder(sf::RenderWindow& window);
     void draw(sf::RenderWindow& window);
@@ -250,8 +260,10 @@ private:
     std::unordered_map<std::string, std::size_t> animatedGroupLookup;
     std::vector<DecorationSpriteMap*> spriteMaps;
     std::unordered_map<const sf::Sprite*, DecorationMotionState> motionStates;
+    std::unordered_map<const sf::Sprite*, DecorationMiniLocationContext> miniLocationContexts;
     std::set<int> all_Z;
     std::vector<const sf::Sprite*> orderedSprites;
+    std::optional<std::string> activeMiniLocationId_;
 
     void registerAnimatedGroup(const std::string& name,
                                std::vector<sf::Texture>* textures,
@@ -265,6 +277,7 @@ private:
                                 int z,
                                 sf::Color color,
                                 float rotation,
+                                std::optional<DecorationMiniLocationContext> miniLocationContext,
                                 AnimatedDecorationGroup& group);
     void initStaticDecoration(const std::string& name,
                               sf::Vector2f position,
@@ -272,7 +285,10 @@ private:
                               sf::Vector2f parallaxFactor,
                               int z,
                               sf::Color color,
-                              float rotation);
+                              float rotation,
+                              std::optional<DecorationMiniLocationContext> miniLocationContext);
+    void registerMiniLocationContext(const sf::Sprite& sprite,
+                                     std::optional<DecorationMiniLocationContext> miniLocationContext);
     void switchToNextSprite(DecorationSpriteMap& spritesArray,
                             std::vector<sf::Texture>& texturesArray,
                             texturesIterHelper& iterHelper);

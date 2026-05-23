@@ -1,4 +1,5 @@
 #include <AskDialogue.h>
+#include <Localization.h>
 
 #include <utility>
 
@@ -14,7 +15,7 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     yesButton->onClick(onYesClick);
     yesButton->setSize(size.x / 5, size.y / 3);
     yesButton->setOrigin(0.5, 0.5);
-    yesButton->setText("Yes");
+    yesButton->setText(Localization::isRussian() ? Localization::tr("dialog.yes") : "Yes");
     yesButton->setTextSize(characterSize);
     yesButton->setWidgetName("yesButton");
     yesButton->getRenderer()->setBorders({2.f});
@@ -33,7 +34,7 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     noButton->onClick(onNoClick);
     noButton->setSize(size.x / 5, size.y / 3);
     noButton->setOrigin(0.5, 0.5);
-    noButton->setText("No");
+    noButton->setText(Localization::isRussian() ? Localization::tr("dialog.no") : "No");
     noButton->setTextSize(characterSize);
     noButton->setWidgetName("noButton");
     noButton->getRenderer()->setBorders({2.f});

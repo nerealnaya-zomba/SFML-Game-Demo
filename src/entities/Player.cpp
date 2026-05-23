@@ -1040,9 +1040,16 @@ void Player::resetProgress()
 
     loadData();
     campaignProgress_ = CampaignProgress{};
+    gold_ = 0;
+    inventory_.clear();
+    arsenal_.clear();
+    inventoryStatsBonus_ = {};
     initializeDefaultWeapon();
     recalculateStatsFromInventory();
     respawnAt(currentPosition);
+    HP_ = maxHP;
+    energy = maxEnergy;
+    restoreAirJumps();
     saveData();
 }
 
@@ -2545,10 +2552,17 @@ void Player::updatePhysics()
     auto& platformRects = platformSystem.getRects();
     sf::RectangleShape& groundRect = levelManager->getGroundRect();
     const sf::FloatRect worldBounds = levelManager->getCurrentCameraBoundsForPosition(getCenterPosition());
-    const float levelLeft = worldBounds.position.x;
-    const float levelWidth = worldBounds.size.x > 0.f
-        ? worldBounds.size.x
-        : static_cast<float>(levelManager->getCurrentLevelSize().x);
+    sf::FloatRect movementBounds = worldBounds;
+    if (levelManager->isCurrentMiniLocationActive() && camera != nullptr)
+    {
+        movementBounds = sf::FloatRect(camera->getScreenViewPos(), camera->getScreenViewSize());
+    }
+    const float levelLeft = movementBounds.position.x;
+    const float levelWidth = movementBounds.size.x > 0.f
+        ? movementBounds.size.x
+        : (worldBounds.size.x > 0.f
+            ? worldBounds.size.x
+            : static_cast<float>(levelManager->getCurrentLevelSize().x));
     const bool wasStandingOnGround = collision::isStandingOnGround(*playerRectangle_, groundRect);
     const sf::RectangleShape* previousSupport = supportPlatform_;
     const bool wasSupportedBeforeMove = wasStandingOnGround || previousSupport != nullptr;

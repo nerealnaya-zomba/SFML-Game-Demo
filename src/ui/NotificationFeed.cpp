@@ -1,5 +1,7 @@
 #include <NotificationFeed.h>
 
+#include <Localization.h>
+
 #include <algorithm>
 #include <array>
 #include <utility>
@@ -163,7 +165,7 @@ void NotificationFeed::draw(sf::RenderWindow& window) const
         title.setOutlineThickness(1.2f);
         title.setOutlineColor(sf::Color(0, 0, 0, static_cast<std::uint8_t>(150.f * visibility)));
         title.setFillColor(sf::Color(palette.title.r, palette.title.g, palette.title.b, alpha));
-        title.setString(entry.title);
+        Localization::setText(title, entry.title);
         title.setPosition({x + 34.f, y + 10.f});
 
         sf::Text body(*font_);
@@ -171,7 +173,7 @@ void NotificationFeed::draw(sf::RenderWindow& window) const
         body.setOutlineThickness(1.f);
         body.setOutlineColor(sf::Color(0, 0, 0, static_cast<std::uint8_t>(138.f * visibility)));
         body.setFillColor(sf::Color(palette.body.r, palette.body.g, palette.body.b, alpha));
-        body.setString(entry.body);
+        Localization::setText(body, entry.body);
         body.setPosition({x + 18.f, y + 36.f});
 
         window.draw(shadow);
@@ -198,10 +200,16 @@ void NotificationFeed::trimExpired()
 
 std::string NotificationFeed::clampText(const std::string& text, const std::size_t limit)
 {
-    if (text.size() <= limit)
+    const sf::String decoded = Localization::toSfString(text);
+    const std::u32string utf32 = decoded.toUtf32();
+    if (utf32.size() <= limit)
     {
         return text;
     }
 
-    return text.substr(0, limit > 3 ? limit - 3 : 0) + "...";
+    const std::size_t keepCount = limit > 3 ? limit - 3 : 0;
+    const sf::String clamped = sf::String::fromUtf32(utf32.begin(), utf32.begin() + static_cast<std::ptrdiff_t>(keepCount));
+    const std::string suffix = "...";
+    const auto bytes = clamped.toUtf8();
+    return std::string(bytes.begin(), bytes.end()) + suffix;
 }

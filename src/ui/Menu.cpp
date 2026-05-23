@@ -1,6 +1,7 @@
 #include <Menu.h>
 #include <CampaignProgress.h>
 #include <GameData.h>
+#include <Localization.h>
 
 #include <TGUI/Renderers/ListBoxRenderer.hpp>
 
@@ -75,7 +76,7 @@ struct MenuTheme
 constexpr float kMainPanelWidth = 720.f;
 constexpr float kMainPanelHeight = 590.f;
 constexpr float kPausePanelWidth = 620.f;
-constexpr float kPausePanelHeight = 520.f;
+constexpr float kPausePanelHeight = 570.f;
 
 std::string getLevelTitle(const std::string& levelName)
 {
@@ -87,7 +88,7 @@ std::string getLevelTitle(const MenuState& state, const std::string& levelName)
 {
     if (levelName.empty())
     {
-        return "None";
+        return Localization::isRussian() ? Localization::tr("menu.none") : "None";
     }
 
     const auto displayNameIt = state.levelDisplayNames.find(levelName);
@@ -103,7 +104,7 @@ std::string getLevelFlavor(const std::string& levelName)
 {
     const CampaignLevelInfo& levelInfo = CampaignProgress::getLevelInfo(levelName);
     return levelInfo.levelName == "unknown"
-        ? "No omen is written for this gate yet."
+        ? (Localization::isRussian() ? "Для этих врат еще нет предзнаменования." : "No omen is written for this gate yet.")
         : levelInfo.flavor;
 }
 
@@ -118,25 +119,25 @@ std::string getLevelFlavor(const MenuState& state, const std::string& levelName)
     const auto displayNameIt = state.levelDisplayNames.find(levelName);
     if (displayNameIt != state.levelDisplayNames.end() && !displayNameIt->second.empty())
     {
-        return "A custom route saved in the level editor.";
+        return Localization::isRussian() ? "Пользовательский путь из редактора уровней." : "A custom route saved in the level editor.";
     }
 
-    return "No omen is written for this gate yet.";
+    return Localization::isRussian() ? "Для этих врат еще нет предзнаменования." : "No omen is written for this gate yet.";
 }
 
 std::string getAshDensityLabel(int particleCount)
 {
     if (particleCount <= 120)
     {
-        return "Low";
+        return Localization::isRussian() ? Localization::tr("settings.low") : "Low";
     }
 
     if (particleCount >= 260)
     {
-        return "High";
+        return Localization::isRussian() ? Localization::tr("settings.high") : "High";
     }
 
-    return "Medium";
+    return Localization::isRussian() ? Localization::tr("settings.medium") : "Medium";
 }
 
 int normalizeAshDensityCount(int particleCount)
@@ -169,7 +170,10 @@ int getNextAshDensityCount(int particleCount)
 
 std::string buildAshDensityText(int particleCount)
 {
-    return "Ash density: " + getAshDensityLabel(particleCount) + " (" + std::to_string(particleCount) + ")";
+    const std::string prefix = Localization::isRussian()
+        ? Localization::tr("settings.ash_density")
+        : "Ash density";
+    return prefix + ": " + getAshDensityLabel(particleCount) + " (" + std::to_string(particleCount) + ")";
 }
 
 sf::Color brighten(const sf::Color& color, int amount, std::uint8_t alpha = 255)
@@ -331,7 +335,7 @@ Menu::Menu(sf::RenderWindow& window, GameData& gameData)
     exitDialogue = std::make_unique<AskDialogue>(
         sf::Vector2f(windowSize.x / 2.f, windowSize.y / 2.f),
         sf::Vector2f(350.f, 150.f),
-        "Quit the game?",
+        Localization::isRussian() ? Localization::tr("dialog.quit") : "Quit the game?",
         *window_m
     );
     exitDialogue->setOnYesClick([this]() { callbacks_.onExitGame(); });
@@ -340,7 +344,9 @@ Menu::Menu(sf::RenderWindow& window, GameData& gameData)
     resetProgressDialogue = std::make_unique<AskDialogue>(
         sf::Vector2f(windowSize.x / 2.f, windowSize.y / 2.f),
         sf::Vector2f(460.f, 180.f),
-        "Reset all saved progress?\nGold, relics, weapons and unlocked gates will be lost.",
+        Localization::isRussian()
+            ? Localization::tr("dialog.reset_progress")
+            : "Reset all saved progress?\nGold, relics, weapons and unlocked gates will be lost.",
         *window_m
     );
     resetProgressDialogue->setOnYesClick([this]() {
@@ -534,7 +540,7 @@ void Menu::setupMainWidgets()
     titleLabel->setTextSize(52);
     gui.add(titleLabel);
 
-    subtitleLabel = tgui::Label::create("Choose a level");
+    subtitleLabel = tgui::Label::create("Enter the first gate");
     subtitleLabel->setTextSize(19);
     gui.add(subtitleLabel);
 
@@ -618,8 +624,8 @@ void Menu::initializeLevelSelector()
 void Menu::initializeSettingsWindow()
 {
     settingsWindow = tgui::ChildWindow::create();
-    settingsWindow->setTitle("Settings");
-    settingsWindow->setClientSize({420.f, 350.f});
+    settingsWindow->setTitle(Localization::isRussian() ? Localization::tr("settings.title") : "Settings");
+    settingsWindow->setClientSize({420.f, 400.f});
     settingsWindow->setPosition({
         window_m->getSize().x / 2.f - 210.f,
         window_m->getSize().y / 2.f - 210.f
@@ -628,7 +634,9 @@ void Menu::initializeSettingsWindow()
     settingsWindow->setTitleButtons(tgui::ChildWindow::TitleButton::None);
     settingsWindow->setVisible(false);
 
-    auto settingsLabel = tgui::Label::create("Settings for the menu and video.");
+    auto settingsLabel = tgui::Label::create(Localization::isRussian()
+        ? Localization::tr("settings.description")
+        : "Settings for the menu, language and video.");
     settingsLabel->setWidgetName("settingsLabel");
     settingsLabel->setTextSize(18);
     settingsLabel->setPosition({0.f, 6.f});
@@ -657,10 +665,17 @@ void Menu::initializeSettingsWindow()
     particleToggleButton->onClick([this]() { toggleMenuParticles(); });
     settingsWindow->add(particleToggleButton);
 
+    languageToggleButton = tgui::Button::create();
+    languageToggleButton->setSize({360.f, 42.f});
+    languageToggleButton->setPosition({14.f, 220.f});
+    languageToggleButton->setTextSize(22);
+    languageToggleButton->onClick([this]() { toggleLanguage(); });
+    settingsWindow->add(languageToggleButton);
+
     resetProgressButton = tgui::Button::create();
     resetProgressButton->setSize({360.f, 42.f});
-    resetProgressButton->setPosition({14.f, 220.f});
-    resetProgressButton->setText("Reset saved progress");
+    resetProgressButton->setPosition({14.f, 270.f});
+    resetProgressButton->setText(Localization::isRussian() ? Localization::tr("settings.reset_progress") : "Reset saved progress");
     resetProgressButton->setTextSize(22);
     resetProgressButton->onClick([this]() { resetProgressButtonOnClick(); });
     settingsWindow->add(resetProgressButton);
@@ -668,8 +683,8 @@ void Menu::initializeSettingsWindow()
     auto closeButton = tgui::Button::create();
     closeButton->setWidgetName("settingsCloseButton");
     closeButton->setSize({360.f, 42.f});
-    closeButton->setPosition({14.f, 270.f});
-    closeButton->setText("Close");
+    closeButton->setPosition({14.f, 320.f});
+    closeButton->setText(Localization::isRussian() ? Localization::tr("settings.close") : "Close");
     closeButton->setTextSize(22);
     closeButton->onClick([this]() {
         settingsWindow->setVisible(false);
@@ -683,7 +698,7 @@ void Menu::initializeSettingsWindow()
 void Menu::initializeControlsWindow()
 {
     controlsWindow = tgui::ChildWindow::create();
-    controlsWindow->setTitle("Controls");
+    controlsWindow->setTitle(Localization::isRussian() ? Localization::tr("controls.title") : "Controls");
     controlsWindow->setClientSize({470.f, 388.f});
     controlsWindow->setPosition({
         window_m->getSize().x / 2.f - 235.f,
@@ -694,6 +709,7 @@ void Menu::initializeControlsWindow()
     controlsWindow->setVisible(false);
 
     auto controlsLabel = tgui::Label::create(
+        Localization::isRussian() ? Localization::tr("controls.body") :
         "Movement\n"
         "Left / Right - Move\n"
         "Z - Jump\n"
@@ -718,7 +734,7 @@ void Menu::initializeControlsWindow()
     closeButton->setWidgetName("controlsCloseButton");
     closeButton->setSize({404.f, 42.f});
     closeButton->setPosition({18.f, 302.f});
-    closeButton->setText("Close");
+    closeButton->setText(Localization::isRussian() ? Localization::tr("settings.close") : "Close");
     closeButton->setTextSize(22);
     closeButton->onClick([this]() {
         controlsWindow->setVisible(false);
@@ -808,8 +824,11 @@ void Menu::refreshLevelSelector()
     if (state_.availableLevels.empty())
     {
         state_.selectedLevelName.clear();
-        levelSelector->addItem("No levels available");
-        levelSelector->setSelectedItem("No levels available");
+        const std::string noLevelsText = Localization::isRussian()
+            ? Localization::tr("menu.no_levels_available")
+            : "No levels available";
+        levelSelector->addItem(noLevelsText);
+        levelSelector->setSelectedItem(noLevelsText);
         levelSelector->setEnabled(false);
         return;
     }
@@ -873,14 +892,14 @@ void Menu::selectRandomLevel()
 
 std::string Menu::buildSelectionInfoText() const
 {
-    const std::string selectedLevel = state_.selectedLevelName.empty() ? "None" : state_.selectedLevelName;
-
     if (mode_ == MenuMode::Pause)
     {
-        return std::string("Current Level\n") + getLevelTitle(state_, state_.currentLevelName);
+        return (Localization::isRussian() ? Localization::tr("menu.current_level") : std::string("Current Level")) +
+            "\n" + getLevelTitle(state_, state_.currentLevelName);
     }
 
-    return std::string("Selected Level\n") + getLevelTitle(state_, selectedLevel);
+    return (Localization::isRussian() ? Localization::tr("menu.starting_level") : std::string("Starting Level")) +
+        "\n" + getLevelTitle(state_, "level1.json");
 }
 
 std::string Menu::buildSystemInfoText() const
@@ -897,12 +916,16 @@ void Menu::refreshMenuContext()
 {
     if (fullscreenToggleButton)
     {
-        fullscreenToggleButton->setText(fullscreenEnabled ? "Fullscreen: ON" : "Fullscreen: OFF");
+        fullscreenToggleButton->setText(fullscreenEnabled
+            ? (Localization::isRussian() ? Localization::tr("settings.fullscreen_on") : "Fullscreen: ON")
+            : (Localization::isRussian() ? Localization::tr("settings.fullscreen_off") : "Fullscreen: OFF"));
     }
 
     if (vsyncToggleButton)
     {
-        vsyncToggleButton->setText(vsyncEnabled ? "VSync: ON" : "VSync: OFF");
+        vsyncToggleButton->setText(vsyncEnabled
+            ? (Localization::isRussian() ? Localization::tr("settings.vsync_on") : "VSync: ON")
+            : (Localization::isRussian() ? Localization::tr("settings.vsync_off") : "VSync: OFF"));
     }
 
     if (particleToggleButton)
@@ -910,11 +933,63 @@ void Menu::refreshMenuContext()
         particleToggleButton->setText(buildAshDensityText(menuParticleCount));
     }
 
+    if (languageToggleButton)
+    {
+        const std::string prefix = Localization::isRussian() ? Localization::tr("settings.language") : "Language";
+        languageToggleButton->setText(prefix + ": " + Localization::languageDisplayName(Localization::getLanguage()));
+    }
+
+    if (settingsWindow)
+    {
+        settingsWindow->setTitle(Localization::isRussian() ? Localization::tr("settings.title") : "Settings");
+        if (auto settingsLabel = settingsWindow->get<tgui::Label>("settingsLabel"))
+        {
+            settingsLabel->setText(Localization::isRussian()
+                ? Localization::tr("settings.description")
+                : "Settings for the menu, language and video.");
+        }
+        if (resetProgressButton)
+        {
+            resetProgressButton->setText(Localization::isRussian() ? Localization::tr("settings.reset_progress") : "Reset saved progress");
+        }
+        if (auto closeButton = settingsWindow->get<tgui::Button>("settingsCloseButton"))
+        {
+            closeButton->setText(Localization::isRussian() ? Localization::tr("settings.close") : "Close");
+        }
+    }
+
+    if (controlsWindow)
+    {
+        controlsWindow->setTitle(Localization::isRussian() ? Localization::tr("controls.title") : "Controls");
+        if (auto controlsLabel = controlsWindow->get<tgui::Label>("controlsLabel"))
+        {
+            controlsLabel->setText(Localization::isRussian()
+                ? Localization::tr("controls.body")
+                : "Movement\n"
+                  "Left / Right - Move\n"
+                  "Z - Jump\n"
+                  "C - Dash\n\n"
+                  "Combat\n"
+                  "X - Shoot\n"
+                  "R - Open portal\n"
+                  "E - Destination menu\n"
+                  "Q / W - Change destination\n"
+                  "Enter - Confirm\n\n"
+                  "Menus\n"
+                  "Escape - Pause\n"
+                  "F1 - Ritual Console");
+        }
+        if (auto closeButton = controlsWindow->get<tgui::Button>("controlsCloseButton"))
+        {
+            closeButton->setText(Localization::isRussian() ? Localization::tr("settings.close") : "Close");
+        }
+    }
+
     if (mode_ == MenuMode::Pause)
     {
-        titleLabel->setText("PAUSED");
+        titleLabel->setText(Localization::isRussian() ? Localization::tr("menu.paused") : "PAUSED");
         subtitleLabel->setText(state_.currentLevelName.empty()
-            ? "Game paused"
+            ? (Localization::isRussian() ? Localization::tr("menu.game_paused") : "Game paused")
             : getLevelTitle(state_, state_.currentLevelName));
         footerLabel->setText("");
     }
@@ -924,17 +999,23 @@ void Menu::refreshMenuContext()
 
         if (state_.availableLevels.empty())
         {
-            subtitleLabel->setText("No playable levels found");
+            subtitleLabel->setText(Localization::isRussian() ? Localization::tr("menu.no_levels") : "No playable levels found");
         }
         else
         {
-            subtitleLabel->setText("Choose a level");
+            subtitleLabel->setText(Localization::isRussian() ? Localization::tr("menu.enter_first_gate") : "Enter the first gate");
         }
 
         footerLabel->setText("");
     }
 
-    continueButton->setText(mode_ == MenuMode::Pause ? BASE_RESUME_BUTTON_TEXT : BASE_PLAY_BUTTON_TEXT);
+    continueButton->setText(mode_ == MenuMode::Pause
+        ? (Localization::isRussian() ? Localization::tr("menu.resume") : std::string("Resume"))
+        : (Localization::isRussian() ? Localization::tr("menu.start") : std::string("Start")));
+    mainMenuButton->setText(Localization::isRussian() ? Localization::tr("menu.main_menu") : std::string("Main Menu"));
+    settingsButton->setText(Localization::isRussian() ? Localization::tr("menu.settings") : std::string("Settings"));
+    controlsButton->setText(Localization::isRussian() ? Localization::tr("menu.controls") : std::string("Controls"));
+    exitButton->setText(Localization::isRussian() ? Localization::tr("menu.exit") : std::string("Exit"));
     if (selectionInfoLabel)
     {
         selectionInfoLabel->setText(buildSelectionInfoText());
@@ -988,13 +1069,13 @@ void Menu::updateWidgetLayout()
     const float subtitleWidth = panelWidth - 116.f;
     const float footerWidth = panelWidth - 132.f;
 
-    titleLabel->setSize({titleWidth, isMainMenu ? 72.f : 46.f});
-    titleLabel->setPosition({centerX - titleWidth / 2.f, panelTop + (isMainMenu ? 12.f : 14.f)});
-    titleLabel->setTextSize(isMainMenu ? 52 : 32);
+    titleLabel->setSize({titleWidth, isMainMenu ? 68.f : 62.f});
+    titleLabel->setPosition({centerX - titleWidth / 2.f, panelTop + 16.f});
+    titleLabel->setTextSize(isMainMenu ? 50 : 38);
 
-    subtitleLabel->setSize({subtitleWidth, isMainMenu ? 34.f : 40.f});
-    subtitleLabel->setPosition({centerX - subtitleWidth / 2.f, panelTop + (isMainMenu ? 84.f : 60.f)});
-    subtitleLabel->setTextSize(isMainMenu ? 17 : 13);
+    subtitleLabel->setSize({subtitleWidth, isMainMenu ? 36.f : 38.f});
+    subtitleLabel->setPosition({centerX - subtitleWidth / 2.f, panelTop + (isMainMenu ? 88.f : 84.f)});
+    subtitleLabel->setTextSize(isMainMenu ? 18 : 17);
 
     footerLabel->setSize({footerWidth, 22.f});
     footerLabel->setPosition({centerX - footerWidth / 2.f, panelTop + panelHeight - (isMainMenu ? 34.f : 40.f)});
@@ -1004,74 +1085,81 @@ void Menu::updateWidgetLayout()
 
     if (isMainMenu)
     {
-        const float contentWidth = 432.f;
+        const float contentWidth = 460.f;
         const float contentLeft = centerX - contentWidth / 2.f;
-        const float selectorTop = panelTop + 198.f;
+        const float selectorTop = panelTop + 240.f;
 
         selectionInfoLabel->setMaximumTextWidth(contentWidth);
-        selectionInfoLabel->setSize({contentWidth, 58.f});
-        selectionInfoLabel->setPosition({contentLeft, panelTop + 134.f});
-        selectionInfoLabel->setTextSize(17);
-
-        levelPrevButton->setVisible(true);
-        levelNextButton->setVisible(true);
-        randomLevelButton->setVisible(false);
-        levelSelector->setVisible(true);
-        startLevelButton->setVisible(true);
-        mainMenuButton->setVisible(false);
-
-        levelPrevButton->setSize({46.f, 44.f});
-        levelPrevButton->setPosition({contentLeft, selectorTop});
-        levelSelector->setSize({320.f, 44.f});
-        levelSelector->setPosition({contentLeft + 56.f, selectorTop});
-        levelNextButton->setSize({46.f, 44.f});
-        levelNextButton->setPosition({contentLeft + 386.f, selectorTop});
-
-        continueButton->setSize({contentWidth, 48.f});
-        startLevelButton->setSize({contentWidth, 48.f});
-        restartLevelButton->setSize({contentWidth, 48.f});
-        settingsButton->setSize({contentWidth, 48.f});
-        controlsButton->setSize({contentWidth, 48.f});
-        exitButton->setSize({contentWidth, 48.f});
-
-        continueButton->setPosition({contentLeft, selectorTop + 70.f});
-        startLevelButton->setPosition({contentLeft, selectorTop + 124.f});
-        restartLevelButton->setPosition({contentLeft, selectorTop + 178.f});
-        settingsButton->setPosition({contentLeft, selectorTop + 232.f});
-        controlsButton->setPosition({contentLeft, selectorTop + 286.f});
-        exitButton->setPosition({contentLeft, selectorTop + 340.f});
-    }
-    else
-    {
-        const float contentWidth = 404.f;
-        const float contentLeft = centerX - contentWidth / 2.f;
-        const float infoTop = panelTop + 132.f;
-
-        selectionInfoLabel->setMaximumTextWidth(contentWidth);
-        selectionInfoLabel->setSize({contentWidth, 58.f});
-        selectionInfoLabel->setPosition({contentLeft, infoTop});
-        selectionInfoLabel->setTextSize(17);
+        selectionInfoLabel->setSize({contentWidth, 66.f});
+        selectionInfoLabel->setPosition({contentLeft, panelTop + 154.f});
+        selectionInfoLabel->setTextSize(18);
 
         levelPrevButton->setVisible(false);
         levelNextButton->setVisible(false);
         randomLevelButton->setVisible(false);
         levelSelector->setVisible(false);
         startLevelButton->setVisible(false);
+        restartLevelButton->setVisible(false);
+        mainMenuButton->setVisible(false);
+
+        continueButton->setSize({contentWidth, 52.f});
+        startLevelButton->setSize({contentWidth, 52.f});
+        restartLevelButton->setSize({contentWidth, 52.f});
+        settingsButton->setSize({contentWidth, 52.f});
+        controlsButton->setSize({contentWidth, 52.f});
+        exitButton->setSize({contentWidth, 52.f});
+        continueButton->setTextSize(26);
+        startLevelButton->setTextSize(26);
+        restartLevelButton->setTextSize(26);
+        settingsButton->setTextSize(26);
+        controlsButton->setTextSize(26);
+        exitButton->setTextSize(26);
+
+        continueButton->setPosition({contentLeft, selectorTop});
+        startLevelButton->setPosition({contentLeft, selectorTop + 60.f});
+        restartLevelButton->setPosition({contentLeft, selectorTop + 120.f});
+        settingsButton->setPosition({contentLeft, selectorTop + 70.f});
+        controlsButton->setPosition({contentLeft, selectorTop + 130.f});
+        exitButton->setPosition({contentLeft, selectorTop + 190.f});
+    }
+    else
+    {
+        const float contentWidth = 440.f;
+        const float contentLeft = centerX - contentWidth / 2.f;
+        const float infoTop = panelTop + 150.f;
+
+        selectionInfoLabel->setMaximumTextWidth(contentWidth);
+        selectionInfoLabel->setSize({contentWidth, 66.f});
+        selectionInfoLabel->setPosition({contentLeft, infoTop});
+        selectionInfoLabel->setTextSize(18);
+
+        levelPrevButton->setVisible(false);
+        levelNextButton->setVisible(false);
+        randomLevelButton->setVisible(false);
+        levelSelector->setVisible(false);
+        startLevelButton->setVisible(false);
+        restartLevelButton->setVisible(false);
         mainMenuButton->setVisible(true);
 
-        continueButton->setSize({contentWidth, 46.f});
-        restartLevelButton->setSize({contentWidth, 46.f});
-        mainMenuButton->setSize({contentWidth, 46.f});
-        settingsButton->setSize({contentWidth, 46.f});
-        controlsButton->setSize({contentWidth, 46.f});
-        exitButton->setSize({contentWidth, 46.f});
+        continueButton->setSize({contentWidth, 52.f});
+        restartLevelButton->setSize({contentWidth, 52.f});
+        mainMenuButton->setSize({contentWidth, 52.f});
+        settingsButton->setSize({contentWidth, 52.f});
+        controlsButton->setSize({contentWidth, 52.f});
+        exitButton->setSize({contentWidth, 52.f});
+        continueButton->setTextSize(26);
+        restartLevelButton->setTextSize(26);
+        mainMenuButton->setTextSize(26);
+        settingsButton->setTextSize(26);
+        controlsButton->setTextSize(26);
+        exitButton->setTextSize(26);
 
-        continueButton->setPosition({contentLeft, panelTop + 202.f});
-        restartLevelButton->setPosition({contentLeft, panelTop + 254.f});
-        mainMenuButton->setPosition({contentLeft, panelTop + 306.f});
-        settingsButton->setPosition({contentLeft, panelTop + 358.f});
-        controlsButton->setPosition({contentLeft, panelTop + 410.f});
-        exitButton->setPosition({contentLeft, panelTop + 462.f});
+        continueButton->setPosition({contentLeft, panelTop + 232.f});
+        restartLevelButton->setPosition({contentLeft, panelTop + 292.f});
+        mainMenuButton->setPosition({contentLeft, panelTop + 292.f});
+        settingsButton->setPosition({contentLeft, panelTop + 352.f});
+        controlsButton->setPosition({contentLeft, panelTop + 412.f});
+        exitButton->setPosition({contentLeft, panelTop + 472.f});
     }
 
     if (settingsWindow)
@@ -1122,6 +1210,7 @@ void Menu::applyModeTheme()
     styleButton(fullscreenToggleButton, ButtonStyleRole::Secondary);
     styleButton(vsyncToggleButton, ButtonStyleRole::Secondary);
     styleButton(particleToggleButton, ButtonStyleRole::Secondary);
+    styleButton(languageToggleButton, ButtonStyleRole::Secondary);
     styleButton(resetProgressButton, ButtonStyleRole::Danger);
     styleInfoLabel(selectionInfoLabel);
     styleInfoLabel(systemInfoLabel);
@@ -1172,9 +1261,9 @@ void Menu::syncPopupInteractivity()
 {
     const bool popupOpen = isBlockingPopupOpen();
 
-    continueButton->setEnabled(!popupOpen && state_.canContinue);
+    continueButton->setEnabled(!popupOpen && (mode_ == MenuMode::Main || state_.canContinue));
     startLevelButton->setEnabled(!popupOpen && !state_.availableLevels.empty());
-    restartLevelButton->setEnabled(!popupOpen && state_.canRestartLevel);
+    restartLevelButton->setEnabled(!popupOpen && state_.canRestartLevel && restartLevelButton->isVisible());
     mainMenuButton->setEnabled(!popupOpen);
     settingsButton->setEnabled(!popupOpen);
     controlsButton->setEnabled(!popupOpen);
@@ -1225,16 +1314,17 @@ void Menu::updateDecorativeLayout()
     panelInset_.setOutlineThickness(1.f);
     panelInset_.setOutlineColor(theme.panelInsetBorder);
 
-    titleBand_.setSize({panelWidth - 84.f, mode_ == MenuMode::Main ? 112.f : 98.f});
+    const float titleBandHeight = mode_ == MenuMode::Main ? 128.f : 122.f;
+    titleBand_.setSize({panelWidth - 84.f, titleBandHeight});
     titleBand_.setOrigin({titleBand_.getSize().x / 2.f, titleBand_.getSize().y / 2.f});
-    titleBand_.setPosition({centerX, centerY - panelHeight * 0.35f});
+    titleBand_.setPosition({centerX, panelTop + 18.f + titleBandHeight * 0.5f});
     titleBand_.setFillColor(theme.titleBand);
     titleBand_.setOutlineThickness(1.5f);
     titleBand_.setOutlineColor(brighten(theme.panelBorder, static_cast<int>(pulse * 16.f), theme.panelBorder.a));
 
     dividerLine_.setSize({panelWidth - 154.f, 2.f});
     dividerLine_.setOrigin({dividerLine_.getSize().x / 2.f, dividerLine_.getSize().y / 2.f});
-    dividerLine_.setPosition({centerX, centerY - panelHeight * 0.2f});
+    dividerLine_.setPosition({centerX, panelTop + (mode_ == MenuMode::Main ? 228.f : 224.f)});
     dividerLine_.setFillColor(theme.divider);
 
     footerBand_.setSize({panelWidth - 126.f, mode_ == MenuMode::Main ? 24.f : 18.f});
@@ -1343,6 +1433,12 @@ void Menu::closePopups()
 
 void Menu::resumeButtonOnClick()
 {
+    if (mode_ == MenuMode::Main)
+    {
+        startSelectedLevelOnClick();
+        return;
+    }
+
     if (!state_.canContinue)
     {
         return;
@@ -1415,8 +1511,8 @@ void Menu::toggleFullscreen()
     if (!applied)
     {
         callbacks_.onNotify(
-            "Settings error",
-            "Fullscreen mode could not be applied.",
+            Localization::isRussian() ? Localization::tr("settings.error") : "Settings error",
+            Localization::isRussian() ? Localization::tr("settings.fullscreen_failed") : "Fullscreen mode could not be applied.",
             NotificationTone::Warning
         );
         refreshMenuContext();
@@ -1429,8 +1525,10 @@ void Menu::toggleFullscreen()
         gameData_m->setFullscreenEnabled(fullscreenEnabled);
     }
     callbacks_.onNotify(
-        "Settings saved",
-        fullscreenEnabled ? "Fullscreen enabled." : "Fullscreen disabled.",
+        Localization::isRussian() ? Localization::tr("settings.saved") : "Settings saved",
+        fullscreenEnabled
+            ? (Localization::isRussian() ? Localization::tr("settings.fullscreen_enabled") : "Fullscreen enabled.")
+            : (Localization::isRussian() ? Localization::tr("settings.fullscreen_disabled") : "Fullscreen disabled."),
         NotificationTone::Info
     );
     refreshMenuContext();
@@ -1446,8 +1544,10 @@ void Menu::toggleVsync()
         gameData_m->setVsyncEnabled(vsyncEnabled);
     }
     callbacks_.onNotify(
-        "Settings saved",
-        vsyncEnabled ? "VSync enabled." : "VSync disabled.",
+        Localization::isRussian() ? Localization::tr("settings.saved") : "Settings saved",
+        vsyncEnabled
+            ? (Localization::isRussian() ? Localization::tr("settings.vsync_enabled") : "VSync enabled.")
+            : (Localization::isRussian() ? Localization::tr("settings.vsync_disabled") : "VSync disabled."),
         NotificationTone::Info
     );
     refreshMenuContext();
@@ -1462,11 +1562,30 @@ void Menu::toggleMenuParticles()
         gameData_m->setMenuParticleCount(menuParticleCount);
     }
     callbacks_.onNotify(
-        "Settings saved",
-        "Menu ash density: " + getAshDensityLabel(menuParticleCount) + ".",
+        Localization::isRussian() ? Localization::tr("settings.saved") : "Settings saved",
+        (Localization::isRussian() ? Localization::tr("settings.ash_saved") : "Menu ash density") +
+            std::string(": ") + getAshDensityLabel(menuParticleCount) + ".",
         NotificationTone::Info
     );
     refreshMenuContext();
+}
+
+void Menu::toggleLanguage()
+{
+    const Language next = Localization::nextLanguage(Localization::getLanguage());
+    Localization::setLanguage(next);
+    if (gameData_m)
+    {
+        gameData_m->setLanguage(next);
+    }
+    callbacks_.onNotify(
+        Localization::isRussian() ? Localization::tr("settings.saved") : "Settings saved",
+        Localization::isRussian() ? Localization::tr("settings.language_saved") : "Language changed.",
+        NotificationTone::Info
+    );
+    refreshLevelSelector();
+    refreshMenuContext();
+    applyModeTheme();
 }
 
 void Menu::resetProgressButtonOnClick()
@@ -1622,22 +1741,7 @@ void Menu::menuHandleEvents(const sf::Event& ev)
 
             if (isMainMenu())
             {
-                if (code == sf::Keyboard::Scancode::Left || code == sf::Keyboard::Scancode::A || code == sf::Keyboard::Scancode::Q)
-                {
-                    selectAdjacentLevel(-1);
-                    return;
-                }
-                if (code == sf::Keyboard::Scancode::Right || code == sf::Keyboard::Scancode::D || code == sf::Keyboard::Scancode::W)
-                {
-                    selectAdjacentLevel(1);
-                    return;
-                }
                 if (code == sf::Keyboard::Scancode::Enter)
-                {
-                    startSelectedLevelOnClick();
-                    return;
-                }
-                if (code == sf::Keyboard::Scancode::Space)
                 {
                     resumeButtonOnClick();
                     return;
@@ -1648,11 +1752,6 @@ void Menu::menuHandleEvents(const sf::Event& ev)
                 if (code == sf::Keyboard::Scancode::Enter)
                 {
                     resumeButtonOnClick();
-                    return;
-                }
-                if (code == sf::Keyboard::Scancode::T)
-                {
-                    restartCurrentLevelOnClick();
                     return;
                 }
                 if (code == sf::Keyboard::Scancode::M)

@@ -1,6 +1,7 @@
 #include <MiniLocationEntrance.h>
 
 #include <GameLevel.h>
+#include <Localization.h>
 
 #include <algorithm>
 #include <cmath>
@@ -18,6 +19,60 @@ void configureText(sf::Text& text, unsigned int size, sf::Color color)
 {
     text.setCharacterSize(size);
     text.setFillColor(color);
+}
+
+bool switchMiniLocationPortalSpritePingPong(sf::Sprite* sprite,
+                                            std::vector<sf::Texture>& texturesArray,
+                                            texturesIterHelper& iterHelper)
+{
+    if (sprite == nullptr || texturesArray.empty())
+    {
+        return false;
+    }
+
+    iterHelper.countOfTextures = static_cast<int>(texturesArray.size());
+    iterHelper.ptrToTexture = std::clamp(iterHelper.ptrToTexture, 0, iterHelper.countOfTextures - 1);
+
+    ++iterHelper.iterationCounter;
+    if (iterHelper.iterationCounter < iterHelper.iterationsTillSwitch)
+    {
+        return true;
+    }
+
+    iterHelper.iterationCounter = 0;
+    sprite->setTexture(texturesArray[static_cast<std::size_t>(iterHelper.ptrToTexture)], true);
+
+    if (iterHelper.countOfTextures <= 1)
+    {
+        return true;
+    }
+
+    if (iterHelper.goForward)
+    {
+        if (iterHelper.ptrToTexture >= iterHelper.countOfTextures - 1)
+        {
+            iterHelper.goForward = false;
+            iterHelper.ptrToTexture = std::max(0, iterHelper.countOfTextures - 2);
+        }
+        else
+        {
+            ++iterHelper.ptrToTexture;
+        }
+    }
+    else
+    {
+        if (iterHelper.ptrToTexture <= 0)
+        {
+            iterHelper.goForward = true;
+            iterHelper.ptrToTexture = std::min(1, iterHelper.countOfTextures - 1);
+        }
+        else
+        {
+            --iterHelper.ptrToTexture;
+        }
+    }
+
+    return true;
 }
 }
 
@@ -79,11 +134,13 @@ MiniLocationEntrance::MiniLocationEntrance(
     promptPlate_.setOutlineColor(sf::Color(accentColor_.r, accentColor_.g, accentColor_.b, 220));
 
     configureText(promptText_, 14, sf::Color(244, 248, 238, 255));
-    promptText_.setString(config.prompt.empty() ? "Enter to descend" : config.prompt);
+    Localization::setText(promptText_, config.prompt.empty()
+        ? (Localization::isRussian() ? "Enter - войти" : "Enter to descend")
+        : config.prompt);
 
     configureText(subtitleText_, 13, sf::Color(accentColor_.r, accentColor_.g, accentColor_.b, 240));
     subtitleText_.setStyle(sf::Text::Italic);
-    subtitleText_.setString(config.subtitle);
+    Localization::setText(subtitleText_, config.subtitle);
 
     updateAmbientMotion();
     updatePromptLayout();
@@ -112,11 +169,10 @@ void MiniLocationEntrance::updateAmbientMotion()
 
     if (portalTextures_ != nullptr)
     {
-        gameUtils::switchToNextSprite(
+        switchMiniLocationPortalSpritePingPong(
             sprite.get(),
             *portalTextures_,
-            portalTextureHelper_,
-            switchSprite_SwitchOption::Loop
+            portalTextureHelper_
         );
     }
 
@@ -217,6 +273,10 @@ bool MiniLocationEntrance::handleEvent(const sf::Event& event)
                         {
                             const sf::Vector2f returnSupportPoint = levelManager->exitCurrentMiniLocation(destinationSupportPoint_);
                             player->teleportToSupportPoint(returnSupportPoint);
+                            if (camera != nullptr)
+                            {
+                                camera->setCenterPosition(returnSupportPoint);
+                            }
                             return true;
                         }
                         else if (!miniLocationId_.empty())
@@ -228,6 +288,10 @@ bool MiniLocationEntrance::handleEvent(const sf::Event& event)
                         }
                     }
                     player->teleportToSupportPoint(destinationSupportPoint_);
+                    if (camera != nullptr)
+                    {
+                        camera->setCenterPosition(destinationSupportPoint_);
+                    }
                     return true;
                 },
                 sprite->getGlobalBounds().getCenter(),

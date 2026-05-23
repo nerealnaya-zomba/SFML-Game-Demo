@@ -146,16 +146,22 @@ void Decoration::addDecoration(std::string name,
                                sf::Vector2f parallaxFactor,
                                int z,
                                sf::Color color,
-                               float rotation)
+                               float rotation,
+                               std::optional<DecorationMiniLocationContext> miniLocationContext)
 {
     const auto animatedIt = animatedGroupLookup.find(name);
     if (animatedIt != animatedGroupLookup.end())
     {
-        initAnimatedDecoration(position, scale, parallaxFactor, z, color, rotation, animatedGroups.at(animatedIt->second));
+        initAnimatedDecoration(position, scale, parallaxFactor, z, color, rotation, std::move(miniLocationContext), animatedGroups.at(animatedIt->second));
         return;
     }
 
-    initStaticDecoration(name, position, scale, parallaxFactor, z, color, rotation);
+    initStaticDecoration(name, position, scale, parallaxFactor, z, color, rotation, std::move(miniLocationContext));
+}
+
+void Decoration::setActiveMiniLocation(std::optional<std::string> miniLocationId)
+{
+    activeMiniLocationId_ = std::move(miniLocationId);
 }
 
 void Decoration::initAnimatedDecoration(sf::Vector2f position,
@@ -164,6 +170,7 @@ void Decoration::initAnimatedDecoration(sf::Vector2f position,
                                         int z,
                                         sf::Color color,
                                         float rotation,
+                                        std::optional<DecorationMiniLocationContext> miniLocationContext,
                                         AnimatedDecorationGroup& group)
 {
     if (!group.textures || group.textures->empty())
@@ -179,6 +186,7 @@ void Decoration::initAnimatedDecoration(sf::Vector2f position,
     sprite->setColor(color);
 
     registerMotionState(*sprite, position, scale, rotation, z, group.motion);
+    registerMiniLocationContext(*sprite, std::move(miniLocationContext));
 
     all_Z.insert(z);
     auto inserted = group.sprites->emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
@@ -191,7 +199,8 @@ void Decoration::initStaticDecoration(const std::string& name,
                                       sf::Vector2f parallaxFactor,
                                       int z,
                                       sf::Color color,
-                                      float rotation)
+                                      float rotation,
+                                      std::optional<DecorationMiniLocationContext> miniLocationContext)
 {
     if (!staticTextures)
     {
@@ -212,6 +221,7 @@ void Decoration::initStaticDecoration(const std::string& name,
     sprite->setColor(color);
 
     registerMotionState(*sprite, position, scale, rotation, z, resolveStaticMotionProfile(name));
+    registerMiniLocationContext(*sprite, std::move(miniLocationContext));
 
     all_Z.insert(z);
     auto inserted = staticSprites.emplace(Vector2fPairWithZ(std::pair(parallaxFactor, position), z), std::move(sprite));
@@ -242,6 +252,15 @@ void Decoration::registerMotionState(const sf::Sprite& sprite,
         amplitudeMultiplier,
         speedMultiplier
     });
+}
+
+void Decoration::registerMiniLocationContext(const sf::Sprite& sprite,
+                                             std::optional<DecorationMiniLocationContext> miniLocationContext)
+{
+    if (miniLocationContext.has_value() && !miniLocationContext->miniLocationId.empty())
+    {
+        miniLocationContexts.emplace(&sprite, *miniLocationContext);
+    }
 }
 
 DecorationMotionProfile Decoration::resolveStaticMotionProfile(const std::string& name) const
@@ -353,11 +372,36 @@ void Decoration::applyParalaxes(const std::pair<sf::Vector2f, sf::Vector2f>& vec
 
     const sf::Vector2f baseObjectPos = vectorPair.second;
     const sf::Vector2f parallaxFactor = vectorPair.first;
-    const sf::Vector2f cameraOffset = camera->getCameraCenterPos() - BASE_CAMERAPOS;
-    const sf::Vector2f basePosition = {
+    sf::Vector2f parallaxOrigin = BASE_CAMERAPOS;
+    sf::Vector2f basePosition;
+    bool miniLocationDecorationInactive = false;
+
+    if (const auto contextIt = miniLocationContexts.find(sprite.get()); contextIt != miniLocationContexts.end())
+    {
+        const DecorationMiniLocationContext& context = contextIt->second;
+        if (!activeMiniLocationId_.has_value() || *activeMiniLocationId_ != context.miniLocationId)
+        {
+            basePosition = context.displayPosition;
+            miniLocationDecorationInactive = true;
+        }
+        else
+        {
+            parallaxOrigin = context.parallaxReference;
+            const sf::Vector2f cameraOffset = camera->getCameraCenterPos() - parallaxOrigin;
+            basePosition = {
+                context.displayPosition.x + cameraOffset.x * parallaxFactor.x,
+                context.displayPosition.y + cameraOffset.y * parallaxFactor.y
+            };
+        }
+    }
+    else
+    {
+        const sf::Vector2f cameraOffset = camera->getCameraCenterPos() - parallaxOrigin;
+        basePosition = {
         baseObjectPos.x + cameraOffset.x * parallaxFactor.x,
         baseObjectPos.y + cameraOffset.y * parallaxFactor.y
-    };
+        };
+    }
 
     sprite->setPosition(basePosition);
 
@@ -368,6 +412,13 @@ void Decoration::applyParalaxes(const std::pair<sf::Vector2f, sf::Vector2f>& vec
     }
 
     const DecorationMotionState& state = motionIt->second;
+    if (miniLocationDecorationInactive)
+    {
+        sprite->setRotation(sf::degrees(state.baseRotation));
+        sprite->setScale(state.baseScale);
+        return;
+    }
+
     const float time = ambientClock.getElapsedTime().asSeconds() * state.speedMultiplier;
 
     sf::Vector2f motionOffset = {
@@ -455,6 +506,7 @@ void Decoration::clearDecorations()
     }
 
     motionStates.clear();
+    miniLocationContexts.clear();
     all_Z.clear();
     orderedSprites.clear();
 }

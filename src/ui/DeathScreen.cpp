@@ -1,5 +1,6 @@
 #include <DeathScreen.h>
 
+#include <Localization.h>
 #include <Mounting.h>
 
 #include <algorithm>
@@ -47,22 +48,22 @@ DeathScreen::DeathScreen(sf::RenderWindow& window, sf::Font& font)
     , mainMenuOptionText_(font)
     , hintText_(font)
 {
-    titleText_.setString("YOU DIED");
+    Localization::setText(titleText_, Localization::isRussian() ? Localization::tr("death.title") : "YOU DIED");
     titleText_.setCharacterSize(132);
     titleText_.setOutlineThickness(4.f);
     titleText_.setOutlineColor(sf::Color(14, 0, 0, 0));
 
-    descriptionText_.setString("Choose what comes next");
+    Localization::setText(descriptionText_, Localization::isRussian() ? Localization::tr("death.description") : "Choose what comes next");
     descriptionText_.setCharacterSize(22);
     descriptionText_.setOutlineThickness(1.f);
     descriptionText_.setOutlineColor(sf::Color(6, 6, 6, 0));
 
-    restartOptionText_.setString("Restart Level");
-    mainMenuOptionText_.setString("Return To Main Menu");
+    Localization::setText(restartOptionText_, Localization::isRussian() ? Localization::tr("death.restart") : "Restart Level");
+    Localization::setText(mainMenuOptionText_, Localization::isRussian() ? Localization::tr("death.main_menu") : "Return To Main Menu");
     styleOptionText(restartOptionText_);
     styleOptionText(mainMenuOptionText_);
 
-    hintText_.setString("Arrows / W S - choose    Enter - confirm");
+    Localization::setText(hintText_, Localization::isRussian() ? Localization::tr("death.hint") : "Arrows / W S - choose    Enter - confirm");
     hintText_.setCharacterSize(18);
     hintText_.setOutlineThickness(1.f);
     hintText_.setOutlineColor(sf::Color(0, 0, 0, 0));
@@ -81,6 +82,11 @@ void DeathScreen::open()
 {
     isOpen_ = true;
     selectedOption_ = 0;
+    Localization::setText(titleText_, Localization::isRussian() ? Localization::tr("death.title") : "YOU DIED");
+    Localization::setText(descriptionText_, Localization::isRussian() ? Localization::tr("death.description") : "Choose what comes next");
+    Localization::setText(restartOptionText_, Localization::isRussian() ? Localization::tr("death.restart") : "Restart Level");
+    Localization::setText(mainMenuOptionText_, Localization::isRussian() ? Localization::tr("death.main_menu") : "Return To Main Menu");
+    Localization::setText(hintText_, Localization::isRussian() ? Localization::tr("death.hint") : "Arrows / W S - choose    Enter - confirm");
     animationClock_.restart();
     refreshLayout();
     refreshVisuals(0.f);
