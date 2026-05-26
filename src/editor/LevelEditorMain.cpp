@@ -11191,7 +11191,11 @@ private:
             executablePath = std::filesystem::current_path() / "main.exe";
         }
 #else
-        std::filesystem::path executablePath = std::filesystem::current_path() / "Dark Gate";
+        std::filesystem::path executablePath = std::filesystem::current_path() / "dark-gate";
+        if (!std::filesystem::exists(executablePath))
+        {
+            executablePath = std::filesystem::current_path() / "Dark Gate";
+        }
         if (!std::filesystem::exists(executablePath))
         {
             executablePath = std::filesystem::current_path() / "main";

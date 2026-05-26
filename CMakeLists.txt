@@ -12,6 +12,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(SFML_GAME_DEMO_ENABLE_FFMPEG "Link FFmpeg when available" ON)
 
+if(WIN32)
+    set(SFML_GAME_DEMO_MAIN_OUTPUT_NAME "Dark Gate")
+    set(SFML_GAME_DEMO_EDITOR_OUTPUT_NAME "Dark Gate Editor")
+else()
+    set(SFML_GAME_DEMO_MAIN_OUTPUT_NAME "dark-gate")
+    set(SFML_GAME_DEMO_EDITOR_OUTPUT_NAME "dark-gate-editor")
+endif()
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -162,8 +170,7 @@ add_executable(main
 )
 target_link_libraries(main PRIVATE game_core)
 set_target_properties(main PROPERTIES
-    OUTPUT_NAME "Dark Gate"
-    WIN32_EXECUTABLE TRUE
+    OUTPUT_NAME "${SFML_GAME_DEMO_MAIN_OUTPUT_NAME}"
 )
 
 add_executable(level_editor
@@ -172,9 +179,13 @@ add_executable(level_editor
 target_link_libraries(level_editor PRIVATE game_core)
 target_compile_definitions(level_editor PRIVATE SFML_GAME_DEMO_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 set_target_properties(level_editor PROPERTIES
-    OUTPUT_NAME "Dark Gate Editor"
-    WIN32_EXECUTABLE TRUE
+    OUTPUT_NAME "${SFML_GAME_DEMO_EDITOR_OUTPUT_NAME}"
 )
+
+if(WIN32)
+    set_target_properties(main PROPERTIES WIN32_EXECUTABLE TRUE)
+    set_target_properties(level_editor PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
 
 if(WIN32 AND TARGET SFML::Main)
     target_link_libraries(main PRIVATE SFML::Main)
