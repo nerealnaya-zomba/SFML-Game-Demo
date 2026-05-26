@@ -3,6 +3,7 @@
 #include <Ground.h>
 #include <LevelRegistry.h>
 #include <Platform.h>
+#include <AppIcon.h>
 #include <imgui-SFML.h>
 #include <imgui.h>
 #include <nlohmann/json.hpp>
@@ -976,6 +977,7 @@ public:
         , worldView_({0.f, 0.f}, {1600.f, 900.f})
     {
         window_.setFramerateLimit(60u);
+        applyEmbeddedWindowIcon(window_);
 
         if (!font_.openFromFile("fonts/Roboto_Condensed-Black.ttf"))
         {
@@ -5516,20 +5518,12 @@ private:
         const float dx = worldPosition.x - miniEditor_.lastHitWorld.x;
         const float dy = worldPosition.y - miniEditor_.lastHitWorld.y;
         const bool sameSpot = (dx * dx + dy * dy) <= 64.f;
-        const bool selectedUnderCursor =
-            miniEditor_.selected.isValid() &&
-            miniEditor_.selected.locationIndex == selection_.index &&
-            std::any_of(hits.begin(), hits.end(), [&](const MiniLocationHit& hit) {
-                return hit.ref.sameObject(miniEditor_.selected);
-            });
         const bool sameHitStack =
             hits.size() == miniEditor_.lastHits.size() &&
             std::equal(hits.begin(), hits.end(), miniEditor_.lastHits.begin(), [](const MiniLocationHit& lhs, const MiniLocationHit& rhs) {
                 return lhs.ref.sameObject(rhs.ref) && lhs.ref.subTarget == rhs.ref.subTarget;
             });
-        const bool repeatClickCycle = !cycleRequested && sameSpot && selectedUnderCursor && sameHitStack && hits.size() > 1u;
-
-        if (!cycleRequested && !repeatClickCycle && miniEditor_.selected.isValid() && miniEditor_.selected.locationIndex == selection_.index)
+        if (!cycleRequested && miniEditor_.selected.isValid() && miniEditor_.selected.locationIndex == selection_.index)
         {
             const auto selectedHit = std::find_if(hits.begin(), hits.end(), [&](const MiniLocationHit& hit) {
                 return hit.ref.sameObject(miniEditor_.selected);
@@ -5544,7 +5538,7 @@ private:
             }
         }
 
-        if ((cycleRequested || repeatClickCycle) && sameSpot && sameHitStack)
+        if (cycleRequested && sameSpot && sameHitStack)
         {
             miniEditor_.cycleIndex = (miniEditor_.cycleIndex + 1u) % hits.size();
         }

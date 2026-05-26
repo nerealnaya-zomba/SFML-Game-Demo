@@ -183,6 +183,9 @@ set_target_properties(level_editor PROPERTIES
 )
 
 if(WIN32)
+    target_sources(main PRIVATE ${CMAKE_SOURCE_DIR}/resources/dark_gate.rc)
+    target_sources(level_editor PRIVATE ${CMAKE_SOURCE_DIR}/resources/dark_gate_editor.rc)
+    target_link_libraries(game_core PUBLIC user32)
     set_target_properties(main PROPERTIES WIN32_EXECUTABLE TRUE)
     set_target_properties(level_editor PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()

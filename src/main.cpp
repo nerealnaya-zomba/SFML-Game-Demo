@@ -6,6 +6,7 @@
 #include <NotificationFeed.h>
 #include <PlayerUI.h>
 #include <ScreenTransition.h>
+#include <AppIcon.h>
 #include <nlohmann/json.hpp>
 #include <sfml-headers.h>
 
@@ -137,6 +138,7 @@ int main(int argc, char** argv)
         );
     }
     window.setFramerateLimit(WINDOW_FPS);
+    applyEmbeddedWindowIcon(window);
 
     sf::Font font;
     if (!font.openFromFile("fonts/Roboto_Condensed-Black.ttf"))
@@ -479,6 +481,7 @@ int main(int argc, char** argv)
                 }
                 window.setVerticalSyncEnabled(gameData->isVsyncEnabled());
                 window.setFramerateLimit(gameData->isVsyncEnabled() ? 0u : WINDOW_FPS);
+                applyEmbeddedWindowIcon(window);
                 menu.attachWindow(window);
                 resetViewForMenu(window, view);
 
