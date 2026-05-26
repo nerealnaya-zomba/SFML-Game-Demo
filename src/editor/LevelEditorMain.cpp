@@ -2924,6 +2924,23 @@ private:
             collection == MiniLocationContentCollection::Portals;
     }
 
+    static int miniLocationDrawOrderKindRank(const MiniLocationContentCollection collection)
+    {
+        switch (collection)
+        {
+        case MiniLocationContentCollection::Decorations:
+            return 0;
+        case MiniLocationContentCollection::Interactives:
+            return 1;
+        case MiniLocationContentCollection::Portals:
+            return 2;
+        case MiniLocationContentCollection::Platforms:
+            return 3;
+        default:
+            return 4;
+        }
+    }
+
     int fallbackMiniLocationDrawOrder(const MiniLocationContentCollection collection, const std::size_t index) const
     {
         int order = nextWorldDrawOrder();
@@ -3028,8 +3045,17 @@ private:
         pushCollection(MiniLocationContentCollection::Platforms);
 
         std::stable_sort(entries.begin(), entries.end(), [&](const MiniLocationObjectRef& lhs, const MiniLocationObjectRef& rhs) {
-            return miniLocationDrawOrder(location, lhs.collection, lhs.index) <
-                miniLocationDrawOrder(location, rhs.collection, rhs.index);
+            const int lhsOrder = miniLocationDrawOrder(location, lhs.collection, lhs.index);
+            const int rhsOrder = miniLocationDrawOrder(location, rhs.collection, rhs.index);
+            if (lhsOrder != rhsOrder)
+            {
+                return lhsOrder < rhsOrder;
+            }
+            if (lhs.collection != rhs.collection)
+            {
+                return miniLocationDrawOrderKindRank(lhs.collection) < miniLocationDrawOrderKindRank(rhs.collection);
+            }
+            return lhs.index < rhs.index;
         });
 
         return entries;
@@ -5347,6 +5373,14 @@ private:
 
         const auto& location = document_["MiniLocations"][locationIndex];
         const sf::FloatRect bounds = miniLocationBounds(location);
+        const auto drawOrderPriority = [&](const MiniLocationContentCollection collection, const std::size_t index) {
+            if (!miniLocationCollectionUsesDrawOrder(collection))
+            {
+                return 0;
+            }
+            return miniLocationDrawOrder(location, collection, index) * 10 + miniLocationDrawOrderKindRank(collection);
+        };
+
         const auto pushHit = [&](const MiniLocationContentCollection collection,
                                  const std::size_t index,
                                  const MiniLocationSubTarget subTarget,
@@ -5388,7 +5422,7 @@ private:
                 pushHit(MiniLocationContentCollection::DeadAreas, index, MiniLocationSubTarget::ResizeHandle,
                     deadAreaResizeHandleBounds(deadArea, location), 10000 + static_cast<int>(index));
                 pushHit(MiniLocationContentCollection::DeadAreas, index, MiniLocationSubTarget::Body,
-                    deadAreaBounds(deadArea, location), 3000 + static_cast<int>(index));
+                    deadAreaBounds(deadArea, location), 300000 + static_cast<int>(index));
             }
         }
 
@@ -5400,7 +5434,7 @@ private:
                 pushHit(MiniLocationContentCollection::Barriers, index, MiniLocationSubTarget::ResizeHandle,
                     deadAreaResizeHandleBounds(barrier, location), 10050 + static_cast<int>(index));
                 pushHit(MiniLocationContentCollection::Barriers, index, MiniLocationSubTarget::Body,
-                    deadAreaBounds(barrier, location), 6500 + static_cast<int>(index));
+                    deadAreaBounds(barrier, location), 300500 + static_cast<int>(index));
             }
         }
 
@@ -5412,7 +5446,7 @@ private:
                 pushHit(MiniLocationContentCollection::Decorations, index, MiniLocationSubTarget::ResizeHandle,
                     platformHandleBounds(bounds.position + bounds.size), 10020 + static_cast<int>(index));
                 pushHit(MiniLocationContentCollection::Decorations, index, MiniLocationSubTarget::Body,
-                    bounds, 4000 + static_cast<int>(index));
+                    bounds, 100000 + drawOrderPriority(MiniLocationContentCollection::Decorations, index));
             }
         }
 
@@ -5425,7 +5459,7 @@ private:
                 if (platformContainsPoint(absolutePlatform, worldPosition) || platformRect.contains(worldPosition))
                 {
                     hits.push_back({{locationIndex, MiniLocationContentCollection::Platforms, index, MiniLocationSubTarget::Body},
-                        platformRect, 5000 + static_cast<int>(index)});
+                        platformRect, 100000 + drawOrderPriority(MiniLocationContentCollection::Platforms, index)});
                 }
             }
         }
@@ -5438,7 +5472,7 @@ private:
                 pushHit(MiniLocationContentCollection::Interactives, index, MiniLocationSubTarget::ResizeHandle,
                     platformHandleBounds(bounds.position + bounds.size), 10030 + static_cast<int>(index));
                 pushHit(MiniLocationContentCollection::Interactives, index, MiniLocationSubTarget::Body,
-                    bounds, 7000 + static_cast<int>(index));
+                    bounds, 100000 + drawOrderPriority(MiniLocationContentCollection::Interactives, index));
             }
         }
 
@@ -5450,7 +5484,7 @@ private:
                 pushHit(MiniLocationContentCollection::Portals, index, MiniLocationSubTarget::ResizeHandle,
                     platformHandleBounds(bounds.position + bounds.size), 10040 + static_cast<int>(index));
                 pushHit(MiniLocationContentCollection::Portals, index, MiniLocationSubTarget::Body,
-                    bounds, 8000 + static_cast<int>(index));
+                    bounds, 100000 + drawOrderPriority(MiniLocationContentCollection::Portals, index));
             }
         }
 
@@ -5478,10 +5512,24 @@ private:
             return;
         }
 
+        const bool cycleRequested = ImGui::GetIO().KeyCtrl;
         const float dx = worldPosition.x - miniEditor_.lastHitWorld.x;
         const float dy = worldPosition.y - miniEditor_.lastHitWorld.y;
-        const bool cycleRequested = ImGui::GetIO().KeyCtrl;
-        if (!cycleRequested && miniEditor_.selected.isValid() && miniEditor_.selected.locationIndex == selection_.index)
+        const bool sameSpot = (dx * dx + dy * dy) <= 64.f;
+        const bool selectedUnderCursor =
+            miniEditor_.selected.isValid() &&
+            miniEditor_.selected.locationIndex == selection_.index &&
+            std::any_of(hits.begin(), hits.end(), [&](const MiniLocationHit& hit) {
+                return hit.ref.sameObject(miniEditor_.selected);
+            });
+        const bool sameHitStack =
+            hits.size() == miniEditor_.lastHits.size() &&
+            std::equal(hits.begin(), hits.end(), miniEditor_.lastHits.begin(), [](const MiniLocationHit& lhs, const MiniLocationHit& rhs) {
+                return lhs.ref.sameObject(rhs.ref) && lhs.ref.subTarget == rhs.ref.subTarget;
+            });
+        const bool repeatClickCycle = !cycleRequested && sameSpot && selectedUnderCursor && sameHitStack && hits.size() > 1u;
+
+        if (!cycleRequested && !repeatClickCycle && miniEditor_.selected.isValid() && miniEditor_.selected.locationIndex == selection_.index)
         {
             const auto selectedHit = std::find_if(hits.begin(), hits.end(), [&](const MiniLocationHit& hit) {
                 return hit.ref.sameObject(miniEditor_.selected);
@@ -5496,8 +5544,7 @@ private:
             }
         }
 
-        const bool sameSpot = cycleRequested && (dx * dx + dy * dy) <= 64.f && hits.size() == miniEditor_.lastHits.size();
-        if (sameSpot)
+        if ((cycleRequested || repeatClickCycle) && sameSpot && sameHitStack)
         {
             miniEditor_.cycleIndex = (miniEditor_.cycleIndex + 1u) % hits.size();
         }
@@ -7914,93 +7961,121 @@ private:
             drawPortalMarker(exitPos, sf::Color(212, 232, 255, 255), location["Exit"].value("Texture", std::string{}));
 
             const sf::Vector2f origin = bounds.position;
-            if (location.contains("Platforms") && location["Platforms"].is_array())
-            {
-                for (const auto& nestedPlatform : location["Platforms"])
+            const auto drawNestedPlatform = [&](const std::size_t nestedIndex) {
+                if (!location.contains("Platforms") || !location["Platforms"].is_array() || nestedIndex >= location["Platforms"].size())
                 {
-                    nlohmann::json absolutePlatform = nestedPlatform;
-                    absolutePlatform["Position"] = toJson(origin + readVector2f(nestedPlatform.value("Position", nlohmann::json::array())));
-                    const sf::FloatRect platformRect = platformBounds(absolutePlatform);
-                    const sf::FloatRect spriteRect = platformSpriteBounds(absolutePlatform);
-                    const std::string typeName = absolutePlatform.value("Type", std::string{});
-                    const auto definition = platformDefinition(absolutePlatform);
-                    if (definition.has_value())
-                    {
-                        if (const sf::Texture* texture = findPreviewTexture(typeName); texture != nullptr)
-                        {
-                            sf::Sprite sprite(*texture);
-                            sprite.setOrigin(sprite.getGlobalBounds().getCenter());
-                            sprite.setScale(platformScale(absolutePlatform));
-                            sprite.setColor(definition->tint);
-                            sprite.setPosition(platformSpriteCenter(absolutePlatform) + definition->spriteOffset);
-                            window_.draw(sprite);
-                        }
-                    }
-
-                    sf::RectangleShape marker(platformRect.size);
-                    marker.setPosition(platformRect.position);
-                    marker.setFillColor(sf::Color(kPlatformOutlineColor.r, kPlatformOutlineColor.g, kPlatformOutlineColor.b, 28));
-                    marker.setOutlineThickness(1.f);
-                    marker.setOutlineColor(sf::Color(kPlatformOutlineColor.r, kPlatformOutlineColor.g, kPlatformOutlineColor.b, 120));
-                    window_.draw(marker);
-                    (void)spriteRect;
+                    return;
                 }
-            }
-            if (location.contains("Decorations") && location["Decorations"].is_array())
-            {
-                for (const auto& nestedDecoration : location["Decorations"])
+                const auto& nestedPlatform = location["Platforms"][nestedIndex];
+                nlohmann::json absolutePlatform = nestedPlatform;
+                absolutePlatform["Position"] = toJson(origin + readVector2f(nestedPlatform.value("Position", nlohmann::json::array())));
+                const sf::FloatRect platformRect = platformBounds(absolutePlatform);
+                const sf::FloatRect spriteRect = platformSpriteBounds(absolutePlatform);
+                const std::string typeName = absolutePlatform.value("Type", std::string{});
+                const auto definition = platformDefinition(absolutePlatform);
+                if (definition.has_value())
                 {
-                    nlohmann::json absoluteDecoration = nestedDecoration;
-                    absoluteDecoration["Position"] = toJson(origin + readVector2f(nestedDecoration.value("Position", nlohmann::json::array())));
-                    const std::string textureName = absoluteDecoration.value("Name", std::string{});
-                    const sf::Vector2f position = readVector2f(absoluteDecoration.value("Position", nlohmann::json::array()));
-                    const sf::Color color = readColor(absoluteDecoration.value("Color", nlohmann::json::array()), sf::Color::White);
-                    if (const sf::Texture* texture = findPreviewTexture(textureName); texture != nullptr)
+                    if (const sf::Texture* texture = findPreviewTexture(typeName); texture != nullptr)
                     {
                         sf::Sprite sprite(*texture);
                         sprite.setOrigin(sprite.getGlobalBounds().getCenter());
-                        sprite.setPosition(position);
-                        sprite.setScale(decorationScale(absoluteDecoration));
-                        sprite.setRotation(sf::degrees(decorationRotation(absoluteDecoration)));
-                        sprite.setColor(color);
+                        sprite.setScale(platformScale(absolutePlatform));
+                        sprite.setColor(definition->tint);
+                        sprite.setPosition(platformSpriteCenter(absolutePlatform) + definition->spriteOffset);
                         window_.draw(sprite);
                     }
+                }
 
-                    const sf::FloatRect decorationRect = decorationSpriteBounds(
-                        textureName,
-                        position,
-                        decorationScale(absoluteDecoration),
-                        decorationRotation(absoluteDecoration)
-                    );
-                    sf::RectangleShape marker(decorationRect.size);
-                    marker.setPosition(decorationRect.position);
-                    marker.setFillColor(sf::Color(kDecorationOutlineColor.r, kDecorationOutlineColor.g, kDecorationOutlineColor.b, 18));
-                    marker.setOutlineThickness(1.f);
-                    marker.setOutlineColor(sf::Color(kDecorationOutlineColor.r, kDecorationOutlineColor.g, kDecorationOutlineColor.b, 96));
-                    window_.draw(marker);
-                }
-            }
-            if (location.contains("Interactives") && location["Interactives"].is_array())
-            {
-                for (const auto& nestedInteractive : location["Interactives"])
+                sf::RectangleShape marker(platformRect.size);
+                marker.setPosition(platformRect.position);
+                marker.setFillColor(sf::Color(kPlatformOutlineColor.r, kPlatformOutlineColor.g, kPlatformOutlineColor.b, 28));
+                marker.setOutlineThickness(1.f);
+                marker.setOutlineColor(sf::Color(kPlatformOutlineColor.r, kPlatformOutlineColor.g, kPlatformOutlineColor.b, 120));
+                window_.draw(marker);
+                (void)spriteRect;
+            };
+
+            const auto drawNestedDecoration = [&](const std::size_t nestedIndex) {
+                if (!location.contains("Decorations") || !location["Decorations"].is_array() || nestedIndex >= location["Decorations"].size())
                 {
-                    sf::CircleShape marker(10.f);
-                    marker.setOrigin({10.f, 10.f});
-                    marker.setPosition(origin + readVector2f(nestedInteractive.value("Position", nlohmann::json::array())));
-                    marker.setFillColor(sf::Color(kInteractiveOutlineColor.r, kInteractiveOutlineColor.g, kInteractiveOutlineColor.b, 80));
-                    marker.setOutlineThickness(1.f);
-                    marker.setOutlineColor(kInteractiveOutlineColor);
-                    window_.draw(marker);
+                    return;
                 }
-            }
-            if (location.contains("Portals") && location["Portals"].is_array())
-            {
-                for (const auto& nestedPortal : location["Portals"])
+                const auto& nestedDecoration = location["Decorations"][nestedIndex];
+                nlohmann::json absoluteDecoration = nestedDecoration;
+                absoluteDecoration["Position"] = toJson(origin + readVector2f(nestedDecoration.value("Position", nlohmann::json::array())));
+                const std::string textureName = absoluteDecoration.value("Name", std::string{});
+                const sf::Vector2f position = readVector2f(absoluteDecoration.value("Position", nlohmann::json::array()));
+                const sf::Color color = readColor(absoluteDecoration.value("Color", nlohmann::json::array()), sf::Color::White);
+                if (const sf::Texture* texture = findPreviewTexture(textureName); texture != nullptr)
                 {
-                    drawPortalMarker(
-                        origin + readVector2f(nestedPortal.value("Position", nlohmann::json::array())),
-                        kPortalOutlineColor,
-                        nestedPortal.value("PortalTexture", nestedPortal.value("Texture", std::string{"portalGreen"})));
+                    sf::Sprite sprite(*texture);
+                    sprite.setOrigin(sprite.getGlobalBounds().getCenter());
+                    sprite.setPosition(position);
+                    sprite.setScale(decorationScale(absoluteDecoration));
+                    sprite.setRotation(sf::degrees(decorationRotation(absoluteDecoration)));
+                    sprite.setColor(color);
+                    window_.draw(sprite);
+                }
+
+                const sf::FloatRect decorationRect = decorationSpriteBounds(
+                    textureName,
+                    position,
+                    decorationScale(absoluteDecoration),
+                    decorationRotation(absoluteDecoration)
+                );
+                sf::RectangleShape marker(decorationRect.size);
+                marker.setPosition(decorationRect.position);
+                marker.setFillColor(sf::Color(kDecorationOutlineColor.r, kDecorationOutlineColor.g, kDecorationOutlineColor.b, 18));
+                marker.setOutlineThickness(1.f);
+                marker.setOutlineColor(sf::Color(kDecorationOutlineColor.r, kDecorationOutlineColor.g, kDecorationOutlineColor.b, 96));
+                window_.draw(marker);
+            };
+
+            const auto drawNestedInteractive = [&](const std::size_t nestedIndex) {
+                if (!location.contains("Interactives") || !location["Interactives"].is_array() || nestedIndex >= location["Interactives"].size())
+                {
+                    return;
+                }
+                const auto& nestedInteractive = location["Interactives"][nestedIndex];
+                sf::CircleShape marker(10.f);
+                marker.setOrigin({10.f, 10.f});
+                marker.setPosition(origin + readVector2f(nestedInteractive.value("Position", nlohmann::json::array())));
+                marker.setFillColor(sf::Color(kInteractiveOutlineColor.r, kInteractiveOutlineColor.g, kInteractiveOutlineColor.b, 80));
+                marker.setOutlineThickness(1.f);
+                marker.setOutlineColor(kInteractiveOutlineColor);
+                window_.draw(marker);
+            };
+
+            const auto drawNestedPortal = [&](const std::size_t nestedIndex) {
+                if (!location.contains("Portals") || !location["Portals"].is_array() || nestedIndex >= location["Portals"].size())
+                {
+                    return;
+                }
+                const auto& nestedPortal = location["Portals"][nestedIndex];
+                drawPortalMarker(
+                    origin + readVector2f(nestedPortal.value("Position", nlohmann::json::array())),
+                    kPortalOutlineColor,
+                    nestedPortal.value("PortalTexture", nestedPortal.value("Texture", std::string{"portalGreen"})));
+            };
+
+            for (const MiniLocationObjectRef& drawEntry : miniLocationDrawOrderEntries(index))
+            {
+                switch (drawEntry.collection)
+                {
+                case MiniLocationContentCollection::Decorations:
+                    drawNestedDecoration(drawEntry.index);
+                    break;
+                case MiniLocationContentCollection::Interactives:
+                    drawNestedInteractive(drawEntry.index);
+                    break;
+                case MiniLocationContentCollection::Portals:
+                    drawNestedPortal(drawEntry.index);
+                    break;
+                case MiniLocationContentCollection::Platforms:
+                    drawNestedPlatform(drawEntry.index);
+                    break;
+                default:
+                    break;
                 }
             }
 
