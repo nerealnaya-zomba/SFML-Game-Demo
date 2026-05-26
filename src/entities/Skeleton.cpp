@@ -274,6 +274,56 @@ bool Skeleton::hasGroundAhead(float direction) const
         footY >= groundBounds.position.y - 6.f;
 }
 
+bool Skeleton::isLeavingPlatformEdge(float direction, float lookAhead) const
+{
+    if (!skeletonRect || !platform_ || direction == 0.f)
+    {
+        return false;
+    }
+
+    const sf::RectangleShape* support = collision::findSupportingPlatform(*skeletonRect, platform_->getRects(), 8.f);
+    if (support == nullptr)
+    {
+        return false;
+    }
+
+    const sf::FloatRect skeletonBounds = skeletonRect->getGlobalBounds();
+    const sf::FloatRect supportBounds = support->getGlobalBounds();
+    const float sampleX = direction > 0.f
+        ? skeletonBounds.position.x + skeletonBounds.size.x + lookAhead
+        : skeletonBounds.position.x - lookAhead;
+
+    return sampleX < supportBounds.position.x + 6.f ||
+        sampleX > supportBounds.position.x + supportBounds.size.x - 6.f;
+}
+
+void Skeleton::keepOnCurrentPlatform()
+{
+    if (!skeletonRect || !platform_ || isPlayingDieAnimation || isPlayingHurtAnimation)
+    {
+        return;
+    }
+
+    const float direction = initialWalkSpeed > 0.f ? 1.f : (initialWalkSpeed < 0.f ? -1.f : 0.f);
+    if (direction == 0.f || !isLeavingPlatformEdge(direction, std::abs(initialWalkSpeed) + 14.f))
+    {
+        return;
+    }
+
+    const sf::RectangleShape* support = collision::findSupportingPlatform(*skeletonRect, platform_->getRects(), 8.f);
+    if (support != nullptr)
+    {
+        const sf::FloatRect skeletonBounds = skeletonRect->getGlobalBounds();
+        const sf::FloatRect supportBounds = support->getGlobalBounds();
+        const float clampedX = direction > 0.f
+            ? supportBounds.position.x + supportBounds.size.x - skeletonBounds.size.x - 7.f
+            : supportBounds.position.x + 7.f;
+        skeletonRect->setPosition({clampedX, skeletonRect->getPosition().y});
+    }
+
+    turnAroundAtPlatformEdge(direction);
+}
+
 void Skeleton::turnAroundAtPlatformEdge(float direction)
 {
     initialWalkSpeed = 0.f;
@@ -1004,9 +1054,11 @@ void Skeleton::updatePhysics() {
     updateVisualEffects();
     if(!portal->getIsHalfPassed()) return;
 
+    keepOnCurrentPlatform();
     applyFriction(initialWalkSpeed, frictionForce);
+    keepOnCurrentPlatform();
 
-    const sf::FloatRect levelBounds = gameLevel->getCameraBoundsForPosition(skeletonRect->getGlobalBounds().getCenter());
+    const sf::FloatRect levelBounds = gameLevel->getWorldObjectCameraBoundsForPosition(skeletonRect->getGlobalBounds().getCenter());
     const collision::MoveResult moveResult = collision::moveBodyWithWorldCollisions(
         *skeletonRect,
         {initialWalkSpeed, fallingSpeed},
@@ -1039,6 +1091,7 @@ void Skeleton::updatePhysics() {
         fallingSpeed += 0.1f;
     } else {
         fallingSpeed = 0.f;
+        keepOnCurrentPlatform();
     }
     
     if (HP_ <= 0) {
@@ -1102,7 +1155,14 @@ void Skeleton::updateTextures() {
             skeleton_die_helper, switchSprite_SwitchOption::Single)) {
             if(!hasDroppedGold && enemyManager)
             {
-                enemyManager->dropGold(skeletonRect->getGlobalBounds().getCenter(), type_);
+                if (customGoldReward_ > 0)
+                {
+                    enemyManager->dropGoldAmount(skeletonRect->getGlobalBounds().getCenter(), customGoldReward_);
+                }
+                else
+                {
+                    enemyManager->dropGold(skeletonRect->getGlobalBounds().getCenter(), type_);
+                }
                 hasDroppedGold = true;
             }
             isPlayingDieAnimation = false;
@@ -1231,6 +1291,23 @@ sf::Vector2f Skeleton::getPosition()
 void Skeleton::receiveBulletHit(const Bullet& bullet, bool splashHit)
 {
     onBulletHit(bullet, splashHit);
+}
+
+void Skeleton::applySpawnerOverrides(int hpOverride, int damageOverride, int goldRewardOverride)
+{
+    if (hpOverride > 0)
+    {
+        HP_ = hpOverride;
+        if (healthbar)
+        {
+            healthbar->setMaxHP(hpOverride);
+        }
+    }
+    if (damageOverride > 0)
+    {
+        DMG_ = damageOverride;
+    }
+    customGoldReward_ = std::max(goldRewardOverride, 0);
 }
 
 void Skeleton::attachPlayer(Player &p)

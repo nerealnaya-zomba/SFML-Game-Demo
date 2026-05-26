@@ -649,7 +649,7 @@ void BestiaryEnemy::updateBatControl(const sf::Vector2f& center, const sf::Vecto
 
 void BestiaryEnemy::updateSlimeControl(const sf::Vector2f&, const sf::Vector2f& playerCenter)
 {
-    if ((collidedHorizontally_ || (isOnGround_ && isLeavingPlatformEdge(patrolDir_))) && state_ == State::Patrol)
+    if ((collidedHorizontally_ || (isOnGround_ && isLeavingPlatformEdge(patrolDir_, groundHopX_ + 10.f))) && state_ == State::Patrol)
     {
         patrolDir_ *= -1.f;
     }
@@ -659,6 +659,11 @@ void BestiaryEnemy::updateSlimeControl(const sf::Vector2f&, const sf::Vector2f& 
         applyGroundFriction();
         if (isOnGround_ && hopClock_.getElapsedTime().asMilliseconds() >= 900.f)
         {
+            if (isLeavingPlatformEdge(patrolDir_, groundHopX_ + 10.f))
+            {
+                patrolDir_ *= -1.f;
+                facingRight_ = patrolDir_ > 0.f;
+            }
             velocityY_ = -groundHopY_;
             velocityX_ = patrolDir_ * groundHopX_;
             hopClock_.restart();
@@ -782,7 +787,7 @@ void BestiaryEnemy::updateFlyingPhysics()
     collidedHorizontally_ = false;
     rect_->move({velocityX_, velocityY_});
 
-    const sf::FloatRect levelBounds = gameLevel_->getCameraBoundsForPosition(rect_->getGlobalBounds().getCenter());
+    const sf::FloatRect levelBounds = gameLevel_->getWorldObjectCameraBoundsForPosition(rect_->getGlobalBounds().getCenter());
     sf::Vector2f position = rect_->getPosition();
 
     if (position.x <= levelBounds.position.x)
@@ -798,8 +803,11 @@ void BestiaryEnemy::updateFlyingPhysics()
         collidedHorizontally_ = true;
     }
 
-    const float minY = 48.f;
-    const float maxY = std::max(minY + 40.f, ground_->getRect().getPosition().y - rect_->getSize().y - 42.f);
+    const float minY = levelBounds.position.y + 48.f;
+    const float levelBottom = levelBounds.position.y + levelBounds.size.y;
+    const float groundLimitY = ground_->getRect().getPosition().y - rect_->getSize().y - 42.f;
+    const float levelLimitY = levelBottom - rect_->getSize().y - 42.f;
+    const float maxY = std::max(minY + 40.f, std::min(groundLimitY, levelLimitY));
     if (position.y <= minY)
     {
         position.y = minY;
@@ -829,7 +837,14 @@ void BestiaryEnemy::updateFlyingPhysics()
     {
         if (!hasDroppedGold_ && enemyManager_)
         {
-            enemyManager_->dropGold(getCenterPosition(), getDropKey());
+            if (customGoldReward_ > 0)
+            {
+                enemyManager_->dropGoldAmount(getCenterPosition(), customGoldReward_);
+            }
+            else
+            {
+                enemyManager_->dropGold(getCenterPosition(), getDropKey());
+            }
             hasDroppedGold_ = true;
         }
         isAlive = false;
@@ -844,8 +859,13 @@ void BestiaryEnemy::updateGroundPhysics()
     const bool wasOnGround = isOnGround_;
     isOnGround_ = false;
 
+    if (wasOnGround)
+    {
+        keepGroundEnemyOnPlatform();
+    }
+
     velocityY_ += gravity_;
-    const sf::FloatRect levelBounds = gameLevel_->getCameraBoundsForPosition(rect_->getGlobalBounds().getCenter());
+    const sf::FloatRect levelBounds = gameLevel_->getWorldObjectCameraBoundsForPosition(rect_->getGlobalBounds().getCenter());
     const collision::MoveResult moveResult = collision::moveBodyWithWorldCollisions(
         *rect_,
         {velocityX_, velocityY_},
@@ -893,7 +913,14 @@ void BestiaryEnemy::updateGroundPhysics()
     {
         if (!hasDroppedGold_ && enemyManager_)
         {
-            enemyManager_->dropGold(getCenterPosition(), getDropKey());
+            if (customGoldReward_ > 0)
+            {
+                enemyManager_->dropGoldAmount(getCenterPosition(), customGoldReward_);
+            }
+            else
+            {
+                enemyManager_->dropGold(getCenterPosition(), getDropKey());
+            }
             hasDroppedGold_ = true;
         }
         isAlive = false;
@@ -1132,6 +1159,24 @@ void BestiaryEnemy::receiveBulletHit(const Bullet& bullet, bool splashHit)
     {
         velocityX_ = 0.f;
     }
+}
+
+void BestiaryEnemy::applySpawnerOverrides(int hpOverride, int damageOverride, int goldRewardOverride)
+{
+    if (hpOverride > 0)
+    {
+        HP_ = hpOverride;
+        maxHP_ = hpOverride;
+        if (healthBar_)
+        {
+            healthBar_->setMaxHP(hpOverride);
+        }
+    }
+    if (damageOverride > 0)
+    {
+        DMG_ = damageOverride;
+    }
+    customGoldReward_ = std::max(goldRewardOverride, 0);
 }
 
 void BestiaryEnemy::damagePlayerOnContact()

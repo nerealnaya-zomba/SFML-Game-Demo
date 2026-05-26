@@ -30,13 +30,20 @@ class BackgroundAtmosphere;
 // По мере приблежения Z к 0, скорость объектов увеличивается
 // А после преодоления предела в 0, становится быстрее
 //////////////////////////////////////////
-enum Type{RepeatedBackground, SingleBackground};
+enum Type
+{
+    RepeatedBackgroundXY,
+    RepeatedBackgroundX,
+    RepeatedBackgroundY,
+    SingleBackground
+};
 
 struct BackgroundSceneConfig
 {
     std::string themeName{};
     std::size_t layerIndex = 0;
     std::size_t layerCount = 1;
+    float tileOffsetY = 0.f;
 };
 
 ////////////////////////////////////////////////// IMPLEMENTME
@@ -104,5 +111,6 @@ private:
 
     // Основной спрайт
     std::unique_ptr<sf::Sprite> bgFront;
+    mutable std::unique_ptr<sf::Sprite> repeatedSprite;
     std::unique_ptr<BackgroundAtmosphere> atmosphere;
 };

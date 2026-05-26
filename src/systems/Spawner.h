@@ -16,6 +16,12 @@ public:
     {
         bool activateOnPlayerEnter = false;
         int initialSpawnDelayMs = 0;
+        float activationPadding = 120.f;
+        int enemyHpOverride = 0;
+        int enemyDamageOverride = 0;
+        int goldRewardOverride = 0;
+        bool hasActivationArea = false;
+        sf::FloatRect activationArea{};
     };
 
 private:
@@ -40,6 +46,9 @@ private:
     bool activated_ = true;
     bool firstSpawnPending_ = false;
     int initialSpawnDelayMs_ = 0;
+    int enemyHpOverride_ = 0;
+    int enemyDamageOverride_ = 0;
+    int goldRewardOverride_ = 0;
     sf::FloatRect activationBounds_{};
 
     bool isEmpty = false;

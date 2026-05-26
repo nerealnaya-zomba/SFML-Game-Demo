@@ -28,6 +28,7 @@ public:
         int initialSpeed = 0;
         int maxSpeed = 0;
         int health = 0;
+        int maxEnergy = 0;
         int damage = 0;
         int dashForce = 0;
         int dashCooldownReduction = 0;

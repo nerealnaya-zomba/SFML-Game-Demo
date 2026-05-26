@@ -82,6 +82,14 @@ void DeveloperOverlay::setActions(DeveloperOverlayActions actions)
     actions_ = std::move(actions);
 }
 
+void DeveloperOverlay::setRuntimeTimings(float levelUpdateMs, float levelDrawMs, float uiUpdateMs, float uiDrawMs)
+{
+    levelUpdateMs_ = levelUpdateMs;
+    levelDrawMs_ = levelDrawMs;
+    uiUpdateMs_ = uiUpdateMs;
+    uiDrawMs_ = uiDrawMs;
+}
+
 bool DeveloperOverlay::handleEvent(const sf::Event& event)
 {
     if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
@@ -154,6 +162,10 @@ void DeveloperOverlay::draw(
             {
                 ImGui::Text("FPS: %.1f", fps);
                 ImGui::Text("Frame time: %.2f ms", smoothedFrameMs_);
+                ImGui::Text("Level update: %.2f ms", levelUpdateMs_);
+                ImGui::Text("Level draw: %.2f ms", levelDrawMs_);
+                ImGui::Text("UI update: %.2f ms", uiUpdateMs_);
+                ImGui::Text("UI draw: %.2f ms", uiDrawMs_);
                 ImGui::PlotLines(
                     "Frame ms",
                     frameHistory_.data(),

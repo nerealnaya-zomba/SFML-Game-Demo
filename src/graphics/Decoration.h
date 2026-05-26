@@ -289,6 +289,7 @@ private:
                               std::optional<DecorationMiniLocationContext> miniLocationContext);
     void registerMiniLocationContext(const sf::Sprite& sprite,
                                      std::optional<DecorationMiniLocationContext> miniLocationContext);
+    bool shouldDrawSprite(const sf::Sprite& sprite, const sf::FloatRect& viewRect) const;
     void switchToNextSprite(DecorationSpriteMap& spritesArray,
                             std::vector<sf::Texture>& texturesArray,
                             texturesIterHelper& iterHelper);

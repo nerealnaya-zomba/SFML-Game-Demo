@@ -161,30 +161,59 @@ add_executable(main
     ${CMAKE_SOURCE_DIR}/src/main.cpp
 )
 target_link_libraries(main PRIVATE game_core)
-set_target_properties(main PROPERTIES OUTPUT_NAME "Dark Gate")
+set_target_properties(main PROPERTIES
+    OUTPUT_NAME "Dark Gate"
+    WIN32_EXECUTABLE TRUE
+)
 
 add_executable(level_editor
     ${CMAKE_SOURCE_DIR}/src/editor/LevelEditorMain.cpp
 )
 target_link_libraries(level_editor PRIVATE game_core)
 target_compile_definitions(level_editor PRIVATE SFML_GAME_DEMO_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
-set_target_properties(level_editor PROPERTIES OUTPUT_NAME "Dark Gate Editor")
+set_target_properties(level_editor PROPERTIES
+    OUTPUT_NAME "Dark Gate Editor"
+    WIN32_EXECUTABLE TRUE
+)
+
+if(WIN32 AND TARGET SFML::Main)
+    target_link_libraries(main PRIVATE SFML::Main)
+    target_link_libraries(level_editor PRIVATE SFML::Main)
+endif()
 
 source_group(TREE ${CMAKE_SOURCE_DIR}/src FILES ${SFML_GAME_DEMO_ALL_SOURCES} ${SFML_GAME_DEMO_ALL_HEADERS})
 
-set(SFML_GAME_DEMO_RUNTIME_ASSETS
-    data
-    fonts
-    images
-)
-
 add_custom_target(sync_runtime_assets ALL DEPENDS main level_editor)
 
-foreach(asset_dir IN LISTS SFML_GAME_DEMO_RUNTIME_ASSETS)
+foreach(asset_dir IN ITEMS fonts images)
     add_custom_command(TARGET sync_runtime_assets POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/${asset_dir}"
             "$<TARGET_FILE_DIR:main>/${asset_dir}"
+    )
+endforeach()
+
+foreach(data_dir IN ITEMS credits levelData)
+    add_custom_command(TARGET sync_runtime_assets POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/data/${data_dir}"
+            "$<TARGET_FILE_DIR:main>/data/${data_dir}"
+    )
+endforeach()
+
+foreach(data_file IN ITEMS
+    enemySettings.json
+    launchSettings.json
+    level_editor_imgui.ini
+    physicsSettings.json
+    PlayerConfig.json
+    shopData.json
+    third_party_assets.md
+)
+    add_custom_command(TARGET sync_runtime_assets POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/data/${data_file}"
+            "$<TARGET_FILE_DIR:main>/data/${data_file}"
     )
 endforeach()
 

@@ -25,6 +25,18 @@ float seededNoise(sf::Vector2f position, int z, float salt)
     return fract(value);
 }
 
+sf::FloatRect expandedViewRect(const sf::RenderWindow& window)
+{
+    const sf::View view = window.getView();
+    const sf::Vector2f size = view.getSize();
+    const sf::Vector2f center = view.getCenter();
+    constexpr float padding = 220.f;
+    return {
+        {center.x - size.x * 0.5f - padding, center.y - size.y * 0.5f - padding},
+        {size.x + padding * 2.f, size.y + padding * 2.f}
+    };
+}
+
 DecorationMotionProfile makePlantMotion(float swayAmplitude,
                                         float swaySpeed,
                                         float tiltAmplitude,
@@ -461,15 +473,32 @@ void Decoration::updateTextures()
     updateParallax();
 }
 
+bool Decoration::shouldDrawSprite(const sf::Sprite& sprite, const sf::FloatRect& viewRect) const
+{
+    const auto contextIt = miniLocationContexts.find(&sprite);
+    if (contextIt != miniLocationContexts.end())
+    {
+        if (!activeMiniLocationId_.has_value() || *activeMiniLocationId_ != contextIt->second.miniLocationId)
+        {
+            return false;
+        }
+    }
+
+    return viewRect.findIntersection(sprite.getGlobalBounds()).has_value();
+}
+
 void Decoration::drawByZOrder(sf::RenderWindow& window)
 {
+    const sf::FloatRect viewRect = expandedViewRect(window);
     for (int z : all_Z)
     {
         for (DecorationSpriteMap* spriteMap : spriteMaps)
         {
             for (const auto& entry : *spriteMap)
             {
-                if (entry.first.z == z && entry.second)
+                if (entry.first.z == z &&
+                    entry.second &&
+                    shouldDrawSprite(*entry.second, viewRect))
                 {
                     window.draw(*entry.second);
                 }
@@ -490,7 +519,10 @@ void Decoration::drawInstance(sf::RenderWindow& window, const std::size_t index)
         return;
     }
 
-    window.draw(*orderedSprites[index]);
+    if (shouldDrawSprite(*orderedSprites[index], expandedViewRect(window)))
+    {
+        window.draw(*orderedSprites[index]);
+    }
 }
 
 std::size_t Decoration::getInstanceCount() const

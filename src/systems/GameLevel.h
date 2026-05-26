@@ -100,6 +100,7 @@ private:
         sf::Color coreColor = sf::Color(255, 126, 72, 255);
         sf::Color glowColor = sf::Color(255, 208, 124, 255);
         sf::Color emberColor = sf::Color(255, 238, 190, 255);
+        std::string miniLocationId{};
     };
 
     struct LevelEventZone
@@ -154,6 +155,7 @@ private:
     sf::Vector2f playerSpawnPos{};
     nlohmann::json loadedLevelData{};
     int primaryWorldWidth = 0;
+    float primaryWorldCameraLeftEdge = 0.f;
     float primaryWorldCameraRightEdge = 0.f;
     std::optional<std::string> activeMiniLocationId_{};
     std::optional<sf::Vector2f> activeMiniLocationReturnSupport_{};
@@ -173,7 +175,9 @@ private:
     void initializeInteractives(const nlohmann::json& data);
     void initializePortals(const nlohmann::json& data);
     void initializeExplicitMiniLocations(const nlohmann::json& data);
+    void initializeWorldHazards(const nlohmann::json& data);
     void generateMiniLocations();
+    const GeneratedMiniLocation* activeMiniLocation() const;
     void tryInitializeEnemyManager();
     void tryInitializeInteractives();
     void initializeEventZones(const nlohmann::json& data);
@@ -221,6 +225,7 @@ public:
 
     sf::Vector2i getLevelSize() const;
     sf::FloatRect getCameraBoundsForPosition(const sf::Vector2f& position) const;
+    sf::FloatRect getWorldObjectCameraBoundsForPosition(const sf::Vector2f& position) const;
     bool isMiniLocationActive() const;
     bool enterMiniLocation(const std::string& id, std::optional<sf::Vector2f> returnSupportPoint = std::nullopt);
     void exitMiniLocation();
@@ -317,6 +322,7 @@ public:
         std::optional<sf::Vector2f> returnSupportPoint = std::nullopt
     );
     bool teleportPlayerToLevelPosition(const std::string& levelName, const sf::Vector2f& pos);
+    bool teleportPlayerToLevelSpawn(const std::string& levelName);
 
     void attachPlayer(Player& p);
     void setNotificationSink(std::function<void(std::string, std::string, NotificationTone)> sink);

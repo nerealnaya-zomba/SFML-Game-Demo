@@ -1,250 +1,1022 @@
 {
-  "Presets": {
-    "LevelId": "level5.json",
-    "Title": "Trial of Embers",
-    "MenuOrder": 5,
-    "isConstant": true,
-    "isAvaiable": true,
-    "Size": [1920, 1080],
-    "PlayerSpawn": [100, 900],
-    "BackgroundTheme": "TwilightRift"
-  },
-  "Platforms": [
-    {
-      "Type": "Thorn-ramp",
-      "Position": [960, 540]
-    }
-  ],
-  "Decorations": [
-    {
-      "Name": "MossyBackgroundDecoration_03.png",
-      "Position": [960, 500],
-      "Scale": [0.48, 0.48],
-      "Color": [160, 160, 170, 180],
-      "ParallaxFactor": [0.14, 0.14],
-      "Z": -3
+    "Background": [
+        {
+            "BgName": "Background_181.png",
+            "EditorDrawOrder": 0,
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                960.0,
+                540.0
+            ],
+            "Type": "repeatedXY"
+        },
+        {
+            "BgName": "Background_185.png",
+            "EditorDrawOrder": 1,
+            "ParallaxFactor": [
+                0.20000000298023224,
+                0.25
+            ],
+            "Position": [
+                960.0,
+                540.0
+            ],
+            "Type": "repeatedXY"
+        }
+    ],
+    "Barriers": [],
+    "DeadAreas": [
+        {
+            "CoreColor": [
+                242,
+                104,
+                56,
+                255
+            ],
+            "EmberColor": [
+                255,
+                236,
+                188,
+                255
+            ],
+            "Enabled": true,
+            "GlowColor": [
+                255,
+                182,
+                96,
+                255
+            ],
+            "Id": "dead_area_1",
+            "Rect": [
+                1512.0172119140625,
+                1033.64453125,
+                1870.9281005859375,
+                57.34375
+            ]
+        },
+        {
+            "CoreColor": [
+                242,
+                104,
+                56,
+                255
+            ],
+            "EmberColor": [
+                255,
+                236,
+                188,
+                255
+            ],
+            "Enabled": true,
+            "GlowColor": [
+                255,
+                182,
+                96,
+                255
+            ],
+            "Id": "dead_area_2",
+            "Rect": [
+                -35.3779296875,
+                1051.3798828125,
+                1149.6754150390625,
+                107.6959228515625
+            ]
+        }
+    ],
+    "Decorations": [
+        {
+            "Color": [
+                140,
+                150,
+                160,
+                255
+            ],
+            "EditorDrawOrder": 39,
+            "Name": "MossyBackgroundDecoration_01.png",
+            "ParallaxFactor": [
+                -0.30000001192092896,
+                0.0
+            ],
+            "Position": [
+                4468.15380859375,
+                631.5855712890625
+            ],
+            "Scale": [
+                0.3799999952316284,
+                0.3799999952316284
+            ],
+            "Z": -3
+        },
+        {
+            "Color": [
+                160,
+                165,
+                185,
+                255
+            ],
+            "Name": "MossyHills_06.png",
+            "ParallaxFactor": [
+                0.2,
+                0.18
+            ],
+            "Position": [
+                5313.785400390625,
+                980.734130859375
+            ],
+            "Scale": [
+                0.52,
+                0.52
+            ],
+            "Z": -2
+        },
+        {
+            "Color": [
+                170,
+                175,
+                195,
+                255
+            ],
+            "EditorDrawOrder": 3,
+            "Name": "MossyHills_05.png",
+            "ParallaxFactor": [
+                0.26,
+                0.22
+            ],
+            "Position": [
+                4341.1461181640625,
+                763.0903930664062
+            ],
+            "Scale": [
+                0.56,
+                0.56
+            ],
+            "Z": -2
+        },
+        {
+            "Color": [
+                180,
+                205,
+                180,
+                220
+            ],
+            "Name": "MossyHangingPlants_03.png",
+            "ParallaxFactor": [
+                0.38,
+                0.34
+            ],
+            "Position": [
+                5039.690124511719,
+                82.00386810302734
+            ],
+            "Scale": [
+                0.4,
+                0.4
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                110,
+                203,
+                229,
+                220
+            ],
+            "EditorDrawOrder": 3,
+            "Name": "MossyHangingPlants_06.png",
+            "ParallaxFactor": [
+                0.42,
+                0.36
+            ],
+            "Position": [
+                3664.60400390625,
+                239.70114135742188
+            ],
+            "Rotation": -2.0,
+            "Scale": [
+                0.9363062977790833,
+                0.8486016988754272
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                230,
+                230,
+                255,
+                255
+            ],
+            "EditorDrawOrder": 24,
+            "Name": "MossyDecorationHazard_02.png",
+            "ParallaxFactor": [
+                -0.019999999552965164,
+                0.0
+            ],
+            "Position": [
+                4291.64404296875,
+                930.3932495117188
+            ],
+            "Scale": [
+                0.3400000035762787,
+                0.3400000035762787
+            ],
+            "Z": 1
+        },
+        {
+            "Color": [
+                116,
+                120,
+                115,
+                255
+            ],
+            "EditorDrawOrder": 5,
+            "Name": "plant2",
+            "ParallaxFactor": [
+                0.10000000149011612,
+                0.0
+            ],
+            "Position": [
+                4609.3873291015625,
+                1016.3524169921875
+            ],
+            "Rotation": 10.0,
+            "Scale": [
+                0.4399999976158142,
+                0.4399999976158142
+            ],
+            "Z": 2
+        },
+        {
+            "Color": [
+                156,
+                161,
+                170,
+                235
+            ],
+            "EditorDrawOrder": 5,
+            "Name": "jumpPlant2",
+            "ParallaxFactor": [
+                0.10000000149011612,
+                0.0
+            ],
+            "Position": [
+                4138.5291748046875,
+                1006.3112182617188
+            ],
+            "Rotation": -10.0,
+            "Scale": [
+                0.5764071941375732,
+                0.5705163478851318
+            ],
+            "Z": 2
+        },
+        {
+            "Color": [
+                77,
+                164,
+                182,
+                255
+            ],
+            "EditorDrawOrder": 3,
+            "Name": "MossyBackgroundDecoration_06.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                3088.51123046875,
+                983.121337890625
+            ],
+            "Rotation": -14.0,
+            "Scale": [
+                0.7379946112632751,
+                0.6200553774833679
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                79,
+                161,
+                184,
+                255
+            ],
+            "EditorDrawOrder": 9,
+            "Name": "MossyBackgroundDecoration_05.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                2606.312255859375,
+                42.632110595703125
+            ],
+            "Rotation": -8.0,
+            "Scale": [
+                -0.5669770836830139,
+                -0.5653899908065796
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                80,
+                163,
+                182,
+                255
+            ],
+            "EditorDrawOrder": 6,
+            "Name": "plant3",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                2517.572265625,
+                545.1123046875
+            ],
+            "Rotation": -194.0,
+            "Scale": [
+                1.0938377380371094,
+                0.9597835540771484
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                73,
+                160,
+                183,
+                255
+            ],
+            "EditorDrawOrder": 3,
+            "Name": "MossyHills_06.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                2404.80908203125,
+                995.6695556640625
+            ],
+            "Rotation": 1.0,
+            "Scale": [
+                0.6177576780319214,
+                0.5913332104682922
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "EditorDrawOrder": 35,
+            "Name": "MossyDecorationHazard_03.png",
+            "ParallaxFactor": [
+                -0.10000000149011612,
+                -0.10000000149011612
+            ],
+            "Position": [
+                3353.9931640625,
+                1076.5843505859375
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                0.29556211829185486,
+                0.30539536476135254
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "EditorDrawOrder": 100,
+            "Name": "MossyDecorationHazard_01.png",
+            "ParallaxFactor": [
+                -0.10000000149011612,
+                -0.10000000149011612
+            ],
+            "Position": [
+                1587.86865234375,
+                959.1898193359375
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                0.2909593880176544,
+                0.3705894351005554
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "EditorDrawOrder": 26,
+            "Name": "jumpBloom2",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                1330.6953125,
+                1041.6441650390625
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                0.2884063720703125,
+                0.3511066436767578
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "EditorDrawOrder": 20,
+            "Name": "blueFlower2",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                1167.16552734375,
+                1046.21435546875
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                0.25512567162513733,
+                0.24763233959674835
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "EditorDrawOrder": 29,
+            "Name": "plantWind1",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                1339.5556640625,
+                1045.7203369140625
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                0.5333499908447266,
+                0.6298785209655762
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "EditorDrawOrder": 29,
+            "Name": "plantWind1",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                1179.25048828125,
+                1077.5924072265625
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                -0.4819999933242798,
+                0.45853185653686523
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                74,
+                176,
+                221,
+                255
+            ],
+            "EditorDrawOrder": 9,
+            "Name": "MossyBackgroundDecoration_03.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                1704.04345703125,
+                36.331298828125
+            ],
+            "Rotation": 170.0,
+            "Scale": [
+                1.0,
+                1.0
+            ],
+            "Z": 0
+        }
+    ],
+    "Events": [
+        {
+            "Body": "Flying threats dominate this air lane. Commit to high ground only if you can clear it quickly.",
+            "Bounds": [
+                3660.0,
+                240.0,
+                1560.0,
+                520.0
+            ],
+            "Title": "Open sky pressure",
+            "Tone": "Warning"
+        },
+        {
+            "Body": "The storm path rewards short resets. Dash through gaps, then recover on the broad stones.",
+            "Bounds": [
+                2260.0,
+                640.0,
+                1860.0,
+                300.0
+            ],
+            "Title": "Storm crossing",
+            "Tone": "Info"
+        }
+    ],
+    "Ground": [
+        {
+            "DepthRows": 3,
+            "EditorDrawOrder": 30,
+            "GroundName": "TileSetGreen_27.png",
+            "GroundStyle": "ObsidianRunes",
+            "Offset": 8.0,
+            "Points": [
+                0,
+                5999
+            ],
+            "YPos": 1048
+        }
+    ],
+    "Interactives": [],
+    "MiniLocations": [],
+    "Platforms": [
+        {
+            "EditorDrawOrder": 16,
+            "Position": [
+                3462.74462890625,
+                907.7181396484375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "EditorDrawOrder": 17,
+            "Position": [
+                3328.59521484375,
+                813.2412109375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 20,
+            "Position": [
+                2630.726318359375,
+                942.2680053710938
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 22,
+            "Position": [
+                2379.965576171875,
+                922.897216796875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-angled"
+        },
+        {
+            "EditorDrawOrder": 23,
+            "Position": [
+                2875.473388671875,
+                967.8031005859375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-angled"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 24,
+            "HitboxSize": [
+                40.0,
+                40.0
+            ],
+            "Position": [
+                3066.112060546875,
+                873.607421875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-angled"
+        },
+        {
+            "EditorDrawOrder": 26,
+            "Position": [
+                3843.365478515625,
+                979.7196044921875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-angled"
+        },
+        {
+            "EditHitbox": true,
+            "EditorDrawOrder": 31,
+            "HitboxOffset": [
+                -73.617431640625,
+                -192.26336669921875
+            ],
+            "HitboxSize": [
+                37.1416015625,
+                217.25421142578125
+            ],
+            "Position": [
+                3452.952392578125,
+                1150.5052490234375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-angled"
+        },
+        {
+            "EditHitbox": true,
+            "EditorDrawOrder": 32,
+            "HitboxOffset": [
+                -49.5517578125,
+                -172.47760009765625
+            ],
+            "HitboxSize": [
+                78.1171875,
+                205.80712890625
+            ],
+            "Position": [
+                1627.203125,
+                1179.6358642578125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-angled"
+        },
+        {
+            "EditorDrawOrder": 33,
+            "Position": [
+                1855.395263671875,
+                895.932373046875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditHitbox": true,
+            "EditorDrawOrder": 38,
+            "HazardTool": "PlatformHitbox",
+            "HitboxOffset": [
+                -387.813232421875,
+                -559.9342041015625
+            ],
+            "HitboxSize": [
+                96.734375,
+                682.2423706054688
+            ],
+            "Position": [
+                1575.6923828125,
+                514.28125
+            ],
+            "Type": "Invisible-wall"
+        },
+        {
+            "BounceEnabled": false,
+            "EditHitbox": true,
+            "EditorDrawOrder": 39,
+            "HazardTool": "PlatformHitbox",
+            "HitboxOffset": [
+                -759.36572265625,
+                -543.3626708984375
+            ],
+            "HitboxSize": [
+                60.718994140625,
+                480.651123046875
+            ],
+            "Position": [
+                1615.3837890625,
+                474.016845703125
+            ],
+            "Type": "Invisible-wall"
+        },
+        {
+            "BounceEnabled": false,
+            "EditHitbox": true,
+            "EditorDrawOrder": 40,
+            "HazardTool": "PlatformHitbox",
+            "HitboxOffset": [
+                -159.654296875,
+                -367.6083984375
+            ],
+            "HitboxSize": [
+                75.47705078125,
+                460.5266418457031
+            ],
+            "Position": [
+                1388.64794921875,
+                247.28024291992188
+            ],
+            "Type": "Invisible-wall"
+        },
+        {
+            "BounceEnabled": false,
+            "EditHitbox": true,
+            "EditorDrawOrder": 41,
+            "HazardTool": "PlatformHitbox",
+            "HitboxOffset": [
+                292.666748046875,
+                -270.7852783203125
+            ],
+            "HitboxSize": [
+                114.869140625,
+                541.5610961914062
+            ],
+            "Position": [
+                3365.98779296875,
+                121.876220703125
+            ],
+            "Type": "Invisible-wall"
+        },
+        {
+            "EditorDrawOrder": 42,
+            "Position": [
+                1128.5245361328125,
+                957.66357421875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Fallen-arcade"
+        },
+        {
+            "BounceEnabled": false,
+            "EditHitbox": true,
+            "EditorDrawOrder": 43,
+            "HitboxOffset": [
+                -3.53076171875,
+                -24.714111328125
+            ],
+            "HitboxSize": [
+                62.0615234375,
+                185.014892578125
+            ],
+            "Position": [
+                1461.783203125,
+                907.0342407226562
+            ],
+            "Scale": [
+                0.2505396008491516,
+                0.28481894731521606
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "AtmosphereColor": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "AtmosphereStyle": "Default",
+            "BounceEnabled": false,
+            "EditHitbox": true,
+            "EditorDrawOrder": 44,
+            "HitboxOffset": [
+                -0.97119140625,
+                -23.30224609375
+            ],
+            "HitboxSize": [
+                63.5615234375,
+                203.46142578125
+            ],
+            "Position": [
+                1103.30517578125,
+                952.2191162109375
+            ],
+            "Scale": [
+                0.24237962067127228,
+                0.26223239302635193
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 78,
+            "Position": [
+                28.606536865234375,
+                904.7896118164062
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 79,
+            "Position": [
+                287.88812255859375,
+                909.3787231445312
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 80,
+            "Position": [
+                602.23828125,
+                901.3477783203125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        }
+    ],
+    "Portals": [
+        {
+            "AccentColor": [
+                112,
+                208,
+                255,
+                255
+            ],
+            "ActivationArea": [
+                5832.0,
+                812.0,
+                136.0,
+                176.0
+            ],
+            "Color": [
+                212,
+                236,
+                255,
+                245
+            ],
+            "EditorDrawOrder": 77,
+            "Id": "portal_1",
+            "InteractRadius": 130.0,
+            "PortalTexture": "portalGreen",
+            "Position": [
+                5900,
+                900
+            ],
+            "Prompt": "Enter portal",
+            "Scale": [
+                0.36000001430511475,
+                0.36000001430511475
+            ],
+            "Target": {
+                "LevelId": "level6.json",
+                "Position": [
+                    5900,
+                    900
+                ],
+                "Type": "Level"
+            },
+            "Title": "Portal 1"
+        }
+    ],
+    "Presets": {
+        "ActorDrawOrder": 6,
+        "BackgroundTheme": "TwilightRift",
+        "BackgroundTileOffsetY": -120.0,
+        "GenerateMiniLocations": false,
+        "LevelId": "level5.json",
+        "MainWorldWidth": 6000,
+        "MenuOrder": 5,
+        "PlayerSpawn": [
+            62.81982421875,
+            791.6640625
+        ],
+        "Size": [
+            6000,
+            1080
+        ],
+        "Title": "Ruins of the Elder City",
+        "isAvaiable": true,
+        "isConstant": true
     },
-    {
-      "Name": "MossyHills_02.png",
-      "Position": [420, 900],
-      "Scale": [0.42, 0.42],
-      "Color": [190, 190, 210, 255],
-      "ParallaxFactor": [0.18, 0.18],
-      "Z": -2
-    },
-    {
-      "Name": "MossyHills_05.png",
-      "Position": [960, 850],
-      "Scale": [0.60, 0.60],
-      "Color": [180, 180, 200, 255],
-      "ParallaxFactor": [0.24, 0.22],
-      "Z": -2
-    },
-    {
-      "Name": "MossyHills_06.png",
-      "Position": [1500, 900],
-      "Scale": [0.46, 0.46],
-      "Color": [190, 190, 210, 255],
-      "ParallaxFactor": [0.20, 0.20],
-      "Z": -2
-    },
-    {
-      "Name": "MossyHangingPlants_02.png",
-      "Position": [760, 250],
-      "Scale": [0.42, 0.42],
-      "Color": [180, 185, 180, 220],
-      "ParallaxFactor": [0.38, 0.34],
-      "Z": 0
-    },
-    {
-      "Name": "MossyHangingPlants_08.png",
-      "Position": [1180, 240],
-      "Scale": [0.44, 0.44],
-      "Color": [180, 185, 180, 220],
-      "ParallaxFactor": [0.40, 0.36],
-      "Z": 0
-    },
-    {
-      "Name": "MossyDecorationHazard_10.png",
-      "Position": [960, 470],
-      "Scale": [0.28, 0.28],
-      "Color": [235, 235, 255, 255],
-      "ParallaxFactor": [0.52, 0.48],
-      "Z": 1
-    },
-    {
-      "Name": "plant6",
-      "Position": [340, 990],
-      "Scale": [0.44, 0.44],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.64, 0.64],
-      "Z": 2
-    },
-    {
-      "Name": "plant3",
-      "Position": [1600, 992],
-      "Scale": [0.48, 0.48],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.68, 0.68],
-      "Z": 2
-    },
-    {
-      "Name": "portalBlue8",
-      "Position": [960, 720],
-      "Scale": [0.78, 0.78],
-      "Color": [180, 220, 255, 220],
-      "ParallaxFactor": [0.42, 0.40],
-      "Z": 0
-    },
-    {
-      "Name": "windPlant1",
-      "Position": [280, 992],
-      "Scale": [0.40, 0.40],
-      "Color": [235, 235, 255, 220],
-      "ParallaxFactor": [0.70, 0.70],
-      "Z": 2
-    },
-    {
-      "Name": "blueFlower1",
-      "Position": [540, 994],
-      "Scale": [0.24, 0.24],
-      "Color": [210, 235, 255, 245],
-      "ParallaxFactor": [0.72, 0.72],
-      "Z": 3
-    },
-    {
-      "Name": "jumpPlant",
-      "Position": [700, 985],
-      "Scale": [0.40, 0.40],
-      "Color": [255, 255, 255, 235],
-      "ParallaxFactor": [0.68, 0.68],
-      "Z": 2
-    },
-    {
-      "Name": "cat",
-      "Position": [900, 960],
-      "Scale": [3.20, 3.20],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.70, 0.70],
-      "Z": 3
-    },
-    {
-      "Name": "jumpPlant2",
-      "Position": [1220, 985],
-      "Scale": [0.40, 0.40],
-      "Color": [225, 245, 255, 235],
-      "ParallaxFactor": [0.68, 0.68],
-      "Z": 2
-    },
-    {
-      "Name": "blueFlower2",
-      "Position": [1380, 994],
-      "Scale": [0.24, 0.24],
-      "Color": [215, 240, 255, 245],
-      "ParallaxFactor": [0.72, 0.72],
-      "Z": 3
-    },
-    {
-      "Name": "poisonPlant",
-      "Position": [1640, 992],
-      "Scale": [0.38, 0.38],
-      "Color": [225, 195, 255, 235],
-      "ParallaxFactor": [0.70, 0.70],
-      "Z": 2
-    }
-  ],
-  "Interactives": [
-    {
-      "Type": "RestShrine",
-      "Texture": "MossyDecorationHazard_21.png",
-      "Position": [960, 482],
-      "Scale": [0.30, 0.30],
-      "Color": [232, 236, 255, 255],
-      "AccentColor": [150, 188, 255, 255],
-      "InteractRadius": 136.0,
-      "SingleUse": true,
-      "GrantsCheckpoint": true,
-      "RestoreVitality": true,
-      "SpawnOffset": [-44.0, -126.0],
-      "Prompt": "Enter to attune the rift shrine",
-      "Title": "Rift Shrine",
-      "Body": "The shrine drinks the twilight crackle and gives it back as calm. It fixes your return point and restores your strength for the next breach."
-    },
-    {
-      "Type": "GoldCache",
-      "Texture": "Item_35.png",
-      "Position": [1360, 934],
-      "Scale": [3.7, 3.7],
-      "Color": [255, 255, 255, 255],
-      "AccentColor": [255, 210, 122, 255],
-      "InteractRadius": 96.0,
-      "HiddenUntilNearby": true,
-      "RevealRadius": 190.0,
-      "RevealTitle": "Night Relic Bundle",
-      "RevealBody": "The trial shifts and a hidden bundle becomes visible near the shrine path.",
-      "RewardGold": 110,
-      "SingleUse": true,
-      "Prompt": "Enter to gather night relics",
-      "Title": "Night Relic Bundle",
-      "Body": "Moon-silver fittings, old seals and a roll of survivor's coin rest in the bundle. Someone planned to buy safety and ran out of road first."
-    }
-  ],
-  "Events": [
-    {
-      "Bounds": [720.0, 360.0, 520.0, 300.0],
-      "Body": "This is a compact combat room. Expect the shrine, jump timing and reward to chain together quickly.",
-      "Title": "Rift trial",
-      "Tone": "Info"
-    }
-  ],
-  "Background": [
-    {
-      "BgName": "Background_31.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.96, 0.99],
-      "Type": 0
-    },
-    {
-      "BgName": "Background_32.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.90, 0.95],
-      "Type": 0
-    },
-    {
-      "BgName": "Background_33.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.82, 0.90],
-      "Type": 0
-    },
-    {
-      "BgName": "Background_34.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.72, 0.84],
-      "Type": 0
-    }
-  ],
-  "Ground": [
-    {
-      "GroundStyle": "CrimsonSanctum",
-      "GroundName": "TileSetGreen_31.png",
-      "Points": [0, 1920],
-      "YPos": 1048,
-      "DepthRows": 3,
-      "Offset": 8.0
-    }
-  ],
-  "Spawners": [
-    {
-      "Archetype": "Duel",
-      "ActivationMode": "OnEnter",
-      "EncounterTitle": "Trial keeper",
-      "EncounterBody": "This compact arena is meant to test control under pressure. Win the first duel, then stabilize at the shrine.",
-      "EnemyName": "SkeletonWhite",
-      "EnemyAmount": 2,
-      "FirstSpawnDelayMs": 500,
-      "SpawnCooldown": 5200,
-      "EnemyPerSpawn": 1,
-      "SpawnArea": [[200, 700], [700, 800]]
-    }
-  ]
+    "Spawners": [
+        {
+            "ActivationArea": [
+                3802.128173828125,
+                756.1410522460938,
+                420.0,
+                300.0
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 3,
+            "EnemyDamage": 15,
+            "EnemyHP": 45,
+            "EnemyName": "VoidSlime",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 15,
+            "SpawnArea": [
+                [
+                    3868.062255859375,
+                    4571.5771484375
+                ],
+                [
+                    846.9957885742188,
+                    976.4022827148438
+                ]
+            ],
+            "SpawnCooldown": 1000
+        },
+        {
+            "ActivationArea": [
+                1529.9788818359375,
+                604.477783203125,
+                237.656005859375,
+                301.1396484375
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 2,
+            "EnemyDamage": 25,
+            "EnemyHP": 50,
+            "EnemyName": "SkeletonWhite",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 10,
+            "SpawnArea": [
+                [
+                    1898.2998046875,
+                    2078.300048828125
+                ],
+                [
+                    727.251953125,
+                    827.251953125
+                ]
+            ],
+            "SpawnCooldown": 333
+        }
+    ]
 }

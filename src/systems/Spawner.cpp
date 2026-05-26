@@ -2,19 +2,22 @@
 
 #include <EnemyManager.h>
 #include <GameLevel.h>
+#include <Skeleton.h>
+#include <BestiaryEnemy.h>
 
 namespace
 {
-sf::FloatRect makeActivationBounds(const sf::Vector2f spawnArea[2])
+sf::FloatRect makeActivationBounds(const sf::Vector2f spawnArea[2], const float padding)
 {
     const float left = std::min(spawnArea[0].x, spawnArea[0].y);
     const float right = std::max(spawnArea[0].x, spawnArea[0].y);
     const float top = std::min(spawnArea[1].x, spawnArea[1].y);
     const float bottom = std::max(spawnArea[1].x, spawnArea[1].y);
+    const float safePadding = std::max(0.f, padding);
 
     return sf::FloatRect(
-        {left - 120.f, top - 120.f},
-        {std::max(0.f, right - left) + 240.f, std::max(0.f, bottom - top) + 240.f}
+        {left - safePadding, top - safePadding},
+        {std::max(0.f, right - left) + safePadding * 2.f, std::max(0.f, bottom - top) + safePadding * 2.f}
     );
 }
 }
@@ -52,7 +55,12 @@ Spawner::Spawner(
     , activated_(!encounterConfig.activateOnPlayerEnter)
     , firstSpawnPending_(encounterConfig.initialSpawnDelayMs > 0)
     , initialSpawnDelayMs_(std::max(encounterConfig.initialSpawnDelayMs, 0))
-    , activationBounds_(makeActivationBounds(spawnArea))
+    , enemyHpOverride_(std::max(encounterConfig.enemyHpOverride, 0))
+    , enemyDamageOverride_(std::max(encounterConfig.enemyDamageOverride, 0))
+    , goldRewardOverride_(std::max(encounterConfig.goldRewardOverride, 0))
+    , activationBounds_(encounterConfig.hasActivationArea
+        ? encounterConfig.activationArea
+        : makeActivationBounds(spawnArea, encounterConfig.activationPadding))
 {
     if (activated_)
     {
@@ -90,7 +98,12 @@ Spawner::Spawner(
     , activated_(!encounterConfig.activateOnPlayerEnter)
     , firstSpawnPending_(encounterConfig.initialSpawnDelayMs > 0)
     , initialSpawnDelayMs_(std::max(encounterConfig.initialSpawnDelayMs, 0))
-    , activationBounds_(makeActivationBounds(spawnArea))
+    , enemyHpOverride_(std::max(encounterConfig.enemyHpOverride, 0))
+    , enemyDamageOverride_(std::max(encounterConfig.enemyDamageOverride, 0))
+    , goldRewardOverride_(std::max(encounterConfig.goldRewardOverride, 0))
+    , activationBounds_(encounterConfig.hasActivationArea
+        ? encounterConfig.activationArea
+        : makeActivationBounds(spawnArea, encounterConfig.activationPadding))
 {
     if (activated_)
     {
@@ -168,23 +181,28 @@ void Spawner::spawnCountOfEnemies()
     const auto spawnEnemyAt = [&](const sf::Vector2f& randomPos) {
         if (enemyName == "SkeletonWhite")
         {
-            manager->addSkeleton(*data, *window, *ground, *platform, *player, "white", randomPos);
+            auto enemy = manager->addSkeleton(*data, *window, *ground, *platform, *player, "white", randomPos);
+            enemy->applySpawnerOverrides(enemyHpOverride_, enemyDamageOverride_, goldRewardOverride_);
         }
         else if (enemyName == "SkeletonYellow")
         {
-            manager->addSkeleton(*data, *window, *ground, *platform, *player, "yellow", randomPos);
+            auto enemy = manager->addSkeleton(*data, *window, *ground, *platform, *player, "yellow", randomPos);
+            enemy->applySpawnerOverrides(enemyHpOverride_, enemyDamageOverride_, goldRewardOverride_);
         }
         else if (enemyName == "WraithBat")
         {
-            manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "wraith-bat", randomPos);
+            auto enemy = manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "wraith-bat", randomPos);
+            enemy->applySpawnerOverrides(enemyHpOverride_, enemyDamageOverride_, goldRewardOverride_);
         }
         else if (enemyName == "VoidSlime")
         {
-            manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "void-slime", randomPos);
+            auto enemy = manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "void-slime", randomPos);
+            enemy->applySpawnerOverrides(enemyHpOverride_, enemyDamageOverride_, goldRewardOverride_);
         }
         else if (enemyName == "DreadScorpion")
         {
-            manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "dread-scorpion", randomPos);
+            auto enemy = manager->addBestiaryEnemy(*data, *window, *ground, *platform, *player, "dread-scorpion", randomPos);
+            enemy->applySpawnerOverrides(enemyHpOverride_, enemyDamageOverride_, goldRewardOverride_);
         }
     };
 

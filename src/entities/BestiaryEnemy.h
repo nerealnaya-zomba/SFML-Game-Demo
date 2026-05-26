@@ -48,6 +48,7 @@ public:
     sf::Vector2f getPosition() const;
     void attachPlayer(Player& player);
     void receiveBulletHit(const Bullet& bullet, bool splashHit = false);
+    void applySpawnerOverrides(int hpOverride, int damageOverride, int goldRewardOverride);
     std::string getDropKey() const;
 
 private:
@@ -152,6 +153,7 @@ private:
     bool hitFlashActive_ = false;
     bool scorpionDeathPulseMidPlayed_ = false;
     bool scorpionDeathPulseLatePlayed_ = false;
+    int customGoldReward_ = 0;
 
     sf::Clock stateClock_{};
     sf::Clock attackCooldownClock_{};

@@ -32,6 +32,7 @@ public:
     ~DeveloperOverlay();
 
     void setActions(DeveloperOverlayActions actions);
+    void setRuntimeTimings(float levelUpdateMs, float levelDrawMs, float uiUpdateMs, float uiDrawMs);
     bool handleEvent(const sf::Event& event);
     void beginFrame(sf::Time deltaTime);
     void draw(
@@ -52,6 +53,10 @@ private:
     bool showImGuiDemo_ = false;
     int grantGoldAmount_ = 50;
     float smoothedFrameMs_ = 0.f;
+    float levelUpdateMs_ = 0.f;
+    float levelDrawMs_ = 0.f;
+    float uiUpdateMs_ = 0.f;
+    float uiDrawMs_ = 0.f;
     std::array<float, 180> frameHistory_{};
     std::size_t frameHistoryCount_ = 0;
     std::size_t frameHistoryIndex_ = 0;

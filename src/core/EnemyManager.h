@@ -91,9 +91,11 @@ public:
     /*
         Add enemy
     */
-    void addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos);
-    void addBestiaryEnemy(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos);
+    std::shared_ptr<Skeleton> addSkeleton(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos);
+    std::shared_ptr<BestiaryEnemy> addBestiaryEnemy(GameData& data,sf::RenderWindow& window,Ground& ground,Platform& platform,Player& player,std::string type,sf::Vector2f pos);
     void dropGold(const sf::Vector2f& position, const std::string& enemyType);
+    void dropGoldAmount(const sf::Vector2f& position, int totalGold);
+    void killEnemiesInRect(const sf::FloatRect& hazardRect);
     void applySplashDamage(const sf::Vector2f& impactCenter, float splashRadius, const Bullet& bullet, const void* ignoredTarget);
     void addFlyingEnemy();   // IMPLEMENTME Добавь че нить
 

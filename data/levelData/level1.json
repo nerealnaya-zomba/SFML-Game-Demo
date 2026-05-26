@@ -5,26 +5,26 @@
             "EditorDrawOrder": 2,
             "ParallaxFactor": [
                 0.10000000149011612,
-                0.0
+                0.05000000074505806
             ],
             "Position": [
                 960.0,
                 540.0
             ],
-            "Type": 0
+            "Type": "repeatedX"
         },
         {
             "BgName": "Background_45.png",
             "EditorDrawOrder": 3,
             "ParallaxFactor": [
                 0.30000001192092896,
-                0.0
+                0.15000000596046448
             ],
             "Position": [
                 960.0,
                 540.0
             ],
-            "Type": 0
+            "Type": "repeatedX"
         },
         {
             "BgName": "Background_39.png",
@@ -40,6 +40,8 @@
             "Type": 0
         }
     ],
+    "Barriers": [],
+    "DeadAreas": [],
     "Decorations": [
         {
             "Color": [
@@ -242,8 +244,8 @@
                 0.3499999940395355
             ],
             "Position": [
-                908.4800415039063,
-                -4.0756683349609375
+                910.2633666992188,
+                25.080551147460938
             ],
             "Scale": [
                 1.0,
@@ -265,8 +267,8 @@
                 0.0
             ],
             "Position": [
-                1044.2666015625,
-                837.234619140625
+                1040.254150390625,
+                922.83203125
             ],
             "Rotation": 0.0,
             "Scale": [
@@ -314,7 +316,46 @@
             "YPos": 1047
         }
     ],
-    "Interactives": [],
+    "Interactives": [
+        {
+            "AccentColor": [
+                220,
+                184,
+                122,
+                255
+            ],
+            "AutoNameplate": true,
+            "Body": "Впереди опасность",
+            "Color": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "EditorDrawOrder": 66,
+            "GrantsCheckpoint": false,
+            "InteractRadius": 120.0,
+            "Position": [
+                1289.08056640625,
+                -427.1417541503906
+            ],
+            "Prompt": "Enter to interact",
+            "RestoreVitality": false,
+            "RewardGold": 0,
+            "Scale": [
+                1.0,
+                1.0
+            ],
+            "SingleUse": true,
+            "SpawnOffset": [
+                0.0,
+                0.0
+            ],
+            "Texture": "Background_119.png",
+            "Title": "Предупреждение",
+            "Type": "EchoTablet"
+        }
+    ],
     "MiniLocations": [
         {
             "AccentColor": [
@@ -626,8 +667,8 @@
         {
             "EditorDrawOrder": 31,
             "Position": [
-                307.6190185546875,
-                454.0845642089844
+                713.6506958007813,
+                560.34814453125
             ],
             "Scale": [
                 0.20000000298023224,
@@ -638,20 +679,8 @@
         {
             "EditorDrawOrder": 32,
             "Position": [
-                444.1488342285156,
-                583.3002319335938
-            ],
-            "Scale": [
-                0.20000000298023224,
-                0.20000000298023224
-            ],
-            "Type": "Single-angled"
-        },
-        {
-            "EditorDrawOrder": 33,
-            "Position": [
-                255.84884643554688,
-                679.6024780273438
+                434.4548034667969,
+                664.5424194335938
             ],
             "Scale": [
                 0.20000000298023224,
@@ -664,18 +693,6 @@
             "Position": [
                 1549.4312744140625,
                 764.6556396484375
-            ],
-            "Scale": [
-                0.20000000298023224,
-                0.20000000298023224
-            ],
-            "Type": "Single-angled"
-        },
-        {
-            "EditorDrawOrder": 35,
-            "Position": [
-                1214.734375,
-                621.3746948242188
             ],
             "Scale": [
                 0.20000000298023224,
@@ -703,8 +720,8 @@
                 50.0
             ],
             "Position": [
-                794.723876953125,
-                868.5106201171875
+                796.0614013671875,
+                952.7706298828125
             ],
             "Scale": [
                 0.20000000298023224,
@@ -713,31 +730,257 @@
             "Type": "Triple"
         },
         {
-            "EditorDrawOrder": 38,
+            "EditorDrawOrder": 41,
             "Position": [
-                644.2443237304688,
-                951.0264282226563
+                359.20050048828125,
+                777.4475708007813
             ],
             "Scale": [
                 0.20000000298023224,
                 0.20000000298023224
             ],
-            "Type": "Single-square"
+            "Type": "Double-horizontal-1"
         },
         {
-            "EditorDrawOrder": 39,
+            "EditorDrawOrder": 44,
             "Position": [
-                1168.5538330078125,
-                947.45361328125
+                830.4218139648438,
+                511.7220458984375
             ],
             "Scale": [
                 0.20000000298023224,
                 0.20000000298023224
             ],
-            "Type": "Single-square"
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 47,
+            "Position": [
+                1095.0172119140625,
+                280.93548583984375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 48,
+            "Position": [
+                567.5204467773438,
+                214.96646118164063
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 49,
+            "Position": [
+                256.6983642578125,
+                45.707786560058594
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 50,
+            "Position": [
+                992.966064453125,
+                37.607582092285156
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 51,
+            "Position": [
+                1367.1224365234375,
+                -68.41047668457031
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 52,
+            "Position": [
+                807.7162475585938,
+                -200.28895568847656
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 53,
+            "Position": [
+                1206.0712890625,
+                -355.1795654296875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 54,
+            "Position": [
+                1234.06298828125,
+                473.3597717285156
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 55,
+            "HitboxSize": [
+                360.0,
+                55.0
+            ],
+            "Position": [
+                1520.74267578125,
+                370.71466064453125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
+        },
+        {
+            "EditorDrawOrder": 56,
+            "Position": [
+                475.50506591796875,
+                134.2769012451172
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 57,
+            "Position": [
+                626.175048828125,
+                874.9043579101563
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 58,
+            "HitboxSize": [
+                360.0,
+                55.0
+            ],
+            "Position": [
+                500.84466552734375,
+                -469.345947265625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 59,
+            "HitboxSize": [
+                360.0,
+                55.0
+            ],
+            "Position": [
+                143.29788208007813,
+                -467.8113098144531
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 60,
+            "HitboxSize": [
+                360.0,
+                55.0
+            ],
+            "Position": [
+                -214.24916076660156,
+                -467.8112487792969
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
         }
     ],
     "Portals": [
+        {
+            "AccentColor": [
+                112,
+                208,
+                255,
+                255
+            ],
+            "ActivationArea": [
+                1520.278564453125,
+                435.8514709472656,
+                139.7266845703125,
+                120.99700927734375
+            ],
+            "Color": [
+                212,
+                236,
+                255,
+                245
+            ],
+            "EditorDrawOrder": 40,
+            "Id": "portal_1",
+            "InteractRadius": 130.0,
+            "PortalTexture": "portalViolet",
+            "Position": [
+                1592.1053466796875,
+                498.7286682128906
+            ],
+            "Prompt": "Enter portal",
+            "Scale": [
+                1.0,
+                1.0
+            ],
+            "Target": {
+                "MiniLocationId": "mini_location_1",
+                "Type": "MiniLocation"
+            },
+            "Title": "Portal 1"
+        },
         {
             "AccentColor": [
                 112,
@@ -751,29 +994,38 @@
                 255,
                 245
             ],
-            "EditorDrawOrder": 40,
-            "Id": "portal_1",
+            "EditorDrawOrder": 61,
+            "Id": "portal_2",
             "InteractRadius": 130.0,
-            "PortalTexture": "portalViolet",
+            "PortalTexture": "portalGreen",
             "Position": [
-                1590.1875,
-                491.6968078613281
+                132.78350830078125,
+                -558.3078002929688
             ],
             "Prompt": "Enter portal",
             "Scale": [
-                1.0,
-                1.0
+                0.36000001430511475,
+                0.36000001430511475
             ],
             "Target": {
-                "MiniLocationId": "mini_location_1",
-                "Type": "MiniLocation"
+                "LevelId": "level2.json",
+                "Position": [
+                    -42.5406494140625,
+                    -562.7430419921875
+                ],
+                "SpawnPosition": [
+                    182.90777587890625,
+                    880.9511108398438
+                ],
+                "Type": "Level"
             },
-            "Title": "Portal 1"
+            "Title": "Portal 2"
         }
     ],
     "Presets": {
         "ActorDrawOrder": 30,
         "BackgroundTheme": "VerdantDawn",
+        "BackgroundTileOffsetY": -152.0,
         "GenerateMiniLocations": false,
         "LevelId": "level1.json",
         "MainWorldWidth": 1920,
@@ -784,15 +1036,96 @@
         ],
         "Size": [
             10780,
-            1080
+            2160
         ],
-        "Title": "Ashwake Causeway",
+        "Title": "Veilfall Cascades",
         "TraderPosition": [
-            933.06787109375,
-            729.8153076171875
+            934.6812133789063,
+            810.72998046875
         ],
         "isAvaiable": true,
         "isConstant": true
     },
-    "Spawners": []
+    "Spawners": [
+        {
+            "ActivationArea": [
+                1481.5369873046875,
+                87.31243896484375,
+                433.2415771484375,
+                331.74847412109375
+            ],
+            "ActivationMode": "OnEnter",
+            "EnemyAmount": 2,
+            "EnemyName": "SkeletonWhite",
+            "EnemyPerSpawn": 1,
+            "GoldReward": 1,
+            "SpawnArea": [
+                [
+                    1560.669189453125,
+                    1849.600830078125
+                ],
+                [
+                    147.50616455078125,
+                    265.1707763671875
+                ]
+            ],
+            "SpawnCooldown": 500
+        },
+        {
+            "ActivationArea": [
+                231.3701171875,
+                -856.5559692382813,
+                660.7373657226563,
+                391.38543701171875
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 1,
+            "EnemyDamage": 33,
+            "EnemyHP": 0,
+            "EnemyName": "SkeletonYellow",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 20,
+            "SpawnArea": [
+                [
+                    340.15765380859375,
+                    760.89501953125
+                ],
+                [
+                    -697.8219604492188,
+                    -546.4365234375
+                ]
+            ],
+            "SpawnCooldown": 0
+        },
+        {
+            "ActivationArea": [
+                135.21478271484375,
+                -957.8353881835938,
+                763.20654296875,
+                480.74871826171875
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 3,
+            "EnemyDamage": 10,
+            "EnemyHP": 20,
+            "EnemyName": "WraithBat",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 10,
+            "SpawnArea": [
+                [
+                    300.1498107910156,
+                    789.5809326171875
+                ],
+                [
+                    -624.6282348632813,
+                    -554.778076171875
+                ]
+            ],
+            "SpawnCooldown": 250
+        }
+    ]
 }

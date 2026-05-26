@@ -25,6 +25,18 @@ float randomFloat(const float minValue, const float maxValue)
     return distribution(platformAnimationRng());
 }
 
+sf::FloatRect expandedViewRect(const sf::RenderWindow& window)
+{
+    const sf::View view = window.getView();
+    const sf::Vector2f size = view.getSize();
+    const sf::Vector2f center = view.getCenter();
+    constexpr float padding = 180.f;
+    return {
+        {center.x - size.x * 0.5f - padding, center.y - size.y * 0.5f - padding},
+        {size.x + padding * 2.f, size.y + padding * 2.f}
+    };
+}
+
 const std::unordered_map<std::string, Platform::TypeDefinition>& buildPlatformDefinitions()
 {
     static const std::unordered_map<std::string, Platform::TypeDefinition> definitions{
@@ -105,17 +117,21 @@ const std::unordered_map<std::string, sf::Texture>& Platform::getSharedTextures(
 
 void Platform::draw(sf::RenderWindow& window)
 {
+    const sf::FloatRect viewRect = expandedViewRect(window);
     if constexpr (DRAW_PLATFORM_HITBOXES)
     {
         for (auto& rect : rects)
         {
-            window.draw(*rect);
+            if (rect && viewRect.findIntersection(rect->getGlobalBounds()).has_value())
+            {
+                window.draw(*rect);
+            }
         }
     }
 
     for (auto& instance : instances_)
     {
-        if (instance.sprite)
+        if (instance.sprite && viewRect.findIntersection(instance.sprite->getGlobalBounds()).has_value())
         {
             window.draw(*instance.sprite);
         }
@@ -132,7 +148,7 @@ void Platform::drawInstance(sf::RenderWindow& window, const std::size_t index) c
     }
 
     const PlatformInstance& instance = instances_[index];
-    if (instance.sprite)
+    if (instance.sprite && expandedViewRect(window).findIntersection(instance.sprite->getGlobalBounds()).has_value())
     {
         window.draw(*instance.sprite);
     }

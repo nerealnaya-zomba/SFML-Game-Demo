@@ -619,6 +619,11 @@ int main(int argc, char** argv)
             !player.isAlive;
         const bool deathChoiceActive = deathFlowState == DeathFlowState::AwaitingChoice;
         const bool overlayActive = developerOverlay.isOpen();
+        sf::Clock runtimeSectionClock;
+        float levelUpdateMs = 0.f;
+        float levelDrawMs = 0.f;
+        float uiUpdateMs = 0.f;
+        float uiDrawMs = 0.f;
 
         if (!deathSequenceActive && !overlayActive)
         {
@@ -630,6 +635,7 @@ int main(int argc, char** argv)
 
         if (!deathChoiceActive && !overlayActive)
         {
+            runtimeSectionClock.restart();
             levelManager.update();
             levelManager.updateEnemyManager();
             if (isTraderActive())
@@ -637,6 +643,7 @@ int main(int argc, char** argv)
                 trader.update();
             }
             camera.update();
+            levelUpdateMs = runtimeSectionClock.getElapsedTime().asSeconds() * 1000.f;
         }
         window.setView(view);
 
@@ -666,12 +673,15 @@ int main(int argc, char** argv)
 
         if (!deathSequenceActive && !overlayActive)
         {
+            runtimeSectionClock.restart();
             playerUI.update();
             player.chooseDestinationMenuUpdate();
+            uiUpdateMs = runtimeSectionClock.getElapsedTime().asSeconds() * 1000.f;
         }
 
         window.clear(gameBackGroundColor);
 
+        runtimeSectionClock.restart();
         levelManager.draw();
 
         if (isTraderActive())
@@ -684,10 +694,14 @@ int main(int argc, char** argv)
         {
             trader.drawOverlay(window);
         }
+        levelDrawMs = runtimeSectionClock.getElapsedTime().asSeconds() * 1000.f;
+        runtimeSectionClock.restart();
         playerUI.draw(window);
         player.chooseDestinationMenuDraw(window);
         player.drawTransition();
         deathScreen.draw();
+        uiDrawMs = runtimeSectionClock.getElapsedTime().asSeconds() * 1000.f;
+        developerOverlay.setRuntimeTimings(levelUpdateMs, levelDrawMs, uiUpdateMs, uiDrawMs);
         developerOverlay.draw(
             player,
             *gameData,

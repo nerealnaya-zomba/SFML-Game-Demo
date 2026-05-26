@@ -43,6 +43,15 @@ void applySpawnerArchetype(
     enemyPerSpawn = std::max(enemyPerSpawn, 1);
     spawnCooldown = std::max(spawnCooldown, 900);
 }
+
+sf::FloatRect readRect(const nlohmann::json& value, const sf::FloatRect fallback = sf::FloatRect({0.f, 0.f}, {0.f, 0.f}))
+{
+    if (!value.is_array() || value.size() < 4)
+    {
+        return fallback;
+    }
+    return {{value[0].get<float>(), value[1].get<float>()}, {value[2].get<float>(), value[3].get<float>()}};
+}
 }
 
 void EnemyManager::updateSpawner()
@@ -111,7 +120,13 @@ void EnemyManager::loadSpawnerData()
             *this->window,
             Spawner::EncounterConfig{
                 spawner.value("ActivationMode", std::string{}) == "OnEnter",
-                spawner.value("FirstSpawnDelayMs", 0)
+                spawner.value("FirstSpawnDelayMs", 0),
+                spawner.value("ActivationPadding", 120.f),
+                spawner.value("EnemyHP", 0),
+                spawner.value("EnemyDamage", 0),
+                spawner.value("GoldReward", 0),
+                spawner.contains("ActivationArea") && spawner["ActivationArea"].is_array(),
+                readRect(spawner.value("ActivationArea", nlohmann::json::array()))
             }
         );
     }
@@ -143,7 +158,7 @@ void EnemyManager::updateCoins()
     );
 }
 
-void EnemyManager::addSkeleton(
+std::shared_ptr<Skeleton> EnemyManager::addSkeleton(
     GameData& data,
     sf::RenderWindow& window,
     Ground& ground,
@@ -152,10 +167,12 @@ void EnemyManager::addSkeleton(
     std::string type,
     sf::Vector2f pos)
 {
-    skeletons.push_back(std::make_shared<Skeleton>(data, *this, *this->gameLevel, window, ground, platform, player, type, pos));
+    auto enemy = std::make_shared<Skeleton>(data, *this, *this->gameLevel, window, ground, platform, player, type, pos);
+    skeletons.push_back(enemy);
+    return enemy;
 }
 
-void EnemyManager::addBestiaryEnemy(
+std::shared_ptr<BestiaryEnemy> EnemyManager::addBestiaryEnemy(
     GameData& data,
     sf::RenderWindow& window,
     Ground& ground,
@@ -164,7 +181,9 @@ void EnemyManager::addBestiaryEnemy(
     std::string type,
     sf::Vector2f pos)
 {
-    bestiaryEnemies.push_back(std::make_shared<BestiaryEnemy>(data, *this, *this->gameLevel, window, ground, platform, player, type, pos));
+    auto enemy = std::make_shared<BestiaryEnemy>(data, *this, *this->gameLevel, window, ground, platform, player, type, pos);
+    bestiaryEnemies.push_back(enemy);
+    return enemy;
 }
 
 void EnemyManager::dropGold(const sf::Vector2f& position, const std::string& enemyType)
@@ -208,6 +227,31 @@ void EnemyManager::dropGold(const sf::Vector2f& position, const std::string& ene
     }
 }
 
+void EnemyManager::dropGoldAmount(const sf::Vector2f& position, int totalGold)
+{
+    totalGold = std::max(totalGold, 0);
+    if (totalGold <= 0)
+    {
+        return;
+    }
+
+    const int coinCount = std::clamp(totalGold / 6 + 1, 1, 8);
+    int remaining = totalGold;
+    for (int index = 0; index < coinCount; ++index)
+    {
+        const int slotsLeft = coinCount - index;
+        const int value = index == coinCount - 1
+            ? remaining
+            : std::max(1, remaining / slotsLeft);
+        remaining -= value;
+        coins.emplace_back(
+            sf::Vector2f{position.x, position.y - random(4.f, 16.f)},
+            value,
+            sf::Vector2f{random(-2.3f, 2.3f), random(-4.8f, -2.6f)}
+        );
+    }
+}
+
 void EnemyManager::applySplashDamage(const sf::Vector2f& impactCenter, float splashRadius, const Bullet& bullet, const void* ignoredTarget)
 {
     for (const auto& otherSkeleton : skeletons)
@@ -237,6 +281,25 @@ void EnemyManager::applySplashDamage(const sf::Vector2f& impactCenter, float spl
         if (distance <= splashRadius)
         {
             bestiaryEnemy->receiveBulletHit(bullet, true);
+        }
+    }
+}
+
+void EnemyManager::killEnemiesInRect(const sf::FloatRect& hazardRect)
+{
+    for (const auto& skeleton : skeletons)
+    {
+        if (skeleton && skeleton->isAlive && skeleton->getRect().getGlobalBounds().findIntersection(hazardRect))
+        {
+            skeleton->isAlive = false;
+        }
+    }
+
+    for (const auto& bestiaryEnemy : bestiaryEnemies)
+    {
+        if (bestiaryEnemy && bestiaryEnemy->isAlive && bestiaryEnemy->getRect().getGlobalBounds().findIntersection(hazardRect))
+        {
+            bestiaryEnemy->isAlive = false;
         }
     }
 }

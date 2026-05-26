@@ -181,6 +181,11 @@ std::uint8_t toAlpha(float value)
     return static_cast<std::uint8_t>(std::clamp(value, 0.f, 255.f));
 }
 
+std::string languageSignature()
+{
+    return Localization::languageToString(Localization::getLanguage());
+}
+
 sf::Color withAlpha(sf::Color color, float alpha)
 {
     color.a = toAlpha(alpha);
@@ -511,6 +516,7 @@ void PlayerUI::rebuildStatLines()
 
     const std::vector<StatData> stats = {
         {Localization::isRussian() ? Localization::tr("hud.sanctuary") : "Sanctuary", player->getCampaignBoonTitle(), sf::Color(255, 188, 104)},
+        {Localization::isRussian() ? "Запас энергии" : "Max energy", std::to_string(player->getMaxEnergy()), sf::Color(92, 190, 232)},
         {Localization::isRussian() ? Localization::tr("hud.energy_gain") : "Energy gain", std::to_string(player->getEnergyGainValue()), sf::Color(118, 212, 230)},
         {Localization::isRussian() ? Localization::tr("hud.damage") : "Damage", std::to_string(player->getDamageValue()), sf::Color(232, 169, 94)},
         {Localization::isRussian() ? Localization::tr("hud.shot_cd") : "Shot CD", std::to_string(player->getShootCooldownValue()) + " ms", sf::Color(196, 145, 94)},
@@ -548,9 +554,34 @@ void PlayerUI::rebuildStatLines()
 
 void PlayerUI::updateStatsPanel()
 {
-    Localization::setText(statsTitleText, Localization::isRussian() ? Localization::tr("hud.stats_title") : "Covenant stats");
-    Localization::setText(statsHintText, Localization::isRussian() ? Localization::tr("hud.stats_hint") : "Press P to show stats");
-    rebuildStatLines();
+    const std::string language = languageSignature();
+    const std::string statsTextSignature = language
+        + "|" + player->getCampaignBoonTitle()
+        + "|" + std::to_string(player->getEnergyGainValue())
+        + "|" + std::to_string(player->getDamageValue())
+        + "|" + std::to_string(player->getShootCooldownValue())
+        + "|" + std::to_string(player->getShootCostValue())
+        + "|" + formatFloatValue(player->getBulletSpeedValue(), 1)
+        + "|" + formatFloatValue(player->getBulletRangeValue(), 0)
+        + "|" + formatFloatValue(player->getMaxWalkSpeedValue(), 1)
+        + "|" + formatFloatValue(player->getDashForceValue(), 1)
+        + "|" + std::to_string(player->getDashCooldownValue())
+        + "|" + formatFloatValue(player->getJumpPowerValue(), 1)
+        + "|" + std::to_string(player->getExtraJumpCountValue())
+        + "|" + std::to_string(player->getSlowFallPercentValue());
+    if (statsTextSignature_ != statsTextSignature)
+    {
+        statsTextSignature_ = statsTextSignature;
+        Localization::setText(statsTitleText, Localization::isRussian() ? Localization::tr("hud.stats_title") : "Covenant stats");
+        rebuildStatLines();
+    }
+
+    const std::string statsHintSignature = language + "|" + (Localization::isRussian() ? Localization::tr("hud.stats_hint") : "Press P to show stats");
+    if (statsHintSignature_ != statsHintSignature)
+    {
+        statsHintSignature_ = statsHintSignature;
+        Localization::setText(statsHintText, Localization::isRussian() ? Localization::tr("hud.stats_hint") : "Press P to show stats");
+    }
 
     if (statsPanelVisible_ && statsPanelVisibilityClock_.getElapsedTime().asSeconds() >= kHudPanelAutoHideSeconds)
     {
@@ -606,7 +637,6 @@ void PlayerUI::updateStatsPanel()
     statsHintAccent.setSize({kStatsHintSize.x, 4.f});
     statsHintAccent.setFillColor(withAlpha(kStatsHintAccent, 255.f * hintAlphaFactor));
 
-    Localization::setText(statsHintText, Localization::isRussian() ? Localization::tr("hud.stats_hint") : "Press P to show stats");
     setTextOriginToMiddle(statsHintText);
     statsHintText.setPosition({hintPos.x + kStatsHintSize.x / 2.f, hintPos.y + kStatsHintSize.y / 2.f - 2.f});
     statsHintText.setFillColor(withAlpha(sf::Color(242, 229, 212, 255), hintAlpha));
@@ -646,13 +676,21 @@ void PlayerUI::updateStatsPanel()
     statsTitleText.setPosition({panelPos.x + 20.f, panelPos.y + 12.f});
     statsTitleText.setFillColor(withAlpha(sf::Color(245, 238, 226), panelAlpha));
     statsTitleText.setOutlineColor(withAlpha(sf::Color(0, 0, 0, 180), 180.f * panelAlphaFactor));
-    fitSingleLineText(
-        statsWeaponText,
-        Localization::weaponName(player->getCurrentWeaponName()),
-        std::max(120.f, currentPanelWidth - 260.f),
-        14,
-        10
-    );
+    const float statsWeaponWidth = std::max(120.f, currentPanelWidth - 260.f);
+    const std::string statsWeaponSignature = language
+        + "|" + player->getCurrentWeaponName()
+        + "|" + std::to_string(static_cast<int>(statsWeaponWidth));
+    if (statsWeaponSignature_ != statsWeaponSignature)
+    {
+        statsWeaponSignature_ = statsWeaponSignature;
+        fitSingleLineText(
+            statsWeaponText,
+            Localization::weaponName(player->getCurrentWeaponName()),
+            statsWeaponWidth,
+            14,
+            10
+        );
+    }
     statsWeaponText.setFillColor(withAlpha(getInventoryQualityColor(player->getCurrentWeaponQuality()), panelAlpha));
     statsWeaponText.setOutlineColor(withAlpha(sf::Color(0, 0, 0, 180), 180.f * panelAlphaFactor));
     statsWeaponText.setPosition({
@@ -774,12 +812,30 @@ void PlayerUI::updateObjectivePanel()
     objectiveNarrativeText.setLineSpacing(1.18f);
     objectiveTaskText.setLineSpacing(1.18f);
     objectiveRewardText.setLineSpacing(1.12f);
-    setWrappedText(objectiveTitleText, snapshot.campaignTitle, objectiveTitleWidth);
-    setWrappedText(objectiveChapterText, snapshot.chapterTitle, objectiveTextWidth);
-    setWrappedText(objectiveNarrativeText, snapshot.narrative, objectiveTextWidth);
-    setWrappedText(objectiveTaskText, snapshot.objective, objectiveTextWidth);
-    Localization::setText(objectiveProgressText, snapshot.progressText);
-    setWrappedText(objectiveRewardText, snapshot.rewardText, objectiveTextWidth);
+    const std::string language = languageSignature();
+    const std::string objectiveTextSignature = language
+        + "|" + std::to_string(static_cast<int>(objectiveTitleWidth))
+        + "|" + std::to_string(static_cast<int>(objectiveTextWidth))
+        + "|" + snapshot.campaignTitle
+        + "|" + snapshot.chapterTitle
+        + "|" + snapshot.narrative
+        + "|" + snapshot.objective
+        + "|" + snapshot.rewardText;
+    if (objectiveTextSignature_ != objectiveTextSignature)
+    {
+        objectiveTextSignature_ = objectiveTextSignature;
+        setWrappedText(objectiveTitleText, snapshot.campaignTitle, objectiveTitleWidth);
+        setWrappedText(objectiveChapterText, snapshot.chapterTitle, objectiveTextWidth);
+        setWrappedText(objectiveNarrativeText, snapshot.narrative, objectiveTextWidth);
+        setWrappedText(objectiveTaskText, snapshot.objective, objectiveTextWidth);
+        setWrappedText(objectiveRewardText, snapshot.rewardText, objectiveTextWidth);
+    }
+    const std::string objectiveProgressSignature = language + "|" + snapshot.progressText;
+    if (objectiveProgressSignature_ != objectiveProgressSignature)
+    {
+        objectiveProgressSignature_ = objectiveProgressSignature;
+        Localization::setText(objectiveProgressText, snapshot.progressText);
+    }
 
     const float desiredPanelHeight = 10.f
         + std::max(28.f, textHeight(objectiveTitleText))
@@ -861,11 +917,19 @@ void PlayerUI::updateObjectivePanel()
     objectiveHintAccent.setFillColor(withAlpha(kObjectiveHintAccent, 255.f * hintAlphaFactor));
 
     objectiveHintText.setLineSpacing(1.05f);
-    setWrappedText(
-        objectiveHintText,
-        Localization::isRussian() ? Localization::tr("hud.objective_hint") : "Press O to show current objective",
-        hintSize.x - 28.f
-    );
+    const std::string objectiveHintSource = Localization::isRussian() ? Localization::tr("hud.objective_hint") : "Press O to show current objective";
+    const std::string objectiveHintSignature = language
+        + "|" + std::to_string(static_cast<int>(hintSize.x))
+        + "|" + objectiveHintSource;
+    if (objectiveHintSignature_ != objectiveHintSignature)
+    {
+        objectiveHintSignature_ = objectiveHintSignature;
+        setWrappedText(
+            objectiveHintText,
+            objectiveHintSource,
+            hintSize.x - 28.f
+        );
+    }
     setTextOriginToMiddle(objectiveHintText);
     objectiveHintText.setPosition({
         hintPos.x + hintSize.x / 2.f,
@@ -992,12 +1056,20 @@ void PlayerUI::updateObjectivePanel()
         const float toastWidth = std::min(BASE_OBJECTIVE_TOAST_SIZE.x, std::max(280.f, screenViewSize.x - toastMargin * 2.f));
         const float textWidth = std::max(120.f, toastWidth - 36.f);
 
-        Localization::setText(objectiveToastTitleText, Localization::isRussian() ? Localization::tr("hud.objective_updated") : "Objective Updated");
-        Localization::setText(objectiveToastBodyText, wrapTextToPixelWidth(
-            objectiveToastBodyText,
-            snapshot.chapterTitle + "  |  " + snapshot.objective,
-            textWidth
-        ));
+        const std::string objectiveToastSource = snapshot.chapterTitle + "  |  " + snapshot.objective;
+        const std::string objectiveToastSignature = language
+            + "|" + std::to_string(static_cast<int>(textWidth))
+            + "|" + objectiveToastSource;
+        if (objectiveToastSignature_ != objectiveToastSignature)
+        {
+            objectiveToastSignature_ = objectiveToastSignature;
+            Localization::setText(objectiveToastTitleText, Localization::isRussian() ? Localization::tr("hud.objective_updated") : "Objective Updated");
+            Localization::setText(objectiveToastBodyText, wrapTextToPixelWidth(
+                objectiveToastBodyText,
+                objectiveToastSource,
+                textWidth
+            ));
+        }
 
         const float bodyHeight = objectiveToastBodyText.getLocalBounds().size.y;
         const float toastHeight = std::max(BASE_OBJECTIVE_TOAST_SIZE.y, 56.f + bodyHeight);
@@ -1047,6 +1119,22 @@ void PlayerUI::updateObjectivePanel()
 
 void PlayerUI::syncInventoryIcons()
 {
+    std::string iconSignature;
+    iconSignature.reserve(player->getInventory().size() * 24u);
+    for (const auto& ownedItem : player->getInventory())
+    {
+        iconSignature += ownedItem.iconName;
+        iconSignature += ':';
+        iconSignature += std::to_string(static_cast<int>(ownedItem.quality));
+        iconSignature += '|';
+    }
+
+    if (inventoryIconSignature_ == iconSignature)
+    {
+        return;
+    }
+
+    inventoryIconSignature_ = std::move(iconSignature);
     inventorySlots.clear();
 
     for (const auto& ownedItem : player->getInventory())
@@ -1082,7 +1170,21 @@ void PlayerUI::syncInventoryIcons()
 
 void PlayerUI::updateInventoryPanel()
 {
-    Localization::setText(inventoryTitleText, Localization::isRussian() ? Localization::tr("hud.inventory") : "Inventory");
+    const std::string language = languageSignature();
+    const std::string inventoryTextSignature = language
+        + "|" + std::to_string(static_cast<int>(BASE_INVENTORY_PANEL_SIZE.x));
+    if (inventoryStaticTextSignature_ != inventoryTextSignature)
+    {
+        inventoryStaticTextSignature_ = inventoryTextSignature;
+        Localization::setText(inventoryTitleText, Localization::isRussian() ? Localization::tr("hud.inventory") : "Inventory");
+        Localization::setText(inventoryWeaponHintText, Localization::isRussian() ? "A / S - сменить" : "A / S - switch");
+        Localization::setText(inventoryEmptyText, Localization::isRussian() ? Localization::tr("hud.no_relics") : "No relics yet");
+        setWrappedText(
+            inventoryHintText,
+            Localization::isRussian() ? Localization::tr("hud.inventory_hint") : "Press I to open inventory",
+            BASE_INVENTORY_PANEL_SIZE.x - 28.f
+        );
+    }
     syncInventoryIcons();
 
     const sf::Vector2f screenViewPos = camera->getScreenViewPos();
@@ -1144,11 +1246,6 @@ void PlayerUI::updateInventoryPanel()
     inventoryHintAccent.setFillColor(withAlpha(kInventoryHintAccent, 255.f * hintAlphaFactor));
 
     inventoryHintText.setLineSpacing(1.05f);
-    setWrappedText(
-        inventoryHintText,
-        Localization::isRussian() ? Localization::tr("hud.inventory_hint") : "Press I to open inventory",
-        panelWidth - 28.f
-    );
     setTextOriginToMiddle(inventoryHintText);
     inventoryHintText.setPosition({
         finalPanelPos.x + panelWidth / 2.f,
@@ -1192,21 +1289,32 @@ void PlayerUI::updateInventoryPanel()
     inventoryTitleText.setPosition({panelPos.x + 18.f, revealY(panelPos.y + 16.f, 8.f)});
     inventoryTitleText.setFillColor(withAlpha(sf::Color(245, 239, 227), contentAlpha));
 
-    Localization::setText(inventoryGoldText, std::to_string(player->getGold()) + (Localization::isRussian() ? " золота" : " gold"));
+    const std::string inventoryGoldSignature = language + "|" + std::to_string(player->getGold());
+    if (inventoryGoldSignature_ != inventoryGoldSignature)
+    {
+        inventoryGoldSignature_ = inventoryGoldSignature;
+        Localization::setText(inventoryGoldText, std::to_string(player->getGold()) + (Localization::isRussian() ? " золота" : " gold"));
+    }
     inventoryGoldText.setPosition({panelPos.x + 58.f, revealY(panelPos.y + 52.f, 0.f)});
     inventoryGoldText.setFillColor(withAlpha(sf::Color(255, 219, 120), contentAlpha));
 
-    fitSingleLineText(
-        inventoryWeaponText,
-        Localization::weaponName(player->getCurrentWeaponName()),
-        weaponChip.getSize().x - 24.f,
-        18,
-        12
-    );
+    const std::string inventoryWeaponSignature = language
+        + "|" + player->getCurrentWeaponName()
+        + "|" + std::to_string(static_cast<int>(weaponChip.getSize().x));
+    if (inventoryWeaponSignature_ != inventoryWeaponSignature)
+    {
+        inventoryWeaponSignature_ = inventoryWeaponSignature;
+        fitSingleLineText(
+            inventoryWeaponText,
+            Localization::weaponName(player->getCurrentWeaponName()),
+            weaponChip.getSize().x - 24.f,
+            18,
+            12
+        );
+    }
     inventoryWeaponText.setPosition({panelPos.x + 30.f, revealY(panelPos.y + 94.f, 8.f)});
     inventoryWeaponText.setFillColor(withAlpha(getInventoryQualityColor(player->getCurrentWeaponQuality()), contentAlpha));
 
-    Localization::setText(inventoryWeaponHintText, Localization::isRussian() ? "A / S - сменить" : "A / S - switch");
     inventoryWeaponHintText.setPosition({panelPos.x + 30.f, revealY(panelPos.y + 114.f, 10.f)});
     inventoryWeaponHintText.setFillColor(withAlpha(sf::Color(162, 171, 194), contentAlpha));
 
@@ -1256,7 +1364,6 @@ void PlayerUI::updateInventoryPanel()
         }
     }
 
-    Localization::setText(inventoryEmptyText, Localization::isRussian() ? Localization::tr("hud.no_relics") : "No relics yet");
     setTextOriginToMiddle(inventoryEmptyText);
     inventoryEmptyText.setPosition({panelPos.x + panelWidth / 2.f, gridStart.y + gridHeight / 2.f});
     inventoryEmptyText.setFillColor(withAlpha(sf::Color(173, 181, 201), contentAlpha));

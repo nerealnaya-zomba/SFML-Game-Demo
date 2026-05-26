@@ -1,314 +1,1344 @@
 {
-  "Presets": {
-    "LevelId": "level6.json",
-    "Title": "The Returning Veil",
-    "MenuOrder": 6,
-    "isConstant": true,
-    "isAvaiable": true,
-    "Size": [6000, 1080],
-    "PlayerSpawn": [100, 900],
-    "BackgroundTheme": "MidnightRain"
-  },
-  "Platforms": [
-    {
-      "Type": "Thorn-ramp",
-      "Position": [1620, 980]
+    "Background": [
+        {
+            "BgName": "Background_140.png",
+            "EditorDrawOrder": 0,
+            "ParallaxFactor": [
+                0.07999999821186066,
+                0.05999999865889549
+            ],
+            "Position": [
+                960.0,
+                540.0
+            ],
+            "Type": "repeatedXY"
+        }
+    ],
+    "Barriers": [],
+    "DeadAreas": [
+        {
+            "CoreColor": [
+                242,
+                104,
+                56,
+                255
+            ],
+            "EmberColor": [
+                255,
+                236,
+                188,
+                255
+            ],
+            "Enabled": true,
+            "GlowColor": [
+                255,
+                182,
+                96,
+                255
+            ],
+            "Id": "dead_area_1",
+            "Rect": [
+                1779.3809814453125,
+                1047.086181640625,
+                7002.10205078125,
+                45.9085693359375
+            ]
+        }
+    ],
+    "Decorations": [
+        {
+            "Color": [
+                89,
+                111,
+                230,
+                255
+            ],
+            "EditorDrawOrder": 55,
+            "Name": "MossyHangingPlants_05.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                3753.18896484375,
+                -514.1406860351563
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                0.482962429523468,
+                0.37459903955459595
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                92,
+                91,
+                217,
+                255
+            ],
+            "EditorDrawOrder": 9,
+            "Name": "MossyHangingPlants_07.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                4007.80126953125,
+                -1244.92529296875
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                1.3187185525894165,
+                1.1202815771102905
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                78,
+                81,
+                206,
+                255
+            ],
+            "EditorDrawOrder": 9,
+            "Name": "MossyDecorationHazard_18.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                3448.0517578125,
+                615.2164916992188
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                1.0,
+                1.0
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                67,
+                62,
+                171,
+                255
+            ],
+            "EditorDrawOrder": 8,
+            "Name": "MossyBackgroundDecoration_01.png",
+            "ParallaxFactor": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Position": [
+                4200.349609375,
+                -429.7825927734375
+            ],
+            "Rotation": -28.0,
+            "Scale": [
+                1.2314121723175049,
+                -1.2432316541671753
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                65,
+                58,
+                204,
+                255
+            ],
+            "EditorDrawOrder": 9,
+            "Name": "MossyBackgroundDecoration_06.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                5761.13525390625,
+                -824.2056274414063
+            ],
+            "Rotation": -0.0,
+            "Scale": [
+                1.0,
+                1.0
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                59,
+                56,
+                177,
+                255
+            ],
+            "EditorDrawOrder": 9,
+            "Name": "MossyDecorationHazard_04.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                4525.88623046875,
+                79.54147338867188
+            ],
+            "Rotation": 25.0,
+            "Scale": [
+                0.13658331334590912,
+                0.17942972481250763
+            ],
+            "Z": 0
+        },
+        {
+            "Color": [
+                80,
+                64,
+                205,
+                255
+            ],
+            "EditorDrawOrder": 9,
+            "Name": "MossyDecorationHazard_04.png",
+            "ParallaxFactor": [
+                0.0,
+                0.0
+            ],
+            "Position": [
+                4489.01220703125,
+                -313.7737731933594
+            ],
+            "Rotation": -15.0,
+            "Scale": [
+                0.293973833322525,
+                -0.26434239745140076
+            ],
+            "Z": 0
+        }
+    ],
+    "Events": [
+        {
+            "Body": "This nave pushes you to alternate between low cover and aggressive climbs. Staying in one lane too long gets expensive.",
+            "Bounds": [
+                6020.0,
+                700.0,
+                1880.0,
+                240.0
+            ],
+            "Title": "Crimson pressure",
+            "Tone": "Warning"
+        },
+        {
+            "Body": "The upper span opens the level. Clear the bats here and the rest of the route becomes easier to read.",
+            "Bounds": [
+                3540.0,
+                460.0,
+                1960.0,
+                280.0
+            ],
+            "Title": "High-choir opening",
+            "Tone": "Info"
+        }
+    ],
+    "Ground": [
+        {
+            "DepthRows": 3,
+            "EditorDrawOrder": 23,
+            "GroundName": "TileSetGreen_31.png",
+            "GroundStyle": "CrimsonSanctum",
+            "Offset": 8.0,
+            "Points": [
+                1775,
+                8775
+            ],
+            "YPos": 1068
+        }
+    ],
+    "Interactives": [],
+    "MiniLocations": [],
+    "Platforms": [
+        {
+            "EditorDrawOrder": 24,
+            "Position": [
+                5553.5380859375,
+                495.3047180175781
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "EditorDrawOrder": 25,
+            "Position": [
+                5155.59326171875,
+                668.5632934570313
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "EditorDrawOrder": 26,
+            "Position": [
+                7897.8115234375,
+                861.80078125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 27,
+            "HitboxSize": [
+                270.0,
+                50.0
+            ],
+            "Position": [
+                3642.05126953125,
+                856.0189819335938
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 28,
+            "HitboxSize": [
+                270.0,
+                50.0
+            ],
+            "Position": [
+                2758.2451171875,
+                877.0520629882813
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "EditorDrawOrder": 29,
+            "Position": [
+                4697.60791015625,
+                237.41622924804688
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
+        },
+        {
+            "EditorDrawOrder": 30,
+            "Position": [
+                7284.842041015625,
+                103.6611557006836
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
+        },
+        {
+            "EditorDrawOrder": 31,
+            "Position": [
+                4921.45703125,
+                815.8616943359375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-square"
+        },
+        {
+            "EditorDrawOrder": 32,
+            "Position": [
+                4558.56005859375,
+                836.0894775390625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-square"
+        },
+        {
+            "EditorDrawOrder": 33,
+            "Position": [
+                4208.60791015625,
+                845.3505249023438
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-square"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 34,
+            "HitboxSize": [
+                175.0,
+                50.0
+            ],
+            "Position": [
+                3461.54248046875,
+                810.1546020507813
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 35,
+            "HitboxSize": [
+                175.0,
+                50.0
+            ],
+            "Position": [
+                2580.078857421875,
+                876.5779418945313
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 36,
+            "HitboxSize": [
+                55.0,
+                140.0
+            ],
+            "Position": [
+                3032.89794921875,
+                715.884765625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 37,
+            "HitboxSize": [
+                55.0,
+                140.0
+            ],
+            "Position": [
+                3402.7255859375,
+                726.4136352539063
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 39,
+            "HitboxSize": [
+                40.0,
+                30.0
+            ],
+            "Position": [
+                4592.5791015625,
+                137.10781860351563
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 40,
+            "HitboxSize": [
+                40.0,
+                30.0
+            ],
+            "Position": [
+                4417.2275390625,
+                30.611072540283203
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 41,
+            "Position": [
+                4611.162109375,
+                -81.37345886230469
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 42,
+            "Position": [
+                4375.80615234375,
+                -179.0772705078125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 43,
+            "Position": [
+                4636.76318359375,
+                -267.2882080078125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 44,
+            "Position": [
+                4334.435546875,
+                -352.12603759765625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 45,
+            "HitboxSize": [
+                40.0,
+                30.0
+            ],
+            "Position": [
+                4665.130859375,
+                -421.5277404785156
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 46,
+            "HitboxSize": [
+                270.0,
+                50.0
+            ],
+            "Position": [
+                5287.291259765625,
+                -484.2007141113281
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 47,
+            "HitboxSize": [
+                270.0,
+                50.0
+            ],
+            "Position": [
+                5550.178466796875,
+                -485.35150146484375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 48,
+            "HitboxSize": [
+                270.0,
+                50.0
+            ],
+            "Position": [
+                5812.854248046875,
+                -485.5075988769531
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "EditorDrawOrder": 49,
+            "Position": [
+                3249.29833984375,
+                616.6549072265625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Bone-dais"
+        },
+        {
+            "EditorDrawOrder": 50,
+            "Position": [
+                3853.733642578125,
+                902.101806640625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Abyss-Crypt-pillar"
+        },
+        {
+            "EditorDrawOrder": 51,
+            "Position": [
+                3479.468505859375,
+                903.5173950195313
+            ],
+            "Scale": [
+                0.22608959674835205,
+                0.31493449211120605
+            ],
+            "Type": "Abyss-Crypt-pillar"
+        },
+        {
+            "EditorDrawOrder": 52,
+            "Position": [
+                2966.2373046875,
+                983.8799438476563
+            ],
+            "Scale": [
+                0.22421835362911224,
+                0.3256595730781555
+            ],
+            "Type": "Abyss-Crypt-pillar"
+        },
+        {
+            "EditorDrawOrder": 53,
+            "Position": [
+                2582.3623046875,
+                919.9102172851563
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Abyss-Crypt-pillar"
+        },
+        {
+            "EditorDrawOrder": 54,
+            "Position": [
+                2750.26171875,
+                927.4563598632813
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Abyss-Crypt-pillar"
+        },
+        {
+            "EditorDrawOrder": 55,
+            "Position": [
+                3681.23583984375,
+                909.2811279296875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Abyss-Crypt-pillar"
+        },
+        {
+            "EditorDrawOrder": 56,
+            "Position": [
+                3162.697265625,
+                482.1439208984375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Bone-dais"
+        },
+        {
+            "EditorDrawOrder": 57,
+            "Position": [
+                3248.5458984375,
+                341.3525085449219
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Bone-dais"
+        },
+        {
+            "EditorDrawOrder": 58,
+            "Position": [
+                3169.0673828125,
+                210.43057250976563
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Bone-dais"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 59,
+            "HitboxSize": [
+                360.0,
+                55.0
+            ],
+            "Position": [
+                3723.64697265625,
+                124.58467102050781
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 60,
+            "HitboxSize": [
+                360.0,
+                55.0
+            ],
+            "Position": [
+                2777.453125,
+                140.6078643798828
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 61,
+            "HitboxSize": [
+                360.0,
+                55.0
+            ],
+            "Position": [
+                3348.111328125,
+                -79.22955322265625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
+        },
+        {
+            "EditorDrawOrder": 62,
+            "Position": [
+                3199.029296875,
+                -188.89608764648438
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 63,
+            "Position": [
+                3311.47119140625,
+                -284.22723388671875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 64,
+            "Position": [
+                3097.9951171875,
+                -391.78033447265625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 65,
+            "Position": [
+                2919.64501953125,
+                -494.59771728515625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Triple"
+        },
+        {
+            "EditorDrawOrder": 68,
+            "Position": [
+                4246.15185546875,
+                -132.2203826904297
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 69,
+            "Position": [
+                4246.15185546875,
+                -265.8831787109375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 70,
+            "Position": [
+                4247.6044921875,
+                -402.4516906738281
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 71,
+            "HitboxSize": [
+                55.0,
+                140.0
+            ],
+            "Position": [
+                3735.74462890625,
+                -120.73167419433594
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 72,
+            "HitboxSize": [
+                55.0,
+                140.0
+            ],
+            "Position": [
+                3737.65283203125,
+                -257.166015625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 73,
+            "Position": [
+                3739.10546875,
+                -395.18743896484375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 74,
+            "Position": [
+                4244.6640625,
+                -535.1370849609375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 75,
+            "Position": [
+                4243.5341796875,
+                -673.9968872070313
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 76,
+            "HitboxSize": [
+                55.0,
+                140.0
+            ],
+            "Position": [
+                3736.70263671875,
+                -538.546142578125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 77,
+            "HitboxSize": [
+                55.0,
+                140.0
+            ],
+            "Position": [
+                3736.22412109375,
+                -680.2349853515625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "AtmosphereColor": [
+                141,
+                100,
+                164,
+                0
+            ],
+            "AtmosphereStyle": "Default",
+            "BounceEnabled": false,
+            "EditorDrawOrder": 78,
+            "HitboxSize": [
+                55.0,
+                140.0
+            ],
+            "Position": [
+                3736.5595703125,
+                -818.7534790039063
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 79,
+            "Position": [
+                3390.36962890625,
+                -593.22021484375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 80,
+            "Position": [
+                3499.091796875,
+                -656.113037109375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 81,
+            "Position": [
+                3613.939453125,
+                -762.7573852539063
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        },
+        {
+            "EditorDrawOrder": 82,
+            "Position": [
+                4244.61376953125,
+                -816.2620239257813
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 83,
+            "Position": [
+                4244.68408203125,
+                -954.9815673828125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 84,
+            "Position": [
+                4245.2529296875,
+                -1096.8638916015625
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 85,
+            "Position": [
+                4244.435546875,
+                -1238.3712158203125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 86,
+            "Position": [
+                4246.53076171875,
+                -1381.0008544921875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 87,
+            "Position": [
+                4246.69091796875,
+                -1523.024658203125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "EditorDrawOrder": 66,
+            "Position": [
+                3736.3115234375,
+                16.49749755859375
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-vertical"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 89,
+            "HitboxSize": [
+                360.0,
+                55.0
+            ],
+            "Position": [
+                4085.5322265625,
+                122.89234924316406
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Quadruple"
+        },
+        {
+            "BounceEnabled": false,
+            "EditorDrawOrder": 90,
+            "HitboxSize": [
+                175.0,
+                50.0
+            ],
+            "Position": [
+                4260.4482421875,
+                124.38729095458984
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Double-horizontal-1"
+        },
+        {
+            "EditorDrawOrder": 91,
+            "Position": [
+                2569.5810546875,
+                16.640594482421875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-square"
+        },
+        {
+            "EditorDrawOrder": 92,
+            "Position": [
+                2491.4716796875,
+                -90.92803955078125
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-square"
+        },
+        {
+            "EditorDrawOrder": 93,
+            "Position": [
+                5286.53759765625,
+                381.123779296875
+            ],
+            "Scale": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Type": "Single-flat"
+        }
+    ],
+    "Portals": [],
+    "Presets": {
+        "ActorDrawOrder": 10,
+        "BackgroundTheme": "MidnightRain",
+        "BackgroundTileOffsetY": -16.0,
+        "GenerateMiniLocations": false,
+        "LevelId": "level6.json",
+        "MainWorldWidth": 8780,
+        "MenuOrder": 6,
+        "PlayerSpawn": [
+            2998.0673828125,
+            -640.7989501953125
+        ],
+        "Size": [
+            8780,
+            2240
+        ],
+        "Title": "Aurora Nightpeaks",
+        "isAvaiable": true,
+        "isConstant": true
     },
-    {
-      "Type": "Bone-dais",
-      "Position": [1520, 880]
-    },
-    {
-      "Type": "Runed-ledge",
-      "Position": [1420, 800]
-    },
-    {
-      "Type": "Obsidian-span",
-      "Position": [1220, 700]
-    },
-    {
-      "Type": "Cathedral-span",
-      "Position": [1020, 600]
-    },
-    {
-      "Type": "Crypt-pillar",
-      "Position": [870, 500]
-    },
-    {
-      "Type": "Ritual-bridge",
-      "Position": [620, 400]
-    },
-    {
-      "Type": "Fallen-arcade",
-      "Position": [520, 280]
-    }
-  ],
-  "Decorations": [
-    {
-      "Name": "MossyBackgroundDecoration_01.png",
-      "Position": [1500, 520],
-      "Scale": [0.42, 0.42],
-      "Color": [150, 135, 150, 180],
-      "ParallaxFactor": [0.12, 0.12],
-      "Z": -3
-    },
-    {
-      "Name": "MossyBackgroundDecoration_04.png",
-      "Position": [3900, 460],
-      "Scale": [0.48, 0.48],
-      "Color": [150, 135, 150, 170],
-      "ParallaxFactor": [0.16, 0.16],
-      "Z": -3
-    },
-    {
-      "Name": "MossyHills_06.png",
-      "Position": [820, 900],
-      "Scale": [0.50, 0.50],
-      "Color": [175, 155, 170, 255],
-      "ParallaxFactor": [0.18, 0.18],
-      "Z": -2
-    },
-    {
-      "Name": "MossyHills_04.png",
-      "Position": [2000, 820],
-      "Scale": [0.58, 0.58],
-      "Color": [165, 145, 160, 255],
-      "ParallaxFactor": [0.24, 0.20],
-      "Z": -2
-    },
-    {
-      "Name": "MossyHills_03.png",
-      "Position": [3380, 780],
-      "Scale": [0.62, 0.62],
-      "Color": [155, 135, 150, 255],
-      "ParallaxFactor": [0.30, 0.24],
-      "Z": -1
-    },
-    {
-      "Name": "MossyHills_01.png",
-      "Position": [4940, 760],
-      "Scale": [0.56, 0.56],
-      "Color": [185, 165, 180, 255],
-      "ParallaxFactor": [0.22, 0.20],
-      "Z": -2
-    },
-    {
-      "Name": "MossyHangingPlants_03.png",
-      "Position": [980, 300],
-      "Scale": [0.42, 0.42],
-      "Color": [180, 185, 180, 220],
-      "ParallaxFactor": [0.38, 0.34],
-      "Z": 0
-    },
-    {
-      "Name": "MossyHangingPlants_06.png",
-      "Position": [2760, 250],
-      "Scale": [0.48, 0.48],
-      "Color": [180, 185, 180, 220],
-      "ParallaxFactor": [0.42, 0.36],
-      "Z": 0
-    },
-    {
-      "Name": "MossyDecorationHazard_02.png",
-      "Position": [1600, 920],
-      "Scale": [0.32, 0.32],
-      "Color": [235, 235, 255, 255],
-      "ParallaxFactor": [0.48, 0.48],
-      "Z": 1
-    },
-    {
-      "Name": "MossyDecorationHazard_12.png",
-      "Position": [3520, 880],
-      "Scale": [0.34, 0.34],
-      "Color": [235, 235, 255, 255],
-      "ParallaxFactor": [0.50, 0.50],
-      "Z": 1
-    },
-    {
-      "Name": "MossyDecorationHazard_20.png",
-      "Position": [5380, 910],
-      "Scale": [0.36, 0.36],
-      "Color": [235, 235, 255, 255],
-      "ParallaxFactor": [0.52, 0.52],
-      "Z": 1
-    },
-    {
-      "Name": "plant6",
-      "Position": [640, 990],
-      "Scale": [0.44, 0.44],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.62, 0.62],
-      "Z": 2
-    },
-    {
-      "Name": "plant5",
-      "Position": [1960, 992],
-      "Scale": [0.48, 0.48],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.66, 0.66],
-      "Z": 2
-    },
-    {
-      "Name": "plant2",
-      "Position": [3260, 990],
-      "Scale": [0.46, 0.46],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.68, 0.68],
-      "Z": 2
-    },
-    {
-      "Name": "plant3",
-      "Position": [5080, 992],
-      "Scale": [0.52, 0.52],
-      "Color": [255, 255, 255, 255],
-      "ParallaxFactor": [0.70, 0.70],
-      "Z": 2
-    },
-    {
-      "Name": "blueFlower2",
-      "Position": [920, 994],
-      "Scale": [0.22, 0.22],
-      "Color": [225, 225, 255, 240],
-      "ParallaxFactor": [0.68, 0.68],
-      "Z": 3
-    },
-    {
-      "Name": "jumpPlant2",
-      "Position": [1540, 826],
-      "Scale": [0.34, 0.34],
-      "Color": [220, 235, 255, 235],
-      "ParallaxFactor": [0.62, 0.62],
-      "Z": 2
-    },
-    {
-      "Name": "windPlant1",
-      "Position": [2460, 992],
-      "Scale": [0.40, 0.40],
-      "Color": [220, 220, 255, 220],
-      "ParallaxFactor": [0.70, 0.70],
-      "Z": 2
-    },
-    {
-      "Name": "poisonPlant",
-      "Position": [3560, 994],
-      "Scale": [0.40, 0.40],
-      "Color": [220, 190, 255, 240],
-      "ParallaxFactor": [0.72, 0.72],
-      "Z": 2
-    },
-    {
-      "Name": "portalBlue7",
-      "Position": [4140, 840],
-      "Scale": [0.56, 0.56],
-      "Color": [180, 210, 255, 205],
-      "ParallaxFactor": [0.46, 0.42],
-      "Z": 0
-    },
-    {
-      "Name": "blueFlower1",
-      "Position": [5480, 994],
-      "Scale": [0.23, 0.23],
-      "Color": [225, 235, 255, 240],
-      "ParallaxFactor": [0.72, 0.72],
-      "Z": 3
-    }
-  ],
-  "Interactives": [
-    {
-      "Type": "EchoTablet",
-      "Texture": "MossyDecorationHazard_25.png",
-      "Position": [1180, 552],
-      "Scale": [0.27, 0.27],
-      "Color": [238, 228, 255, 255],
-      "AccentColor": [178, 148, 255, 255],
-      "InteractRadius": 122.0,
-      "RewardGold": 40,
-      "SingleUse": true,
-      "Prompt": "Enter to read midnight echo",
-      "Title": "Midnight Echo",
-      "Body": "The script warns that rain makes every misstep final. Save your strength for the long platforms and spend your gold before the storm spends you."
-    },
-    {
-      "Type": "GoldCache",
-      "Texture": "Item_18.png",
-      "Position": [4100, 822],
-      "Scale": [3.6, 3.6],
-      "Color": [255, 255, 255, 255],
-      "AccentColor": [246, 198, 112, 255],
-      "InteractRadius": 92.0,
-      "HiddenUntilNearby": true,
-      "RevealRadius": 205.0,
-      "RevealTitle": "Abyssal Stash",
-      "RevealBody": "A rain-dark seam parts in the wall. Something hidden waited here for a careful return.",
-      "RewardGold": 125,
-      "SingleUse": true,
-      "Prompt": "Enter to recover abyssal stash",
-      "Title": "Abyssal Stash",
-      "Body": "Cold-metal trinkets and travel coin survive inside the sealed pouch. It feels like whoever hid it expected never to come back."
-    }
-  ],
-  "Events": [
-    {
-      "Bounds": [920.0, 420.0, 1180.0, 300.0],
-      "Body": "The returning veil starts with stacked jumps and narrow recovery windows. Save your momentum for the upper chain.",
-      "Title": "Veil ascent",
-      "Tone": "Info"
-    },
-    {
-      "Bounds": [3320.0, 700.0, 1420.0, 260.0],
-      "Body": "This rain-swept span punishes hesitation. Clear the lane, then commit to the crossing in one push.",
-      "Title": "Midnight span",
-      "Tone": "Warning"
-    }
-  ],
-  "Background": [
-    {
-      "BgName": "Background_47.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.97, 0.99],
-      "Type": 0
-    },
-    {
-      "BgName": "Background_46.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.90, 0.96],
-      "Type": 0
-    },
-    {
-      "BgName": "Background_45.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.82, 0.90],
-      "Type": 0
-    },
-    {
-      "BgName": "Background_44.png",
-      "Position": [960, 540],
-      "ParallaxFactor": [0.72, 0.84],
-      "Type": 0
-    }
-  ],
-  "Ground": [
-    {
-      "GroundStyle": "ObsidianRunes",
-      "GroundName": "TileSetGreen_27.png",
-      "Points": [0, 6000],
-      "YPos": 1048,
-      "DepthRows": 3,
-      "Offset": 8.0
-    }
-  ],
-  "Spawners": [
-    {
-      "Archetype": "Duel",
-      "ActivationMode": "OnEnter",
-      "EncounterTitle": "Returning watcher",
-      "EncounterBody": "The veil's opening climb is guarded by a patient patrol. Clear it cleanly before the long midnight span.",
-      "EnemyName": "SkeletonWhite",
-      "EnemyAmount": 3,
-      "FirstSpawnDelayMs": 520,
-      "SpawnCooldown": 5600,
-      "EnemyPerSpawn": 1,
-      "SpawnArea": [[200, 700], [700, 800]]
-    }
-  ]
+    "Spawners": [
+        {
+            "ActivationArea": [
+                3312.20751953125,
+                -546.960693359375,
+                50.240966796875,
+                246.70944213867188
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 3,
+            "EnemyDamage": 0,
+            "EnemyHP": 0,
+            "EnemyName": "SkeletonWhite",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 0,
+            "SpawnArea": [
+                [
+                    3426.759765625,
+                    3608.57080078125
+                ],
+                [
+                    -339.4215087890625,
+                    -223.12380981445313
+                ]
+            ],
+            "SpawnCooldown": 500
+        },
+        {
+            "ActivationArea": [
+                3306.72412109375,
+                -258.629150390625,
+                39.206298828125,
+                163.5103759765625
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 3,
+            "EnemyDamage": 0,
+            "EnemyHP": 0,
+            "EnemyName": "SkeletonWhite",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 0,
+            "SpawnArea": [
+                [
+                    2864.982421875,
+                    3044.982421875
+                ],
+                [
+                    -83.03946685791016,
+                    16.05510711669922
+                ]
+            ],
+            "SpawnCooldown": 500
+        },
+        {
+            "ActivationArea": [
+                2975.716796875,
+                -156.10366821289063,
+                380.06494140625,
+                70.10934448242188
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 10,
+            "EnemyDamage": 10,
+            "EnemyHP": 1,
+            "EnemyName": "WraithBat",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 2,
+            "SpawnArea": [
+                [
+                    2914.50634765625,
+                    3499.28857421875
+                ],
+                [
+                    -326.7430419921875,
+                    -113.78048706054688
+                ]
+            ],
+            "SpawnCooldown": 100
+        },
+        {
+            "ActivationArea": [
+                3756.56982421875,
+                -193.55581665039063,
+                420.0,
+                300.0
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 2,
+            "EnemyDamage": 0,
+            "EnemyHP": 0,
+            "EnemyName": "SkeletonYellow",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 0,
+            "SpawnArea": [
+                [
+                    3864.5380859375,
+                    4084.64208984375
+                ],
+                [
+                    -114.94450378417969,
+                    -0.23974609375
+                ]
+            ],
+            "SpawnCooldown": 5000
+        },
+        {
+            "ActivationArea": [
+                5276.43115234375,
+                -804.4725952148438,
+                420.0,
+                300.0
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 3,
+            "EnemyDamage": 0,
+            "EnemyHP": 0,
+            "EnemyName": "SkeletonYellow",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 0,
+            "SpawnArea": [
+                [
+                    5576.2509765625,
+                    5756.2509765625
+                ],
+                [
+                    -830.8323974609375,
+                    -730.8323974609375
+                ]
+            ],
+            "SpawnCooldown": 5000
+        }
+    ]
 }

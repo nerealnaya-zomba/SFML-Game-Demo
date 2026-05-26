@@ -79,6 +79,93 @@ const std::array<const char*, 4> kInteractiveTypes{
     "GoldCache"
 };
 
+std::string lowercaseAscii(std::string value)
+{
+    std::transform(value.begin(), value.end(), value.begin(), [](const unsigned char character) {
+        return static_cast<char>(std::tolower(character));
+    });
+    return value;
+}
+
+std::string backgroundRepeatTypeName(const nlohmann::json& background)
+{
+    if (!background.contains("Type"))
+    {
+        return "repeatedXY";
+    }
+
+    const auto& value = background["Type"];
+    if (value.is_number_integer())
+    {
+        return value.get<int>() == 1 ? "single" : "repeatedXY";
+    }
+    if (!value.is_string())
+    {
+        return "repeatedXY";
+    }
+
+    const std::string typeName = lowercaseAscii(value.get<std::string>());
+    if (typeName == "single")
+    {
+        return "single";
+    }
+    if (typeName == "repeatedx" || typeName == "repeated_x")
+    {
+        return "repeatedX";
+    }
+    if (typeName == "repeatedy" || typeName == "repeated_y")
+    {
+        return "repeatedY";
+    }
+    return "repeatedXY";
+}
+
+bool backgroundTypeIsSingle(const nlohmann::json& background)
+{
+    return backgroundRepeatTypeName(background) == "single";
+}
+
+bool backgroundTypeRepeatsX(const nlohmann::json& background)
+{
+    const std::string typeName = backgroundRepeatTypeName(background);
+    return typeName == "repeatedX" || typeName == "repeatedXY";
+}
+
+bool backgroundTypeRepeatsY(const nlohmann::json& background)
+{
+    const std::string typeName = backgroundRepeatTypeName(background);
+    return typeName == "repeatedY" || typeName == "repeatedXY";
+}
+
+int backgroundTypeComboIndex(const nlohmann::json& background)
+{
+    const std::string typeName = backgroundRepeatTypeName(background);
+    if (typeName == "single")
+    {
+        return 0;
+    }
+    if (typeName == "repeatedX")
+    {
+        return 1;
+    }
+    if (typeName == "repeatedY")
+    {
+        return 2;
+    }
+    return 3;
+}
+
+void setBackgroundTypeFromCombo(nlohmann::json& background, const int comboIndex)
+{
+    static constexpr std::array<const char*, 4> kTypeValues{
+        "single",
+        "repeatedX",
+        "repeatedY",
+        "repeatedXY"
+    };
+    background["Type"] = kTypeValues[std::clamp(comboIndex, 0, static_cast<int>(kTypeValues.size()) - 1)];
+}
+
 const std::array<const char*, 6> kWeatherThemes{
     "VerdantDawn",
     "StormFront",
@@ -132,10 +219,11 @@ enum class EditorTab
     Spawners,
     Portals,
     Interactives,
-    MiniLocations
+    MiniLocations,
+    Hazards
 };
 
-constexpr std::size_t kEditorTabCount = 9u;
+constexpr std::size_t kEditorTabCount = 10u;
 
 enum class SelectionKind
 {
@@ -150,7 +238,9 @@ enum class SelectionKind
     Spawner,
     Portal,
     Interactive,
-    MiniLocation
+    MiniLocation,
+    DeadArea,
+    Barrier
 };
 
 struct EditorSelection
@@ -324,7 +414,9 @@ enum class SpawnerInteractionMode
 {
     None,
     Move,
-    Resize
+    Resize,
+    MoveActivation,
+    ResizeActivation
 };
 
 struct SpawnerInteractionState
@@ -333,6 +425,7 @@ struct SpawnerInteractionState
     std::size_t index = 0u;
     sf::Vector2f startWorld{0.f, 0.f};
     sf::FloatRect startBounds{};
+    sf::FloatRect startActivationBounds{};
 
     bool active() const
     {
@@ -345,13 +438,16 @@ struct SpawnerInteractionState
         index = 0u;
         startWorld = {0.f, 0.f};
         startBounds = {};
+        startActivationBounds = {};
     }
 };
 
 enum class PortalInteractionMode
 {
     None,
-    Move
+    Move,
+    MoveActivation,
+    ResizeActivation
 };
 
 struct PortalInteractionState
@@ -360,6 +456,7 @@ struct PortalInteractionState
     std::size_t index = 0u;
     sf::Vector2f startWorld{0.f, 0.f};
     sf::Vector2f startPosition{0.f, 0.f};
+    sf::FloatRect startActivationBounds{};
 
     bool active() const
     {
@@ -372,6 +469,37 @@ struct PortalInteractionState
         index = 0u;
         startWorld = {0.f, 0.f};
         startPosition = {0.f, 0.f};
+        startActivationBounds = {};
+    }
+};
+
+enum class HazardInteractionMode
+{
+    None,
+    Move,
+    Resize
+};
+
+struct HazardInteractionState
+{
+    HazardInteractionMode mode = HazardInteractionMode::None;
+    SelectionKind kind = SelectionKind::None;
+    std::size_t index = 0u;
+    sf::Vector2f startWorld{0.f, 0.f};
+    sf::FloatRect startBounds{};
+
+    bool active() const
+    {
+        return mode != HazardInteractionMode::None;
+    }
+
+    void clear()
+    {
+        mode = HazardInteractionMode::None;
+        kind = SelectionKind::None;
+        index = 0u;
+        startWorld = {0.f, 0.f};
+        startBounds = {};
     }
 };
 
@@ -865,6 +993,7 @@ public:
             throw std::runtime_error("Failed to initialize ImGui-SFML for level editor");
         }
 
+        loadEditorImGuiFont();
         ImGui::GetIO().IniFilename = "data/level_editor_imgui.ini";
         applyEditorStyle();
         showLoadingScreen("Building asset catalogs...", 0.52f);
@@ -931,6 +1060,7 @@ private:
     EditorTab activeTab_ = EditorTab::Level;
     EditorSelection selection_{};
     SelectionKind placementMode_ = SelectionKind::None;
+    bool placingPlatformHitbox_ = false;
     bool topDrawerExpanded_ = false;
     bool leftDrawerExpanded_ = true;
     bool rightDrawerExpanded_ = true;
@@ -950,6 +1080,7 @@ private:
     InteractiveInteractionState interactiveInteraction_{};
     SpawnerInteractionState spawnerInteraction_{};
     PortalInteractionState portalInteraction_{};
+    HazardInteractionState hazardInteraction_{};
     MiniLocationInteractionState miniLocationInteraction_{};
     GroundInteractionState groundInteraction_{};
     bool openWorldContextMenu_ = false;
@@ -990,6 +1121,40 @@ private:
     {
         const sf::Vector2u size = window_.getSize();
         return ImVec2(static_cast<float>(size.x), static_cast<float>(size.y));
+    }
+
+    void loadEditorImGuiFont() const
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->Clear();
+
+        const std::filesystem::path fontPath = "fonts/Roboto_Condensed-Black.ttf";
+        ImFontConfig fontConfig;
+        fontConfig.OversampleH = 3;
+        fontConfig.OversampleV = 2;
+
+        if (std::filesystem::exists(fontPath))
+        {
+            if (io.Fonts->AddFontFromFileTTF(
+                    fontPath.string().c_str(),
+                    18.f,
+                    &fontConfig,
+                    io.Fonts->GetGlyphRangesCyrillic()) == nullptr)
+            {
+                io.Fonts->AddFontDefault();
+            }
+        }
+        else
+        {
+            io.Fonts->AddFontDefault();
+        }
+
+        if (!ImGui::SFML::UpdateFontTexture())
+        {
+            io.Fonts->Clear();
+            io.Fonts->AddFontDefault();
+            [[maybe_unused]] const bool fallbackLoaded = ImGui::SFML::UpdateFontTexture();
+        }
     }
 
     float smoothApproach(const float current, const float target, const float speed) const
@@ -1187,6 +1352,8 @@ private:
             return "Portals";
         case EditorTab::Interactives:
             return "Interactives";
+        case EditorTab::Hazards:
+            return "Hazards";
         case EditorTab::MiniLocations:
             return "Mini Locations";
         default:
@@ -1214,8 +1381,10 @@ private:
             return 6u;
         case EditorTab::Interactives:
             return 7u;
-        case EditorTab::MiniLocations:
+        case EditorTab::Hazards:
             return 8u;
+        case EditorTab::MiniLocations:
+            return 9u;
         default:
             return 0u;
         }
@@ -1317,6 +1486,7 @@ private:
             EditorTab::Spawners,
             EditorTab::Portals,
             EditorTab::Interactives,
+            EditorTab::Hazards,
             EditorTab::MiniLocations
         };
 
@@ -1412,6 +1582,18 @@ private:
                 return document_["MiniLocations"][selection_.index].value("Title", std::string{"Mini Location"});
             }
             return "Mini Location";
+        case SelectionKind::DeadArea:
+            if (selection_.index < document_["DeadAreas"].size())
+            {
+                return document_["DeadAreas"][selection_.index].value("Id", std::string{"DeadArea"});
+            }
+            return "DeadArea";
+        case SelectionKind::Barrier:
+            if (selection_.index < document_["Barriers"].size())
+            {
+                return document_["Barriers"][selection_.index].value("Id", std::string{"Barrier"});
+            }
+            return "Barrier";
         default:
             return "Nothing selected";
         }
@@ -1648,6 +1830,10 @@ private:
         {
             presets["BackgroundTheme"] = "VerdantDawn";
         }
+        if (!presets.contains("BackgroundTileOffsetY"))
+        {
+            presets["BackgroundTileOffsetY"] = 0.f;
+        }
         if (!presets.contains("ActorDrawOrder"))
         {
             presets["ActorDrawOrder"] = 3;
@@ -1665,11 +1851,23 @@ private:
             presets["MenuOrder"] = static_cast<int>(registry_.getLevels().size()) + 1;
         }
 
-        for (const char* arrayName : {"Platforms", "Decorations", "Background", "Ground", "Spawners", "Portals", "Interactives", "MiniLocations"})
+        for (const char* arrayName : {"Platforms", "Decorations", "Background", "Ground", "Spawners", "Portals", "Interactives", "DeadAreas", "Barriers", "MiniLocations"})
         {
             if (!document_.contains(arrayName) || !document_[arrayName].is_array())
             {
                 document_[arrayName] = nlohmann::json::array();
+            }
+        }
+
+        if (document_.contains("Ground") && document_["Ground"].is_array())
+        {
+            for (std::size_t index = 0; index < document_["Ground"].size(); ++index)
+            {
+                auto& ground = document_["Ground"][index];
+                if (!ground.contains("EditorDrawOrder") || !ground["EditorDrawOrder"].is_number_integer())
+                {
+                    ground["EditorDrawOrder"] = fallbackWorldDrawOrder(SelectionKind::Ground, index);
+                }
             }
         }
 
@@ -1692,6 +1890,7 @@ private:
                 {"MainWorldWidth", 3840},
                 {"PlayerSpawn", {200.f, 900.f}},
                 {"BackgroundTheme", "VerdantDawn"},
+                {"BackgroundTileOffsetY", 0.f},
                 {"ActorDrawOrder", 3}
             }},
             {"Platforms", nlohmann::json::array({
@@ -1706,11 +1905,12 @@ private:
                     {"BgName", backgroundOptions_.empty() ? "" : backgroundOptions_.front()},
                     {"Position", {960.f, 540.f}},
                     {"ParallaxFactor", {0.08f, 0.06f}},
-                    {"Type", 0}
+                    {"Type", "repeatedXY"}
                 }
             })},
             {"Ground", nlohmann::json::array({
                 {
+                    {"EditorDrawOrder", 2},
                     {"GroundStyle", groundStyleOptions_.empty() ? "VerdantKeep" : groundStyleOptions_.front()},
                     {"GroundName", groundTileOptions_.empty() ? "TileSetGreen_02.png" : groundTileOptions_.front()},
                     {"Points", {0, 3840}},
@@ -1722,6 +1922,8 @@ private:
             {"Spawners", nlohmann::json::array()},
             {"Portals", nlohmann::json::array()},
             {"Interactives", nlohmann::json::array()},
+            {"DeadAreas", nlohmann::json::array()},
+            {"Barriers", nlohmann::json::array()},
             {"MiniLocations", nlohmann::json::array()}
         };
 
@@ -2009,17 +2211,13 @@ private:
                     handleMiniLocationContentLeftClick(worldPosition);
                     return;
                 }
-                const bool cycleModifierHeld =
-                    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl) ||
-                    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RControl);
-                if (!cycleModifierHeld &&
-                    selection_.isValid() &&
-                    selectionContainsPoint(selection_, worldPosition) &&
-                    beginInteractionForSelection(selection_, worldPosition))
+                if (startPendingSelectionCycle(worldPosition, mousePressed->position))
                 {
                     return;
                 }
-                if (startPendingSelectionCycle(worldPosition, mousePressed->position))
+                if (selection_.isValid() &&
+                    selectionContainsPoint(selection_, worldPosition) &&
+                    beginInteractionForSelection(selection_, worldPosition))
                 {
                     return;
                 }
@@ -2040,6 +2238,10 @@ private:
                     return;
                 }
                 if (beginPortalInteraction(worldPosition))
+                {
+                    return;
+                }
+                if (beginHazardInteraction(worldPosition))
                 {
                     return;
                 }
@@ -2098,6 +2300,7 @@ private:
                 finishInteractiveInteraction();
                 finishSpawnerInteraction();
                 finishPortalInteraction();
+                finishHazardInteraction();
                 finishPlatformInteraction();
                 finishDecorationInteraction();
                 finishMiniLocationInteraction();
@@ -2128,6 +2331,7 @@ private:
                         beginInteractiveInteraction(movedWorldPosition) ||
                         beginSpawnerInteraction(movedWorldPosition) ||
                         beginPortalInteraction(movedWorldPosition) ||
+                        beginHazardInteraction(movedWorldPosition) ||
                         beginPlatformInteraction(movedWorldPosition) ||
                         beginDecorationInteraction(movedWorldPosition) ||
                         beginMiniLocationInteraction(movedWorldPosition) ||
@@ -2161,6 +2365,11 @@ private:
             if (portalInteraction_.active())
             {
                 updatePortalInteraction(window_.mapPixelToCoords(mouseMoved->position, worldView_));
+                return;
+            }
+            if (hazardInteraction_.active())
+            {
+                updateHazardInteraction(window_.mapPixelToCoords(mouseMoved->position, worldView_));
                 return;
             }
             if (platformInteraction_.active())
@@ -2250,6 +2459,12 @@ private:
             return;
         }
 
+        if (placingPlatformHitbox_)
+        {
+            placePlatformHitbox(worldPosition);
+            return;
+        }
+
         switch (placementMode_)
         {
         case SelectionKind::Spawn:
@@ -2274,6 +2489,12 @@ private:
             break;
         case SelectionKind::Interactive:
             placeInteractive(worldPosition);
+            break;
+        case SelectionKind::DeadArea:
+            placeDeadArea(worldPosition);
+            break;
+        case SelectionKind::Barrier:
+            placeBarrier(worldPosition);
             break;
         case SelectionKind::MiniLocation:
             placeMiniLocation(worldPosition);
@@ -2343,6 +2564,7 @@ private:
     sf::FloatRect editorCameraBoundsForPosition(const sf::Vector2f position) const
     {
         const float levelHeight = document_["Presets"]["Size"][1].get<float>();
+        const float topY = levelTopY();
 
         if (document_.contains("MiniLocations") && document_["MiniLocations"].is_array())
         {
@@ -2352,7 +2574,7 @@ private:
                 if (position.x >= bounds.position.x && position.x <= bounds.position.x + bounds.size.x)
                 {
                     return sf::FloatRect(
-                        {bounds.position.x, 0.f},
+                        {bounds.position.x, topY},
                         {bounds.size.x, levelHeight}
                     );
                 }
@@ -2372,7 +2594,7 @@ private:
             0.f
         );
 
-        return sf::FloatRect({0.f, 0.f}, {mainWorldRight, levelHeight});
+        return sf::FloatRect({0.f, topY}, {mainWorldRight, levelHeight});
     }
 
     sf::Vector2f clampPreviewCameraCenterToBounds(sf::Vector2f position, const sf::FloatRect& cameraBounds) const
@@ -2547,6 +2769,12 @@ private:
         case SelectionKind::MiniLocation:
             array = &document_["MiniLocations"];
             break;
+        case SelectionKind::DeadArea:
+            array = &document_["DeadAreas"];
+            break;
+        case SelectionKind::Barrier:
+            array = &document_["Barriers"];
+            break;
         default:
             return nullptr;
         }
@@ -2581,6 +2809,10 @@ private:
             return &document_["Interactives"];
         case SelectionKind::MiniLocation:
             return &document_["MiniLocations"];
+        case SelectionKind::DeadArea:
+            return &document_["DeadAreas"];
+        case SelectionKind::Barrier:
+            return &document_["Barriers"];
         default:
             return nullptr;
         }
@@ -2649,6 +2881,17 @@ private:
     sf::FloatRect deadAreaResizeHandleBounds(const nlohmann::json& deadArea, const nlohmann::json& location) const
     {
         const sf::FloatRect bounds = deadAreaBounds(deadArea, location);
+        return platformHandleBounds(bounds.position + bounds.size);
+    }
+
+    sf::FloatRect worldHazardBounds(const nlohmann::json& hazard) const
+    {
+        return readRect(hazard.value("Rect", nlohmann::json::array()), {{0.f, 0.f}, {160.f, 80.f}});
+    }
+
+    sf::FloatRect worldHazardResizeHandleBounds(const nlohmann::json& hazard) const
+    {
+        const sf::FloatRect bounds = worldHazardBounds(hazard);
         return platformHandleBounds(bounds.position + bounds.size);
     }
 
@@ -3153,6 +3396,10 @@ private:
             return &document_["Interactives"];
         case SelectionKind::MiniLocation:
             return &document_["MiniLocations"];
+        case SelectionKind::DeadArea:
+            return &document_["DeadAreas"];
+        case SelectionKind::Barrier:
+            return &document_["Barriers"];
         default:
             return nullptr;
         }
@@ -3623,6 +3870,12 @@ private:
     bool platformBounceEnabled(const nlohmann::json& platform) const
     {
         return platform.value("BounceEnabled", true);
+    }
+
+    bool isHazardPlatformHitbox(const nlohmann::json& platform) const
+    {
+        return platform.value("Type", std::string{}) == "Invisible-wall" ||
+            platform.value("HazardTool", std::string{}) == "PlatformHitbox";
     }
 
     sf::FloatRect platformBounds(const nlohmann::json& platform) const
@@ -4150,11 +4403,46 @@ private:
         };
     }
 
+    float levelTopY() const
+    {
+        const float levelHeight = document_["Presets"]["Size"][1].get<float>();
+        return std::min(0.f, static_cast<float>(WINDOW_HEIGHT) - levelHeight);
+    }
+
+    float backgroundTileOffsetY() const
+    {
+        return document_.contains("Presets") && document_["Presets"].is_object()
+            ? document_["Presets"].value("BackgroundTileOffsetY", 0.f)
+            : 0.f;
+    }
+
+    sf::Vector2i backgroundTileMinIndex() const
+    {
+        return {
+            0,
+            static_cast<int>(std::floor((levelTopY() - backgroundTileOffsetY()) / kBackgroundTileSize.y))
+        };
+    }
+
+    sf::Vector2i backgroundTileMaxIndex() const
+    {
+        const sf::Vector2f levelSize = readVector2f(
+            document_["Presets"].value("Size", nlohmann::json::array()),
+            {static_cast<float>(WINDOW_WIDTH), static_cast<float>(WINDOW_HEIGHT)}
+        );
+        const float levelBottom = levelTopY() + std::max(levelSize.y, 1.f);
+        return {
+            std::max(0, static_cast<int>(std::ceil(std::max(levelSize.x, 1.f) / kBackgroundTileSize.x)) - 1),
+            static_cast<int>(std::ceil((levelBottom - backgroundTileOffsetY()) / kBackgroundTileSize.y)) - 1
+        };
+    }
+
     sf::Vector2i clampBackgroundTile(sf::Vector2i tileIndex) const
     {
-        const sf::Vector2i count = backgroundTileCount();
-        tileIndex.x = std::clamp(tileIndex.x, 0, count.x - 1);
-        tileIndex.y = std::clamp(tileIndex.y, 0, count.y - 1);
+        const sf::Vector2i minIndex = backgroundTileMinIndex();
+        const sf::Vector2i maxIndex = backgroundTileMaxIndex();
+        tileIndex.x = std::clamp(tileIndex.x, minIndex.x, maxIndex.x);
+        tileIndex.y = std::clamp(tileIndex.y, minIndex.y, maxIndex.y);
         return tileIndex;
     }
 
@@ -4162,7 +4450,7 @@ private:
     {
         return clampBackgroundTile({
             static_cast<int>(std::floor(std::max(worldPosition.x, 0.f) / kBackgroundTileSize.x)),
-            static_cast<int>(std::floor(std::max(worldPosition.y, 0.f) / kBackgroundTileSize.y))
+            static_cast<int>(std::floor(worldPosition.y / kBackgroundTileSize.y))
         });
     }
 
@@ -4173,6 +4461,13 @@ private:
             (static_cast<float>(clampedTile.x) + 0.5f) * kBackgroundTileSize.x,
             (static_cast<float>(clampedTile.y) + 0.5f) * kBackgroundTileSize.y
         };
+    }
+
+    sf::Vector2f backgroundTileDisplayCenter(const sf::Vector2i tileIndex) const
+    {
+        sf::Vector2f center = backgroundTileCenter(tileIndex);
+        center.y += backgroundTileOffsetY();
+        return center;
     }
 
     sf::Vector2i backgroundTileIndex(const nlohmann::json& background) const
@@ -4188,7 +4483,7 @@ private:
     sf::Vector2f backgroundDisplayPosition(const nlohmann::json& background) const
     {
         return applyParallaxPreview(
-            backgroundTileCenter(backgroundTileIndex(background)),
+            backgroundTileDisplayCenter(backgroundTileIndex(background)),
             backgroundPreviewParallax(background)
         );
     }
@@ -4203,7 +4498,7 @@ private:
             }
 
             const auto& background = document_["Background"][index];
-            if (background.value("Type", 0) != 1 || background.value("BgName", std::string{}) != backgroundName)
+            if (!backgroundTypeIsSingle(background) || background.value("BgName", std::string{}) != backgroundName)
             {
                 continue;
             }
@@ -4221,10 +4516,11 @@ private:
         const std::string& backgroundName,
         const std::size_t ignoredIndex = std::numeric_limits<std::size_t>::max()) const
     {
-        const sf::Vector2i count = backgroundTileCount();
-        for (int y = 0; y < count.y; ++y)
+        const sf::Vector2i minTile = backgroundTileMinIndex();
+        const sf::Vector2i maxTile = backgroundTileMaxIndex();
+        for (int y = minTile.y; y <= maxTile.y; ++y)
         {
-            for (int x = 0; x < count.x; ++x)
+            for (int x = minTile.x; x <= maxTile.x; ++x)
             {
                 const sf::Vector2i tile{x, y};
                 if (!hasSingleBackgroundInTile(backgroundName, tile, ignoredIndex))
@@ -4239,10 +4535,26 @@ private:
 
     bool resolveBackgroundTilePlacement(nlohmann::json& background, const std::size_t index)
     {
-        const int backgroundType = background.value("Type", 0);
-        if (backgroundType == 0)
+        const bool repeatX = backgroundTypeRepeatsX(background);
+        const bool repeatY = backgroundTypeRepeatsY(background);
+        if (!backgroundTypeIsSingle(background))
         {
-            setBackgroundTile(background, {0, 0});
+            if (repeatX && repeatY)
+            {
+                setBackgroundTile(background, {0, 0});
+                return true;
+            }
+
+            sf::Vector2i tile = backgroundTileIndex(background);
+            if (repeatX)
+            {
+                tile.x = 0;
+            }
+            if (repeatY)
+            {
+                tile.y = 0;
+            }
+            setBackgroundTile(background, tile);
             return true;
         }
 
@@ -4265,13 +4577,46 @@ private:
     bool editBackgroundTileField(const char* label, nlohmann::json& background, const std::size_t index)
     {
         int raw[2]{backgroundTileIndex(background).x, backgroundTileIndex(background).y};
-        const sf::Vector2i count = backgroundTileCount();
-        ImGui::TextDisabled("Background tiles are 1920 x 1080. Level grid: %d x %d.", count.x, count.y);
-        if (background.value("Type", 0) == 0)
+        const sf::Vector2i minTile = backgroundTileMinIndex();
+        const sf::Vector2i maxTile = backgroundTileMaxIndex();
+        ImGui::TextDisabled(
+            "Background tiles are 1920 x 1080. Level grid: X %d..%d, Y %d..%d.",
+            minTile.x,
+            maxTile.x,
+            minTile.y,
+            maxTile.y
+        );
+        if (!backgroundTypeIsSingle(background))
         {
-            ImGui::TextUnformatted("Repeated covers the whole level grid from tile 0,0.");
-            const bool changed = backgroundTileIndex(background) != sf::Vector2i{0, 0};
-            setBackgroundTile(background, {0, 0});
+            const bool repeatX = backgroundTypeRepeatsX(background);
+            const bool repeatY = backgroundTypeRepeatsY(background);
+            if (repeatX && repeatY)
+            {
+                ImGui::TextUnformatted("Repeated XY covers the whole level grid.");
+                const bool changed = backgroundTileIndex(background) != sf::Vector2i{0, 0};
+                setBackgroundTile(background, {0, 0});
+                return changed;
+            }
+
+            ImGui::TextUnformatted(repeatX
+                ? "Repeated X uses Tile Y and fills the level horizontally."
+                : "Repeated Y uses Tile X and fills the level vertically.");
+            if (!ImGui::InputInt2(label, raw))
+            {
+                return false;
+            }
+
+            sf::Vector2i requestedTile = clampBackgroundTile({raw[0], raw[1]});
+            if (repeatX)
+            {
+                requestedTile.x = 0;
+            }
+            if (repeatY)
+            {
+                requestedTile.y = 0;
+            }
+            const bool changed = requestedTile != backgroundTileIndex(background);
+            setBackgroundTile(background, requestedTile);
             return changed;
         }
 
@@ -4298,16 +4643,27 @@ private:
 
     sf::FloatRect backgroundBounds(const nlohmann::json& background) const
     {
-        if (background.value("Type", 0) == 0)
+        if (!backgroundTypeIsSingle(background))
         {
             const sf::Vector2f levelSize = readVector2f(
                 document_["Presets"].value("Size", nlohmann::json::array()),
                 {static_cast<float>(WINDOW_WIDTH), static_cast<float>(WINDOW_HEIGHT)}
             );
-            const sf::Vector2f cameraOffset = applyParallaxPreview({0.f, 0.f}, backgroundPreviewParallax(background));
+            const sf::Vector2i tile = backgroundTileIndex(background);
+            const bool repeatX = backgroundTypeRepeatsX(background);
+            const bool repeatY = backgroundTypeRepeatsY(background);
+            const sf::Vector2f baseTopLeft{
+                repeatX ? 0.f : static_cast<float>(tile.x) * kBackgroundTileSize.x,
+                repeatY ? levelTopY() : static_cast<float>(tile.y) * kBackgroundTileSize.y + backgroundTileOffsetY()
+            };
+            const sf::Vector2f size{
+                repeatX ? std::max(levelSize.x, kBackgroundTileSize.x) : kBackgroundTileSize.x,
+                repeatY ? std::max(levelSize.y, kBackgroundTileSize.y) : kBackgroundTileSize.y
+            };
+            const sf::Vector2f cameraOffset = applyParallaxPreview(baseTopLeft, backgroundPreviewParallax(background));
             return sf::FloatRect(
                 cameraOffset,
-                {std::max(levelSize.x, kBackgroundTileSize.x), std::max(levelSize.y, kBackgroundTileSize.y)}
+                size
             );
         }
 
@@ -4358,11 +4714,41 @@ private:
         );
     }
 
+    sf::FloatRect portalActivationBounds(const nlohmann::json& portal) const
+    {
+        if (portal.contains("ActivationArea") && portal["ActivationArea"].is_array())
+        {
+            return readRect(portal["ActivationArea"]);
+        }
+        const sf::Vector2f position = readVector2f(portal.value("Position", nlohmann::json::array()));
+        const float radius = portal.value("InteractRadius", 130.f);
+        return {{position.x - radius, position.y - radius}, {radius * 2.f, radius * 2.f}};
+    }
+
+    sf::FloatRect portalActivationHandleBounds(const nlohmann::json& portal) const
+    {
+        const sf::FloatRect bounds = portalActivationBounds(portal);
+        return platformHandleBounds(bounds.position + bounds.size);
+    }
+
+    sf::FloatRect combinedPortalEditBounds(const nlohmann::json& portal) const
+    {
+        const sf::FloatRect sprite = portalBounds(portal);
+        const sf::FloatRect activation = portalActivationBounds(portal);
+        const float left = std::min(sprite.position.x, activation.position.x);
+        const float top = std::min(sprite.position.y, activation.position.y);
+        const float right = std::max(sprite.position.x + sprite.size.x, activation.position.x + activation.size.x);
+        const float bottom = std::max(sprite.position.y + sprite.size.y, activation.position.y + activation.size.y);
+        return {{left, top}, {std::max(right - left, 0.f), std::max(bottom - top, 0.f)}};
+    }
+
     std::optional<std::size_t> findPortalAt(const sf::Vector2f worldPosition) const
     {
         for (std::size_t index = document_["Portals"].size(); index > 0u; --index)
         {
-            if (portalBounds(document_["Portals"][index - 1u]).contains(worldPosition))
+            const auto& portal = document_["Portals"][index - 1u];
+            if (portalBounds(portal).contains(worldPosition) ||
+                portalActivationBounds(portal).contains(worldPosition))
             {
                 return index - 1u;
             }
@@ -4380,7 +4766,8 @@ private:
 
         std::optional<std::size_t> portalIndex;
         if (selection_.kind == SelectionKind::Portal && selection_.index < document_["Portals"].size() &&
-            portalBounds(document_["Portals"][selection_.index]).contains(worldPosition))
+            (portalBounds(document_["Portals"][selection_.index]).contains(worldPosition) ||
+             portalActivationBounds(document_["Portals"][selection_.index]).contains(worldPosition)))
         {
             portalIndex = selection_.index;
         }
@@ -4395,10 +4782,24 @@ private:
         }
 
         selection_ = {SelectionKind::Portal, *portalIndex};
-        portalInteraction_.mode = PortalInteractionMode::Move;
+        auto& portal = document_["Portals"][*portalIndex];
+        if (portalActivationHandleBounds(portal).contains(worldPosition) ||
+            resizeZoneContains(portalActivationBounds(portal), worldPosition))
+        {
+            portalInteraction_.mode = PortalInteractionMode::ResizeActivation;
+        }
+        else if (portalActivationBounds(portal).contains(worldPosition) && !portalBounds(portal).contains(worldPosition))
+        {
+            portalInteraction_.mode = PortalInteractionMode::MoveActivation;
+        }
+        else
+        {
+            portalInteraction_.mode = PortalInteractionMode::Move;
+        }
         portalInteraction_.index = *portalIndex;
         portalInteraction_.startWorld = worldPosition;
-        portalInteraction_.startPosition = readVector2f(document_["Portals"][*portalIndex].value("Position", nlohmann::json::array()));
+        portalInteraction_.startPosition = readVector2f(portal.value("Position", nlohmann::json::array()));
+        portalInteraction_.startActivationBounds = portalActivationBounds(portal);
         return true;
     }
 
@@ -4410,8 +4811,25 @@ private:
             return;
         }
 
-        document_["Portals"][portalInteraction_.index]["Position"] =
-            toJson(portalInteraction_.startPosition + (worldPosition - portalInteraction_.startWorld));
+        auto& portal = document_["Portals"][portalInteraction_.index];
+        const sf::Vector2f delta = worldPosition - portalInteraction_.startWorld;
+        if (portalInteraction_.mode == PortalInteractionMode::Move)
+        {
+            portal["Position"] = toJson(portalInteraction_.startPosition + delta);
+        }
+        else
+        {
+            sf::FloatRect bounds = portalInteraction_.startActivationBounds;
+            if (portalInteraction_.mode == PortalInteractionMode::MoveActivation)
+            {
+                bounds.position += delta;
+            }
+            else if (portalInteraction_.mode == PortalInteractionMode::ResizeActivation)
+            {
+                bounds.size = {std::max(bounds.size.x + delta.x, 24.f), std::max(bounds.size.y + delta.y, 24.f)};
+            }
+            portal["ActivationArea"] = toJson(bounds);
+        }
         markDirty();
     }
 
@@ -4532,11 +4950,41 @@ private:
         return platformHandleBounds(spawnerBounds(spawner).position + spawnerBounds(spawner).size);
     }
 
+    sf::FloatRect spawnerActivationBounds(const nlohmann::json& spawner) const
+    {
+        if (spawner.contains("ActivationArea") && spawner["ActivationArea"].is_array())
+        {
+            return readRect(spawner["ActivationArea"]);
+        }
+        const sf::FloatRect spawn = spawnerBounds(spawner);
+        const float padding = spawner.value("ActivationPadding", 120.f);
+        return {{spawn.position.x - padding, spawn.position.y - padding}, {spawn.size.x + padding * 2.f, spawn.size.y + padding * 2.f}};
+    }
+
+    sf::FloatRect spawnerActivationResizeHandleBounds(const nlohmann::json& spawner) const
+    {
+        const sf::FloatRect bounds = spawnerActivationBounds(spawner);
+        return platformHandleBounds(bounds.position + bounds.size);
+    }
+
+    sf::FloatRect combinedSpawnerEditBounds(const nlohmann::json& spawner) const
+    {
+        const sf::FloatRect spawn = spawnerBounds(spawner);
+        const sf::FloatRect activation = spawnerActivationBounds(spawner);
+        const float left = std::min(spawn.position.x, activation.position.x);
+        const float top = std::min(spawn.position.y, activation.position.y);
+        const float right = std::max(spawn.position.x + spawn.size.x, activation.position.x + activation.size.x);
+        const float bottom = std::max(spawn.position.y + spawn.size.y, activation.position.y + activation.size.y);
+        return {{left, top}, {std::max(right - left, 0.f), std::max(bottom - top, 0.f)}};
+    }
+
     std::optional<std::size_t> findSpawnerAt(const sf::Vector2f worldPosition) const
     {
         for (std::size_t index = document_["Spawners"].size(); index > 0u; --index)
         {
-            if (spawnerBounds(document_["Spawners"][index - 1u]).contains(worldPosition))
+            const auto& spawner = document_["Spawners"][index - 1u];
+            if (spawnerBounds(spawner).contains(worldPosition) ||
+                spawnerActivationBounds(spawner).contains(worldPosition))
             {
                 return index - 1u;
             }
@@ -4554,7 +5002,19 @@ private:
 
         if (const nlohmann::json* currentSpawner = selectedSpawner(); currentSpawner != nullptr)
         {
-            if (spawnerResizeHandleBounds(*currentSpawner).contains(worldPosition) ||
+            if (spawnerActivationResizeHandleBounds(*currentSpawner).contains(worldPosition) ||
+                resizeZoneContains(spawnerActivationBounds(*currentSpawner), worldPosition))
+            {
+                spawnerInteraction_.mode = SpawnerInteractionMode::ResizeActivation;
+                spawnerInteraction_.index = selection_.index;
+            }
+            else if (spawnerActivationBounds(*currentSpawner).contains(worldPosition) &&
+                !spawnerBounds(*currentSpawner).contains(worldPosition))
+            {
+                spawnerInteraction_.mode = SpawnerInteractionMode::MoveActivation;
+                spawnerInteraction_.index = selection_.index;
+            }
+            else if (spawnerResizeHandleBounds(*currentSpawner).contains(worldPosition) ||
                 resizeZoneContains(spawnerBounds(*currentSpawner), worldPosition))
             {
                 spawnerInteraction_.mode = SpawnerInteractionMode::Resize;
@@ -4576,12 +5036,32 @@ private:
             }
 
             selection_ = {SelectionKind::Spawner, *spawnerIndex};
-            spawnerInteraction_.mode = SpawnerInteractionMode::Move;
+            const auto& spawner = document_["Spawners"][*spawnerIndex];
+            if (spawnerActivationResizeHandleBounds(spawner).contains(worldPosition) ||
+                resizeZoneContains(spawnerActivationBounds(spawner), worldPosition))
+            {
+                spawnerInteraction_.mode = SpawnerInteractionMode::ResizeActivation;
+            }
+            else if (spawnerActivationBounds(spawner).contains(worldPosition) &&
+                !spawnerBounds(spawner).contains(worldPosition))
+            {
+                spawnerInteraction_.mode = SpawnerInteractionMode::MoveActivation;
+            }
+            else if (spawnerResizeHandleBounds(spawner).contains(worldPosition) ||
+                resizeZoneContains(spawnerBounds(spawner), worldPosition))
+            {
+                spawnerInteraction_.mode = SpawnerInteractionMode::Resize;
+            }
+            else
+            {
+                spawnerInteraction_.mode = SpawnerInteractionMode::Move;
+            }
             spawnerInteraction_.index = *spawnerIndex;
         }
 
         spawnerInteraction_.startWorld = worldPosition;
         spawnerInteraction_.startBounds = spawnerBounds(document_["Spawners"][spawnerInteraction_.index]);
+        spawnerInteraction_.startActivationBounds = spawnerActivationBounds(document_["Spawners"][spawnerInteraction_.index]);
         return true;
     }
 
@@ -4609,16 +5089,181 @@ private:
             };
         }
 
-        spawner["SpawnArea"] = nlohmann::json::array({
-            nlohmann::json::array({bounds.position.x, bounds.position.x + bounds.size.x}),
-            nlohmann::json::array({bounds.position.y, bounds.position.y + bounds.size.y})
-        });
+        if (spawnerInteraction_.mode == SpawnerInteractionMode::Move || spawnerInteraction_.mode == SpawnerInteractionMode::Resize)
+        {
+            spawner["SpawnArea"] = nlohmann::json::array({
+                nlohmann::json::array({bounds.position.x, bounds.position.x + bounds.size.x}),
+                nlohmann::json::array({bounds.position.y, bounds.position.y + bounds.size.y})
+            });
+        }
+        else
+        {
+            sf::FloatRect activation = spawnerInteraction_.startActivationBounds;
+            if (spawnerInteraction_.mode == SpawnerInteractionMode::MoveActivation)
+            {
+                activation.position += delta;
+            }
+            else if (spawnerInteraction_.mode == SpawnerInteractionMode::ResizeActivation)
+            {
+                activation.size = {std::max(activation.size.x + delta.x, 24.f), std::max(activation.size.y + delta.y, 24.f)};
+            }
+            spawner["ActivationArea"] = toJson(activation);
+            spawner["ActivationMode"] = "OnEnter";
+        }
         markDirty();
     }
 
     void finishSpawnerInteraction()
     {
         spawnerInteraction_.clear();
+    }
+
+    bool drawSpawnerAdvancedControls(nlohmann::json& spawner, const char* idSuffix, const bool includeSpawnArea)
+    {
+        bool changed = false;
+        const std::string suffix = std::string{"##"} + idSuffix;
+
+        std::string enemyName = spawner.value("EnemyName", enemyTypeOptions_.empty() ? std::string{} : enemyTypeOptions_.front());
+        if (comboFromStrings(("Enemy" + suffix).c_str(), enemyTypeOptions_, enemyName))
+        {
+            spawner["EnemyName"] = enemyName;
+            changed = true;
+        }
+
+        int enemyAmount = spawner.value("EnemyAmount", 1);
+        if (ImGui::InputInt(("Enemy Amount" + suffix).c_str(), &enemyAmount))
+        {
+            spawner["EnemyAmount"] = std::max(enemyAmount, 0);
+            changed = true;
+        }
+
+        int spawnCooldown = spawner.value("SpawnCooldown", 5000);
+        if (ImGui::InputInt(("Spawn Cooldown" + suffix).c_str(), &spawnCooldown))
+        {
+            spawner["SpawnCooldown"] = std::max(spawnCooldown, 0);
+            changed = true;
+        }
+
+        int enemyPerSpawn = spawner.value("EnemyPerSpawn", 1);
+        if (ImGui::InputInt(("Enemy Per Spawn" + suffix).c_str(), &enemyPerSpawn))
+        {
+            spawner["EnemyPerSpawn"] = std::max(enemyPerSpawn, 1);
+            changed = true;
+        }
+
+        std::string activationMode = spawner.value("ActivationMode", std::string{"Immediate"});
+        const std::vector<std::string> activationModes{"Immediate", "OnEnter"};
+        if (comboFromStrings(("Activation" + suffix).c_str(), activationModes, activationMode))
+        {
+            spawner["ActivationMode"] = activationMode;
+            changed = true;
+        }
+
+        if (activationMode == "OnEnter")
+        {
+            float activationPadding = spawner.value("ActivationPadding", 120.f);
+            if (ImGui::InputFloat(("Activation Padding" + suffix).c_str(), &activationPadding, 8.f, 32.f, "%.1f"))
+            {
+                spawner["ActivationPadding"] = std::max(activationPadding, 0.f);
+                changed = true;
+            }
+        }
+
+        int firstSpawnDelayMs = spawner.value("FirstSpawnDelayMs", 0);
+        if (ImGui::InputInt(("First Spawn Delay Ms" + suffix).c_str(), &firstSpawnDelayMs))
+        {
+            spawner["FirstSpawnDelayMs"] = std::max(firstSpawnDelayMs, 0);
+            changed = true;
+        }
+
+        int enemyHp = spawner.value("EnemyHP", 0);
+        if (ImGui::InputInt(("Enemy HP Override" + suffix).c_str(), &enemyHp))
+        {
+            spawner["EnemyHP"] = std::max(enemyHp, 0);
+            changed = true;
+        }
+
+        int enemyDamage = spawner.value("EnemyDamage", 0);
+        if (ImGui::InputInt(("Enemy Damage Override" + suffix).c_str(), &enemyDamage))
+        {
+            spawner["EnemyDamage"] = std::max(enemyDamage, 0);
+            changed = true;
+        }
+
+        int goldReward = spawner.value("GoldReward", 0);
+        if (ImGui::InputInt(("Gold Reward Override" + suffix).c_str(), &goldReward))
+        {
+            spawner["GoldReward"] = std::max(goldReward, 0);
+            changed = true;
+        }
+        ImGui::TextDisabled("0 keeps the enemy default value.");
+
+        std::string archetype = spawner.value("Archetype", std::string{"Default"});
+        if (archetype.empty())
+        {
+            archetype = "Default";
+        }
+        const std::vector<std::string> archetypes{"Default", "Ambush", "Siege", "Swarm", "Duel"};
+        if (comboFromStrings(("Archetype" + suffix).c_str(), archetypes, archetype))
+        {
+            if (archetype == "Default")
+            {
+                spawner.erase("Archetype");
+            }
+            else
+            {
+                spawner["Archetype"] = archetype;
+            }
+            changed = true;
+        }
+
+        if (includeSpawnArea)
+        {
+            sf::FloatRect bounds = spawnerBounds(spawner);
+            float rectRaw[4]{bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y};
+            if (ImGui::InputFloat4(("Spawn Area" + suffix).c_str(), rectRaw))
+            {
+                spawner["SpawnArea"] = nlohmann::json::array({
+                    nlohmann::json::array({rectRaw[0], rectRaw[0] + std::max(rectRaw[2], 1.f)}),
+                    nlohmann::json::array({rectRaw[1], rectRaw[1] + std::max(rectRaw[3], 1.f)})
+                });
+                changed = true;
+            }
+
+            sf::FloatRect activation = spawnerActivationBounds(spawner);
+            float activationRaw[4]{activation.position.x, activation.position.y, activation.size.x, activation.size.y};
+            if (ImGui::InputFloat4(("Activation Area" + suffix).c_str(), activationRaw))
+            {
+                spawner["ActivationArea"] = toJson(sf::FloatRect(
+                    {activationRaw[0], activationRaw[1]},
+                    {std::max(activationRaw[2], 1.f), std::max(activationRaw[3], 1.f)}
+                ));
+                spawner["ActivationMode"] = "OnEnter";
+                changed = true;
+            }
+        }
+
+        if (ImGui::TreeNode(("Encounter Notification" + suffix).c_str()))
+        {
+            changed |= editStringField(("Title" + suffix).c_str(), spawner, "EncounterTitle", 256u);
+            changed |= editMultilineStringField(("Body" + suffix).c_str(), spawner, "EncounterBody", ImVec2(320.f, 84.f), 2048u);
+            std::string tone = spawner.value("EncounterTone", std::string{"Warning"});
+            const std::vector<std::string> tones{"Info", "Success", "Warning", "Danger"};
+            if (comboFromStrings(("Tone" + suffix).c_str(), tones, tone))
+            {
+                spawner["EncounterTone"] = tone;
+                changed = true;
+            }
+            bool fireOnce = spawner.value("EncounterFireOnce", true);
+            if (ImGui::Checkbox(("Fire Once" + suffix).c_str(), &fireOnce))
+            {
+                spawner["EncounterFireOnce"] = fireOnce;
+                changed = true;
+            }
+            ImGui::TreePop();
+        }
+
+        return changed;
     }
 
     sf::FloatRect miniLocationBounds(const nlohmann::json& location) const
@@ -5345,6 +5990,115 @@ private:
         groundInteraction_.clear();
     }
 
+    std::optional<std::size_t> findWorldHazardAt(const SelectionKind kind, const sf::Vector2f worldPosition) const
+    {
+        const char* arrayName = kind == SelectionKind::Barrier ? "Barriers" : "DeadAreas";
+        if (!document_.contains(arrayName) || !document_[arrayName].is_array())
+        {
+            return std::nullopt;
+        }
+
+        const auto& array = document_[arrayName];
+        for (std::size_t index = array.size(); index > 0u; --index)
+        {
+            if (worldHazardBounds(array[index - 1u]).contains(worldPosition))
+            {
+                return index - 1u;
+            }
+        }
+        return std::nullopt;
+    }
+
+    bool beginHazardInteraction(const sf::Vector2f worldPosition)
+    {
+        if (placementMode_ != SelectionKind::None)
+        {
+            return false;
+        }
+
+        const auto startForSelection = [&](const SelectionKind kind, const std::size_t index) -> bool {
+            const char* arrayName = kind == SelectionKind::Barrier ? "Barriers" : "DeadAreas";
+            if (!document_.contains(arrayName) || !document_[arrayName].is_array() || index >= document_[arrayName].size())
+            {
+                return false;
+            }
+
+            const nlohmann::json& hazard = document_[arrayName][index];
+            const sf::FloatRect bounds = worldHazardBounds(hazard);
+            if (worldHazardResizeHandleBounds(hazard).contains(worldPosition) || resizeZoneContains(bounds, worldPosition))
+            {
+                hazardInteraction_.mode = HazardInteractionMode::Resize;
+            }
+            else if (bounds.contains(worldPosition))
+            {
+                hazardInteraction_.mode = HazardInteractionMode::Move;
+            }
+            else
+            {
+                return false;
+            }
+
+            hazardInteraction_.kind = kind;
+            hazardInteraction_.index = index;
+            hazardInteraction_.startWorld = worldPosition;
+            hazardInteraction_.startBounds = bounds;
+            selection_ = {kind, index};
+            return true;
+        };
+
+        if ((selection_.kind == SelectionKind::DeadArea || selection_.kind == SelectionKind::Barrier) &&
+            startForSelection(selection_.kind, selection_.index))
+        {
+            return true;
+        }
+
+        for (const SelectionKind kind : {SelectionKind::Barrier, SelectionKind::DeadArea})
+        {
+            const std::optional<std::size_t> index = findWorldHazardAt(kind, worldPosition);
+            if (index.has_value() && startForSelection(kind, *index))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void updateHazardInteraction(const sf::Vector2f worldPosition)
+    {
+        if (!hazardInteraction_.active())
+        {
+            return;
+        }
+
+        const char* arrayName = hazardInteraction_.kind == SelectionKind::Barrier ? "Barriers" : "DeadAreas";
+        if (!document_.contains(arrayName) || !document_[arrayName].is_array() || hazardInteraction_.index >= document_[arrayName].size())
+        {
+            hazardInteraction_.clear();
+            return;
+        }
+
+        sf::FloatRect rect = hazardInteraction_.startBounds;
+        const sf::Vector2f delta = worldPosition - hazardInteraction_.startWorld;
+        if (hazardInteraction_.mode == HazardInteractionMode::Move)
+        {
+            rect.position += delta;
+        }
+        else if (hazardInteraction_.mode == HazardInteractionMode::Resize)
+        {
+            rect.size.x = std::max(16.f, hazardInteraction_.startBounds.size.x + delta.x);
+            rect.size.y = std::max(16.f, hazardInteraction_.startBounds.size.y + delta.y);
+        }
+
+        document_[arrayName][hazardInteraction_.index]["Rect"] = toJson(rect);
+        markDirty();
+    }
+
+    void finishHazardInteraction()
+    {
+        hazardInteraction_.clear();
+    }
+
     bool selectionContainsPoint(const EditorSelection& selection, const sf::Vector2f worldPosition) const
     {
         switch (selection.kind)
@@ -5370,16 +6124,24 @@ private:
                 groundBounds(document_["Ground"][selection.index]).contains(worldPosition);
         case SelectionKind::Spawner:
             return selection.index < document_["Spawners"].size() &&
-                spawnerBounds(document_["Spawners"][selection.index]).contains(worldPosition);
+                (spawnerBounds(document_["Spawners"][selection.index]).contains(worldPosition) ||
+                 spawnerActivationBounds(document_["Spawners"][selection.index]).contains(worldPosition));
         case SelectionKind::Portal:
             return selection.index < document_["Portals"].size() &&
-                portalBounds(document_["Portals"][selection.index]).contains(worldPosition);
+                (portalBounds(document_["Portals"][selection.index]).contains(worldPosition) ||
+                 portalActivationBounds(document_["Portals"][selection.index]).contains(worldPosition));
         case SelectionKind::Interactive:
             return selection.index < document_["Interactives"].size() &&
                 interactiveBounds(document_["Interactives"][selection.index]).contains(worldPosition);
         case SelectionKind::MiniLocation:
             return selection.index < document_["MiniLocations"].size() &&
                 miniLocationBounds(document_["MiniLocations"][selection.index]).contains(worldPosition);
+        case SelectionKind::DeadArea:
+            return selection.index < document_["DeadAreas"].size() &&
+                worldHazardBounds(document_["DeadAreas"][selection.index]).contains(worldPosition);
+        case SelectionKind::Barrier:
+            return selection.index < document_["Barriers"].size() &&
+                worldHazardBounds(document_["Barriers"][selection.index]).contains(worldPosition);
         case SelectionKind::None:
         default:
             return false;
@@ -5422,10 +6184,13 @@ private:
         case SelectionKind::Spawner:
             return selection.index < document_["Spawners"].size() &&
                 (spawnerResizeHandleBounds(document_["Spawners"][selection.index]).contains(worldPosition) ||
-                 resizeZoneContains(spawnerBounds(document_["Spawners"][selection.index]), worldPosition));
+                 spawnerActivationResizeHandleBounds(document_["Spawners"][selection.index]).contains(worldPosition) ||
+                 resizeZoneContains(spawnerBounds(document_["Spawners"][selection.index]), worldPosition) ||
+                 resizeZoneContains(spawnerActivationBounds(document_["Spawners"][selection.index]), worldPosition));
         case SelectionKind::Portal:
             return selection.index < document_["Portals"].size() &&
-                resizeZoneContains(portalBounds(document_["Portals"][selection.index]), worldPosition);
+                (portalActivationHandleBounds(document_["Portals"][selection.index]).contains(worldPosition) ||
+                 resizeZoneContains(portalActivationBounds(document_["Portals"][selection.index]), worldPosition));
         case SelectionKind::Ground:
             return selection.index < document_["Ground"].size() &&
                 (groundResizeHandleBounds(document_["Ground"][selection.index]).contains(worldPosition) ||
@@ -5434,6 +6199,14 @@ private:
             return selection.index < document_["MiniLocations"].size() &&
                 (miniLocationResizeHandleBounds(document_["MiniLocations"][selection.index]).contains(worldPosition) ||
                  resizeZoneContains(miniLocationBounds(document_["MiniLocations"][selection.index]), worldPosition));
+        case SelectionKind::DeadArea:
+            return selection.index < document_["DeadAreas"].size() &&
+                (worldHazardResizeHandleBounds(document_["DeadAreas"][selection.index]).contains(worldPosition) ||
+                 resizeZoneContains(worldHazardBounds(document_["DeadAreas"][selection.index]), worldPosition));
+        case SelectionKind::Barrier:
+            return selection.index < document_["Barriers"].size() &&
+                (worldHazardResizeHandleBounds(document_["Barriers"][selection.index]).contains(worldPosition) ||
+                 resizeZoneContains(worldHazardBounds(document_["Barriers"][selection.index]), worldPosition));
         default:
             return false;
         }
@@ -5464,6 +6237,9 @@ private:
             return beginMiniLocationInteraction(worldPosition);
         case SelectionKind::Ground:
             return beginGroundInteraction(worldPosition);
+        case SelectionKind::DeadArea:
+        case SelectionKind::Barrier:
+            return beginHazardInteraction(worldPosition);
         default:
             selection_ = previousSelection;
             return false;
@@ -5482,6 +6258,8 @@ private:
             document_["Spawners"].size() +
             document_["Portals"].size() +
             document_["Interactives"].size() +
+            document_["DeadAreas"].size() +
+            document_["Barriers"].size() +
             2u
         );
 
@@ -5496,6 +6274,22 @@ private:
             candidates.push_back({SelectionKind::Trader, 0u});
         }
 
+        for (std::size_t index = document_["Barriers"].size(); index > 0u; --index)
+        {
+            if (worldHazardBounds(document_["Barriers"][index - 1u]).contains(worldPosition))
+            {
+                candidates.push_back({SelectionKind::Barrier, index - 1u});
+            }
+        }
+
+        for (std::size_t index = document_["DeadAreas"].size(); index > 0u; --index)
+        {
+            if (worldHazardBounds(document_["DeadAreas"][index - 1u]).contains(worldPosition))
+            {
+                candidates.push_back({SelectionKind::DeadArea, index - 1u});
+            }
+        }
+
         for (std::size_t index = document_["Interactives"].size(); index > 0u; --index)
         {
             if (interactiveBounds(document_["Interactives"][index - 1u]).contains(worldPosition))
@@ -5506,7 +6300,8 @@ private:
 
         for (std::size_t index = document_["Spawners"].size(); index > 0u; --index)
         {
-            if (spawnerBounds(document_["Spawners"][index - 1u]).contains(worldPosition))
+            if (spawnerBounds(document_["Spawners"][index - 1u]).contains(worldPosition) ||
+                spawnerActivationBounds(document_["Spawners"][index - 1u]).contains(worldPosition))
             {
                 candidates.push_back({SelectionKind::Spawner, index - 1u});
             }
@@ -5514,7 +6309,8 @@ private:
 
         for (std::size_t index = document_["Portals"].size(); index > 0u; --index)
         {
-            if (portalBounds(document_["Portals"][index - 1u]).contains(worldPosition))
+            if (portalBounds(document_["Portals"][index - 1u]).contains(worldPosition) ||
+                portalActivationBounds(document_["Portals"][index - 1u]).contains(worldPosition))
             {
                 candidates.push_back({SelectionKind::Portal, index - 1u});
             }
@@ -5569,12 +6365,6 @@ private:
     bool startPendingSelectionCycle(const sf::Vector2f worldPosition, const sf::Vector2i pixelPosition)
     {
         if (placementMode_ != SelectionKind::None || !selection_.isValid())
-        {
-            return false;
-        }
-
-        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl) &&
-            !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RControl))
         {
             return false;
         }
@@ -5895,11 +6685,19 @@ private:
             {
                 return;
             }
-            if (trySelectFromArray(document_["Spawners"], SelectionKind::Spawner, worldPosition, [&](const auto& value) { return spawnerBounds(value); }))
+            if (trySelectFromArray(document_["Spawners"], SelectionKind::Spawner, worldPosition, [&](const auto& value) { return combinedSpawnerEditBounds(value); }))
             {
                 return;
             }
-            if (trySelectFromArray(document_["Portals"], SelectionKind::Portal, worldPosition, [&](const auto& value) { return portalBounds(value); }))
+            if (trySelectFromArray(document_["Portals"], SelectionKind::Portal, worldPosition, [&](const auto& value) { return combinedPortalEditBounds(value); }))
+            {
+                return;
+            }
+            if (trySelectFromArray(document_["Barriers"], SelectionKind::Barrier, worldPosition, [&](const auto& value) { return worldHazardBounds(value); }))
+            {
+                return;
+            }
+            if (trySelectFromArray(document_["DeadAreas"], SelectionKind::DeadArea, worldPosition, [&](const auto& value) { return worldHazardBounds(value); }))
             {
                 return;
             }
@@ -5960,13 +6758,25 @@ private:
             });
             break;
         case EditorTab::Spawners:
-            trySelectFromArray(document_["Spawners"], SelectionKind::Spawner, worldPosition, [&](const auto& value) { return spawnerBounds(value); });
+            trySelectFromArray(document_["Spawners"], SelectionKind::Spawner, worldPosition, [&](const auto& value) { return combinedSpawnerEditBounds(value); });
             break;
         case EditorTab::Portals:
-            trySelectFromArray(document_["Portals"], SelectionKind::Portal, worldPosition, [&](const auto& value) { return portalBounds(value); });
+            trySelectFromArray(document_["Portals"], SelectionKind::Portal, worldPosition, [&](const auto& value) { return combinedPortalEditBounds(value); });
             break;
         case EditorTab::Interactives:
             trySelectFromArray(document_["Interactives"], SelectionKind::Interactive, worldPosition, [&](const auto& value) { return interactiveBounds(value); });
+            break;
+        case EditorTab::Hazards:
+            if (trySelectFromArray(document_["Platforms"], SelectionKind::Platform, worldPosition, [&](const auto& value) {
+                    return isHazardPlatformHitbox(value) ? platformBounds(value) : sf::FloatRect{};
+                }))
+            {
+                break;
+            }
+            if (!trySelectFromArray(document_["Barriers"], SelectionKind::Barrier, worldPosition, [&](const auto& value) { return worldHazardBounds(value); }))
+            {
+                trySelectFromArray(document_["DeadAreas"], SelectionKind::DeadArea, worldPosition, [&](const auto& value) { return worldHazardBounds(value); });
+            }
             break;
         case EditorTab::MiniLocations:
             trySelectFromArray(document_["MiniLocations"], SelectionKind::MiniLocation, worldPosition, [&](const auto& value) {
@@ -6033,7 +6843,7 @@ private:
             {"BgName", backgroundName},
             {"Position", toJson(backgroundTileCenter({0, 0}))},
             {"ParallaxFactor", toJson(parallax)},
-            {"Type", 0}
+            {"Type", "repeatedXY"}
         });
         selection_ = {SelectionKind::Background, document_["Background"].size() - 1u};
         markDirty();
@@ -6052,6 +6862,13 @@ private:
             {"EnemyAmount", 3},
             {"SpawnCooldown", 5000},
             {"EnemyPerSpawn", 1},
+            {"ActivationMode", "Immediate"},
+            {"ActivationPadding", 120.f},
+            {"ActivationArea", toJson(sf::FloatRect({worldPosition.x - 210.f, worldPosition.y - 180.f}, {420.f, 300.f}))},
+            {"FirstSpawnDelayMs", 0},
+            {"EnemyHP", 0},
+            {"EnemyDamage", 0},
+            {"GoldReward", 0},
             {"SpawnArea", {
                 {worldPosition.x - 90.f, worldPosition.x + 90.f},
                 {worldPosition.y - 80.f, worldPosition.y + 20.f}
@@ -6074,6 +6891,7 @@ private:
             {"Color", {212, 236, 255, 245}},
             {"AccentColor", {112, 208, 255, 255}},
             {"InteractRadius", 130.f},
+            {"ActivationArea", toJson(sf::FloatRect({worldPosition.x - 130.f, worldPosition.y - 130.f}, {260.f, 260.f}))},
             {"Prompt", "Enter portal"},
             {"Target", {
                 {"Type", "Position"},
@@ -6117,6 +6935,53 @@ private:
             {"Body", isCustomSign ? "Write your own description here." : "The dead left a trace here."}
         });
         selection_ = {SelectionKind::Interactive, document_["Interactives"].size() - 1u};
+        markDirty();
+    }
+
+    void placeDeadArea(const sf::Vector2f worldPosition)
+    {
+        const int deadAreaIndex = static_cast<int>(document_["DeadAreas"].size()) + 1;
+        document_["DeadAreas"].push_back({
+            {"Id", "dead_area_" + std::to_string(deadAreaIndex)},
+            {"Enabled", true},
+            {"Rect", {worldPosition.x - 120.f, worldPosition.y - 32.f, 240.f, 64.f}},
+            {"CoreColor", {242, 104, 56, 255}},
+            {"GlowColor", {255, 182, 96, 255}},
+            {"EmberColor", {255, 236, 188, 255}}
+        });
+        selection_ = {SelectionKind::DeadArea, document_["DeadAreas"].size() - 1u};
+        markDirty();
+    }
+
+    void placeBarrier(const sf::Vector2f worldPosition)
+    {
+        const int barrierIndex = static_cast<int>(document_["Barriers"].size()) + 1;
+        document_["Barriers"].push_back({
+            {"Id", "barrier_" + std::to_string(barrierIndex)},
+            {"Enabled", true},
+            {"BlocksPlayer", true},
+            {"Rect", {worldPosition.x - 12.f, worldPosition.y - 110.f, 24.f, 220.f}},
+            {"CoreColor", {130, 214, 184, 255}},
+            {"GlowColor", {156, 238, 208, 255}}
+        });
+        selection_ = {SelectionKind::Barrier, document_["Barriers"].size() - 1u};
+        markDirty();
+    }
+
+    void placePlatformHitbox(const sf::Vector2f worldPosition)
+    {
+        const sf::Vector2f size{160.f, 160.f};
+        document_["Platforms"].push_back({
+            {"EditorDrawOrder", nextWorldDrawOrder()},
+            {"Type", "Invisible-wall"},
+            {"HazardTool", "PlatformHitbox"},
+            {"Position", {worldPosition.x - size.x * 0.5f, worldPosition.y - size.y * 0.5f}},
+            {"EditHitbox", true},
+            {"HitboxOffset", {0.f, 0.f}},
+            {"HitboxSize", {size.x, size.y}},
+            {"BounceEnabled", false}
+        });
+        selection_ = {SelectionKind::Platform, document_["Platforms"].size() - 1u};
         markDirty();
     }
 
@@ -6244,6 +7109,7 @@ private:
                 interactiveInteraction_.clear();
                 spawnerInteraction_.clear();
                 portalInteraction_.clear();
+                hazardInteraction_.clear();
                 platformInteraction_.clear();
                 decorationInteraction_.clear();
                 miniLocationInteraction_.clear();
@@ -6281,6 +7147,12 @@ private:
             break;
         case SelectionKind::Interactive:
             eraseFromArray("Interactives");
+            break;
+        case SelectionKind::DeadArea:
+            eraseFromArray("DeadAreas");
+            break;
+        case SelectionKind::Barrier:
+            eraseFromArray("Barriers");
             break;
         case SelectionKind::MiniLocation:
             eraseFromArray("MiniLocations");
@@ -6335,17 +7207,24 @@ private:
         });
         sprite.setColor(selected ? sf::Color(255, 255, 255, 220) : sf::Color(255, 255, 255, 180));
 
-        const int backgroundType = background.value("Type", 0);
-        if (backgroundType == 0)
+        if (!backgroundTypeIsSingle(background))
         {
-            const sf::Vector2i count = backgroundTileCount();
+            const sf::Vector2i minTile = backgroundTileMinIndex();
+            const sf::Vector2i maxTile = backgroundTileMaxIndex();
+            const sf::Vector2i tile = backgroundTileIndex(background);
+            const bool repeatX = backgroundTypeRepeatsX(background);
+            const bool repeatY = backgroundTypeRepeatsY(background);
+            const int firstColumn = repeatX ? 0 : tile.x;
+            const int lastColumn = repeatX ? maxTile.x : tile.x;
+            const int firstRow = repeatY ? minTile.y : tile.y;
+            const int lastRow = repeatY ? maxTile.y : tile.y;
             const sf::Vector2f parallax = backgroundPreviewParallax(background);
-            for (int y = 0; y < count.y; ++y)
+            for (int y = firstRow; y <= lastRow; ++y)
             {
-                for (int x = 0; x < count.x; ++x)
+                for (int x = firstColumn; x <= lastColumn; ++x)
                 {
                     sf::Sprite repeatedSprite(sprite);
-                    repeatedSprite.setPosition(applyParallaxPreview(backgroundTileCenter({x, y}), parallax));
+                    repeatedSprite.setPosition(applyParallaxPreview(backgroundTileDisplayCenter({x, y}), parallax));
                     window_.draw(repeatedSprite);
                 }
             }
@@ -6404,7 +7283,58 @@ private:
             }
         }
         drawSpawnerPreview();
+        drawHazardPreview();
         drawMiniLocationPreview();
+    }
+
+    void drawWorldHazardArray(const char* arrayName, const SelectionKind kind, const sf::Color fallbackCore, const sf::Color fallbackOutline)
+    {
+        if (!document_.contains(arrayName) || !document_[arrayName].is_array())
+        {
+            return;
+        }
+
+        const auto& hazards = document_[arrayName];
+        for (std::size_t index = 0; index < hazards.size(); ++index)
+        {
+            const auto& hazard = hazards[index];
+            const bool enabled = hazard.value("Enabled", true);
+            const bool selected = selection_.kind == kind && selection_.index == index;
+            const sf::FloatRect bounds = worldHazardBounds(hazard);
+            const sf::Color core = readColor(hazard.value("CoreColor", nlohmann::json::array()), fallbackCore);
+            const sf::Color outline = readColor(hazard.value("GlowColor", nlohmann::json::array()), fallbackOutline);
+
+            sf::RectangleShape rect(bounds.size);
+            rect.setPosition(bounds.position);
+            rect.setFillColor(sf::Color(core.r, core.g, core.b, enabled ? (selected ? 70 : 42) : 18));
+            rect.setOutlineThickness(selected ? kSelectionOutlineThickness : 1.5f);
+            rect.setOutlineColor(sf::Color(outline.r, outline.g, outline.b, enabled ? (selected ? 230 : 154) : 86));
+            window_.draw(rect);
+
+            sf::Text label(font_);
+            label.setCharacterSize(14u);
+            label.setFillColor(sf::Color(outline.r, outline.g, outline.b, enabled ? 230 : 130));
+            label.setString(kind == SelectionKind::Barrier ? "Barrier" : "DeadArea");
+            label.setPosition(bounds.position + sf::Vector2f{6.f, 5.f});
+            window_.draw(label);
+
+            if (selected)
+            {
+                const sf::FloatRect handleBounds = worldHazardResizeHandleBounds(hazard);
+                sf::RectangleShape handle(handleBounds.size);
+                handle.setPosition(handleBounds.position);
+                handle.setFillColor(outline);
+                handle.setOutlineThickness(1.f);
+                handle.setOutlineColor(sf::Color(18, 24, 24, 220));
+                window_.draw(handle);
+            }
+        }
+    }
+
+    void drawHazardPreview()
+    {
+        drawWorldHazardArray("DeadAreas", SelectionKind::DeadArea, sf::Color(242, 104, 56, 255), sf::Color(255, 182, 96, 255));
+        drawWorldHazardArray("Barriers", SelectionKind::Barrier, sf::Color(130, 214, 184, 255), sf::Color(156, 238, 208, 255));
     }
 
     void drawPortalPreview()
@@ -6425,12 +7355,31 @@ private:
             const std::string portalTexture = portal.value("PortalTexture", portal.value("Texture", std::string{"portalGreen"}));
             drawPortalMarker(position, color, portalTexture);
 
+            const sf::FloatRect activationBounds = portalActivationBounds(portal);
+            sf::RectangleShape activationRect(activationBounds.size);
+            activationRect.setPosition(activationBounds.position);
+            activationRect.setFillColor(sf::Color(112, 208, 255, selected ? 26 : 12));
+            activationRect.setOutlineThickness(selected ? 1.5f : 1.f);
+            activationRect.setOutlineColor(sf::Color(112, 208, 255, selected ? 190 : 76));
+            window_.draw(activationRect);
+
             sf::RectangleShape outline(portalBounds(portal).size);
             outline.setPosition(portalBounds(portal).position);
             outline.setFillColor(selected ? sf::Color(kPortalOutlineColor.r, kPortalOutlineColor.g, kPortalOutlineColor.b, 22) : sf::Color::Transparent);
             outline.setOutlineThickness(selected ? kSelectionOutlineThickness : 1.f);
             outline.setOutlineColor(selected ? kPortalOutlineColor : sf::Color(112, 208, 255, 80));
             window_.draw(outline);
+
+            if (selected)
+            {
+                const sf::FloatRect handleBounds = portalActivationHandleBounds(portal);
+                sf::RectangleShape handle(handleBounds.size);
+                handle.setPosition(handleBounds.position);
+                handle.setFillColor(kPortalOutlineColor);
+                handle.setOutlineThickness(1.f);
+                handle.setOutlineColor(sf::Color(18, 24, 32, 220));
+                window_.draw(handle);
+            }
 
             sf::Text label(font_);
             label.setCharacterSize(16u);
@@ -6729,7 +7678,15 @@ private:
         {
             const auto& spawner = document_["Spawners"][index];
             const sf::FloatRect bounds = spawnerBounds(spawner);
+            const sf::FloatRect activationBounds = spawnerActivationBounds(spawner);
             const bool selected = selection_.kind == SelectionKind::Spawner && selection_.index == index;
+
+            sf::RectangleShape activationRect(activationBounds.size);
+            activationRect.setPosition(activationBounds.position);
+            activationRect.setFillColor(sf::Color(244, 188, 92, selected ? 28 : 14));
+            activationRect.setOutlineThickness(selected ? 1.5f : 1.f);
+            activationRect.setOutlineColor(sf::Color(244, 188, 92, selected ? 190 : 88));
+            window_.draw(activationRect);
 
             sf::RectangleShape rect(bounds.size);
             rect.setPosition(bounds.position);
@@ -6749,6 +7706,14 @@ private:
                 handle.setOutlineThickness(1.f);
                 handle.setOutlineColor(sf::Color(24, 18, 18, 220));
                 window_.draw(handle);
+
+                const sf::FloatRect activationHandleBounds = spawnerActivationResizeHandleBounds(spawner);
+                sf::RectangleShape activationHandle(activationHandleBounds.size);
+                activationHandle.setPosition(activationHandleBounds.position);
+                activationHandle.setFillColor(sf::Color(244, 188, 92, 230));
+                activationHandle.setOutlineThickness(1.f);
+                activationHandle.setOutlineColor(sf::Color(24, 18, 18, 220));
+                window_.draw(activationHandle);
             }
 
             sf::Text label(font_);
@@ -7656,11 +8621,11 @@ private:
                 }
                 changed |= editStringField("Theme Override##background_context", *background, "Theme", 128u);
 
-                int backgroundType = background->value("Type", 0);
-                if (ImGui::Combo("Type##background_context", &backgroundType, "Repeated\0Single\0"))
+                int backgroundType = backgroundTypeComboIndex(*background);
+                if (ImGui::Combo("Type##background_context", &backgroundType, "Single\0Repeated X\0Repeated Y\0Repeated XY\0"))
                 {
                     const nlohmann::json previousBackground = *background;
-                    (*background)["Type"] = backgroundType;
+                    setBackgroundTypeFromCombo(*background, backgroundType);
                     if (resolveBackgroundTilePlacement(*background, selection_.index))
                     {
                         changed = true;
@@ -7739,33 +8704,7 @@ private:
                 ImGui::TextUnformatted("Spawner");
                 ImGui::Separator();
 
-                std::string enemyName = spawner->value("EnemyName", enemyTypeOptions_.empty() ? std::string{} : enemyTypeOptions_.front());
-                if (comboFromStrings("Enemy##spawner_context", enemyTypeOptions_, enemyName))
-                {
-                    (*spawner)["EnemyName"] = enemyName;
-                    changed = true;
-                }
-
-                int enemyAmount = spawner->value("EnemyAmount", 1);
-                if (ImGui::InputInt("Enemy Amount##spawner_context", &enemyAmount))
-                {
-                    (*spawner)["EnemyAmount"] = std::max(enemyAmount, 0);
-                    changed = true;
-                }
-
-                int spawnCooldown = spawner->value("SpawnCooldown", 5000);
-                if (ImGui::InputInt("Cooldown##spawner_context", &spawnCooldown))
-                {
-                    (*spawner)["SpawnCooldown"] = std::max(spawnCooldown, 0);
-                    changed = true;
-                }
-
-                int enemyPerSpawn = spawner->value("EnemyPerSpawn", 1);
-                if (ImGui::InputInt("Per Spawn##spawner_context", &enemyPerSpawn))
-                {
-                    (*spawner)["EnemyPerSpawn"] = std::max(enemyPerSpawn, 1);
-                    changed = true;
-                }
+                changed |= drawSpawnerAdvancedControls(*spawner, "spawner_context", false);
 
                 drawSelectedDrawOrderControls("spawner_context");
             }
@@ -8107,6 +9046,9 @@ private:
             case EditorTab::Interactives:
                 drawInteractivesInspector();
                 break;
+            case EditorTab::Hazards:
+                drawHazardsInspector();
+                break;
             case EditorTab::MiniLocations:
                 drawMiniLocationsInspector();
                 break;
@@ -8130,7 +9072,9 @@ private:
         int size[2]{presets["Size"][0].get<int>(), presets["Size"][1].get<int>()};
         if (ImGui::InputInt2("Level Size", size))
         {
-            presets["Size"] = nlohmann::json::array({std::max(size[0], 640), std::max(size[1], 360)});
+            const int nextWidth = std::max(size[0], 640);
+            const int nextHeight = std::max(size[1], 360);
+            presets["Size"] = nlohmann::json::array({nextWidth, nextHeight});
             changed = true;
         }
 
@@ -8172,6 +9116,14 @@ private:
             changed = true;
         }
         changed |= editStringField("Weather Id", presets, "BackgroundTheme", 128u);
+
+        float backgroundOffsetY = presets.value("BackgroundTileOffsetY", 0.f);
+        if (ImGui::InputFloat("Background Tile Y Offset", &backgroundOffsetY, 8.f, 32.f, "%.1f"))
+        {
+            presets["BackgroundTileOffsetY"] = backgroundOffsetY;
+            changed = true;
+        }
+        ImGui::TextDisabled("Moves every 1920 x 1080 background tile vertically. Negative values lift backgrounds up.");
 
         bool isAvailable = presets.value("isAvaiable", true);
         if (ImGui::Checkbox("Available", &isAvailable))
@@ -8388,6 +9340,16 @@ private:
         }
         drawPlacementButtons(SelectionKind::Background);
         ImGui::TextWrapped("Background layers support parallax and draw-order tuning, so it is easier to stage depth right from the editor.");
+        if (document_.contains("Presets") && document_["Presets"].is_object())
+        {
+            float backgroundOffsetY = document_["Presets"].value("BackgroundTileOffsetY", 0.f);
+            if (ImGui::InputFloat("Tile Y Offset", &backgroundOffsetY, 8.f, 32.f, "%.1f"))
+            {
+                document_["Presets"]["BackgroundTileOffsetY"] = backgroundOffsetY;
+                markDirty();
+            }
+            ImGui::TextDisabled("Negative values lift the whole background tile grid.");
+        }
         ImGui::SeparatorText("Scene Objects");
         drawBackgroundList();
 
@@ -8424,11 +9386,11 @@ private:
             }
             changed |= editStringField("Theme Override", background, "Theme", 128u);
 
-            int backgroundType = background.value("Type", 0);
-            if (ImGui::Combo("Type", &backgroundType, "Repeated\0Single\0"))
+            int backgroundType = backgroundTypeComboIndex(background);
+            if (ImGui::Combo("Type", &backgroundType, "Single\0Repeated X\0Repeated Y\0Repeated XY\0"))
             {
                 const nlohmann::json previousBackground = background;
-                background["Type"] = backgroundType;
+                setBackgroundTypeFromCombo(background, backgroundType);
                 if (resolveBackgroundTilePlacement(background, selection_.index))
                 {
                     changed = true;
@@ -8480,6 +9442,14 @@ private:
             ImGui::SeparatorText("Selected Ground");
             auto& ground = document_["Ground"][selection_.index];
             bool changed = false;
+
+            int groundLayer = sharedWorldDrawOrder(SelectionKind::Ground, selection_.index);
+            if (ImGui::InputInt("Ground Layer", &groundLayer))
+            {
+                setSharedWorldDrawOrder(SelectionKind::Ground, selection_.index, groundLayer);
+                changed = true;
+            }
+
             std::string groundTile = ground.value("GroundName", groundTileOptions_.empty() ? std::string{} : groundTileOptions_.front());
             if (comboFromStrings("Ground Tile", groundTileOptions_, groundTile))
             {
@@ -8547,45 +9517,7 @@ private:
         {
             ImGui::SeparatorText("Selected Spawner");
             auto& spawner = document_["Spawners"][selection_.index];
-            bool changed = false;
-            std::string enemyName = spawner.value("EnemyName", enemyTypeOptions_.empty() ? std::string{} : enemyTypeOptions_.front());
-            if (comboFromStrings("Enemy", enemyTypeOptions_, enemyName))
-            {
-                spawner["EnemyName"] = enemyName;
-                changed = true;
-            }
-
-            int enemyAmount = spawner.value("EnemyAmount", 1);
-            if (ImGui::InputInt("Enemy Amount", &enemyAmount))
-            {
-                spawner["EnemyAmount"] = std::max(enemyAmount, 0);
-                changed = true;
-            }
-
-            int spawnCooldown = spawner.value("SpawnCooldown", 5000);
-            if (ImGui::InputInt("Spawn Cooldown", &spawnCooldown))
-            {
-                spawner["SpawnCooldown"] = std::max(spawnCooldown, 0);
-                changed = true;
-            }
-
-            int enemyPerSpawn = spawner.value("EnemyPerSpawn", 1);
-            if (ImGui::InputInt("Enemy Per Spawn", &enemyPerSpawn))
-            {
-                spawner["EnemyPerSpawn"] = std::max(enemyPerSpawn, 1);
-                changed = true;
-            }
-
-            sf::FloatRect bounds = spawnerBounds(spawner);
-            float rectRaw[4]{bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y};
-            if (ImGui::InputFloat4("Spawn Area", rectRaw))
-            {
-                spawner["SpawnArea"] = nlohmann::json::array({
-                    nlohmann::json::array({rectRaw[0], rectRaw[0] + rectRaw[2]}),
-                    nlohmann::json::array({rectRaw[1], rectRaw[1] + rectRaw[3]})
-                });
-                changed = true;
-            }
+            bool changed = drawSpawnerAdvancedControls(spawner, "spawner_inspector", true);
 
             if (changed)
             {
@@ -8740,6 +9672,22 @@ private:
             if (ImGui::InputFloat("Interact Radius", &radius))
             {
                 portal["InteractRadius"] = std::max(radius, 0.f);
+                changed = true;
+            }
+
+            sf::FloatRect activationBounds = portalActivationBounds(portal);
+            float activationRaw[4]{
+                activationBounds.position.x,
+                activationBounds.position.y,
+                activationBounds.size.x,
+                activationBounds.size.y
+            };
+            if (ImGui::InputFloat4("Activation Area", activationRaw))
+            {
+                portal["ActivationArea"] = toJson(sf::FloatRect(
+                    {activationRaw[0], activationRaw[1]},
+                    {std::max(activationRaw[2], 1.f), std::max(activationRaw[3], 1.f)}
+                ));
                 changed = true;
             }
             changed |= editStringField("Prompt", portal, "Prompt", 256u);
@@ -9675,6 +10623,135 @@ private:
         }
     }
 
+    void drawHazardRectEditor(nlohmann::json& hazard, const char* label, const sf::Color coreFallback, const sf::Color glowFallback)
+    {
+        bool changed = false;
+        changed |= editStringField("Id", hazard, "Id", 256u);
+
+        bool enabled = hazard.value("Enabled", true);
+        if (ImGui::Checkbox("Enabled", &enabled))
+        {
+            hazard["Enabled"] = enabled;
+            changed = true;
+        }
+
+        sf::FloatRect rect = worldHazardBounds(hazard);
+        float raw[4]{rect.position.x, rect.position.y, rect.size.x, rect.size.y};
+        if (ImGui::InputFloat4("Rect X/Y/W/H", raw))
+        {
+            hazard["Rect"] = toJson(sf::FloatRect({raw[0], raw[1]}, {std::max(raw[2], 16.f), std::max(raw[3], 16.f)}));
+            changed = true;
+        }
+
+        changed |= editColorField("Core Color", hazard, "CoreColor", coreFallback);
+        changed |= editColorField("Glow Color", hazard, "GlowColor", glowFallback);
+
+        if (std::strcmp(label, "Barrier") == 0)
+        {
+            bool blocksPlayer = hazard.value("BlocksPlayer", true);
+            if (ImGui::Checkbox("Blocks Player", &blocksPlayer))
+            {
+                hazard["BlocksPlayer"] = blocksPlayer;
+                changed = true;
+            }
+        }
+        else
+        {
+            changed |= editColorField("Ember Color", hazard, "EmberColor", sf::Color(255, 236, 188, 255));
+        }
+
+        if (changed)
+        {
+            markDirty();
+        }
+    }
+
+    void drawHazardsInspector()
+    {
+        ImGui::SeparatorText("Placement");
+        const float buttonWidth = (ImGui::GetContentRegionAvail().x - 8.f) / 2.f;
+        if (ImGui::Button("Place DeadArea", ImVec2(buttonWidth, 0.f)))
+        {
+            placementMode_ = SelectionKind::DeadArea;
+            placingPlatformHitbox_ = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Place Barrier", ImVec2(buttonWidth, 0.f)))
+        {
+            placementMode_ = SelectionKind::Barrier;
+            placingPlatformHitbox_ = false;
+        }
+        if (ImGui::Button("Place Platform Hitbox", ImVec2(buttonWidth, 0.f)))
+        {
+            placementMode_ = SelectionKind::None;
+            placingPlatformHitbox_ = true;
+        }
+        if (ImGui::Button("Select Mode"))
+        {
+            placementMode_ = SelectionKind::None;
+            placingPlatformHitbox_ = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Delete Selected"))
+        {
+            deleteSelection();
+        }
+        ImGui::TextWrapped("DeadAreas kill the player and enemies. Barriers are visual blockers. Platform Hitbox creates a pure invisible wall/collider.");
+
+        ImGui::SeparatorText("Scene Hazards");
+        drawHazardList();
+
+        if (selection_.kind == SelectionKind::DeadArea && selection_.index < document_["DeadAreas"].size())
+        {
+            ImGui::SeparatorText("Selected DeadArea");
+            drawHazardRectEditor(
+                document_["DeadAreas"][selection_.index],
+                "DeadArea",
+                sf::Color(242, 104, 56, 255),
+                sf::Color(255, 182, 96, 255)
+            );
+        }
+        else if (selection_.kind == SelectionKind::Barrier && selection_.index < document_["Barriers"].size())
+        {
+            ImGui::SeparatorText("Selected Barrier");
+            drawHazardRectEditor(
+                document_["Barriers"][selection_.index],
+                "Barrier",
+                sf::Color(130, 214, 184, 255),
+                sf::Color(156, 238, 208, 255)
+            );
+        }
+        else if (selection_.kind == SelectionKind::Platform && selection_.index < document_["Platforms"].size() &&
+            isHazardPlatformHitbox(document_["Platforms"][selection_.index]))
+        {
+            ImGui::SeparatorText("Selected Platform Hitbox");
+            auto& platform = document_["Platforms"][selection_.index];
+            bool changed = false;
+            sf::FloatRect rect = platformBounds(platform);
+            float raw[4]{rect.position.x, rect.position.y, rect.size.x, rect.size.y};
+            if (ImGui::InputFloat4("Rect X/Y/W/H", raw))
+            {
+                platform["Position"] = {raw[0], raw[1]};
+                platform["HitboxOffset"] = {0.f, 0.f};
+                platform["HitboxSize"] = {std::max(raw[2], kPlatformMinHitboxSize), std::max(raw[3], kPlatformMinHitboxSize)};
+                platform["EditHitbox"] = true;
+                platform["Type"] = "Invisible-wall";
+                platform["HazardTool"] = "PlatformHitbox";
+                changed = true;
+            }
+            bool bounceEnabled = platformBounceEnabled(platform);
+            if (ImGui::Checkbox("Bounce Enabled", &bounceEnabled))
+            {
+                platform["BounceEnabled"] = bounceEnabled;
+                changed = true;
+            }
+            if (changed)
+            {
+                markDirty();
+            }
+        }
+    }
+
     void drawMiniLocationsInspector()
     {
         ImGui::SeparatorText("Placement");
@@ -9831,11 +10908,13 @@ private:
         if (ImGui::Button("Place In Scene", ImVec2(width, 0.f)))
         {
             placementMode_ = placementKind;
+            placingPlatformHitbox_ = false;
         }
         ImGui::SameLine();
         if (ImGui::Button("Select Mode", ImVec2(width, 0.f)))
         {
             placementMode_ = SelectionKind::None;
+            placingPlatformHitbox_ = false;
         }
         ImGui::SameLine();
         if (ImGui::Button("Delete Selected", ImVec2(width, 0.f)))
@@ -9889,9 +10968,10 @@ private:
             {
                 const auto& background = document_["Background"][index];
                 const sf::Vector2i tile = backgroundTileIndex(background);
-                const std::string placementLabel = background.value("Type", 0) == 0
-                    ? std::string{" repeated grid"}
-                    : " tile " + std::to_string(tile.x) + "," + std::to_string(tile.y);
+                const std::string typeName = backgroundRepeatTypeName(background);
+                const std::string placementLabel = typeName == "single"
+                    ? " tile " + std::to_string(tile.x) + "," + std::to_string(tile.y)
+                    : " " + typeName;
                 const std::string label = std::to_string(index + 1u) + ". " + background.value("BgName", std::string{"Background"}) + placementLabel;
                 if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Background && selection_.index == index))
                 {
@@ -9974,6 +11054,67 @@ private:
         ImGui::EndChild();
     }
 
+    void drawHazardList()
+    {
+        std::size_t hitboxCount = 0u;
+        for (const auto& platform : document_["Platforms"])
+        {
+            if (isHazardPlatformHitbox(platform))
+            {
+                ++hitboxCount;
+            }
+        }
+        ImGui::TextDisabled("%zu dead areas, %zu barriers, %zu platform hitboxes", document_["DeadAreas"].size(), document_["Barriers"].size(), hitboxCount);
+        if (ImGui::BeginChild("hazard_list", ImVec2(0.f, objectListHeight()), true))
+        {
+            ImGui::SeparatorText("Platform Hitboxes");
+            for (std::size_t index = 0; index < document_["Platforms"].size(); ++index)
+            {
+                const auto& platform = document_["Platforms"][index];
+                if (!isHazardPlatformHitbox(platform))
+                {
+                    continue;
+                }
+
+                const sf::FloatRect rect = platformBounds(platform);
+                const std::string label = std::to_string(index + 1u) + ". Invisible wall @ " + formatPositionLabel(rect.position);
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Platform && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::Platform, index};
+                }
+            }
+
+            ImGui::SeparatorText("DeadAreas");
+            for (std::size_t index = 0; index < document_["DeadAreas"].size(); ++index)
+            {
+                const auto& deadArea = document_["DeadAreas"][index];
+                const sf::FloatRect rect = worldHazardBounds(deadArea);
+                const std::string label = std::to_string(index + 1u) + ". " +
+                    deadArea.value("Id", std::string{"DeadArea"}) + " @ " +
+                    formatPositionLabel(rect.position);
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::DeadArea && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::DeadArea, index};
+                }
+            }
+
+            ImGui::SeparatorText("Barriers");
+            for (std::size_t index = 0; index < document_["Barriers"].size(); ++index)
+            {
+                const auto& barrier = document_["Barriers"][index];
+                const sf::FloatRect rect = worldHazardBounds(barrier);
+                const std::string label = std::to_string(index + 1u) + ". " +
+                    barrier.value("Id", std::string{"Barrier"}) + " @ " +
+                    formatPositionLabel(rect.position);
+                if (ImGui::Selectable(label.c_str(), selection_.kind == SelectionKind::Barrier && selection_.index == index))
+                {
+                    selection_ = {SelectionKind::Barrier, index};
+                }
+            }
+        }
+        ImGui::EndChild();
+    }
+
     void drawMiniLocationList()
     {
         ImGui::TextDisabled("%zu mini locations", document_["MiniLocations"].size());
@@ -10005,6 +11146,11 @@ private:
 
     std::string placementModeLabel() const
     {
+        if (placingPlatformHitbox_)
+        {
+            return "Place platform hitboxes";
+        }
+
         switch (placementMode_)
         {
         case SelectionKind::Spawn:
@@ -10019,6 +11165,10 @@ private:
             return "Place spawners";
         case SelectionKind::Interactive:
             return "Place interactives";
+        case SelectionKind::DeadArea:
+            return "Place dead areas";
+        case SelectionKind::Barrier:
+            return "Place barriers";
         case SelectionKind::MiniLocation:
             return "Place mini locations";
         default:

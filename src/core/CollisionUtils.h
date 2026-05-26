@@ -5,6 +5,7 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace collision
@@ -12,6 +13,7 @@ namespace collision
 constexpr float kPlatformLandingHorizontalInset = 1.f;
 constexpr float kPlatformSupportHorizontalInset = 1.f;
 constexpr float kGroundHorizontalInset = 2.f;
+constexpr float kPlatformSideVerticalInset = 0.5f;
 
 struct MoveResult
 {
@@ -111,6 +113,125 @@ inline bool isStandingOnGround(
         std::abs(bottom(bodyBounds) - top(groundBounds)) <= tolerance;
 }
 
+inline void resolveResidualHorizontalPlatformOverlaps(
+    sf::RectangleShape& body,
+    const std::vector<std::shared_ptr<sf::RectangleShape>>& platforms,
+    MoveResult& result,
+    const float preferredDirectionX = 0.f
+)
+{
+    constexpr int kMaxPasses = 4;
+    constexpr float kSeparationEpsilon = 0.02f;
+
+    for (int pass = 0; pass < kMaxPasses; ++pass)
+    {
+        bool resolvedAny = false;
+
+        for (const auto& platform : platforms)
+        {
+            if (!platform)
+            {
+                continue;
+            }
+
+            const sf::FloatRect bodyBounds = body.getGlobalBounds();
+            const sf::FloatRect platformBounds = platform->getGlobalBounds();
+            const std::optional<sf::FloatRect> intersection = bodyBounds.findIntersection(platformBounds);
+            if (!intersection.has_value() || intersection->size.x <= 0.f || intersection->size.y <= 0.f)
+            {
+                continue;
+            }
+            if (intersection->size.x > intersection->size.y)
+            {
+                continue;
+            }
+
+            const sf::Vector2f bodyCenter = bodyBounds.getCenter();
+            const sf::Vector2f platformCenter = platformBounds.getCenter();
+            const bool pushLeft = preferredDirectionX > 0.f ||
+                (preferredDirectionX == 0.f && bodyCenter.x <= platformCenter.x);
+            if (pushLeft)
+            {
+                body.move({-(intersection->size.x + kSeparationEpsilon), 0.f});
+                result.blockedRight = true;
+            }
+            else
+            {
+                body.move({intersection->size.x + kSeparationEpsilon, 0.f});
+                result.blockedLeft = true;
+            }
+
+            resolvedAny = true;
+        }
+
+        if (!resolvedAny)
+        {
+            return;
+        }
+    }
+}
+
+inline void resolveResidualVerticalPlatformOverlaps(
+    sf::RectangleShape& body,
+    const std::vector<std::shared_ptr<sf::RectangleShape>>& platforms,
+    MoveResult& result,
+    const float preferredDirectionY
+)
+{
+    if (std::abs(preferredDirectionY) <= 0.0001f)
+    {
+        return;
+    }
+
+    constexpr int kMaxPasses = 3;
+    constexpr float kSeparationEpsilon = 0.02f;
+
+    for (int pass = 0; pass < kMaxPasses; ++pass)
+    {
+        bool resolvedAny = false;
+
+        for (const auto& platform : platforms)
+        {
+            if (!platform)
+            {
+                continue;
+            }
+
+            const sf::FloatRect bodyBounds = body.getGlobalBounds();
+            const sf::FloatRect platformBounds = platform->getGlobalBounds();
+            const std::optional<sf::FloatRect> intersection = bodyBounds.findIntersection(platformBounds);
+            if (!intersection.has_value() || intersection->size.x <= 0.f || intersection->size.y <= 0.f)
+            {
+                continue;
+            }
+
+            if (intersection->size.y > intersection->size.x)
+            {
+                continue;
+            }
+
+            if (preferredDirectionY > 0.f)
+            {
+                body.move({0.f, -(intersection->size.y + kSeparationEpsilon)});
+                result.landed = true;
+                result.supportRect = platform.get();
+            }
+            else
+            {
+                body.move({0.f, intersection->size.y + kSeparationEpsilon});
+                result.hitCeiling = true;
+            }
+
+            resolvedAny = true;
+        }
+
+        if (!resolvedAny)
+        {
+            return;
+        }
+    }
+}
+
 inline MoveResult moveBodyWithWorldCollisions(
     sf::RectangleShape& body,
     const sf::Vector2f delta,
@@ -126,6 +247,8 @@ inline MoveResult moveBodyWithWorldCollisions(
     const int stepCount = std::max(1, static_cast<int>(std::ceil(longestAxis / std::max(1.f, maxStepDistance))));
     float remainingX = delta.x;
     float remainingY = delta.y;
+
+    resolveResidualHorizontalPlatformOverlaps(body, platforms, result, delta.x);
 
     for (int stepIndex = 0; stepIndex < stepCount; ++stepIndex)
     {
@@ -230,6 +353,8 @@ inline MoveResult moveBodyWithWorldCollisions(
                     remainingY = 0.f;
                 }
             }
+
+            resolveResidualVerticalPlatformOverlaps(body, platforms, result, stepY);
         }
 
         const float stepX = (stepIndex == stepCount - 1) ? remainingX : delta.x / static_cast<float>(stepCount);
@@ -254,11 +379,11 @@ inline MoveResult moveBodyWithWorldCollisions(
 
                     const sf::FloatRect platformBounds = platform->getGlobalBounds();
                     const bool crossedPlatformSide =
-                        overlapsVertically(movedBounds, platformBounds, 3.f) &&
+                        overlapsVertically(movedBounds, platformBounds, kPlatformSideVerticalInset) &&
                         right(previousBounds) <= left(platformBounds) + 0.75f &&
                         right(movedBounds) >= left(platformBounds) - 0.75f;
                     const bool intersectsPlatform =
-                        overlapsVertically(movedBounds, platformBounds, 3.f) &&
+                        overlapsVertically(movedBounds, platformBounds, kPlatformSideVerticalInset) &&
                         movedBounds.findIntersection(platformBounds).has_value();
 
                     if ((crossedPlatformSide || intersectsPlatform) && left(platformBounds) < bestLeft)
@@ -287,11 +412,11 @@ inline MoveResult moveBodyWithWorldCollisions(
 
                     const sf::FloatRect platformBounds = platform->getGlobalBounds();
                     const bool crossedPlatformSide =
-                        overlapsVertically(movedBounds, platformBounds, 3.f) &&
+                        overlapsVertically(movedBounds, platformBounds, kPlatformSideVerticalInset) &&
                         left(previousBounds) >= right(platformBounds) - 0.75f &&
                         left(movedBounds) <= right(platformBounds) + 0.75f;
                     const bool intersectsPlatform =
-                        overlapsVertically(movedBounds, platformBounds, 3.f) &&
+                        overlapsVertically(movedBounds, platformBounds, kPlatformSideVerticalInset) &&
                         movedBounds.findIntersection(platformBounds).has_value();
 
                     if ((crossedPlatformSide || intersectsPlatform) && right(platformBounds) > bestRight)
@@ -307,6 +432,8 @@ inline MoveResult moveBodyWithWorldCollisions(
                     remainingX = 0.f;
                 }
             }
+
+            resolveResidualHorizontalPlatformOverlaps(body, platforms, result, stepX);
         }
 
         const float minX = worldLeft;

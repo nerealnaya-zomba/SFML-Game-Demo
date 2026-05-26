@@ -343,7 +343,7 @@ Menu::Menu(sf::RenderWindow& window, GameData& gameData)
 
     resetProgressDialogue = std::make_unique<AskDialogue>(
         sf::Vector2f(windowSize.x / 2.f, windowSize.y / 2.f),
-        sf::Vector2f(460.f, 180.f),
+        sf::Vector2f(560.f, 230.f),
         Localization::isRussian()
             ? Localization::tr("dialog.reset_progress")
             : "Reset all saved progress?\nGold, relics, weapons and unlocked gates will be lost.",

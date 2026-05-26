@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdint>
 #include <exception>
+#include <filesystem>
 
 using namespace gameUtils;
 
@@ -21,17 +22,31 @@ constexpr float kDashCounterDampingScale = 0.55f;
 constexpr float kDashControlSpeedBonusScale = 0.35f;
 constexpr float kDashSpeedLimitScale = 1.2f;
 constexpr float kDashMinimumImpulseRatio = 0.25f;
+constexpr float kJumpReleaseVelocityScale = 0.75f;
 
 float dashSpeedLimit(float maxWalkSpeed, float dashForce)
 {
     return std::max(maxWalkSpeed, std::abs(dashForce) * kDashSpeedLimitScale);
 }
 
-float dashControlStep(float baseStep, float currentSpeed, float dashForce)
+float dashControlStep(float baseStep, float currentSpeed, float dashForce, float inputDirection)
 {
     const float safeDashForce = std::max(std::abs(dashForce), 0.001f);
-    const float speedRatio = std::min(std::abs(currentSpeed) / safeDashForce, 1.f);
-    return baseStep * (1.f + speedRatio * kDashControlSpeedBonusScale);
+    const float speedAlongInput = currentSpeed * inputDirection;
+    if (speedAlongInput >= 0.f)
+    {
+        if (speedAlongInput >= safeDashForce)
+        {
+            return 0.f;
+        }
+
+        const float speedRatio = std::clamp(speedAlongInput / safeDashForce, 0.f, 1.f);
+        const float highSpeedFade = 1.f - speedRatio * speedRatio;
+        return baseStep * highSpeedFade;
+    }
+
+    const float counterRatio = std::min(-speedAlongInput / safeDashForce, 1.f);
+    return baseStep * (1.f + counterRatio * kDashControlSpeedBonusScale);
 }
 
 sf::Vector2f lerpVector(const sf::Vector2f& from, const sf::Vector2f& to, float progress)
@@ -121,6 +136,7 @@ nlohmann::json statsToJson(const Item::Stats& stats)
         {"initialSpeed", stats.initialSpeed},
         {"maxSpeed", stats.maxSpeed},
         {"health", stats.health},
+        {"maxEnergy", stats.maxEnergy},
         {"damage", stats.damage},
         {"dashForce", stats.dashForce},
         {"dashCooldownReduction", stats.dashCooldownReduction},
@@ -139,6 +155,7 @@ Item::Stats statsFromJson(const nlohmann::json& data)
     stats.initialSpeed = data.value("initialSpeed", 0);
     stats.maxSpeed = data.value("maxSpeed", 0);
     stats.health = data.value("health", 0);
+    stats.maxEnergy = data.value("maxEnergy", 0);
     stats.damage = data.value("damage", 0);
     stats.dashForce = data.value("dashForce", 0);
     stats.dashCooldownReduction = data.value("dashCooldownReduction", 0);
@@ -1702,6 +1719,8 @@ void Player::saveData()
 {
     try
     {
+        std::filesystem::create_directories(std::filesystem::path(kPlayerProgressPath).parent_path());
+
         nlohmann::json inventoryData = nlohmann::json::array();
         for (const auto& item : inventory_)
         {
@@ -1726,6 +1745,10 @@ void Player::saveData()
         };
 
         std::ofstream output(kPlayerProgressPath);
+        if (!output.is_open())
+        {
+            return;
+        }
         output << saveData.dump(4);
     }
     catch (const std::exception&)
@@ -1859,6 +1882,7 @@ void Player::recalculateStatsFromInventory()
         inventoryStatsBonus_.initialSpeed += item.stats.initialSpeed;
         inventoryStatsBonus_.maxSpeed += item.stats.maxSpeed;
         inventoryStatsBonus_.health += item.stats.health;
+        inventoryStatsBonus_.maxEnergy += item.stats.maxEnergy;
         inventoryStatsBonus_.damage += item.stats.damage;
         inventoryStatsBonus_.dashForce += item.stats.dashForce;
         inventoryStatsBonus_.dashCooldownReduction += item.stats.dashCooldownReduction;
@@ -1871,7 +1895,7 @@ void Player::recalculateStatsFromInventory()
 
     maxHP = baseHP_ + inventoryStatsBonus_.health + campaignBoons.healthBonus;
     HP_ = std::min(HP_ + std::max(0, maxHP - previousMaxHP), maxHP);
-    maxEnergy = baseMaxEnergy_ + campaignBoons.maxEnergyBonus;
+    maxEnergy = baseMaxEnergy_ + inventoryStatsBonus_.maxEnergy + campaignBoons.maxEnergyBonus;
     energyGain = baseEnergyGain_ + campaignBoons.energyGainBonus;
     shootCost = baseShootCost_;
 
@@ -1928,6 +1952,7 @@ void Player::checkPlatformRectCollision(std::vector<std::shared_ptr<sf::Rectangl
                     const float landingSpeed = fallingSpeed;
                     const bool hardLanding = isFalling && landingSpeed > 1.6f;
                     isFalling = false;
+                    jumpReleaseCutAvailable_ = false;
                     if(fallingSpeed>0.f)
                     {
                         fallingSpeed = 0.f;
@@ -1968,6 +1993,7 @@ void Player::checkGroundCollision(sf::RectangleShape& groundRect)
         const bool hardLanding = isFalling && landingSpeed > 1.6f;
         isFalling = false;
         fallingSpeed = 0.f;
+        jumpReleaseCutAvailable_ = false;
         playerRectangle_->setPosition({playerX,groundY-playerRectangle_->getSize().y});
 
         if (hardLanding)
@@ -2024,7 +2050,7 @@ void Player::walkLeft()
         return; 
     }
 
-    const float controlStep = isPlayingDashAnimation ? dashControlStep(speed, initialWalkSpeed, dashForce) : speed;
+    const float controlStep = isPlayingDashAnimation ? dashControlStep(speed, initialWalkSpeed, dashForce, -1.f) : speed;
     initialWalkSpeed = std::max(-movementLimit, initialWalkSpeed - controlStep);
 }
 
@@ -2038,7 +2064,7 @@ void Player::walkRight()
         return;
     }
 
-    const float controlStep = isPlayingDashAnimation ? dashControlStep(speed, initialWalkSpeed, dashForce) : speed;
+    const float controlStep = isPlayingDashAnimation ? dashControlStep(speed, initialWalkSpeed, dashForce, 1.f) : speed;
     initialWalkSpeed = std::min(movementLimit, initialWalkSpeed + controlStep);
 }
 
@@ -2057,6 +2083,7 @@ void Player::jump()
 
     playerRectangle_->setPosition({playerRectangle_->getPosition().x,playerRectangle_->getPosition().y-1.f});
     fallingSpeed = -jumpImpulse_;
+    jumpReleaseCutAvailable_ = true;
     spawnJumpEffect();
     pushRing(getFeetPosition(), sf::Color(194, 228, 255, 104), 8.f, isFalling ? 34.f : 28.f, 2.6f, 1.6f, 104.f);
     triggerCameraImpact({0.f, -1.f}, isFalling ? 30.f : 18.f, isFalling ? 0.16f : 0.09f, isFalling ? 0.022f : 0.015f);
@@ -2384,6 +2411,7 @@ void Player::updateControls()
     if(!this->isAlive || isPlayingDieAnimation || isControlsBlocked)
     {
         jumpKeyWasDown_ = jumpKeyDown;
+        jumpReleaseCutAvailable_ = false;
         return;
     }
     
@@ -2427,6 +2455,14 @@ void Player::updateControls()
             canJump = false;
             jumpTimer.restart();
         }
+    }
+    else if (!jumpKeyDown && jumpKeyWasDown_)
+    {
+        if (jumpReleaseCutAvailable_ && fallingSpeed < 0.f)
+        {
+            fallingSpeed *= kJumpReleaseVelocityScale;
+        }
+        jumpReleaseCutAvailable_ = false;
     }
     jumpKeyWasDown_ = jumpKeyDown;
     
@@ -2610,6 +2646,7 @@ void Player::updatePhysics()
     {
         fallingSpeed = 0.f;
         isFliesUp = false;
+        jumpReleaseCutAvailable_ = false;
     }
 
     const bool standingOnGround = collision::isStandingOnGround(*playerRectangle_, groundRect);
@@ -2633,6 +2670,7 @@ void Player::updatePhysics()
     {
         isFalling = false;
         fallingSpeed = 0.f;
+        jumpReleaseCutAvailable_ = false;
         restoreAirJumps();
 
         if (moveResult.landed || landedOnPlatformThisFrame)

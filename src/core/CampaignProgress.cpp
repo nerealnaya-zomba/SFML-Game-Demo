@@ -7,7 +7,12 @@
 
 namespace
 {
-constexpr std::size_t kStoryStageCount = 6;
+constexpr std::size_t kStoryStageCount = 16;
+constexpr std::size_t kRookeryBoonQuest = 4;
+constexpr std::size_t kNaveBoonQuest = 7;
+constexpr std::size_t kReliquaryBoonQuest = 10;
+constexpr std::size_t kEmberBoonQuest = 13;
+constexpr std::size_t kVeilBoonQuest = 15;
 
 const CampaignLevelInfo kFallbackLevelInfo{
     "unknown",
@@ -30,7 +35,7 @@ const CampaignLevelInfo kFallbackLevelInfoRu{
 const std::array<CampaignLevelInfo, 6> kCampaignLevels{{
     {
         "level1.json",
-        "Dark Gate Sanctuary",
+        "Veilfall Cascades",
         "A quiet hub beneath the sealed gate, watched over by the trader.",
         "No enemies cross this threshold. Return here to buy gear, hear the next task and choose the next opened route.",
         "Best for: trading, planning and quest handoff.",
@@ -38,50 +43,50 @@ const std::array<CampaignLevelInfo, 6> kCampaignLevels{{
     },
     {
         "level2.json",
-        "Obsidian Rookery",
+        "Skybound Spires",
         "A cold vertical roost where the trader sends you for the first gate fragment.",
         "Basalt scaffolds and bat-haunted spans hold the first proof that the Dark Gate can still be opened.",
         "Best for: the first combat quest and early grave-gold.",
-        "Open from the first step."
+        "Open after first entering the hub."
     },
     {
         "level3.json",
-        "Crimson Nave",
+        "Sunset Bastion",
         "A ceremonial hall holding the second gate fragment.",
         "The red nave still burns with old ritual heat. The trader will not point you here until the Rookery debt is paid.",
         "Best for: the second quest step and denser enemy lines.",
-        "Complete the Obsidian Rookery task."
+        "Open after first entering Skybound Spires."
     },
     {
         "level4.json",
-        "Bone Reliquary",
+        "Grave Hollow",
         "A pale vault where the third fragment waits among old relic shelves.",
         "This crypt once stored covenant tools. Now it tests whether your kit is strong enough for deeper orders.",
         "Best for: the third quest step and relic-focused farming.",
-        "Complete the Crimson Nave task."
+        "Open after first entering Sunset Bastion."
     },
     {
         "level5.json",
-        "Trial of Embers",
+        "Ruins of the Elder City",
         "A compact proving ground where the fourth fragment is sealed in flame.",
         "The trader sends only armed hunters here. Weak builds burn out before the gate hears them.",
         "Best for: the fourth quest step and weapon checks.",
-        "Complete the Bone Reliquary task."
+        "Open after first entering Grave Hollow."
     },
     {
         "level6.json",
-        "The Returning Veil",
+        "Aurora Nightpeaks",
         "The final route before the Dark Gate answers.",
         "Beyond the last seal the ruined estate folds back on itself. Bring the trader enough proof and the gate will open.",
         "Best for: the final quest step and endgame farming.",
-        "Complete the Trial of Embers task."
+        "Open after first entering Ruins of the Elder City."
     }
 }};
 
 const std::array<CampaignLevelInfo, 6> kCampaignLevelsRu{{
     {
         "level1.json",
-        "Святилище Темных врат",
+        "Водопады Вуали",
         "Тихий хаб под запечатанными вратами, где ждет торговец.",
         "Враги не переступают этот порог. Возвращайтесь сюда за снаряжением, следующей задачей и новым открытым путем.",
         "Лучше всего для: торговли, подготовки и получения заданий.",
@@ -89,43 +94,43 @@ const std::array<CampaignLevelInfo, 6> kCampaignLevelsRu{{
     },
     {
         "level2.json",
-        "Обсидиановое гнездовье",
+        "Небесные шпили",
         "Холодная вертикальная насестная локация, куда торговец отправляет за первым фрагментом врат.",
         "Базальтовые леса и пролеты с летучими тварями хранят первое доказательство, что Темные врата еще можно открыть.",
         "Лучше всего для: первого боевого задания и раннего могильного золота.",
-        "Открыто с самого начала."
+        "Открывается после первого посещения хаба."
     },
     {
         "level3.json",
-        "Багровый неф",
+        "Закатный бастион",
         "Ритуальный зал, где хранится второй фрагмент врат.",
         "Красный неф все еще горит древним обрядовым жаром. Торговец укажет сюда только после платы за Гнездовье.",
         "Лучше всего для: второго этапа задания и более плотных волн врагов.",
-        "Завершите задачу в Обсидиановом гнездовье."
+        "Открывается после первого посещения Обсидианового гнездовья."
     },
     {
         "level4.json",
-        "Костяной реликварий",
+        "Могильная лощина",
         "Бледное хранилище, где третий фрагмент ждет среди старых полок с реликвиями.",
         "Эта крипта когда-то хранила инструменты ковенанта. Теперь она проверяет, достаточно ли силен ваш набор для более глубоких приказов.",
         "Лучше всего для: третьего этапа задания и фарма реликвий.",
-        "Завершите задачу в Багровом нефе."
+        "Открывается после первого посещения Багрового нефа."
     },
     {
         "level5.json",
-        "Испытание углей",
+        "Руины старого города",
         "Компактный полигон, где четвертый фрагмент запечатан в пламени.",
         "Торговец отправляет сюда только вооруженных охотников. Слабые сборки сгорают раньше, чем врата их услышат.",
         "Лучше всего для: четвертого этапа задания и проверки оружия.",
-        "Завершите задачу в Костяном реликварии."
+        "Открывается после первого посещения Костяного реликвария."
     },
     {
         "level6.json",
-        "Возвращающаяся вуаль",
+        "Ночные пики Авроры",
         "Последний путь перед ответом Темных врат.",
         "За последней печатью разрушенное поместье сворачивается само в себя. Принесите торговцу достаточно доказательств, и врата откроются.",
         "Лучше всего для: финального этапа задания и позднего фарма.",
-        "Завершите Испытание углей."
+        "Открывается после первого посещения Испытания углей."
     }
 }};
 
@@ -200,23 +205,23 @@ bool CampaignProgress::isLevelUnlocked(const std::string& levelName) const
     }
     if (levelName == "level2.json")
     {
-        return true;
+        return hasVisitedLevel("level2.json");
     }
     if (levelName == "level3.json")
     {
-        return currentStageIndex_ >= 1;
+        return hasVisitedLevel("level3.json");
     }
     if (levelName == "level4.json")
     {
-        return currentStageIndex_ >= 2;
+        return hasVisitedLevel("level4.json");
     }
     if (levelName == "level5.json")
     {
-        return currentStageIndex_ >= 3;
+        return hasVisitedLevel("level5.json");
     }
     if (levelName == "level6.json")
     {
-        return currentStageIndex_ >= 4;
+        return hasVisitedLevel("level6.json");
     }
 
     return true;
@@ -246,6 +251,22 @@ CampaignObjectiveSnapshot CampaignProgress::buildSnapshot() const
 
     if (snapshot.storyComplete)
     {
+        snapshot.chapterTitle = Localization::isRussian() ? "XVII. Открытые врата" : "XVII. The Gate Stands Open";
+        snapshot.narrative = Localization::isRussian()
+            ? "Карта торговца завершена. Каждый найденный путь теперь питает открытые Темные врата."
+            : "The trader's map is complete. Every route now feeds the open Dark Gate.";
+        snapshot.objective = Localization::isRussian()
+            ? "Продолжайте охотиться, покупать снаряжение и возвращаться на открытые маршруты."
+            : "Keep farming, forging and pushing the opened routes.";
+        snapshot.progressText = Localization::isRussian()
+            ? std::to_string(weaponsPurchased_) + " оружия выковано  |  " + std::to_string(totalGoldCollected_) + " могильного золота собрано"
+            : std::to_string(weaponsPurchased_) + " weapons forged  |  " + std::to_string(totalGoldCollected_) + " grave-gold harvested";
+        snapshot.rewardText = Localization::isRussian()
+            ? "Награда: свободная охота на всех открытых путях."
+            : "Reward: free hunt across every opened route.";
+        snapshot.progressRatio = 1.f;
+        return snapshot;
+
         snapshot.chapterTitle = Localization::isRussian() ? "VII. Врата открыты" : "VII. The Gate Stands Open";
         snapshot.narrative = Localization::isRussian()
             ? "Карта торговца завершена. Каждый путь теперь питает открытые Темные врата."
@@ -278,6 +299,41 @@ CampaignObjectiveSnapshot CampaignProgress::buildSnapshot() const
 
 std::string CampaignProgress::getLevelUnlockHint(const std::string& levelName) const
 {
+    const auto makePortalHint = [&](const std::string& targetLevel, const std::string& targetTitle) {
+        if (Localization::isRussian())
+        {
+            return std::string("Путь появится после первого входа через портал: ") + targetTitle + ".\n" +
+                "Прогресс: " + boolProgressLabel(hasVisitedLevel(targetLevel), "уровень посещен", "уровень еще не посещен");
+        }
+        return std::string("Route appears after first entering through its portal: ") + targetTitle + ".\n" +
+            "Progress: " + boolProgressLabel(hasVisitedLevel(targetLevel), "level entered", "level not entered");
+    };
+
+    if (levelName == "level1.json")
+    {
+        return Localization::isRussian() ? "Хаб открыт всегда." : "The hub is always open.";
+    }
+    if (levelName == "level2.json")
+    {
+        return makePortalHint("level2.json", getLevelInfo("level2.json").title);
+    }
+    if (levelName == "level3.json")
+    {
+        return makePortalHint("level3.json", getLevelInfo("level3.json").title);
+    }
+    if (levelName == "level4.json")
+    {
+        return makePortalHint("level4.json", getLevelInfo("level4.json").title);
+    }
+    if (levelName == "level5.json")
+    {
+        return makePortalHint("level5.json", getLevelInfo("level5.json").title);
+    }
+    if (levelName == "level6.json")
+    {
+        return makePortalHint("level6.json", getLevelInfo("level6.json").title);
+    }
+
     std::ostringstream stream;
 
     if (levelName == "level2.json")
@@ -302,7 +358,7 @@ std::string CampaignProgress::getLevelUnlockHint(const std::string& levelName) c
                    << ", " << std::min(totalGoldCollected_, 60) << "/60 золота.";
             return stream.str();
         }
-        stream << "Seal: finish the Obsidian Rookery task.\n"
+        stream << "Seal: finish the Skybound Spires task.\n"
                << "Progress: "
                << boolProgressLabel(hasVisitedLevel("level2.json"), "Rookery entered", "Rookery not entered")
                << ", " << std::min(totalGoldCollected_, 60) << "/60 gold.";
@@ -318,7 +374,7 @@ std::string CampaignProgress::getLevelUnlockHint(const std::string& levelName) c
                    << ", " << std::min(totalGoldCollected_, 180) << "/180 золота.";
             return stream.str();
         }
-        stream << "Seal: finish the Crimson Nave task.\n"
+        stream << "Seal: finish the Sunset Bastion task.\n"
                << "Progress: "
                << boolProgressLabel(hasVisitedLevel("level3.json"), "Nave entered", "Nave not entered")
                << ", " << std::min(totalGoldCollected_, 180) << "/180 gold.";
@@ -334,7 +390,7 @@ std::string CampaignProgress::getLevelUnlockHint(const std::string& levelName) c
                    << ", " << std::min(relicsPurchased_, 3) << "/3 реликвии.";
             return stream.str();
         }
-        stream << "Seal: finish the Bone Reliquary task.\n"
+        stream << "Seal: finish the Grave Hollow task.\n"
                << "Progress: "
                << boolProgressLabel(hasVisitedLevel("level4.json"), "Reliquary entered", "Reliquary not entered")
                << ", " << std::min(relicsPurchased_, 3) << "/3 relics.";
@@ -350,7 +406,7 @@ std::string CampaignProgress::getLevelUnlockHint(const std::string& levelName) c
                    << ", " << std::min(weaponsPurchased_, 1) << "/1 оружие.";
             return stream.str();
         }
-        stream << "Seal: finish the Trial of Embers task.\n"
+        stream << "Seal: finish the Ruins of the Elder City task.\n"
                << "Progress: "
                << boolProgressLabel(hasVisitedLevel("level5.json"), "Trial entered", "Trial not entered")
                << ", " << std::min(weaponsPurchased_, 1) << "/1 weapon.";
@@ -362,6 +418,22 @@ std::string CampaignProgress::getLevelUnlockHint(const std::string& levelName) c
 
 std::string CampaignProgress::getMerchantGreeting() const
 {
+    const CampaignLevelInfo& recommended = getRecommendedLevelInfo();
+    if (Localization::isRussian())
+    {
+        if (currentStageIndex_ >= kStoryStageCount)
+        {
+            return "Торговец улыбается под открытыми Темными вратами.";
+        }
+        return "Торговец отмечает маршрут: " + recommended.title + ".";
+    }
+
+    if (currentStageIndex_ >= kStoryStageCount)
+    {
+        return "The trader grins beneath the opened Dark Gate.";
+    }
+    return "The trader marks the route: " + recommended.title + ".";
+
     if (Localization::isRussian())
     {
         if (currentStageIndex_ >= kStoryStageCount)
@@ -406,6 +478,8 @@ std::string CampaignProgress::getMerchantGreeting() const
 
 std::string CampaignProgress::getMerchantAdvice() const
 {
+    return getStageObjective(currentStageIndex_);
+
     if (Localization::isRussian())
     {
         switch (currentStageIndex_)
@@ -423,15 +497,15 @@ std::string CampaignProgress::getMerchantAdvice() const
     switch (currentStageIndex_)
     {
     case 0:
-        return "First job is not here. Take the opened route to Obsidian Rookery and bring back 60 grave-gold.";
+        return "First job is not here. Take the opened route to Skybound Spires and bring back 60 grave-gold.";
     case 1:
-        return "Good. The Crimson Nave is open. Go there next and push the total haul to 180 gold.";
+        return "Good. Sunset Bastion is open. Go there next and push the total haul to 180 gold.";
     case 2:
-        return "The Bone Reliquary is open. Enter it and come back owning 3 relics. The gate likes prepared hands.";
+        return "Grave Hollow is open. Enter it and come back owning 3 relics. The gate likes prepared hands.";
     case 3:
-        return "Trial of Embers is open. Buy or forge a real weapon before you come bragging about progress.";
+        return "Ruins of the Elder City is open. Buy or forge a real weapon before you come bragging about progress.";
     case 4:
-        return "The Returning Veil is open. Enter it and bring the total haul to 420 gold.";
+        return "Aurora Nightpeaks is open. Enter it and bring the total haul to 420 gold.";
     case 5:
         return "One final demand: own 2 crafted weapons. Then the Dark Gate has no excuse left.";
     default:
@@ -444,12 +518,21 @@ const CampaignLevelInfo& CampaignProgress::getRecommendedLevelInfo() const
     switch (currentStageIndex_)
     {
     case 0:
-        return getLevelInfo("level2.json");
     case 1:
-        return getLevelInfo("level3.json");
     case 2:
-        return getLevelInfo("level4.json");
     case 3:
+        return getLevelInfo("level2.json");
+    case 4:
+    case 5:
+    case 6:
+        return getLevelInfo("level3.json");
+    case 7:
+    case 8:
+    case 9:
+        return getLevelInfo("level4.json");
+    case 10:
+    case 11:
+    case 12:
         return getLevelInfo("level5.json");
     default:
         return getLevelInfo("level6.json");
@@ -465,32 +548,32 @@ CampaignBoonState CampaignProgress::getActiveBoonState() const
         boon.description = "Святилище все еще спит.";
     }
 
-    if (currentStageIndex_ >= 1)
+    if (currentStageIndex_ >= kRookeryBoonQuest)
     {
         boon.title = Localization::isRussian() ? "Метка Гнездовья" : "Rookery Mark";
         boon.description = Localization::isRussian() ? "Первая метка врат укрепляет тело." : "The first gate mark toughens your body.";
         boon.healthBonus += 60;
     }
-    if (currentStageIndex_ >= 2)
+    if (currentStageIndex_ >= kNaveBoonQuest)
     {
         boon.title = Localization::isRussian() ? "Десятина Нефа" : "Nave Tithe";
         boon.description = Localization::isRussian() ? "Красная дорога учит заряды бить сильнее." : "The red road teaches your bolts to hit harder.";
         boon.damageBonus += 8;
     }
-    if (currentStageIndex_ >= 3)
+    if (currentStageIndex_ >= kReliquaryBoonQuest)
     {
         boon.title = Localization::isRussian() ? "Запас Реликвария" : "Reliquary Reserve";
         boon.description = Localization::isRussian() ? "Возвращенные реликтовые обряды расширяют тайный резерв." : "Recovered relic rites deepen your arcane reserve.";
         boon.maxEnergyBonus += 140;
         boon.energyGainBonus += 1;
     }
-    if (currentStageIndex_ >= 4)
+    if (currentStageIndex_ >= kEmberBoonQuest)
     {
         boon.title = Localization::isRussian() ? "Угольная закалка" : "Ember Temper";
         boon.description = Localization::isRussian() ? "Ритуалы, закаленные испытанием, летят дальше сквозь руины." : "Trial-forged rites carry farther through the ruins.";
         boon.bulletRangeBonus += 80;
     }
-    if (currentStageIndex_ >= 5)
+    if (currentStageIndex_ >= kVeilBoonQuest)
     {
         boon.title = Localization::isRussian() ? "Рефлекс Вуали" : "Veil Reflex";
         boon.description = Localization::isRussian() ? "Возвращающийся путь учит быстрее выпускать заряды." : "The returning path teaches swifter release.";
@@ -502,6 +585,45 @@ CampaignBoonState CampaignProgress::getActiveBoonState() const
         boon.description = Localization::isRussian() ? "Открытые врата усиливают каждую охоту." : "The opened gate strengthens every hunt.";
         boon.healthBonus += 90;
         boon.damageBonus += 10;
+    }
+
+    if (Localization::isRussian())
+    {
+        if (currentStageIndex_ >= kStoryStageCount)
+        {
+            boon.title = "Темные врата открыты";
+            boon.description = "Открытые врата усиливают каждую охоту.";
+        }
+        else if (currentStageIndex_ >= kVeilBoonQuest)
+        {
+            boon.title = "Рефлекс Вуали";
+            boon.description = "Возвращающийся путь учит быстрее выпускать заряды.";
+        }
+        else if (currentStageIndex_ >= kEmberBoonQuest)
+        {
+            boon.title = "Угольная закалка";
+            boon.description = "Ритуалы, закаленные испытанием, летят дальше сквозь руины.";
+        }
+        else if (currentStageIndex_ >= kReliquaryBoonQuest)
+        {
+            boon.title = "Запас Реликвария";
+            boon.description = "Возвращенные реликтовые обряды расширяют тайный резерв.";
+        }
+        else if (currentStageIndex_ >= kNaveBoonQuest)
+        {
+            boon.title = "Десятина Нефа";
+            boon.description = "Красная дорога учит заряды бить сильнее.";
+        }
+        else if (currentStageIndex_ >= kRookeryBoonQuest)
+        {
+            boon.title = "Метка Гнездовья";
+            boon.description = "Первая метка врат укрепляет тело.";
+        }
+        else
+        {
+            boon.title = "Спящий договор";
+            boon.description = "Святилище все еще спит.";
+        }
     }
 
     return boon;
@@ -587,17 +709,37 @@ bool CampaignProgress::isStageComplete(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return hasVisitedLevel("level2.json") && totalGoldCollected_ >= 60;
+        return hasVisitedLevel("level2.json");
     case 1:
-        return hasVisitedLevel("level3.json") && totalGoldCollected_ >= 180;
+        return hasVisitedLevel("level3.json");
     case 2:
-        return hasVisitedLevel("level4.json") && relicsPurchased_ >= 3;
+        return relicsPurchased_ >= 1;
     case 3:
-        return hasVisitedLevel("level5.json") && weaponsPurchased_ >= 1;
+        return hasVisitedLevel("level3.json");
     case 4:
-        return hasVisitedLevel("level6.json") && totalGoldCollected_ >= 420;
+        return totalGoldCollected_ >= 180;
     case 5:
+        return weaponsPurchased_ >= 1;
+    case 6:
+        return hasVisitedLevel("level4.json");
+    case 7:
+        return relicsPurchased_ >= 3;
+    case 8:
+        return totalGoldCollected_ >= 300;
+    case 9:
+        return hasVisitedLevel("level5.json");
+    case 10:
+        return totalGoldCollected_ >= 420;
+    case 11:
         return weaponsPurchased_ >= 2;
+    case 12:
+        return hasVisitedLevel("level6.json");
+    case 13:
+        return totalGoldCollected_ >= 600;
+    case 14:
+        return relicsPurchased_ >= 4;
+    case 15:
+        return weaponsPurchased_ >= 3;
     default:
         return true;
     }
@@ -608,17 +750,37 @@ float CampaignProgress::getStageProgressRatio(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return (normalizedProgress(totalGoldCollected_, 60) + (hasVisitedLevel("level2.json") ? 1.f : 0.f)) * 0.5f;
+        return hasVisitedLevel("level2.json") ? 1.f : 0.f;
     case 1:
-        return (normalizedProgress(totalGoldCollected_, 180) + (hasVisitedLevel("level3.json") ? 1.f : 0.f)) * 0.5f;
+        return hasVisitedLevel("level3.json") ? 1.f : 0.f;
     case 2:
-        return (normalizedProgress(relicsPurchased_, 3) + (hasVisitedLevel("level4.json") ? 1.f : 0.f)) * 0.5f;
+        return normalizedProgress(relicsPurchased_, 1);
     case 3:
-        return (normalizedProgress(weaponsPurchased_, 1) + (hasVisitedLevel("level5.json") ? 1.f : 0.f)) * 0.5f;
+        return hasVisitedLevel("level3.json") ? 1.f : 0.f;
     case 4:
-        return (normalizedProgress(totalGoldCollected_, 420) + (hasVisitedLevel("level6.json") ? 1.f : 0.f)) * 0.5f;
+        return normalizedProgress(totalGoldCollected_, 180);
     case 5:
+        return normalizedProgress(weaponsPurchased_, 1);
+    case 6:
+        return hasVisitedLevel("level4.json") ? 1.f : 0.f;
+    case 7:
+        return normalizedProgress(relicsPurchased_, 3);
+    case 8:
+        return normalizedProgress(totalGoldCollected_, 300);
+    case 9:
+        return hasVisitedLevel("level5.json") ? 1.f : 0.f;
+    case 10:
+        return normalizedProgress(totalGoldCollected_, 420);
+    case 11:
         return normalizedProgress(weaponsPurchased_, 2);
+    case 12:
+        return hasVisitedLevel("level6.json") ? 1.f : 0.f;
+    case 13:
+        return normalizedProgress(totalGoldCollected_, 600);
+    case 14:
+        return normalizedProgress(relicsPurchased_, 4);
+    case 15:
+        return normalizedProgress(weaponsPurchased_, 3);
     default:
         return 1.f;
     }
@@ -626,6 +788,51 @@ float CampaignProgress::getStageProgressRatio(std::size_t stageIndex) const
 
 std::string CampaignProgress::getStageChapterTitle(std::size_t stageIndex) const
 {
+    if (Localization::isRussian())
+    {
+        switch (stageIndex)
+        {
+        case 0: return "I. Водопады: верхний портал";
+        case 1: return "II. Небесные шпили: поиск портала";
+        case 2: return "III. Гнездовье: первая реликвия";
+        case 3: return "IV. Гнездовье: портал в Неф";
+        case 4: return "V. Неф: красная десятина";
+        case 5: return "VI. Неф: первое оружие";
+        case 6: return "VII. Неф: портал в Реликварий";
+        case 7: return "VIII. Реликварий: запас силы";
+        case 8: return "IX. Реликварий: глубокая добыча";
+        case 9: return "X. Реликварий: портал к Углям";
+        case 10: return "XI. Угли: тяжелая плата";
+        case 11: return "XII. Угли: второй клинок";
+        case 12: return "XIII. Угли: портал в Вуаль";
+        case 13: return "XIV. Вуаль: последняя жатва";
+        case 14: return "XV. Вуаль: четыре реликвии";
+        case 15: return "XVI. Темные врата: финальный ключ";
+        default: return "XVII. Открытые врата";
+        }
+    }
+
+    switch (stageIndex)
+    {
+    case 0: return "I. Cascades: Upper Portal";
+    case 1: return "II. Sky Spires: Find the Portal";
+    case 2: return "III. Rookery: First Relic";
+    case 3: return "IV. Rookery: Portal to the Nave";
+    case 4: return "V. Nave: Crimson Tithe";
+    case 5: return "VI. Nave: First Weapon";
+    case 6: return "VII. Nave: Portal to the Reliquary";
+    case 7: return "VIII. Reliquary: Stored Power";
+    case 8: return "IX. Reliquary: Deep Haul";
+    case 9: return "X. Reliquary: Portal to Embers";
+    case 10: return "XI. Embers: Heavy Payment";
+    case 11: return "XII. Embers: Second Blade";
+    case 12: return "XIII. Embers: Portal to the Veil";
+    case 13: return "XIV. Veil: Last Harvest";
+    case 14: return "XV. Veil: Four Relics";
+    case 15: return "XVI. Dark Gate: Final Key";
+    default: return "XVII. Open Gate";
+    }
+
     if (Localization::isRussian())
     {
         switch (stageIndex)
@@ -643,15 +850,15 @@ std::string CampaignProgress::getStageChapterTitle(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return "I. First Mark: Obsidian Rookery";
+        return "I. First Mark: Skybound Spires";
     case 1:
-        return "II. Second Mark: Crimson Nave";
+        return "II. Second Mark: Sunset Bastion";
     case 2:
-        return "III. Third Mark: Bone Reliquary";
+        return "III. Third Mark: Grave Hollow";
     case 3:
-        return "IV. Fourth Mark: Trial of Embers";
+        return "IV. Fourth Mark: Ruins of the Elder City";
     case 4:
-        return "V. Fifth Mark: The Returning Veil";
+        return "V. Fifth Mark: Aurora Nightpeaks";
     case 5:
         return "VI. Final Payment";
     default:
@@ -661,6 +868,51 @@ std::string CampaignProgress::getStageChapterTitle(std::size_t stageIndex) const
 
 std::string CampaignProgress::getStageNarrative(std::size_t stageIndex) const
 {
+    if (Localization::isRussian())
+    {
+        switch (stageIndex)
+        {
+        case 0: return "Найдите портал наверху Водопадов Вуали.";
+        case 1: return "Обыщите Небесные шпили и найдите портал дальше.";
+        case 2: return "Первая реликвия закрепит маршрут. Торговец хочет видеть не обещания, а вещь в инвентаре.";
+        case 3: return "Где-то в Гнездовье спрятан путь дальше. Найдите портал и пройдите в Багровый неф.";
+        case 4: return "Неф требует большую десятину. Красная дорога открывается тем, кто умеет выживать долго.";
+        case 5: return "Без оружия глубже идти глупо. Купите или выкуйте первый настоящий инструмент охоты.";
+        case 6: return "Неф не конец. Найдите портал, ведущий к Костяному реликварию.";
+        case 7: return "Реликварий проверяет, можете ли вы превратить найденное в постоянную силу.";
+        case 8: return "В глубине реликвария достаточно золота, чтобы подготовить следующий переход.";
+        case 9: return "Осталось найти выход из реликвария к Испытанию углей.";
+        case 10: return "Угли требуют тяжелую плату: запас, оружие и терпение.";
+        case 11: return "Один клинок открывает дорогу, второй позволяет пережить ее.";
+        case 12: return "В Испытании есть портал к Возвращающейся вуали. Найдите его.";
+        case 13: return "Вуаль собирает последнюю жатву перед Темными вратами.";
+        case 14: return "Четыре реликвии удержат маршрут, когда врата начнут отвечать.";
+        case 15: return "Финальный ключ - третье оружие. После этого торговцу нечем будет вас задержать.";
+        default: return "Темные врата открыты. Охота продолжается по всем найденным путям.";
+        }
+    }
+
+    switch (stageIndex)
+    {
+    case 0: return "Find the portal above Veilfall Cascades.";
+    case 1: return "Search Skybound Spires for the next portal.";
+    case 2: return "A first relic will anchor the route. The trader wants a thing in your pack, not a promise.";
+    case 3: return "Somewhere in the Spires is the way onward. Find the portal and enter Sunset Bastion.";
+    case 4: return "The Nave asks for a larger tithe. The red road opens to hunters who can last.";
+    case 5: return "Going deeper without a weapon is foolish. Buy or forge the first real hunting tool.";
+    case 6: return "The Bastion is not the end. Find the portal to Grave Hollow.";
+    case 7: return "The Reliquary tests whether loot can become lasting power.";
+    case 8: return "Deep in the Reliquary lies enough gold to prepare the next crossing.";
+    case 9: return "Find the Hollow exit that leads to Ruins of the Elder City.";
+    case 10: return "The Embers demand a heavy payment: reserves, weaponry and patience.";
+    case 11: return "One blade opens the road. A second helps you survive it.";
+    case 12: return "A portal in the Trial leads to the Returning Veil. Find it.";
+    case 13: return "The Veil gathers the last harvest before the Dark Gate answers.";
+    case 14: return "Four relics will hold the route when the gate begins to answer.";
+    case 15: return "The final key is a third weapon. After that, the trader has no excuse left.";
+    default: return "The Dark Gate is open. The hunt continues across every found route.";
+    }
+
     if (Localization::isRussian())
     {
         switch (stageIndex)
@@ -678,13 +930,13 @@ std::string CampaignProgress::getStageNarrative(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return "The Sanctuary is safe, but the Dark Gate will not open from comfort. The trader marks Obsidian Rookery first.";
+        return "The Cascades are safe, but the Dark Gate will not open from comfort. The trader marks Skybound Spires first.";
     case 1:
-        return "The first mark is paid. A red route opens, and the trader wants the next fragment from Crimson Nave.";
+        return "The first mark is paid. A red route opens, and the trader wants the next fragment from Sunset Bastion.";
     case 2:
         return "The Reliquary seal asks for proof that you can turn loot into lasting power.";
     case 3:
-        return "The Trial of Embers wants a weapon, not optimism.";
+        return "Ruins of the Elder City wants a weapon, not optimism.";
     case 4:
         return "Only the Returning Veil remains between the trader's map and the Dark Gate.";
     case 5:
@@ -696,6 +948,51 @@ std::string CampaignProgress::getStageNarrative(std::size_t stageIndex) const
 
 std::string CampaignProgress::getStageObjective(std::size_t stageIndex) const
 {
+    if (Localization::isRussian())
+    {
+        switch (stageIndex)
+        {
+        case 0: return "Поднимитесь наверх и войдите в портал на уровень II.";
+        case 1: return "Найдите портал на уровень III.";
+        case 2: return "Купите или получите 1 реликвию.";
+        case 3: return "Найдите портал в Багровый неф и войдите на уровень III.";
+        case 4: return "Доведите общую добычу до 180 могильного золота.";
+        case 5: return "Купите или получите 1 оружие.";
+        case 6: return "Найдите портал в Костяной реликварий и войдите на уровень IV.";
+        case 7: return "Владейте 3 реликвиями.";
+        case 8: return "Доведите общую добычу до 300 могильного золота.";
+        case 9: return "Найдите портал к Испытанию углей и войдите на уровень V.";
+        case 10: return "Доведите общую добычу до 420 могильного золота.";
+        case 11: return "Владейте 2 оружиями.";
+        case 12: return "Найдите портал в Возвращающуюся вуаль и войдите на уровень VI.";
+        case 13: return "Доведите общую добычу до 600 могильного золота.";
+        case 14: return "Владейте 4 реликвиями.";
+        case 15: return "Владейте 3 оружиями, чтобы открыть Темные врата.";
+        default: return "Свободно охотьтесь на открытых маршрутах.";
+        }
+    }
+
+    switch (stageIndex)
+    {
+    case 0: return "Climb up and enter the portal to Level II.";
+    case 1: return "Find the portal to Level III.";
+    case 2: return "Own 1 relic.";
+    case 3: return "Find the portal to Sunset Bastion and enter Level III.";
+    case 4: return "Reach 180 total grave-gold.";
+    case 5: return "Own 1 weapon.";
+    case 6: return "Find the portal to Grave Hollow and enter Level IV.";
+    case 7: return "Own 3 relics.";
+    case 8: return "Reach 300 total grave-gold.";
+    case 9: return "Find the portal to Ruins of the Elder City and enter Level V.";
+    case 10: return "Reach 420 total grave-gold.";
+    case 11: return "Own 2 weapons.";
+    case 12: return "Find the portal to Aurora Nightpeaks and enter Level VI.";
+    case 13: return "Reach 600 total grave-gold.";
+    case 14: return "Own 4 relics.";
+    case 15: return "Own 3 weapons to open the Dark Gate.";
+    default: return "Hunt freely across the opened routes.";
+    }
+
     if (Localization::isRussian())
     {
         switch (stageIndex)
@@ -713,15 +1010,15 @@ std::string CampaignProgress::getStageObjective(std::size_t stageIndex) const
     switch (stageIndex)
     {
     case 0:
-        return "Enter Obsidian Rookery and return with 60 total grave-gold.";
+        return "Enter Skybound Spires and return with 60 total grave-gold.";
     case 1:
-        return "Enter Crimson Nave and reach 180 total grave-gold.";
+        return "Enter Sunset Bastion and reach 180 total grave-gold.";
     case 2:
-        return "Enter Bone Reliquary and own 3 relics.";
+        return "Enter Grave Hollow and own 3 relics.";
     case 3:
-        return "Enter Trial of Embers and own 1 crafted weapon.";
+        return "Enter Ruins of the Elder City and own 1 crafted weapon.";
     case 4:
-        return "Enter The Returning Veil and reach 420 total grave-gold.";
+        return "Enter Aurora Nightpeaks and reach 420 total grave-gold.";
     case 5:
         return "Own 2 crafted weapons to open the Dark Gate.";
     default:
@@ -731,6 +1028,51 @@ std::string CampaignProgress::getStageObjective(std::size_t stageIndex) const
 
 std::string CampaignProgress::getStageProgressText(std::size_t stageIndex) const
 {
+    if (Localization::isRussian())
+    {
+        switch (stageIndex)
+        {
+        case 0: return boolProgressLabel(hasVisitedLevel("level2.json"), "Портал найден", "Портал наверху");
+        case 1: return boolProgressLabel(hasVisitedLevel("level3.json"), "Портал найден", "Ищите портал");
+        case 2: return std::to_string(std::min(relicsPurchased_, 1)) + " / 1 реликвия";
+        case 3: return boolProgressLabel(hasVisitedLevel("level3.json"), "Неф посещен", "Портал в Неф не найден");
+        case 4: return std::to_string(std::min(totalGoldCollected_, 180)) + " / 180 золота";
+        case 5: return std::to_string(std::min(weaponsPurchased_, 1)) + " / 1 оружие";
+        case 6: return boolProgressLabel(hasVisitedLevel("level4.json"), "Реликварий посещен", "Портал в Реликварий не найден");
+        case 7: return std::to_string(std::min(relicsPurchased_, 3)) + " / 3 реликвии";
+        case 8: return std::to_string(std::min(totalGoldCollected_, 300)) + " / 300 золота";
+        case 9: return boolProgressLabel(hasVisitedLevel("level5.json"), "Испытание посещено", "Портал к Углям не найден");
+        case 10: return std::to_string(std::min(totalGoldCollected_, 420)) + " / 420 золота";
+        case 11: return std::to_string(std::min(weaponsPurchased_, 2)) + " / 2 оружия";
+        case 12: return boolProgressLabel(hasVisitedLevel("level6.json"), "Вуаль посещена", "Портал в Вуаль не найден");
+        case 13: return std::to_string(std::min(totalGoldCollected_, 600)) + " / 600 золота";
+        case 14: return std::to_string(std::min(relicsPurchased_, 4)) + " / 4 реликвии";
+        case 15: return std::to_string(std::min(weaponsPurchased_, 3)) + " / 3 оружия";
+        default: return "Все пути открыты.";
+        }
+    }
+
+    switch (stageIndex)
+    {
+    case 0: return boolProgressLabel(hasVisitedLevel("level2.json"), "Portal found", "Upper portal pending");
+    case 1: return boolProgressLabel(hasVisitedLevel("level3.json"), "Portal found", "Search for the portal");
+    case 2: return std::to_string(std::min(relicsPurchased_, 1)) + " / 1 relic";
+    case 3: return boolProgressLabel(hasVisitedLevel("level3.json"), "Nave entered", "Nave portal not found");
+    case 4: return std::to_string(std::min(totalGoldCollected_, 180)) + " / 180 gold";
+    case 5: return std::to_string(std::min(weaponsPurchased_, 1)) + " / 1 weapon";
+    case 6: return boolProgressLabel(hasVisitedLevel("level4.json"), "Reliquary entered", "Reliquary portal not found");
+    case 7: return std::to_string(std::min(relicsPurchased_, 3)) + " / 3 relics";
+    case 8: return std::to_string(std::min(totalGoldCollected_, 300)) + " / 300 gold";
+    case 9: return boolProgressLabel(hasVisitedLevel("level5.json"), "Embers entered", "Embers portal not found");
+    case 10: return std::to_string(std::min(totalGoldCollected_, 420)) + " / 420 gold";
+    case 11: return std::to_string(std::min(weaponsPurchased_, 2)) + " / 2 weapons";
+    case 12: return boolProgressLabel(hasVisitedLevel("level6.json"), "Veil entered", "Veil portal not found");
+    case 13: return std::to_string(std::min(totalGoldCollected_, 600)) + " / 600 gold";
+    case 14: return std::to_string(std::min(relicsPurchased_, 4)) + " / 4 relics";
+    case 15: return std::to_string(std::min(weaponsPurchased_, 3)) + " / 3 weapons";
+    default: return "Every route is open.";
+    }
+
     if (Localization::isRussian())
     {
         switch (stageIndex)
@@ -783,6 +1125,51 @@ std::string CampaignProgress::getStageProgressText(std::size_t stageIndex) const
 
 std::string CampaignProgress::getStageReward(std::size_t stageIndex) const
 {
+    if (Localization::isRussian())
+    {
+        switch (stageIndex)
+        {
+        case 0: return "Награда: откроются Небесные шпили.";
+        case 1: return "Награда: откроется уровень III.";
+        case 2: return "Награда: маршрут Гнездовья закреплен.";
+        case 3: return "Награда: Метка Гнездовья дает +60 здоровья.";
+        case 4: return "Награда: красная дорога становится устойчивее.";
+        case 5: return "Награда: торговец признает вашу готовность.";
+        case 6: return "Награда: Десятина Нефа дает +8 урона.";
+        case 7: return "Награда: запас реликвий растет.";
+        case 8: return "Награда: следующий путь становится безопаснее.";
+        case 9: return "Награда: Запас Реликвария дает +140 энергии и +1 регенерации.";
+        case 10: return "Награда: испытание признает вашу плату.";
+        case 11: return "Награда: второй клинок укрепляет маршрут.";
+        case 12: return "Награда: Угольная закалка дает +80 дальности.";
+        case 13: return "Награда: Вуаль почти подчинена.";
+        case 14: return "Награда: Рефлекс Вуали дает -12 мс КД выстрела.";
+        case 15: return "Награда: Темные врата открыты, +90 здоровья и +10 урона.";
+        default: return "Награда: свободная охота.";
+        }
+    }
+
+    switch (stageIndex)
+    {
+    case 0: return "Reward: Skybound Spires opens.";
+    case 1: return "Reward: Level III opens.";
+    case 2: return "Reward: the Rookery route is anchored.";
+    case 3: return "Reward: Rookery Mark grants +60 Vitality.";
+    case 4: return "Reward: the red road steadies.";
+    case 5: return "Reward: the trader accepts your readiness.";
+    case 6: return "Reward: Nave Tithe grants +8 Damage.";
+    case 7: return "Reward: your relic reserve grows.";
+    case 8: return "Reward: the next route is safer.";
+    case 9: return "Reward: Reliquary Reserve grants +140 Energy and +1 Energy gain.";
+    case 10: return "Reward: the trial accepts your payment.";
+    case 11: return "Reward: the second blade strengthens the route.";
+    case 12: return "Reward: Ember Temper grants +80 Range.";
+    case 13: return "Reward: the Veil is nearly bound.";
+    case 14: return "Reward: Veil Reflex grants -12 ms Shot CD.";
+    case 15: return "Reward: Dark Gate Opened grants +90 Vitality and +10 Damage.";
+    default: return "Reward: free hunt.";
+    }
+
     if (Localization::isRussian())
     {
         switch (stageIndex)

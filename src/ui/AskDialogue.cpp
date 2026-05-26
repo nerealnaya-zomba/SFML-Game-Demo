@@ -1,6 +1,7 @@
 #include <AskDialogue.h>
 #include <Localization.h>
 
+#include <algorithm>
 #include <utility>
 
 AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, sf::RenderWindow& window)
@@ -13,7 +14,7 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
 
     yesButton = tgui::Button::create();
     yesButton->onClick(onYesClick);
-    yesButton->setSize(size.x / 5, size.y / 3);
+    yesButton->setSize(size.x / 3.2f, size.y / 4.2f);
     yesButton->setOrigin(0.5, 0.5);
     yesButton->setText(Localization::isRussian() ? Localization::tr("dialog.yes") : "Yes");
     yesButton->setTextSize(characterSize);
@@ -32,7 +33,7 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
 
     noButton = tgui::Button::create();
     noButton->onClick(onNoClick);
-    noButton->setSize(size.x / 5, size.y / 3);
+    noButton->setSize(size.x / 3.2f, size.y / 4.2f);
     noButton->setOrigin(0.5, 0.5);
     noButton->setText(Localization::isRussian() ? Localization::tr("dialog.no") : "No");
     noButton->setTextSize(characterSize);
@@ -52,6 +53,8 @@ AskDialogue::AskDialogue(sf::Vector2f pos, sf::Vector2f size, std::string text, 
     label = tgui::Label::create();
     label->setTextSize(characterSize);
     label->setText(text);
+    label->setMaximumTextWidth(std::max(80.f, size.x - 56.f));
+    label->setHorizontalAlignment(tgui::HorizontalAlignment::Center);
     label->setOrigin(0.5, 0.5);
     label->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
     label->getRenderer()->setTextColor(BASE_LABEL_TEXT_COLOR);
@@ -148,11 +151,18 @@ void AskDialogue::refreshLayout()
     setRectangleOriginToMiddle(mainRect_m);
     mainRect_m.setPosition(center);
 
-    const sf::Vector2f buttonSize = {desiredSize_.x / 5.f, desiredSize_.y / 3.f};
+    const float labelWidth = std::max(80.f, desiredSize_.x - 56.f);
+    const float labelHeight = std::max(48.f, desiredSize_.y * 0.42f);
+    label->setMaximumTextWidth(labelWidth);
+    label->setSize(labelWidth, labelHeight);
+    label->setTextSize(desiredSize_.x >= 500.f ? 24 : characterSize);
+    label->setPosition(center.x, center.y - desiredSize_.y * 0.14f);
+
+    const sf::Vector2f buttonSize = {desiredSize_.x * 0.32f, desiredSize_.y * 0.24f};
     yesButton->setSize(buttonSize.x, buttonSize.y);
     noButton->setSize(buttonSize.x, buttonSize.y);
-    yesButton->setPosition(center.x - desiredSize_.x * 0.24f, center.y + desiredSize_.y * 0.22f);
-    noButton->setPosition(center.x + desiredSize_.x * 0.24f, center.y + desiredSize_.y * 0.22f);
-
-    label->setPosition(center.x, center.y - desiredSize_.y * 0.16f);
+    yesButton->setTextSize(desiredSize_.x >= 500.f ? 24 : characterSize);
+    noButton->setTextSize(desiredSize_.x >= 500.f ? 24 : characterSize);
+    yesButton->setPosition(center.x - desiredSize_.x * 0.22f, center.y + desiredSize_.y * 0.24f);
+    noButton->setPosition(center.x + desiredSize_.x * 0.22f, center.y + desiredSize_.y * 0.24f);
 }

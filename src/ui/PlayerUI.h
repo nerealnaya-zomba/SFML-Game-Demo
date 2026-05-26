@@ -6,6 +6,7 @@
 #include<Player.h>
 
 #include<memory>
+#include<string>
 #include<vector>
 
 // Cooldown
@@ -136,6 +137,9 @@ private:
     sf::Text statsWeaponText;
     sf::Text statsHintText;
     std::vector<StatLineVisual> statLines;
+    std::string statsTextSignature_;
+    std::string statsHintSignature_;
+    std::string statsWeaponSignature_;
     bool statsPanelVisible_ = false;
     bool statsToggleKeyDown_ = false;
     float statsPanelReveal_ = 0.f;
@@ -174,6 +178,10 @@ private:
     sf::Text objectiveToastTitleText;
     sf::Text objectiveToastBodyText;
     sf::Clock objectiveToastClock;
+    std::string objectiveTextSignature_;
+    std::string objectiveProgressSignature_;
+    std::string objectiveHintSignature_;
+    std::string objectiveToastSignature_;
     std::string previousObjectiveChapter_;
     std::string previousObjectiveTask_;
     bool objectiveToastVisible_ = false;
@@ -218,6 +226,10 @@ private:
     sf::Text inventoryHintText;
 
     std::vector<InventorySlotVisual> inventorySlots;
+    std::string inventoryStaticTextSignature_;
+    std::string inventoryIconSignature_;
+    std::string inventoryGoldSignature_;
+    std::string inventoryWeaponSignature_;
     bool inventoryPanelVisible_ = false;
     bool inventoryToggleKeyDown_ = false;
     float inventoryPanelReveal_ = 0.f;

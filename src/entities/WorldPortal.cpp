@@ -78,12 +78,16 @@ WorldPortal::WorldPortal(
 
 void WorldPortal::updateInteractionState()
 {
+    const bool playerInActivationArea = player_ != nullptr &&
+        (config_.hasActivationArea
+            ? config_.activationArea.contains(player_->getCenterPosition())
+            : isInAreaOfInteraction(player_->getCenterPosition()));
     isCanInteract =
         player_ != nullptr
         && !player_->isControlsBlocked
         && !player_->isMiniLocationTransitionActive()
         && !player_->isCDMenuOpened()
-        && isInAreaOfInteraction(player_->getCenterPosition());
+        && playerInActivationArea;
 }
 
 void WorldPortal::updateVisuals()
@@ -178,7 +182,7 @@ bool WorldPortal::activate()
                     return manager_->teleportPlayerToLevelPosition(target.levelId, *target.spawnPosition);
                 }
 
-                return manager_->goToLevel(target.levelId, true);
+                return manager_->teleportPlayerToLevelSpawn(target.levelId);
             },
             portalCenter,
             config_.accentColor

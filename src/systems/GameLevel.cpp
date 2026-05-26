@@ -38,6 +38,43 @@ namespace
 {
 constexpr sf::Vector2f kMiniLocationPortalScale{0.22f, 0.33f};
 constexpr sf::Vector2f kWorldNameplateScale{0.30f, 0.30f};
+
+std::string lowercaseAscii(std::string value)
+{
+    std::transform(value.begin(), value.end(), value.begin(), [](const unsigned char character) {
+        return static_cast<char>(std::tolower(character));
+    });
+    return value;
+}
+
+Type parseBackgroundType(const nlohmann::json& value)
+{
+    if (value.is_number_integer())
+    {
+        return value.get<int>() == 1 ? Type::SingleBackground : Type::RepeatedBackgroundXY;
+    }
+
+    if (!value.is_string())
+    {
+        return Type::RepeatedBackgroundXY;
+    }
+
+    const std::string typeName = lowercaseAscii(value.get<std::string>());
+    if (typeName == "single")
+    {
+        return Type::SingleBackground;
+    }
+    if (typeName == "repeatedx" || typeName == "repeated_x")
+    {
+        return Type::RepeatedBackgroundX;
+    }
+    if (typeName == "repeatedy" || typeName == "repeated_y")
+    {
+        return Type::RepeatedBackgroundY;
+    }
+
+    return Type::RepeatedBackgroundXY;
+}
 constexpr std::array<const char*, 20> kWorldNameplateTextures{
     "nameplate_01.png",
     "nameplate_02.png",
@@ -69,12 +106,12 @@ std::string localizeDataText(const std::string& text)
     }
 
     static const std::unordered_map<std::string, std::string> translations = {
-        {"Ashwake Causeway", "Пепельная дамба"},
-        {"Obsidian Rookery", "Обсидиановое гнездовье"},
-        {"Crimson Nave", "Багровый неф"},
-        {"Bone Reliquary", "Костяной реликварий"},
-        {"Trial of Embers", "Испытание углей"},
-        {"The Returning Veil", "Возвращающаяся вуаль"},
+        {"Veilfall Cascades", "Водопады Вуали"},
+        {"Skybound Spires", "Небесные шпили"},
+        {"Sunset Bastion", "Закатный бастион"},
+        {"Grave Hollow", "Могильная лощина"},
+        {"Ruins of the Elder City", "Руины старого города"},
+        {"Aurora Nightpeaks", "Ночные пики Авроры"},
         {"Opening climb", "Первый подъем"},
         {"The first ascent is gentle. Use it to settle movement, camera rhythm and your opening shots.", "Первый подъем мягкий. Используйте его, чтобы привыкнуть к движению, ритму камеры и первым выстрелам."},
         {"Hunter's bottleneck", "Узкое место охотника"},
@@ -374,6 +411,17 @@ nlohmann::json withOffsetPosition(nlohmann::json object, const sf::Vector2f offs
         const sf::Vector2f position = readVector2f(object["Position"]);
         object["Position"] = nlohmann::json::array({position.x + offset.x, position.y + offset.y});
     }
+    if (object.contains("ActivationArea") && object["ActivationArea"].is_array())
+    {
+        sf::FloatRect activationArea = readRect(object["ActivationArea"]);
+        activationArea.position += offset;
+        object["ActivationArea"] = nlohmann::json::array({
+            activationArea.position.x,
+            activationArea.position.y,
+            activationArea.size.x,
+            activationArea.size.y
+        });
+    }
     if (object.contains("Target") && object["Target"].is_object())
     {
         auto& target = object["Target"];
@@ -418,21 +466,8 @@ sf::Vector2f readMiniLocationPoint(const nlohmann::json& object, const char* key
 
 sf::Vector2f miniLocationParallaxReferencePoint(const nlohmann::json& location, const sf::FloatRect& bounds)
 {
-    if (location.contains("SpawnPosition") && location["SpawnPosition"].is_array())
-    {
-        return bounds.position + readVector2f(
-            location["SpawnPosition"],
-            {bounds.size.x * 0.5f, bounds.size.y - 42.f}
-        );
-    }
-
-    const nlohmann::json entryData = location.value("Entry", nlohmann::json::object());
-    return readMiniLocationPoint(
-        entryData,
-        "DestinationSupport",
-        bounds,
-        {bounds.position.x + bounds.size.x * 0.5f, bounds.position.y + bounds.size.y - 42.f}
-    );
+    (void)location;
+    return bounds.getCenter();
 }
 
 nlohmann::json withMiniLocationDecorationPosition(nlohmann::json object, const sf::Vector2f origin, const sf::FloatRect& bounds, const sf::Vector2f parallaxReferencePoint)
@@ -468,12 +503,17 @@ void appendMiniLocationDeadAreas(nlohmann::json& target, const nlohmann::json& l
         target["DeadAreas"] = nlohmann::json::array();
     }
 
+    const std::string miniLocationId = location.value("Id", location.value("Title", std::string{}));
     if (location.contains("DeadAreas") && location["DeadAreas"].is_array())
     {
         for (auto deadArea : location["DeadAreas"])
         {
             const sf::FloatRect rect = offsetRect(readRect(deadArea.value("Rect", nlohmann::json::array())), origin);
             deadArea["Rect"] = nlohmann::json::array({rect.position.x, rect.position.y, rect.size.x, rect.size.y});
+            if (!miniLocationId.empty())
+            {
+                deadArea["MiniLocationId"] = miniLocationId;
+            }
             target["DeadAreas"].push_back(deadArea);
         }
     }
@@ -482,6 +522,10 @@ void appendMiniLocationDeadAreas(nlohmann::json& target, const nlohmann::json& l
     {
         auto deadArea = location["Hazard"];
         deadArea["Id"] = deadArea.value("Id", std::string{"legacy_hazard"});
+        if (!miniLocationId.empty())
+        {
+            deadArea["MiniLocationId"] = miniLocationId;
+        }
         target["DeadAreas"].push_back(deadArea);
     }
 }
@@ -843,6 +887,18 @@ void addMiniLocationSeal(Platform& platforms, const float x, const float topY, c
     {
         platforms.addPlatform({x, currentY}, "Invisible-wall");
     }
+}
+
+void addBarrierRectCollision(Platform& platforms, const sf::FloatRect& rect)
+{
+    const float left = rect.position.x;
+    const float right = rect.position.x + std::max(rect.size.x, 1.f);
+    constexpr float stepX = 28.f;
+    for (float x = left; x <= right; x += stepX)
+    {
+        addMiniLocationSeal(platforms, x, rect.position.y, rect.position.y + rect.size.y);
+    }
+    addMiniLocationSeal(platforms, right, rect.position.y, rect.position.y + rect.size.y);
 }
 }
 
@@ -1318,6 +1374,11 @@ bool GameLevelManager::teleportPlayerToLevelPosition(const std::string& levelNam
     return teleportPlayerToCurrentLevelPosition(pos);
 }
 
+bool GameLevelManager::teleportPlayerToLevelSpawn(const std::string& levelName)
+{
+    return goToLevel(levelName, true);
+}
+
 void GameLevelManager::attachPlayer(Player& p)
 {
     player = &p;
@@ -1346,6 +1407,7 @@ void GameLevelManager::registerDeathRecovery(const sf::Vector2f& position, int g
         return;
     }
 
+    deathRecoveries.clear();
     deathRecoveries.push_back(std::make_unique<DeathRecovery>(
         *data,
         levelIt->second->levelName,
@@ -1659,8 +1721,53 @@ void GameLevel::drawInteractiveOverlays()
     }
 }
 
+const GameLevel::GeneratedMiniLocation* GameLevel::activeMiniLocation() const
+{
+    if (!activeMiniLocationId_.has_value())
+    {
+        return nullptr;
+    }
+
+    for (const auto& generatedLocation : generatedMiniLocations)
+    {
+        if (generatedLocation.id == *activeMiniLocationId_ || generatedLocation.title == *activeMiniLocationId_)
+        {
+            return &generatedLocation;
+        }
+    }
+
+    return nullptr;
+}
+
 void GameLevel::updateMiniLocationHazards()
 {
+    const GeneratedMiniLocation* location = activeMiniLocation();
+
+    const auto hazardApplies = [location](const GeneratedMiniHazard& hazard) {
+        if (!hazard.miniLocationId.empty())
+        {
+            return location != nullptr &&
+                (hazard.miniLocationId == location->id || hazard.miniLocationId == location->title);
+        }
+        return location == nullptr;
+    };
+
+    if (enemyManager)
+    {
+        for (const auto& hazard : generatedMiniHazards)
+        {
+            if (!hazardApplies(hazard))
+            {
+                continue;
+            }
+
+            enemyManager->killEnemiesInRect({
+                {hazard.leftX, hazard.topY},
+                {std::max(0.f, hazard.rightX - hazard.leftX), std::max(0.f, hazard.bottomY - hazard.topY)}
+            });
+        }
+    }
+
     if (!player || !player->isAlive || player->isPlayingDieAnimation)
     {
         return;
@@ -1670,6 +1777,11 @@ void GameLevel::updateMiniLocationHazards()
 
     for (const auto& hazard : generatedMiniHazards)
     {
+        if (!hazardApplies(hazard))
+        {
+            continue;
+        }
+
         if (feet.x >= hazard.leftX && feet.x <= hazard.rightX &&
             feet.y >= hazard.topY && feet.y <= hazard.bottomY)
         {
@@ -1678,18 +1790,12 @@ void GameLevel::updateMiniLocationHazards()
         }
     }
 
-    for (const auto& generatedLocation : generatedMiniLocations)
+    if (location != nullptr &&
+        feet.x >= location->activeLeftX && feet.x <= location->activeRightX &&
+        feet.y >= location->deathY)
     {
-        if (feet.x < generatedLocation.activeLeftX || feet.x > generatedLocation.activeRightX)
-        {
-            continue;
-        }
-
-        if (feet.y >= generatedLocation.deathY)
-        {
-            player->forceKill();
-            return;
-        }
+        player->forceKill();
+        return;
     }
 }
 
@@ -1932,7 +2038,7 @@ void GameLevel::initializeDecorations(const nlohmann::json& data)
             decoration["Color"][3]
         };
         const sf::Vector2f parallaxFactor = {decoration["ParallaxFactor"][0], decoration["ParallaxFactor"][1]};
-        const int zDepth = decoration["Z"];
+        const int zDepth = decoration.value("Z", 0);
         const float rotation = decoration.value("Rotation", 0.f);
         std::optional<DecorationMiniLocationContext> miniLocationContext;
         const std::string miniLocationId = decoration.value("MiniLocationId", std::string{});
@@ -1956,9 +2062,18 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
 {
     try
     {
+        if (!data.contains("Background") || !data["Background"].is_array())
+        {
+            background.clear();
+            return;
+        }
+
         const std::string backgroundTheme = data.contains("Presets")
             ? data["Presets"].value("BackgroundTheme", std::string{})
             : std::string{};
+        const float backgroundTileOffsetY = data.contains("Presets")
+            ? data["Presets"].value("BackgroundTileOffsetY", 0.f)
+            : 0.f;
         const auto& backgroundLayers = data["Background"];
         const std::size_t layerCount = backgroundLayers.size();
         std::vector<std::pair<std::string, sf::Vector2i>> occupiedSingleBackgroundTiles;
@@ -1978,7 +2093,13 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
                 backgroundData["ParallaxFactor"][1]
             };
             const std::string name = backgroundData["BgName"];
-            const Type type = backgroundData["Type"];
+            if (this->data->backgroundTextures.find(name) == this->data->backgroundTextures.end())
+            {
+                std::cerr << "Level " << levelName << " references missing background texture: " << name << '\n';
+                ++layerIndex;
+                continue;
+            }
+            const Type type = parseBackgroundType(backgroundData.value("Type", nlohmann::json{}));
             const sf::Vector2i tileIndex = tileIndexForPosition(position);
             if (type == Type::SingleBackground)
             {
@@ -2001,6 +2122,7 @@ void GameLevel::initializeBackground(const nlohmann::json& data)
             sceneConfig.themeName = backgroundData.value("Theme", backgroundTheme);
             sceneConfig.layerIndex = layerIndex;
             sceneConfig.layerCount = layerCount;
+            sceneConfig.tileOffsetY = backgroundTileOffsetY;
 
             background.push_back(
                 std::make_shared<Background>(
@@ -2055,7 +2177,12 @@ void GameLevel::initializeGround(const nlohmann::json& data)
     for (const auto& groundData : data["Ground"])
     {
         const std::string groundName = groundData["GroundName"];
-        const sf::Vector2u position = {groundData["Points"][0], groundData["Points"][1]};
+        const int rawPointBegin = groundData["Points"][0].get<int>();
+        const int rawPointEnd = groundData["Points"][1].get<int>();
+        const sf::Vector2u position = {
+            static_cast<unsigned int>(std::clamp(rawPointBegin, 0, std::max(size.x, 0))),
+            static_cast<unsigned int>(std::clamp(rawPointEnd, 0, std::max(size.x, 0)))
+        };
         const unsigned int yPos = groundData["YPos"];
         const float offset = groundData.contains("Offset")
             ? groundData["Offset"].get<float>()
@@ -2405,7 +2532,7 @@ void GameLevel::initializeExplicitMiniLocations(const nlohmann::json& data)
             }
             if (barrierData.value("BlocksPlayer", true))
             {
-                addMiniLocationSeal(*platforms, barrierRect.position.x, barrierRect.position.y, barrierRect.position.y + barrierRect.size.y);
+                addBarrierRectCollision(*platforms, barrierRect);
             }
             generatedMiniBarriers.push_back({
                 barrierRect.position.x + barrierRect.size.x * 0.5f,
@@ -2466,7 +2593,8 @@ void GameLevel::initializeExplicitMiniLocations(const nlohmann::json& data)
                     : sf::Color(255, 182, 96, 255),
                 hazardData.contains("EmberColor")
                     ? readColor(hazardData["EmberColor"], sf::Color(255, 236, 188, 255))
-                    : sf::Color(255, 236, 188, 255)
+                    : sf::Color(255, 236, 188, 255),
+                location.id
             });
 
             if (!locationData.contains("DeathY"))
@@ -2492,6 +2620,71 @@ void GameLevel::initializeExplicitMiniLocations(const nlohmann::json& data)
     }
 
     size.x = std::max(size.x, static_cast<int>(std::ceil(farthestRightX)));
+}
+
+void GameLevel::initializeWorldHazards(const nlohmann::json& data)
+{
+    if (data.contains("DeadAreas") && data["DeadAreas"].is_array())
+    {
+        for (const auto& deadAreaData : data["DeadAreas"])
+        {
+            if (!deadAreaData.value("Enabled", true) ||
+                !deadAreaData.value("MiniLocationId", std::string{}).empty())
+            {
+                continue;
+            }
+
+            const sf::FloatRect rect = readRect(deadAreaData.value("Rect", nlohmann::json::array()));
+            if (rect.size.x <= 0.f || rect.size.y <= 0.f)
+            {
+                continue;
+            }
+
+            generatedMiniHazards.push_back({
+                rect.position.x,
+                rect.position.x + rect.size.x,
+                rect.position.y,
+                rect.position.y + rect.size.y,
+                randomFloat(0.f, 6.28318f),
+                deadAreaData.contains("CoreColor") ? readColor(deadAreaData["CoreColor"], sf::Color(242, 104, 56, 255)) : sf::Color(242, 104, 56, 255),
+                deadAreaData.contains("GlowColor") ? readColor(deadAreaData["GlowColor"], sf::Color(255, 182, 96, 255)) : sf::Color(255, 182, 96, 255),
+                deadAreaData.contains("EmberColor") ? readColor(deadAreaData["EmberColor"], sf::Color(255, 236, 188, 255)) : sf::Color(255, 236, 188, 255),
+                std::string{}
+            });
+        }
+    }
+
+    if (platforms && data.contains("Barriers") && data["Barriers"].is_array())
+    {
+        for (const auto& barrierData : data["Barriers"])
+        {
+            if (!barrierData.value("Enabled", true) ||
+                !barrierData.value("MiniLocationId", std::string{}).empty())
+            {
+                continue;
+            }
+
+            const sf::FloatRect rect = readRect(barrierData.value("Rect", nlohmann::json::array()));
+            if (rect.size.x <= 0.f || rect.size.y <= 0.f)
+            {
+                continue;
+            }
+
+            if (barrierData.value("BlocksPlayer", true))
+            {
+                addBarrierRectCollision(*platforms, rect);
+            }
+            generatedMiniBarriers.push_back({
+                rect.position.x + rect.size.x * 0.5f,
+                rect.position.y,
+                rect.position.y + rect.size.y,
+                rect.size.x,
+                randomFloat(0.f, 6.28318f),
+                barrierData.contains("CoreColor") ? readColor(barrierData["CoreColor"], sf::Color(130, 214, 184, 255)) : sf::Color(130, 214, 184, 255),
+                barrierData.contains("GlowColor") ? readColor(barrierData["GlowColor"], sf::Color(156, 238, 208, 255)) : sf::Color(156, 238, 208, 255)
+            });
+        }
+    }
 }
 
 void GameLevel::generateMiniLocations()
@@ -2665,6 +2858,7 @@ void GameLevel::generateMiniLocations()
         const float deathY = std::min(static_cast<float>(size.y) - 24.f, roomFloorY + randomFloat(152.f, 184.f));
         const float hazardTopY = std::max(roomFloorY + 88.f, deathY - 20.f);
         const float hazardBottomY = static_cast<float>(size.y) + 56.f;
+        const std::string miniLocationId = "procedural_mini_location_" + std::to_string(index + 1u);
 
         extensionCursor += roomWidth + kPocketRoomSpacing + randomFloat(80.f, 180.f);
         size.x = std::max(size.x, static_cast<int>(std::ceil(roomX + roomWidth + 420.f)));
@@ -2707,7 +2901,8 @@ void GameLevel::generateMiniLocations()
             randomFloat(0.f, 6.28318f),
             sf::Color(242, 104, 56, 255),
             sf::Color(255, 182, 96, 255),
-            sf::Color(255, 236, 188, 255)
+            sf::Color(255, 236, 188, 255),
+            miniLocationId
         });
 
         for (float floorX = roomX + 28.f; floorX <= roomX + roomWidth - 330.f; floorX += 320.f)
@@ -2794,7 +2989,7 @@ void GameLevel::generateMiniLocations()
 
         GeneratedMiniLocation generatedLocation;
         generatedLocation.title = localizeDataText(theme.title);
-        generatedLocation.id = "procedural_mini_location_" + std::to_string(index + 1u);
+        generatedLocation.id = miniLocationId;
         generatedLocation.cameraBounds = {{roomLeftSealX - 28.f, 0.f}, {roomRightSealX - roomLeftSealX + 56.f, static_cast<float>(size.y)}};
         generatedLocation.entranceTexture = theme.entranceTexture;
         generatedLocation.exitTexture = theme.exitTexture;
@@ -2916,6 +3111,8 @@ void GameLevel::initializePortals(const nlohmann::json& data)
         config.color = readColor(portalData.value("Color", nlohmann::json::array()), sf::Color(212, 236, 255, 245));
         config.accentColor = readColor(portalData.value("AccentColor", nlohmann::json::array()), sf::Color(112, 208, 255, 255));
         config.interactRadius = portalData.value("InteractRadius", 130.f);
+        config.hasActivationArea = portalData.contains("ActivationArea") && portalData["ActivationArea"].is_array();
+        config.activationArea = readRect(portalData.value("ActivationArea", nlohmann::json::array()));
         config.portalTexture = portalData.value("PortalTexture", portalData.value("Texture", std::string{"portalGreen"}));
         config.prompt = portalData.value("Prompt", std::string{"Enter portal"});
         config.title = portalData.value("Title", std::string{"World Portal"});
@@ -3258,6 +3455,7 @@ void GameLevel::loadLevelData(const LevelDescriptor& descriptor)
     size = sf::Vector2i(loadedLevelData["Presets"]["Size"][0], loadedLevelData["Presets"]["Size"][1]);
     primaryWorldWidth = loadedLevelData["Presets"].value("MainWorldWidth", size.x);
     primaryWorldWidth = std::clamp(primaryWorldWidth, 0, size.x);
+    primaryWorldCameraLeftEdge = 0.f;
     primaryWorldCameraRightEdge = static_cast<float>(primaryWorldWidth);
 
     initializePlatforms(loadedLevelData);
@@ -3266,6 +3464,7 @@ void GameLevel::loadLevelData(const LevelDescriptor& descriptor)
     initializeGround(loadedLevelData);
     if (ground)
     {
+        primaryWorldCameraLeftEdge = std::max(0.f, ground->getSurfaceBounds().position.x);
         primaryWorldCameraRightEdge = std::min(
             ground->getCameraClampRight(),
             static_cast<float>(primaryWorldWidth > 0 ? primaryWorldWidth : size.x)
@@ -3294,6 +3493,7 @@ void GameLevel::loadLevelData(const LevelDescriptor& descriptor)
         generatedMiniBarriers.clear();
         generatedMiniHazards.clear();
     }
+    initializeWorldHazards(loadedLevelData);
 
     enemyManager.reset();
     tryInitializeEnemyManager();
@@ -3380,35 +3580,46 @@ sf::Vector2i GameLevel::getLevelSize() const
 
 sf::FloatRect GameLevel::getCameraBoundsForPosition(const sf::Vector2f& position) const
 {
-    if (activeMiniLocationId_.has_value())
+    if (const GeneratedMiniLocation* generatedLocation = activeMiniLocation())
     {
-        for (const auto& generatedLocation : generatedMiniLocations)
-        {
-            if (generatedLocation.id == *activeMiniLocationId_ || generatedLocation.title == *activeMiniLocationId_)
-            {
-                return generatedLocation.cameraBounds;
-            }
-        }
+        return generatedLocation->cameraBounds;
     }
 
-    /*
-    for (const auto& generatedLocation : generatedMiniLocations)
-    {
-        if (position.x >= generatedLocation.activeLeftX && position.x <= generatedLocation.activeRightX)
-        {
-            return sf::FloatRect(
-                {generatedLocation.activeLeftX, 0.f},
-                {generatedLocation.activeRightX - generatedLocation.activeLeftX, static_cast<float>(size.y)}
-            );
-        }
-    }
-    */
+    (void)position;
 
     const float mainWorldRight = std::max(
         primaryWorldCameraRightEdge > 0.f ? primaryWorldCameraRightEdge : static_cast<float>(primaryWorldWidth),
         0.f
     );
-    return sf::FloatRect({0.f, 0.f}, {mainWorldRight, static_cast<float>(size.y)});
+    const float levelHeight = static_cast<float>(std::max(size.y, 1));
+    const float levelTop = std::min(0.f, static_cast<float>(WINDOW_HEIGHT) - levelHeight);
+    const float mainWorldLeft = std::clamp(primaryWorldCameraLeftEdge, 0.f, mainWorldRight);
+    return sf::FloatRect({mainWorldLeft, levelTop}, {std::max(1.f, mainWorldRight - mainWorldLeft), levelHeight});
+}
+
+sf::FloatRect GameLevel::getWorldObjectCameraBoundsForPosition(const sf::Vector2f& position) const
+{
+    if (const GeneratedMiniLocation* generatedLocation = activeMiniLocation())
+    {
+        const float margin = 96.f;
+        const sf::FloatRect activeBounds{
+            {generatedLocation->cameraBounds.position.x - margin, generatedLocation->cameraBounds.position.y - margin},
+            {generatedLocation->cameraBounds.size.x + margin * 2.f, generatedLocation->cameraBounds.size.y + margin * 2.f}
+        };
+        if (activeBounds.contains(position))
+        {
+            return generatedLocation->cameraBounds;
+        }
+    }
+
+    const float mainWorldRight = std::max(
+        primaryWorldCameraRightEdge > 0.f ? primaryWorldCameraRightEdge : static_cast<float>(primaryWorldWidth),
+        0.f
+    );
+    const float levelHeight = static_cast<float>(std::max(size.y, 1));
+    const float levelTop = std::min(0.f, static_cast<float>(WINDOW_HEIGHT) - levelHeight);
+    const float mainWorldLeft = std::clamp(primaryWorldCameraLeftEdge, 0.f, mainWorldRight);
+    return sf::FloatRect({mainWorldLeft, levelTop}, {std::max(1.f, mainWorldRight - mainWorldLeft), levelHeight});
 }
 
 bool GameLevel::isMiniLocationActive() const

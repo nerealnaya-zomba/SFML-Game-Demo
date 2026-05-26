@@ -77,6 +77,7 @@ private:
     bool isPatrolPaused = false;
     bool hasBlockedChaseLeft_ = false;
     bool hasBlockedChaseRight_ = false;
+    int customGoldReward_ = 0;
     
     skeletonAction action_ = IDLE;
     skeletonAction pendingPatrolAction_ = WALKRIGHT;
@@ -247,6 +248,8 @@ private:
     // Физика и коллизии
     void checkGroundCollision(Ground& ground);
     void checkPlatformCollision(Platform& platforms);
+    bool isLeavingPlatformEdge(float direction, float lookAhead = 16.f) const;
+    void keepOnCurrentPlatform();
     void checkBulletCollision(Player& player);
     void applyFriction(float& walkSpeed, float friction);
 
@@ -271,6 +274,7 @@ public:
     int getHP();
     sf::Vector2f getPosition();
     void receiveBulletHit(const Bullet& bullet, bool splashHit = false);
+    void applySpawnerOverrides(int hpOverride, int damageOverride, int goldRewardOverride);
 
     //Setters
     void attachPlayer(Player& p);

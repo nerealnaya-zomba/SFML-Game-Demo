@@ -38,6 +38,8 @@ public:
         sf::Color color = sf::Color(212, 236, 255, 245);
         sf::Color accentColor = sf::Color(112, 208, 255, 255);
         float interactRadius = 130.f;
+        bool hasActivationArea = false;
+        sf::FloatRect activationArea{};
         std::string portalTexture = "portalGreen";
         std::string prompt = "Enter portal";
         std::string title = "World Portal";

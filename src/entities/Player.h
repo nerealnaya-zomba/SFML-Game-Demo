@@ -430,6 +430,7 @@ private:
     const sf::RectangleShape* supportPlatform_ = nullptr;
     sf::Vector2f supportPlatformPosition_{0.f, 0.f};
     bool jumpKeyWasDown_ = false;
+    bool jumpReleaseCutAvailable_ = false;
     Item::Stats inventoryStatsBonus_{};
     std::vector<OwnedItem> inventory_;
     std::vector<OwnedItem> arsenal_;
