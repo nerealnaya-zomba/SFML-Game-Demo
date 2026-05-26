@@ -859,6 +859,29 @@ void BestiaryEnemy::updateGroundPhysics()
     const bool wasOnGround = isOnGround_;
     isOnGround_ = false;
 
+    if (supportPlatform_ != nullptr && platform_ != nullptr && state_ != State::Die && velocityY_ >= -0.05f)
+    {
+        auto& platformRects = platform_->getRects();
+        const auto supportIt = std::find_if(
+            platformRects.begin(),
+            platformRects.end(),
+            [this](const std::shared_ptr<sf::RectangleShape>& rect) {
+                return rect && rect.get() == supportPlatform_;
+            }
+        );
+
+        if (supportIt != platformRects.end())
+        {
+            const sf::Vector2f currentSupportPosition = (*supportIt)->getPosition();
+            rect_->move(currentSupportPosition - supportPlatformPosition_);
+        }
+        else
+        {
+            supportPlatform_ = nullptr;
+            supportPlatformPosition_ = {0.f, 0.f};
+        }
+    }
+
     if (wasOnGround)
     {
         keepGroundEnemyOnPlatform();
@@ -890,7 +913,12 @@ void BestiaryEnemy::updateGroundPhysics()
     }
 
     const bool standingOnGround = collision::isStandingOnGround(*rect_, ground_->getRect());
-    const bool standingOnPlatform = collision::findSupportingPlatform(*rect_, platform_->getRects()) != nullptr;
+    const sf::RectangleShape* currentSupport = collision::findSupportingPlatform(*rect_, platform_->getRects());
+    if (currentSupport == nullptr && moveResult.supportRect != nullptr)
+    {
+        currentSupport = moveResult.supportRect;
+    }
+    const bool standingOnPlatform = currentSupport != nullptr;
     isOnGround_ = moveResult.landed || standingOnGround || standingOnPlatform;
 
     if (isOnGround_)
@@ -927,6 +955,12 @@ void BestiaryEnemy::updateGroundPhysics()
     }
 
     syncSpriteToRect();
+
+    supportPlatform_ = currentSupport;
+    if (supportPlatform_ != nullptr)
+    {
+        supportPlatformPosition_ = supportPlatform_->getPosition();
+    }
 }
 
 void BestiaryEnemy::checkGroundCollision()

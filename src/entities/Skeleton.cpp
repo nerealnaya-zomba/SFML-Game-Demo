@@ -6,6 +6,8 @@
 #include <EnemyManager.h>
 #include<GameLevel.h>
 
+#include <algorithm>
+
 namespace
 {
 constexpr float kPi = 3.14159265f;
@@ -1054,6 +1056,29 @@ void Skeleton::updatePhysics() {
     updateVisualEffects();
     if(!portal->getIsHalfPassed()) return;
 
+    if (supportPlatform_ != nullptr && platform_ != nullptr && !isPlayingDieAnimation && fallingSpeed >= -0.05f)
+    {
+        auto& platformRects = platform_->getRects();
+        const auto supportIt = std::find_if(
+            platformRects.begin(),
+            platformRects.end(),
+            [this](const std::shared_ptr<sf::RectangleShape>& rect) {
+                return rect && rect.get() == supportPlatform_;
+            }
+        );
+
+        if (supportIt != platformRects.end())
+        {
+            const sf::Vector2f currentSupportPosition = (*supportIt)->getPosition();
+            skeletonRect->move(currentSupportPosition - supportPlatformPosition_);
+        }
+        else
+        {
+            supportPlatform_ = nullptr;
+            supportPlatformPosition_ = {0.f, 0.f};
+        }
+    }
+
     keepOnCurrentPlatform();
     applyFriction(initialWalkSpeed, frictionForce);
     keepOnCurrentPlatform();
@@ -1084,7 +1109,12 @@ void Skeleton::updatePhysics() {
     }
 
     const bool standingOnGround = collision::isStandingOnGround(*skeletonRect, ground_->getRect());
-    const bool standingOnPlatform = collision::findSupportingPlatform(*skeletonRect, platform_->getRects()) != nullptr;
+    const sf::RectangleShape* currentSupport = collision::findSupportingPlatform(*skeletonRect, platform_->getRects());
+    if (currentSupport == nullptr && moveResult.supportRect != nullptr)
+    {
+        currentSupport = moveResult.supportRect;
+    }
+    const bool standingOnPlatform = currentSupport != nullptr;
     isFalling = !(moveResult.landed || standingOnGround || standingOnPlatform);
 
     if (isFalling) {
@@ -1115,6 +1145,12 @@ void Skeleton::updatePhysics() {
     if (HP_ > 0) checkBulletCollision(*player_);
     
     healthbar->update(HP_);
+
+    supportPlatform_ = currentSupport;
+    if (supportPlatform_ != nullptr)
+    {
+        supportPlatformPosition_ = supportPlatform_->getPosition();
+    }
 }
 
 // ========== АНИМАЦИИ ==========

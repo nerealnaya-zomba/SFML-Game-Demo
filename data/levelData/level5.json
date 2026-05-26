@@ -123,8 +123,8 @@
                 0.18
             ],
             "Position": [
-                5313.785400390625,
-                980.734130859375
+                4237.869140625,
+                957.7979736328125
             ],
             "Scale": [
                 0.52,
@@ -191,8 +191,8 @@
                 0.36
             ],
             "Position": [
-                3664.60400390625,
-                239.70114135742188
+                3815.97412109375,
+                313.84136962890625
             ],
             "Rotation": -2.0,
             "Scale": [
@@ -906,10 +906,10 @@
                 255
             ],
             "ActivationArea": [
-                5832.0,
-                812.0,
-                136.0,
-                176.0
+                4.2088623046875,
+                723.1287231445312,
+                219.48519897460938,
+                162.53472900390625
             ],
             "Color": [
                 212,
@@ -922,8 +922,8 @@
             "InteractRadius": 130.0,
             "PortalTexture": "portalGreen",
             "Position": [
-                5900,
-                900
+                112.6046142578125,
+                821.9012451171875
             ],
             "Prompt": "Enter portal",
             "Scale": [
@@ -932,10 +932,6 @@
             ],
             "Target": {
                 "LevelId": "level6.json",
-                "Position": [
-                    5900,
-                    900
-                ],
                 "Type": "Level"
             },
             "Title": "Portal 1"
@@ -950,8 +946,8 @@
         "MainWorldWidth": 6000,
         "MenuOrder": 5,
         "PlayerSpawn": [
-            62.81982421875,
-            791.6640625
+            5843.59423828125,
+            907.83251953125
         ],
         "Size": [
             6000,
@@ -964,20 +960,20 @@
     "Spawners": [
         {
             "ActivationArea": [
-                3802.128173828125,
-                756.1410522460938,
+                4459.2392578125,
+                753.1405639648438,
                 420.0,
                 300.0
             ],
             "ActivationMode": "OnEnter",
             "ActivationPadding": 120.0,
             "EnemyAmount": 3,
-            "EnemyDamage": 15,
-            "EnemyHP": 45,
+            "EnemyDamage": 45,
+            "EnemyHP": 80,
             "EnemyName": "VoidSlime",
             "EnemyPerSpawn": 1,
             "FirstSpawnDelayMs": 0,
-            "GoldReward": 15,
+            "GoldReward": 40,
             "SpawnArea": [
                 [
                     3868.062255859375,
@@ -1017,6 +1013,34 @@
                 ]
             ],
             "SpawnCooldown": 333
+        },
+        {
+            "ActivationArea": [
+                2570.949951171875,
+                651.641845703125,
+                420.0,
+                300.0
+            ],
+            "ActivationMode": "OnEnter",
+            "ActivationPadding": 120.0,
+            "EnemyAmount": 3,
+            "EnemyDamage": 37,
+            "EnemyHP": 44,
+            "EnemyName": "WraithBat",
+            "EnemyPerSpawn": 1,
+            "FirstSpawnDelayMs": 0,
+            "GoldReward": 46,
+            "SpawnArea": [
+                [
+                    2478.256591796875,
+                    2658.256591796875
+                ],
+                [
+                    702.8269653320312,
+                    802.8269653320312
+                ]
+            ],
+            "SpawnCooldown": 540
         }
     ]
 }

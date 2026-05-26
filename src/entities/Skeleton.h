@@ -256,6 +256,9 @@ private:
     // Данные
     void loadData();
 
+    const sf::RectangleShape* supportPlatform_ = nullptr;
+    sf::Vector2f supportPlatformPosition_{0.f, 0.f};
+
 public:
     Skeleton(GameData &gameData, EnemyManager& em, GameLevel& gl, sf::RenderWindow &window, Ground& ground, 
              Platform& platform, Player& player, std::string type, sf::Vector2f pos);

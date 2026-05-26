@@ -154,6 +154,8 @@ private:
     bool scorpionDeathPulseMidPlayed_ = false;
     bool scorpionDeathPulseLatePlayed_ = false;
     int customGoldReward_ = 0;
+    const sf::RectangleShape* supportPlatform_ = nullptr;
+    sf::Vector2f supportPlatformPosition_{0.f, 0.f};
 
     sf::Clock stateClock_{};
     sf::Clock attackCooldownClock_{};

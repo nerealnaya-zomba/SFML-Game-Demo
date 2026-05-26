@@ -1560,6 +1560,48 @@
                 "Type": "MiniLocation"
             },
             "Title": "Portal 1"
+        },
+        {
+            "AccentColor": [
+                112,
+                208,
+                255,
+                255
+            ],
+            "ActivationArea": [
+                3235.24169921875,
+                -762.9600219726563,
+                260.0,
+                260.0
+            ],
+            "Color": [
+                212,
+                236,
+                255,
+                245
+            ],
+            "EditorDrawOrder": 93,
+            "Id": "portal_2",
+            "InteractRadius": 130.0,
+            "PortalTexture": "portalGreen",
+            "Position": [
+                3365.58056640625,
+                -650.48828125
+            ],
+            "Prompt": "Enter portal",
+            "Scale": [
+                0.36000001430511475,
+                0.36000001430511475
+            ],
+            "Target": {
+                "LevelId": "level4.json",
+                "SpawnPosition": [
+                    3350.456298828125,
+                    736.931640625
+                ],
+                "Type": "Level"
+            },
+            "Title": "Portal 2"
         }
     ],
     "Presets": {

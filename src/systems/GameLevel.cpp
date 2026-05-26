@@ -600,10 +600,6 @@ WorldPortal::Target parseWorldPortalTarget(const nlohmann::json& portalData, con
     {
         target.type = WorldPortal::TargetType::Level;
         target.levelId = targetData.value("LevelId", std::string{});
-        if (targetData.contains("SpawnPosition"))
-        {
-            target.spawnPosition = readVector2f(targetData["SpawnPosition"]);
-        }
         return target;
     }
 
@@ -1371,6 +1367,18 @@ bool GameLevelManager::teleportPlayerToLevelPosition(const std::string& levelNam
     }
 
     exitCurrentMiniLocation();
+    const sf::Vector2i targetLevelSize = getCurrentLevelSize();
+    const float margin = 320.f;
+    const bool positionInsideTargetLevel =
+        pos.x >= -margin &&
+        pos.y >= -static_cast<float>(targetLevelSize.y) - margin &&
+        pos.x <= static_cast<float>(targetLevelSize.x) + margin &&
+        pos.y <= static_cast<float>(targetLevelSize.y) + margin;
+    if (!positionInsideTargetLevel)
+    {
+        return respawnPlayerAtCurrentSpawn();
+    }
+
     return teleportPlayerToCurrentLevelPosition(pos);
 }
 
